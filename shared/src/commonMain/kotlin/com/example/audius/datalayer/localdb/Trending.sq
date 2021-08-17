@@ -1,0 +1,14 @@
+CREATE TABLE Trending(
+   id TEXT NOT NULL PRIMARY KEY,
+   title TEXT NOT NULL,
+   favoriteCount INTEGER AS Int NOT NULL,
+   repostCount INTEGER AS Int NOT NULL
+);
+
+getTrendingList:
+SELECT id,title,favoriteCount,repostCount FROM Trending;
+
+upsertTrending {
+    INSERT OR REPLACE INTO Trending(id, title, favoriteCount, repostCount)
+    VALUES(:id, :title, :favoriteCount, :repostCount);
+}

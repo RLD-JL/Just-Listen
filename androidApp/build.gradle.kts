@@ -13,7 +13,14 @@ dependencies {
     implementation("androidx.compose.material:material:${rootProject.extra["compose_version"]}")
     implementation("androidx.compose.ui:ui-tooling-preview:${rootProject.extra["compose_version"]}")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:1.0.0-alpha07")
     implementation("androidx.activity:activity-compose:1.3.1")
+    implementation ("com.google.android.exoplayer:exoplayer:2.15.0")
+    implementation ("com.google.android.exoplayer:exoplayer-core:2.15.0")
+    implementation ("com.google.android.exoplayer:exoplayer-ui:2.15.0")
+    implementation("androidx.lifecycle:lifecycle-process:2.3.1")
+
+
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:${rootProject.extra["compose_version"]}")
     debugImplementation("androidx.compose.ui:ui-tooling:${rootProject.extra["compose_version"]}")
 }

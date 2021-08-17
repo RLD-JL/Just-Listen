@@ -2,7 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.audius.android">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+
     <application
+        android:name=".AudiusApp"
         android:allowBackup="false"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
