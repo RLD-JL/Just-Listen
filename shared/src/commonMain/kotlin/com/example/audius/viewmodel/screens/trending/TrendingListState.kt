@@ -5,6 +5,8 @@ import com.example.audius.datalayer.models.TrendingListModel
 
 data class TrendingListState(
     val isLoading: Boolean = false,
+    val playMusic: Boolean = true,
+    val songId: String ="",
     val trendingListItems: List<TrendingListItem> = emptyList()
 ): ScreenState
 

@@ -51,39 +51,4 @@ fun MyPlayer() {
 }
 
 
-@Composable
-fun VideoPlayer(sampleVideo: String ="https://discoveryprovider.audius2.prod-us-west-2.staked.cloud/v1/tracks/D7KyD/stream?app_name=EXAMPLEAPP") {
-
-    // This is the official way to access current context from Composable functions
-    val context = LocalContext.current
-
-    // Do not recreate the player everytime this Composable commits
-    val exoPlayer = remember {
-        SimpleExoPlayer.Builder(context).build()
-    }
-
-    // We only want to react to changes in sourceUrl.
-    // This effect will be executed at each commit phase if
-    // [sourceUrl] has changed.
-    LaunchedEffect(sampleVideo) {
-        val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(
-            context,
-            Util.getUserAgent(context, context.packageName)
-        )
-
-        val source = ProgressiveMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(MediaItem.fromUri(sampleVideo))
-
-        exoPlayer.setMediaSource(source)
-    }
-
-    // Gateway to traditional Android Views
-    AndroidView(
-        {
-            PlayerView(context).apply {
-                player = exoPlayer
-            }
-        }
-    )
-}
 
