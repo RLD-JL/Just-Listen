@@ -10,7 +10,6 @@ import com.example.audius.viewmodel.AudiusViewModel
 @Composable
 fun MainComposable(model: AudiusViewModel) {
     val appState by model.stateFlow.collectAsState()
-    println("yolo")
     val audiusNav = appState.getNavigation(model= model)
     audiusNav.Router()
 

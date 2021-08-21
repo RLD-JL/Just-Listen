@@ -15,24 +15,20 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester.Companion.createRefs
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import com.example.audius.android.R
+import coil.compose.rememberImagePainter
+import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.viewmodel.screens.trending.TrendingListItem
 import com.example.audius.viewmodel.screens.trending.TrendingListState
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
@@ -40,7 +36,7 @@ import com.google.android.exoplayer2.util.Util
 @Composable
 fun TrendingListScreen(
     trendingListState: TrendingListState,
-    onLastItemClick: (String) -> Unit
+    onLastItemClick: (String, SongIconList) -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (trendingListState.isLoading) {
@@ -53,7 +49,7 @@ fun TrendingListScreen(
                     items(items = trendingListState.trendingListItems, itemContent = { item ->
                         TrendingListRow(
                             data = item,
-                            onLastItemClick = { onLastItemClick(item.id) }
+                            onLastItemClick = { onLastItemClick(item.id, item.songIconList) }
 
                         )
                     })
@@ -62,8 +58,8 @@ fun TrendingListScreen(
                     if (trendingListState.songId != "") {
                         VideoPlayer(
                             trendingListState.songId,
-                            Modifier.align(Alignment.BottomCenter), playMusic = true
-                        )
+                            Modifier.align(Alignment.BottomCenter), playMusic = true,
+                            songIcon = trendingListState.songIcon)
                         //PlayerBottomBar(Modifier.align(Alignment.BottomCenter))
                     }
                 }
@@ -114,7 +110,7 @@ fun TrendingListRow(data: TrendingListItem, onLastItemClick: () -> Unit) {
 
 
 @Composable
-fun VideoPlayer(songId: String, modifier: Modifier, playMusic: Boolean) {
+fun VideoPlayer(songId: String, modifier: Modifier, playMusic: Boolean, songIcon: String) {
     val sampleVideo: String =
         "https://discoveryprovider.audius2.prod-us-west-2.staked.cloud/v1/tracks/${songId}/stream?app_name=EXAMPLEAPP"
     // This is the official way to access current context from Composable functions
@@ -144,8 +140,7 @@ fun VideoPlayer(songId: String, modifier: Modifier, playMusic: Boolean) {
     }
     if (playMusicMutable)
         exoPlayer.play()
-
-    PlayerBottomBar(modifier = modifier)
+    PlayerBottomBar(modifier = modifier, songIcon = songIcon)
 
     /* Gateway to traditional Android Views
         AndroidView(
@@ -164,7 +159,7 @@ fun VideoPlayer(songId: String, modifier: Modifier, playMusic: Boolean) {
 
 
 @Composable
-fun PlayerBottomBar(modifier: Modifier) {
+fun PlayerBottomBar(modifier: Modifier, songIcon: String) {
     val bottomBarHeight = 57.dp
     Row(
         modifier = modifier
@@ -175,7 +170,7 @@ fun PlayerBottomBar(modifier: Modifier) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Image(
-            painter = painterResource(id = R.drawable.adele21),
+            painter = rememberImagePainter(songIcon),
             modifier = Modifier.size(65.dp),
             contentDescription = null,
             contentScale = ContentScale.Crop

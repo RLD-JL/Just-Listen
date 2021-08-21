@@ -18,7 +18,9 @@ fun Navigation.ScreenPicker(
         Screen.TrendingList ->
             TrendingListScreen(
                 trendingListState = stateProvider.get(screenIdentifier),
-                onLastItemClick = { events.playMusic(it)},
+                onLastItemClick = { songId,songIcon ->
+                        events.playMusic(songId = songId, songIcon = songIcon)
+                },
             )
     }
     }

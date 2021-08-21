@@ -19,6 +19,8 @@ dependencies {
     implementation ("com.google.android.exoplayer:exoplayer-core:2.15.0")
     implementation ("com.google.android.exoplayer:exoplayer-ui:2.15.0")
     implementation("androidx.lifecycle:lifecycle-process:2.3.1")
+    implementation("io.coil-kt:coil-compose:1.3.1")
+
 
 
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:${rootProject.extra["compose_version"]}")
