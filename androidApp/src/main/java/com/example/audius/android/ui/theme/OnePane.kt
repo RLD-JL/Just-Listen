@@ -10,15 +10,15 @@ import com.example.audius.android.ui.Level1BottomBar
 @Composable
 fun Navigation.OnePane(saveableStateHolder: SaveableStateHolder) {
     Scaffold(
-        content = {
-            saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
-                ScreenPicker(currentScreenIdentifier)
-            }
-        },
         bottomBar = {
             if (currentScreenIdentifier.screen.navigationLevel == 1) Level1BottomBar(
                 currentScreenIdentifier
             )
+        },
+        content = {
+            saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
+                ScreenPicker(currentScreenIdentifier)
+            }
         }
     )
 }

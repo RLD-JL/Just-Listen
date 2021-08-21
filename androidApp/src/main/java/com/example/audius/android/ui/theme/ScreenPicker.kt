@@ -1,6 +1,7 @@
 package com.example.audius.android.ui.theme
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
 import com.example.audius.android.ui.TrendingListScreen
@@ -17,8 +18,7 @@ fun Navigation.ScreenPicker(
         Screen.TrendingList ->
             TrendingListScreen(
                 trendingListState = stateProvider.get(screenIdentifier),
-                onLastItemClick = { events.playMusic(it)
-                },
+                onLastItemClick = { events.playMusic(it)},
             )
     }
     }

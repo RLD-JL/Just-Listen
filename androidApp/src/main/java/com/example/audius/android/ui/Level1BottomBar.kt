@@ -1,9 +1,7 @@
 package com.example.audius.android.ui
 
+import androidx.compose.material.*
 import androidx.compose.material.BottomAppBar
-import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Star
@@ -17,7 +15,7 @@ import com.example.audius.viewmodel.screens.Level1Navigation
 fun Navigation.Level1BottomBar(
     selectedTab: ScreenIdentifier
 ) {
-    BottomAppBar(content = {
+    BottomNavigation(content = {
         BottomNavigationItem(
             icon = { Icon(Icons.Default.Menu, "ALL") },
             label = { Text("All Countries", fontSize = 13.sp) },
