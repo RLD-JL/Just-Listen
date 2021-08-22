@@ -24,31 +24,10 @@ class MainActivity : ComponentActivity() {
         val model = (application as AudiusApp).model
         setContent {
             MainComposable(model)
-
         }
     }
 }
 
-
-@Composable
-fun MyPlayer() {
-    val sampleVideo =
-        "https://discoveryprovider.audius2.prod-us-west-2.staked.cloud/v1/tracks/D7KyD/stream?app_name=EXAMPLEAPP"
-    val context = LocalContext.current
-    val player = SimpleExoPlayer.Builder(context).build()
-    val playerView = PlayerView(context)
-    val mediaItem = MediaItem.fromUri(sampleVideo)
-
-    player.setMediaItem(mediaItem)
-    playerView.player = player
-    LaunchedEffect(player) {
-        player.prepare()
-        player.playWhenReady = true
-    }
-    AndroidView(factory = {
-        playerView
-    })
-}
 
 
 

@@ -7,7 +7,9 @@ import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.example.audius.shared.viewmodel.getAndroidInstance
 import com.example.audius.viewmodel.AudiusViewModel
+import dagger.hilt.android.HiltAndroidApp
 
+@HiltAndroidApp
 class AudiusApp : Application() {
 
     lateinit var model: AudiusViewModel
