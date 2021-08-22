@@ -33,8 +33,13 @@ class MusicNotificationManager(
             NOTIFICATION_CHANNEL_ID,
         ).setNotificationListener(notificationListener)
             .setSmallIconResourceId(R.drawable.exo_notification_small_icon)
-            .setMediaDescriptionAdapter(DescriptionAdapter(mediaController)
-        ).build()
+            .setMediaDescriptionAdapter(
+                DescriptionAdapter(mediaController)
+            ).build()
+    }
+
+    fun showNotification(player: Player) {
+        notificationManager.setPlayer(player)
     }
 
     private inner class DescriptionAdapter(
@@ -49,7 +54,7 @@ class MusicNotificationManager(
         }
 
         override fun getCurrentContentText(player: Player): CharSequence? {
-           return mediaController.metadata.description.subtitle.toString()
+            return mediaController.metadata.description.subtitle.toString()
         }
 
         override fun getCurrentLargeIcon(
@@ -60,11 +65,11 @@ class MusicNotificationManager(
             ImageRequest.Builder(context)
                 .data(mediaController.metadata.description.mediaUri) // demo link
                 .target { result ->
-                     bitmap = (result as BitmapDrawable).bitmap
+                    bitmap = (result as BitmapDrawable).bitmap
                     callback.onBitmap(bitmap)
                 }
                 .build()
-        return null
+            return null
         }
     }
 

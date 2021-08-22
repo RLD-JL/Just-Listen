@@ -111,7 +111,7 @@ fun TrendingListRow(data: TrendingListItem, onLastItemClick: () -> Unit) {
 
 @Composable
 fun VideoPlayer(songId: String, modifier: Modifier, playMusic: Boolean, songIcon: String) {
-    val sampleVideo: String =
+    val sampleVideo =
         "https://discoveryprovider.audius2.prod-us-west-2.staked.cloud/v1/tracks/${songId}/stream?app_name=EXAMPLEAPP"
     // This is the official way to access current context from Composable functions
     val context = LocalContext.current

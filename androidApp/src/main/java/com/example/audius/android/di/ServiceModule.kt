@@ -1,6 +1,8 @@
 package com.example.audius.android.di
 
 import android.content.Context
+import com.example.audius.shared.viewmodel.getStateManager
+import com.example.audius.viewmodel.AudiusViewModel
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
@@ -33,4 +35,8 @@ object ServiceModule {
         .setContentType(C.CONTENT_TYPE_MUSIC)
         .setUsage(C.USAGE_MEDIA)
         .build()
+
+    @Provides
+    @ServiceScoped
+    fun provideStateManager(@ApplicationContext context: Context) = AudiusViewModel.Factory.getStateManager(context = context)
 }
