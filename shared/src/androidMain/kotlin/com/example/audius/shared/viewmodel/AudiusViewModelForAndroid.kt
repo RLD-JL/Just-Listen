@@ -11,8 +11,3 @@ fun AudiusViewModel.Factory.getAndroidInstance(context : Context) : AudiusViewMo
     val repository = Repository(sqlDriver)
     return AudiusViewModel(repository)
 }
-
-fun AudiusViewModel.Factory.getStateManager(context: Context): Repository {
-    val sqlDriver = AndroidSqliteDriver(LocalDb.Schema, context, "Local.db")
-    return Repository(sqlDriver)
-}

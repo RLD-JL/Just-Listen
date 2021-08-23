@@ -12,6 +12,8 @@ class AudiusViewModel (repo: Repository) {
         // factory methods are defined in the platform-specific shared code (androidMain and iosMain)
     }
 
+    val state = StateManager(repo)
+
     val stateFlow: StateFlow<AppState>
         get() = stateManager.mutableStateFlow
 

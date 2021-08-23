@@ -22,7 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import coil.compose.rememberImagePainter
+import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.viewmodel.screens.trending.TrendingListItem
 import com.example.audius.viewmodel.screens.trending.TrendingListState
@@ -35,8 +37,9 @@ import com.google.android.exoplayer2.util.Util
 
 @Composable
 fun TrendingListScreen(
+    musicServiceConnection: MusicServiceConnection,
     trendingListState: TrendingListState,
-    onLastItemClick: (String, SongIconList) -> Unit
+    onLastItemClick: (String, SongIconList) -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (trendingListState.isLoading) {
@@ -49,7 +52,7 @@ fun TrendingListScreen(
                     items(items = trendingListState.trendingListItems, itemContent = { item ->
                         TrendingListRow(
                             data = item,
-                            onLastItemClick = { onLastItemClick(item.id, item.songIconList) }
+                            onLastItemClick = { play(musicServiceConnection = musicServiceConnection, mediaId = item.id) }
 
                         )
                     })
@@ -67,6 +70,18 @@ fun TrendingListScreen(
         }
     }
 }
+
+fun skipToNextSong(musicServiceConnection: MusicServiceConnection) {
+    musicServiceConnection.transportControls.skipToNext()
+}
+
+fun play(musicServiceConnection: MusicServiceConnection, mediaId: String) {
+    val sampleVideo =
+        "https://discoveryprovider.audius2.prod-us-west-2.staked.cloud/v1/tracks/${mediaId}/stream?app_name=EXAMPLEAPP"
+    musicServiceConnection.transportControls.playFromMediaId(mediaId, null)
+}
+
+
 
 @Composable
 fun EmptyList() {
@@ -107,6 +122,7 @@ fun TrendingListRow(data: TrendingListItem, onLastItemClick: () -> Unit) {
     }
     Divider()
 }
+
 
 
 @Composable

@@ -5,6 +5,7 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.SaveableStateHolder
 import com.example.audius.Navigation
+import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.Level1BottomBar
 
 @Composable

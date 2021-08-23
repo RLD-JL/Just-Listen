@@ -33,9 +33,10 @@ class MusicNotificationManager(
             NOTIFICATION_CHANNEL_ID,
         ).setNotificationListener(notificationListener)
             .setSmallIconResourceId(R.drawable.exo_notification_small_icon)
-            .setMediaDescriptionAdapter(
-                DescriptionAdapter(mediaController)
-            ).build()
+            .setMediaDescriptionAdapter(DescriptionAdapter(mediaController))
+            .setChannelNameResourceId(R.string.channel_name)
+            .setChannelDescriptionResourceId(R.string.channel_name)
+            .build()
     }
 
     fun showNotification(player: Player) {

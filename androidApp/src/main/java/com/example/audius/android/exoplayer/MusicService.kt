@@ -13,6 +13,9 @@ import com.example.audius.android.exoplayer.callbacks.MusicPlaybackPreparer
 import com.example.audius.android.exoplayer.callbacks.MusicPlayerEventListener
 import com.example.audius.android.exoplayer.callbacks.MusicPlayerNotificationListener
 import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
+import com.example.audius.android.exoplayer.utils.Constants.NETWORK_ERROR
+import com.example.audius.shared.viewmodel.getAndroidInstance
+import com.example.audius.viewmodel.AudiusViewModel
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
@@ -26,11 +29,14 @@ import javax.inject.Inject
 private const val SERVICE_TAG = "MusicService"
 
 @AndroidEntryPoint
-class MusicService @Inject constructor(var stateManager: StateManager) :
-    MediaBrowserServiceCompat() {
+class MusicService: MediaBrowserServiceCompat() {
 
     @Inject
     lateinit var exoPlayer: SimpleExoPlayer
+
+    private val model = AudiusViewModel.Factory.getAndroidInstance(this)
+
+   var stateManager: StateManager = model.state
 
     private lateinit var musicNotificationManager: MusicNotificationManager
 
@@ -44,8 +50,8 @@ class MusicService @Inject constructor(var stateManager: StateManager) :
 
     private val musicSource = MusicSource(stateManager = stateManager)
 
-    private val dataSourceFactory =
-        DefaultDataSourceFactory(this, Util.getUserAgent(this, "Audius App"))
+    @Inject
+    lateinit var dataSourceFactory: DefaultDataSourceFactory
 
     private var curPlayingSong: MediaMetadataCompat? = null
 
@@ -101,7 +107,7 @@ class MusicService @Inject constructor(var stateManager: StateManager) :
 
     private inner class MusicQueueNavigator : TimelineQueueNavigator(mediaSession) {
         override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat {
-            return musicSource.songs[windowIndex].description
+           return musicSource.songs[windowIndex].description
         }
     }
 
@@ -144,19 +150,20 @@ class MusicService @Inject constructor(var stateManager: StateManager) :
         when (parentId) {
             MEDIA_ROOT_ID -> {
                 val resultsSent = musicSource.whenReady { isInitialized ->
-                    result.sendResult(musicSource.asMediaItems())
-                    if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
-                        preparePlayer(musicSource.songs, musicSource.songs[0], false)
-                        isPlayerInitialized = true
-                    } else {
-                        result.sendResult(null)
+                    if (isInitialized) {
+                        result.sendResult(musicSource.asMediaItems())
+                        if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
+                            preparePlayer(musicSource.songs, musicSource.songs[0], false)
+                            isPlayerInitialized = true
+                        }
+                    }else {
+                        mediaSession.sendSessionEvent(NETWORK_ERROR, null)
                     }
                 }
                 if (!resultsSent) {
                     result.detach()
                 }
             }
-
         }
     }
 }
