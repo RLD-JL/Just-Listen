@@ -72,12 +72,12 @@ fun TrendingListScreen(
                         songIcon = trendingListState.songIcon,
                             title = trendingListState.songId,
                         onSkipNextPressed = onSkipNextPressed)
-                        musicServiceConnection.transportControls.skipToNext()
                     }
                 }
 
                 if (trendingListState.skipToNext) {
-                    //Toast.makeText(LocalContext.current, "SomeText", Toast.LENGTH_SHORT).show()
+                    musicServiceConnection.transportControls.skipToNext()
+                    Toast.makeText(LocalContext.current, "SomeText", Toast.LENGTH_SHORT).show()
                     trendingListState.skipToNext = false
                 }
             }
