@@ -1,5 +1,6 @@
 package com.example.audius.android.ui
 
+import android.support.v4.media.MediaMetadataCompat
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -11,6 +12,7 @@ import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.*
@@ -25,6 +27,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import coil.compose.rememberImagePainter
 import com.example.audius.android.exoplayer.MusicServiceConnection
+import com.example.audius.android.exoplayer.isPlayEnabled
+import com.example.audius.android.exoplayer.isPlaying
+import com.example.audius.android.exoplayer.isPrepared
 import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.viewmodel.screens.trending.TrendingListItem
 import com.example.audius.viewmodel.screens.trending.TrendingListState
@@ -40,6 +45,7 @@ fun TrendingListScreen(
     musicServiceConnection: MusicServiceConnection,
     trendingListState: TrendingListState,
     onLastItemClick: (String, SongIconList) -> Unit,
+    onSkipNextPressed: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (trendingListState.isLoading) {
@@ -52,33 +58,47 @@ fun TrendingListScreen(
                     items(items = trendingListState.trendingListItems, itemContent = { item ->
                         TrendingListRow(
                             data = item,
-                            onLastItemClick = { play(musicServiceConnection = musicServiceConnection, mediaId = item.id) }
+                            onLastItemClick = {
+                                play(musicServiceConnection = musicServiceConnection, item.id)
+                                     onLastItemClick(item.id, item.songIconList)
+                            }
 
                         )
                     })
                 }
                 if (trendingListState.playMusic) {
                     if (trendingListState.songId != "") {
-                        VideoPlayer(
-                            trendingListState.songId,
-                            Modifier.align(Alignment.BottomCenter), playMusic = true,
-                            songIcon = trendingListState.songIcon)
-                        //PlayerBottomBar(Modifier.align(Alignment.BottomCenter))
+                        PlayerBottomBar(Modifier.align(Alignment.BottomCenter),
+                        songIcon = trendingListState.songIcon,
+                            title = trendingListState.songId,
+                        onSkipNextPressed = onSkipNextPressed)
+                        musicServiceConnection.transportControls.skipToNext()
                     }
+                }
+
+                if (trendingListState.skipToNext) {
+                    //Toast.makeText(LocalContext.current, "SomeText", Toast.LENGTH_SHORT).show()
+                    trendingListState.skipToNext = false
                 }
             }
         }
     }
 }
 
-fun skipToNextSong(musicServiceConnection: MusicServiceConnection) {
-    musicServiceConnection.transportControls.skipToNext()
-}
-
 fun play(musicServiceConnection: MusicServiceConnection, mediaId: String) {
-    val sampleVideo =
-        "https://discoveryprovider.audius2.prod-us-west-2.staked.cloud/v1/tracks/${mediaId}/stream?app_name=EXAMPLEAPP"
-    musicServiceConnection.transportControls.playFromMediaId(mediaId, null)
+    val isPrepared = musicServiceConnection.playbackState.value?.isPrepared ?: false
+    if(isPrepared && mediaId ==
+        musicServiceConnection.currentPlayingSong.value?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)) {
+        musicServiceConnection.playbackState.value?.let { playbackState ->
+            when {
+                playbackState.isPlaying -> musicServiceConnection.transportControls.pause()
+                playbackState.isPlayEnabled -> musicServiceConnection.transportControls.play()
+                else -> Unit
+            }
+        }
+    } else {
+        musicServiceConnection.transportControls.playFromMediaId(mediaId, null)
+    }
 }
 
 
@@ -126,7 +146,8 @@ fun TrendingListRow(data: TrendingListItem, onLastItemClick: () -> Unit) {
 
 
 @Composable
-fun VideoPlayer(songId: String, modifier: Modifier, playMusic: Boolean, songIcon: String) {
+fun VideoPlayer(songId: String, modifier: Modifier, playMusic: Boolean, songIcon: String, title: String,
+                onSkipNextPressed: () -> Unit) {
     val sampleVideo =
         "https://discoveryprovider.audius2.prod-us-west-2.staked.cloud/v1/tracks/${songId}/stream?app_name=EXAMPLEAPP"
     // This is the official way to access current context from Composable functions
@@ -156,7 +177,7 @@ fun VideoPlayer(songId: String, modifier: Modifier, playMusic: Boolean, songIcon
     }
     if (playMusicMutable)
         exoPlayer.play()
-    PlayerBottomBar(modifier = modifier, songIcon = songIcon)
+    PlayerBottomBar(modifier = modifier, songIcon = songIcon, title = title,onSkipNextPressed = onSkipNextPressed)
 
     /* Gateway to traditional Android Views
         AndroidView(
@@ -175,24 +196,23 @@ fun VideoPlayer(songId: String, modifier: Modifier, playMusic: Boolean, songIcon
 
 
 @Composable
-fun PlayerBottomBar(modifier: Modifier, songIcon: String) {
+fun PlayerBottomBar(modifier: Modifier, songIcon: String, title: String ,onSkipNextPressed: () ->Unit) {
     val bottomBarHeight = 57.dp
     Row(
         modifier = modifier
             .padding(bottom = bottomBarHeight)
             .fillMaxWidth()
-            .background(color = backgroundColor)
-            .clickable {  },
-        verticalAlignment = Alignment.CenterVertically,
+            .background(color = backgroundColor),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             painter = rememberImagePainter(songIcon),
             modifier = Modifier.size(65.dp),
             contentDescription = null,
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop,
         )
         Text(
-            text = "Someone Like you by Adele",
+            text = title,
             style = typography.h6.copy(fontSize = 14.sp),
             modifier = Modifier
                 .padding(8.dp)
@@ -205,6 +225,10 @@ fun PlayerBottomBar(modifier: Modifier, songIcon: String) {
         Icon(
             imageVector = Icons.Default.PlayArrow, modifier = Modifier.padding(8.dp),
             contentDescription = null
+        )
+        Icon(
+            imageVector = Icons.Default.ArrowForward, modifier = Modifier.padding(8.dp) .clickable(onClick = onSkipNextPressed),
+            contentDescription = null,
         )
     }
 }

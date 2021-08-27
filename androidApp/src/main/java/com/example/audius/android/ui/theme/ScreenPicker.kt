@@ -11,12 +11,15 @@ import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
 import com.example.audius.android.ui.TrendingListScreen
 import com.example.audius.viewmodel.screens.Screen
 import com.example.audius.viewmodel.screens.trending.playMusic
+import com.example.audius.viewmodel.screens.trending.skipToNextSong
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @Composable
 fun Navigation.ScreenPicker(
-    screenIdentifier: ScreenIdentifier
+    screenIdentifier: ScreenIdentifier,
+    musicServiceConnection: MusicServiceConnection
 ) {
-    val musicServiceConnection = MusicServiceConnection(LocalContext.current)
     musicServiceConnection.subscribe(MEDIA_ROOT_ID, object: MediaBrowserCompat.SubscriptionCallback() {})
     when (screenIdentifier.screen) {
 
@@ -27,6 +30,7 @@ fun Navigation.ScreenPicker(
                 onLastItemClick = { songId,songIcon ->
                         events.playMusic(songId = songId, songIcon = songIcon)
                 },
+                onSkipNextPressed = {events.skipToNextSong()}
             )
     }
     }

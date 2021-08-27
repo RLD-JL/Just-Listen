@@ -36,4 +36,5 @@ class AppLifecycleObserver (private val model: AudiusViewModel) : LifecycleObser
     fun onEnterBackground() {
         model.navigation.onEnterBackground()
     }
+
 }

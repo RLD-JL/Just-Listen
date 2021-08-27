@@ -4,11 +4,15 @@ import android.app.PendingIntent
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.compose.ui.res.stringResource
 import coil.ImageLoader
 import coil.request.ImageRequest
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.example.audius.android.R
 import com.example.audius.android.exoplayer.utils.Constants.NOTIFICATION_CHANNEL_ID
 import com.example.audius.android.exoplayer.utils.Constants.NOTIFICATION_ID
@@ -47,6 +51,7 @@ class MusicNotificationManager(
         private val mediaController: MediaControllerCompat
     ) : PlayerNotificationManager.MediaDescriptionAdapter {
         override fun getCurrentContentTitle(player: Player): CharSequence {
+            newSongCallback()
             return mediaController.metadata.description.title.toString()
         }
 
@@ -62,17 +67,18 @@ class MusicNotificationManager(
             player: Player,
             callback: PlayerNotificationManager.BitmapCallback
         ): Bitmap? {
-            var bitmap: Bitmap
-            ImageRequest.Builder(context)
-                .data(mediaController.metadata.description.mediaUri) // demo link
-                .target { result ->
-                    bitmap = (result as BitmapDrawable).bitmap
-                    callback.onBitmap(bitmap)
-                }
-                .build()
+            Glide.with(context).asBitmap()
+                .load(mediaController.metadata.description.iconUri)
+                .into(object : CustomTarget<Bitmap>() {
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        transition: Transition<in Bitmap>?
+                    ) {
+                        callback.onBitmap(resource)
+                    }
+                    override fun onLoadCleared(placeholder: Drawable?) = Unit
+                })
             return null
         }
     }
-
-
 }

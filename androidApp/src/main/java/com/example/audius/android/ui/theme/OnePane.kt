@@ -9,7 +9,7 @@ import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.Level1BottomBar
 
 @Composable
-fun Navigation.OnePane(saveableStateHolder: SaveableStateHolder) {
+fun Navigation.OnePane(saveableStateHolder: SaveableStateHolder, musicServiceConnection: MusicServiceConnection) {
     Scaffold(
         bottomBar = {
             if (currentScreenIdentifier.screen.navigationLevel == 1) Level1BottomBar(
@@ -18,7 +18,7 @@ fun Navigation.OnePane(saveableStateHolder: SaveableStateHolder) {
         },
         content = {
             saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
-                ScreenPicker(currentScreenIdentifier)
+                ScreenPicker(currentScreenIdentifier, musicServiceConnection)
             }
         }
     )
