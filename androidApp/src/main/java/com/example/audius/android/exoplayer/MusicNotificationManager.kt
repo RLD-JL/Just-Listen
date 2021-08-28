@@ -40,7 +40,9 @@ class MusicNotificationManager(
             .setMediaDescriptionAdapter(DescriptionAdapter(mediaController))
             .setChannelNameResourceId(R.string.channel_name)
             .setChannelDescriptionResourceId(R.string.channel_name)
-            .build()
+            .build().apply {
+                setMediaSessionToken(sessionToken)
+            }
     }
 
     fun showNotification(player: Player) {

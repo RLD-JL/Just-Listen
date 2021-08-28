@@ -38,7 +38,7 @@ class MusicService: MediaBrowserServiceCompat() {
 
     var stateManager: StateManager = model.state
 
-    private lateinit var musicNotificationManager: MusicNotificationManager
+    lateinit var musicNotificationManager: MusicNotificationManager
 
     private val serviceJob = Job()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
@@ -130,7 +130,6 @@ class MusicService: MediaBrowserServiceCompat() {
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
-
         exoPlayer.removeListener(musicPlayerEventListener)
         exoPlayer.release()
     }

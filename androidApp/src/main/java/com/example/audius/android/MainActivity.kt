@@ -9,16 +9,12 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 
-
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject
-    lateinit var musicServiceConnection: MusicServiceConnection
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val model = (application as AudiusApp).model
+        val musicServiceConnection = (application as AudiusApp).musicServiceConnection
 
         setContent {
             MainComposable(model, musicServiceConnection)
