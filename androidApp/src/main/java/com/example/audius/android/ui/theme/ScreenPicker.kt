@@ -30,7 +30,8 @@ fun Navigation.ScreenPicker(
                 onLastItemClick = { songId,songIcon ->
                         events.playMusic(songId = songId, songIcon = songIcon)
                 },
-                onSkipNextPressed = {events.skipToNextSong()}
+                onSkipNextPressed = {songId, songIconUri ->
+                    events.skipToNextSong(songId = songId, songIconUri = songIconUri)}
             )
     }
     }

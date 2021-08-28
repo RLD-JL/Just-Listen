@@ -36,7 +36,7 @@ class MusicService: MediaBrowserServiceCompat() {
 
     private val model = AudiusViewModel.Factory.getAndroidInstance(this)
 
-   var stateManager: StateManager = model.state
+    var stateManager: StateManager = model.state
 
     private lateinit var musicNotificationManager: MusicNotificationManager
 

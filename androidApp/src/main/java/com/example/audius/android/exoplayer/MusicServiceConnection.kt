@@ -87,5 +87,6 @@ class MusicServiceConnection(context: Context) {
         override fun onSessionDestroyed() {
             mediaBrowserConnectionCallback.onConnectionSuspended()
         }
+
     }
 }

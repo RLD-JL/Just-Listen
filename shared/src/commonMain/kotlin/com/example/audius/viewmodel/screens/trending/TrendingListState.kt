@@ -7,8 +7,8 @@ data class TrendingListState(
     val isLoading: Boolean = false,
     val playMusic: Boolean = true,
     var skipToNext: Boolean = false,
-    val songId: String = "",
-    val songIcon: String= "",
+    var songId: String = "",
+    var songIcon: String= "",
     val trendingListItems: List<TrendingListItem> = emptyList()
 ): ScreenState
 

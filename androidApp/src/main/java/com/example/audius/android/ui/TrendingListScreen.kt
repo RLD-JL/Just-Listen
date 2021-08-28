@@ -45,7 +45,7 @@ fun TrendingListScreen(
     musicServiceConnection: MusicServiceConnection,
     trendingListState: TrendingListState,
     onLastItemClick: (String, SongIconList) -> Unit,
-    onSkipNextPressed: () -> Unit
+    onSkipNextPressed: (String, String) -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (trendingListState.isLoading) {
@@ -60,7 +60,7 @@ fun TrendingListScreen(
                             data = item,
                             onLastItemClick = {
                                 play(musicServiceConnection = musicServiceConnection, item.id)
-                                     onLastItemClick(item.id, item.songIconList)
+                                onLastItemClick(item.id, item.songIconList)
                             }
 
                         )
@@ -68,27 +68,31 @@ fun TrendingListScreen(
                 }
                 if (trendingListState.playMusic) {
                     if (trendingListState.songId != "") {
-                        PlayerBottomBar(Modifier.align(Alignment.BottomCenter),
-                        songIcon = trendingListState.songIcon,
-                            title = trendingListState.songId,
-                        onSkipNextPressed = onSkipNextPressed)
-                    }
-                }
+                        PlayerBottomBar(
+                            Modifier.align(Alignment.BottomCenter),
+                            songIcon = musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString(),
+                            title = musicServiceConnection.currentPlayingSong.value?.description?.mediaId.toString(),
+                            onSkipNextPressed = {
+                                skipToNext(musicServiceConnection)
 
-                if (trendingListState.skipToNext) {
-                    musicServiceConnection.transportControls.skipToNext()
-                    Toast.makeText(LocalContext.current, "SomeText", Toast.LENGTH_SHORT).show()
-                    trendingListState.skipToNext = false
+                            }
+                        )
+                    }
                 }
             }
         }
     }
 }
 
+fun skipToNext(musicServiceConnection: MusicServiceConnection) {
+    musicServiceConnection.transportControls.skipToNext()
+}
+
 fun play(musicServiceConnection: MusicServiceConnection, mediaId: String) {
     val isPrepared = musicServiceConnection.playbackState.value?.isPrepared ?: false
-    if(isPrepared && mediaId ==
-        musicServiceConnection.currentPlayingSong.value?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)) {
+    if (isPrepared && mediaId ==
+        musicServiceConnection.currentPlayingSong.value?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)
+    ) {
         musicServiceConnection.playbackState.value?.let { playbackState ->
             when {
                 playbackState.isPlaying -> musicServiceConnection.transportControls.pause()
@@ -100,7 +104,6 @@ fun play(musicServiceConnection: MusicServiceConnection, mediaId: String) {
         musicServiceConnection.transportControls.playFromMediaId(mediaId, null)
     }
 }
-
 
 
 @Composable
@@ -144,10 +147,11 @@ fun TrendingListRow(data: TrendingListItem, onLastItemClick: () -> Unit) {
 }
 
 
-
 @Composable
-fun VideoPlayer(songId: String, modifier: Modifier, playMusic: Boolean, songIcon: String, title: String,
-                onSkipNextPressed: () -> Unit) {
+fun VideoPlayer(
+    songId: String, modifier: Modifier, playMusic: Boolean, songIcon: String, title: String,
+    onSkipNextPressed: () -> Unit
+) {
     val sampleVideo =
         "https://discoveryprovider.audius2.prod-us-west-2.staked.cloud/v1/tracks/${songId}/stream?app_name=EXAMPLEAPP"
     // This is the official way to access current context from Composable functions
@@ -177,7 +181,12 @@ fun VideoPlayer(songId: String, modifier: Modifier, playMusic: Boolean, songIcon
     }
     if (playMusicMutable)
         exoPlayer.play()
-    PlayerBottomBar(modifier = modifier, songIcon = songIcon, title = title,onSkipNextPressed = onSkipNextPressed)
+    PlayerBottomBar(
+        modifier = modifier,
+        songIcon = songIcon,
+        title = title,
+        onSkipNextPressed = onSkipNextPressed
+    )
 
     /* Gateway to traditional Android Views
         AndroidView(
@@ -196,7 +205,12 @@ fun VideoPlayer(songId: String, modifier: Modifier, playMusic: Boolean, songIcon
 
 
 @Composable
-fun PlayerBottomBar(modifier: Modifier, songIcon: String, title: String ,onSkipNextPressed: () ->Unit) {
+fun PlayerBottomBar(
+    modifier: Modifier,
+    songIcon: String,
+    title: String,
+    onSkipNextPressed: () -> Unit
+) {
     val bottomBarHeight = 57.dp
     Row(
         modifier = modifier
@@ -227,7 +241,10 @@ fun PlayerBottomBar(modifier: Modifier, songIcon: String, title: String ,onSkipN
             contentDescription = null
         )
         Icon(
-            imageVector = Icons.Default.ArrowForward, modifier = Modifier.padding(8.dp) .clickable(onClick = onSkipNextPressed),
+            imageVector = Icons.Default.ArrowForward,
+            modifier = Modifier
+                .padding(8.dp)
+                .clickable(onClick = onSkipNextPressed),
             contentDescription = null,
         )
     }

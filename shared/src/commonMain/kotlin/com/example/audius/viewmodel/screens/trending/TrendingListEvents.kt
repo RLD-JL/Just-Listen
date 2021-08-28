@@ -10,9 +10,9 @@ fun Events.playMusic(songId: String, songIcon: SongIconList) = screenCoroutine{
     }
 }
 
-fun Events.skipToNextSong() = screenCoroutine{
+fun Events.skipToNextSong(songId: String, songIconUri: String) = screenCoroutine{
 
     stateManager.updateScreen(TrendingListState::class) {
-        it.copy(skipToNext = true)
+        it.copy(songIcon = songIconUri, songId = songId)
     }
 }
