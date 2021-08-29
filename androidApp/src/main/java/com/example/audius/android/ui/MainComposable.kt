@@ -11,7 +11,6 @@ import com.example.audius.viewmodel.AudiusViewModel
 @Composable
 fun MainComposable(model: AudiusViewModel, musicServiceConnection: MusicServiceConnection) {
     val appState by model.stateFlow.collectAsState()
-    val audiusNav = appState.getNavigation(model= model)
+    val audiusNav = appState.getNavigation(model = model)
     audiusNav.Router(musicServiceConnection)
-
 }
