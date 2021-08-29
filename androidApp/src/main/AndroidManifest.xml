@@ -11,6 +11,7 @@
         android:name=".AudiusApp"
         android:allowBackup="false"
         android:supportsRtl="true"
+        android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <service android:name=".exoplayer.MusicService"
             tools:ignore="Instantiatable">
