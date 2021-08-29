@@ -1,4 +1,5 @@
 <resources>
     <string name="title_activity_main2">MainActivity2</string>
-    <string name="channel_name">\"Audius\"</string>
+    <string name="channel_name">Audius</string>
+    <string name="channel_description">Shows the currently playing music</string>
 </resources>
