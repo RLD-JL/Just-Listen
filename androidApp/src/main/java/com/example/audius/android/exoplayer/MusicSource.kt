@@ -13,6 +13,7 @@ import androidx.lifecycle.AndroidViewModel
 import com.example.audius.Navigation
 import com.example.audius.StateManager
 import com.example.audius.android.exoplayer.State.*
+import com.example.audius.datalayer.datacalls.getTrendingList
 import com.example.audius.datalayer.datacalls.getTrendingListData
 import com.example.audius.datalayer.webservices.ApiClient
 import com.example.audius.viewmodel.screens.ScreenInitSettings
@@ -41,7 +42,7 @@ class MusicSource @Inject constructor(
     suspend fun fetchMediaData() = withContext(Dispatchers.Main){
        state = STATE_INITIALIZING
 
-     val allSongs = navigation.dataRepository.getTrendingListData()
+     val allSongs = navigation.dataRepository.getTrendingList()
         songs = allSongs.map { song ->
             Builder()
                 .putString(METADATA_KEY_ARTIST, song.title)

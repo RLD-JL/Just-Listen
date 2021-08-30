@@ -3,6 +3,7 @@ package com.example.audius.datalayer.datacalls
 import com.example.audius.datalayer.Repository
 import com.example.audius.datalayer.localdb.getTrendingList
 import com.example.audius.datalayer.localdb.setTrendingList
+import com.example.audius.datalayer.webservices.apis.trendingcalls.TrendingListResponse
 import com.example.audius.datalayer.webservices.apis.trendingcalls.fetchTrendingList
 import com.example.audius.viewmodel.screens.trending.TrendingListItem
 
@@ -20,4 +21,9 @@ suspend fun Repository.getTrendingListData(): List<TrendingListItem> = withRepoC
             elem->TrendingListItem(_data = elem)
     }.toList()
 }
+
+suspend fun Repository.getTrendingList(): List<TrendingListItem> = webservices.fetchTrendingList()?.data?.map {
+        trendingListModel -> TrendingListItem(_data = trendingListModel)
+} ?: emptyList()
+
 
