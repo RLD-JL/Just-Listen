@@ -50,7 +50,9 @@ class AppLifecycleObserver(
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     fun onDestroyed() {
-        musicServiceConnection.unsubscribe(MEDIA_ROOT_ID, object: MediaBrowserCompat.SubscriptionCallback() {})
+        musicServiceConnection.unsubscribe(
+            MEDIA_ROOT_ID,
+            object : MediaBrowserCompat.SubscriptionCallback() {})
     }
 
 }

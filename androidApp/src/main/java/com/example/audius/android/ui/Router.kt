@@ -11,7 +11,7 @@ fun Navigation.Router(musicServiceConnection: MusicServiceConnection) {
 
     OnePane(screenUIisStateHolder, musicServiceConnection)
 
-    screenStatesToRemove.forEach{
+    screenStatesToRemove.forEach {
         screenUIisStateHolder.removeState(it.URI)
     }
 }

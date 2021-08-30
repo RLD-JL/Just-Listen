@@ -60,7 +60,6 @@ fun TrendingListScreen(
                                 play(musicServiceConnection = musicServiceConnection, item.id)
                                 onLastItemClick(item.id, item.songIconList)
                             }
-
                         )
                     })
                 }
