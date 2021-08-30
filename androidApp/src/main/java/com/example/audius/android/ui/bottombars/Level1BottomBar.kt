@@ -1,4 +1,4 @@
-package com.example.audius.android.ui
+package com.example.audius.android.ui.bottombars
 
 import androidx.compose.material.*
 import androidx.compose.material.BottomAppBar

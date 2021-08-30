@@ -1,4 +1,4 @@
-package com.example.audius.android.ui
+package com.example.audius.android.ui.trendinglistscreen
 
 import android.support.v4.media.MediaMetadataCompat
 import android.widget.Toast
@@ -20,18 +20,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import coil.compose.rememberImagePainter
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.isPlayEnabled
 import com.example.audius.android.exoplayer.isPlaying
 import com.example.audius.android.exoplayer.isPrepared
+import com.example.audius.android.ui.bottombars.PlayerBottomBar
 import com.example.audius.datalayer.models.SongIconList
-import com.example.audius.viewmodel.screens.trending.TrendingListItem
 import com.example.audius.viewmodel.screens.trending.TrendingListState
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -45,7 +43,7 @@ fun TrendingListScreen(
     musicServiceConnection: MusicServiceConnection,
     trendingListState: TrendingListState,
     onLastItemClick: (String, SongIconList) -> Unit,
-    onSkipNextPressed: (String, String) -> Unit
+    onSkipNextPressed: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (trendingListState.isLoading) {
@@ -72,10 +70,7 @@ fun TrendingListScreen(
                             Modifier.align(Alignment.BottomCenter),
                             songIcon = musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString(),
                             title = musicServiceConnection.currentPlayingSong.value?.description?.mediaId.toString(),
-                            onSkipNextPressed = {
-                                skipToNext(musicServiceConnection)
-
-                            }
+                            onSkipNextPressed = { skipToNext(musicServiceConnection) }
                         )
                     }
                 }
@@ -84,9 +79,23 @@ fun TrendingListScreen(
     }
 }
 
+@Composable
+fun EmptyList() {
+    Text(
+        text = "empty list",
+        style = MaterialTheme.typography.body1,
+        modifier = Modifier
+            .padding(top = 30.dp)
+            .fillMaxWidth(),
+        textAlign = TextAlign.Center,
+        fontSize = 18.sp
+    )
+}
+
 fun skipToNext(musicServiceConnection: MusicServiceConnection) {
     musicServiceConnection.transportControls.skipToNext()
 }
+
 
 fun play(musicServiceConnection: MusicServiceConnection, mediaId: String) {
     val isPrepared = musicServiceConnection.playbackState.value?.isPrepared ?: false
@@ -102,150 +111,5 @@ fun play(musicServiceConnection: MusicServiceConnection, mediaId: String) {
         }
     } else {
         musicServiceConnection.transportControls.playFromMediaId(mediaId, null)
-    }
-}
-
-
-@Composable
-fun EmptyList() {
-    Text(
-        text = "empty list",
-        style = MaterialTheme.typography.body1,
-        modifier = Modifier
-            .padding(top = 30.dp)
-            .fillMaxWidth(),
-        textAlign = TextAlign.Center,
-        fontSize = 18.sp
-    )
-}
-
-@Composable
-fun TrendingListRow(data: TrendingListItem, onLastItemClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onLastItemClick)
-            .height(50.dp)
-            .padding(start = 10.dp), verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 10.dp)
-        ) {
-            Text(
-                text = data.title,
-                style = MaterialTheme.typography.body1,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        Column(modifier = Modifier.width(70.dp), horizontalAlignment = Alignment.End) {
-            Text(text = data.id, style = MaterialTheme.typography.body1)
-        }
-    }
-    Divider()
-}
-
-
-@Composable
-fun VideoPlayer(
-    songId: String, modifier: Modifier, playMusic: Boolean, songIcon: String, title: String,
-    onSkipNextPressed: () -> Unit
-) {
-    val sampleVideo =
-        "https://discoveryprovider.audius2.prod-us-west-2.staked.cloud/v1/tracks/${songId}/stream?app_name=EXAMPLEAPP"
-    // This is the official way to access current context from Composable functions
-    val context = LocalContext.current
-    val playMusicMutable by remember {
-        mutableStateOf(playMusic)
-    }
-    // Do not recreate the player everytime this Composable commits
-    val exoPlayer = remember {
-        SimpleExoPlayer.Builder(context).build()
-    }
-
-    // We only want to react to changes in sourceUrl.
-    // This effect will be executed at each commit phase if
-    // [sourceUrl] has changed.
-    LaunchedEffect(sampleVideo) {
-        val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(
-            context,
-            Util.getUserAgent(context, context.packageName)
-        )
-
-        val source = ProgressiveMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(MediaItem.fromUri(sampleVideo))
-
-        exoPlayer.setMediaSource(source)
-        exoPlayer.prepare()
-    }
-    if (playMusicMutable)
-        exoPlayer.play()
-    PlayerBottomBar(
-        modifier = modifier,
-        songIcon = songIcon,
-        title = title,
-        onSkipNextPressed = onSkipNextPressed
-    )
-
-    /* Gateway to traditional Android Views
-        AndroidView(
-            {
-                PlayerView(context).apply {
-                    player = exoPlayer
-                }
-            },
-            modifier = Modifier
-                .requiredHeightIn(min = 80.dp, max = 120.dp)
-                .fillMaxWidth()
-        )
-
-     */
-}
-
-
-@Composable
-fun PlayerBottomBar(
-    modifier: Modifier,
-    songIcon: String,
-    title: String,
-    onSkipNextPressed: () -> Unit
-) {
-    val bottomBarHeight = 57.dp
-    Row(
-        modifier = modifier
-            .padding(bottom = bottomBarHeight)
-            .fillMaxWidth()
-            .background(color = backgroundColor),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Image(
-            painter = rememberImagePainter(songIcon),
-            modifier = Modifier.size(65.dp),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-        )
-        Text(
-            text = title,
-            style = typography.h6.copy(fontSize = 14.sp),
-            modifier = Modifier
-                .padding(8.dp)
-                .weight(1f),
-        )
-        Icon(
-            imageVector = Icons.Default.FavoriteBorder, modifier = Modifier.padding(8.dp),
-            contentDescription = null
-        )
-        Icon(
-            imageVector = Icons.Default.PlayArrow, modifier = Modifier.padding(8.dp),
-            contentDescription = null
-        )
-        Icon(
-            imageVector = Icons.Default.ArrowForward,
-            modifier = Modifier
-                .padding(8.dp)
-                .clickable(onClick = onSkipNextPressed),
-            contentDescription = null,
-        )
     }
 }
