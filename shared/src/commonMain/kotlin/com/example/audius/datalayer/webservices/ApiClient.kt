@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
 
 class ApiClient {
 
-    val baseUrl = "https://discoveryprovider.audius.co/v1/tracks/trending?app_name=EXAMPLEAPP"
+    val baseUrl = "https://discoveryprovider.audius.co/v1"
 
     val client = HttpClient {
         install(JsonFeature) {

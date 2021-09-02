@@ -7,7 +7,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 suspend fun ApiClient.fetchTrendingList(): TrendingListResponse? {
-    return getResponse("")
+    return getResponse("/tracks/trending?app_name=EXAMPLEAPP")
 }
 
 
