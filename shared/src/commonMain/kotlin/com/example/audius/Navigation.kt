@@ -70,7 +70,6 @@ class Navigation(val stateManager: StateManager) {
                 navigateByScreenIdentifier(navigationLevelsMap[it]!!)
             }
         }
-
     }
 
     fun navigateByScreenIdentifier(screenIdentifier: ScreenIdentifier) {
@@ -105,10 +104,4 @@ class Navigation(val stateManager: StateManager) {
     fun onEnterBackground() {
         stateManager.cancelScreenScopes()
     }
-
-    fun onChangeOrientation() {
-        stateManager.triggerRecomposition()
-    }
-
-
 }

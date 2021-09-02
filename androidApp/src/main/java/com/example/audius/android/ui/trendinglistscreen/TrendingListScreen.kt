@@ -28,7 +28,7 @@ import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.isPlayEnabled
 import com.example.audius.android.exoplayer.isPlaying
 import com.example.audius.android.exoplayer.isPrepared
-import com.example.audius.android.ui.bottombars.PlayerBottomBar
+import com.example.audius.android.ui.playlistscreen.components.SpotifyHome
 import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.viewmodel.screens.trending.TrendingListState
 import com.google.android.exoplayer2.MediaItem
@@ -45,7 +45,11 @@ fun TrendingListScreen(
     onLastItemClick: (String, SongIconList) -> Unit,
     onSkipNextPressed: () -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize()) {
+        SpotifyHome()
+    }
+
+  /*  Box(modifier = Modifier.fillMaxSize()) {
         if (trendingListState.isLoading) {
             Toast.makeText(LocalContext.current, "loading", Toast.LENGTH_SHORT).show()
         } else {
@@ -76,6 +80,8 @@ fun TrendingListScreen(
             }
         }
     }
+
+   */
 }
 
 @Composable
