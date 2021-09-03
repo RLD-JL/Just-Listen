@@ -18,9 +18,9 @@ fun Navigation.Level1BottomBar(
     BottomNavigation(content = {
         BottomNavigationItem(
             icon = { Icon(Icons.Default.Menu, "ALL") },
-            label = { Text("All Countries", fontSize = 13.sp) },
-            selected = selectedTab.URI == Level1Navigation.AllTrending.screenIdentifier.URI,
-            onClick = { navigateByLevel1Menu(Level1Navigation.AllTrending) }
+            label = { Text("Playlist", fontSize = 13.sp) },
+            selected = selectedTab.URI == Level1Navigation.Playlist.screenIdentifier.URI,
+            onClick = { navigateByLevel1Menu(Level1Navigation.Playlist) }
         )
         BottomNavigationItem(
             icon = { Icon(Icons.Default.Star, "FAVORITES") },

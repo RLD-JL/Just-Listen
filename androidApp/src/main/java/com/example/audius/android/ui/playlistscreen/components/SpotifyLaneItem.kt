@@ -15,10 +15,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberImagePainter
 import com.example.audius.android.ui.test.Album
+import com.example.audius.viewmodel.screens.trending.PlaylistItem
 
 @Composable
-fun SpotifyLaneItem(album: Album) {
+fun SpotifyLaneItem(playlistItem: PlaylistItem) {
     val context = LocalContext.current
     Column(
         modifier =
@@ -31,7 +33,7 @@ fun SpotifyLaneItem(album: Album) {
                 })
     ) {
         Image(
-            painter = painterResource(id = album.imageId),
+            painter = rememberImagePainter(playlistItem.songIconList.songImageURL480px),
             modifier = Modifier
                 .width(180.dp)
                 .height(160.dp),
@@ -39,7 +41,7 @@ fun SpotifyLaneItem(album: Album) {
             contentScale = ContentScale.Crop
         )
         Text(
-            text = "${album.song}: ${album.descriptions}",
+            text = "${playlistItem.title}: by ${playlistItem.user}",
             style = typography.body2,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,

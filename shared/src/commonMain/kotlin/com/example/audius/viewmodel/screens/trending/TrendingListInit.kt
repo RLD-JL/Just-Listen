@@ -2,6 +2,7 @@ package com.example.audius.viewmodel.screens.trending
 
 import com.example.audius.Navigation
 import com.example.audius.ScreenParams
+import com.example.audius.datalayer.datacalls.getTopPlaylist
 import com.example.audius.datalayer.datacalls.getTrendingList
 import com.example.audius.datalayer.datacalls.getTrendingListData
 import com.example.audius.viewmodel.screens.ScreenInitSettings
@@ -20,6 +21,24 @@ fun Navigation.initTrendingList(params: TrendingListParams) = ScreenInitSettings
             it.copy(
                 isLoading = false,
                 trendingListItems = listData
+            )
+        }
+    },
+    reinitOnEachNavigation = true
+)
+
+@Serializable
+data class PlaylistParams(val string: String) : ScreenParams
+
+fun Navigation.initPlaylist(params: PlaylistParams) = ScreenInitSettings(
+    title = "Playlist" + params.string,
+    initState = {PlaylistState(isLoading = true)},
+    callOnInit = {
+        val listData = dataRepository.getTopPlaylist()
+        stateManager.updateScreen(PlaylistState::class) {
+            it.copy(
+                isLoading = true,
+                playlistItems = listData
             )
         }
     },

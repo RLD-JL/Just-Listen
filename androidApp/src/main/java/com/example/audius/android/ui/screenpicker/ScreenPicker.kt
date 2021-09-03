@@ -6,6 +6,7 @@ import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
+import com.example.audius.android.ui.playlistscreen.components.SpotifyHome
 import com.example.audius.android.ui.trendinglistscreen.TrendingListScreen
 import com.example.audius.viewmodel.screens.Screen
 import com.example.audius.viewmodel.screens.trending.playMusic
@@ -29,6 +30,10 @@ fun Navigation.ScreenPicker(
                     events.playMusic(songId = songId, songIcon = songIcon)
                 },
                 onSkipNextPressed = { events.skipToNextSong() }
+            )
+        Screen.Playlist ->
+            SpotifyHome(
+                playlistState = stateProvider.get(screenIdentifier = screenIdentifier)
             )
     }
 }

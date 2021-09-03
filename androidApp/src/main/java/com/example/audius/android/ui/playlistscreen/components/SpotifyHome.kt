@@ -25,6 +25,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.audius.android.ui.test.AlbumsDataProvider
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
+import com.example.audius.viewmodel.screens.trending.PlaylistItem
+import com.example.audius.viewmodel.screens.trending.PlaylistState
+import com.example.audius.viewmodel.screens.trending.TrendingListState
 import com.guru.composecookbook.spotify.ui.home.components.SpotifyHomeGridItem
 import com.guru.composecookbook.verticalgrid.VerticalGrid
 
@@ -36,11 +39,13 @@ fun spotifySurfaceGradient(isDark: Boolean) =
 
 
 @Composable
-fun SpotifyHome() {
+fun SpotifyHome(
+    playlistState: PlaylistState
+) {
     val scrollState = rememberScrollState(0)
     val surfaceGradient = spotifySurfaceGradient(isSystemInDarkTheme())
     Box(modifier = Modifier.fillMaxSize()) {
-        ScrollableContent(scrollState = scrollState, surfaceGradient = surfaceGradient)
+        ScrollableContent(scrollState = scrollState, surfaceGradient = surfaceGradient, playlistState = playlistState)
         Icon(
             imageVector = Icons.Outlined.Settings,
             tint = MaterialTheme.colors.onSurface,
@@ -55,7 +60,7 @@ fun SpotifyHome() {
 }
 
 @Composable
-fun ScrollableContent(scrollState: ScrollState, surfaceGradient: List<Color>) {
+fun ScrollableContent(scrollState: ScrollState, surfaceGradient: List<Color>, playlistState: PlaylistState) {
     Column(
         modifier = Modifier
             .horizontalGradientBackground(surfaceGradient)
@@ -63,9 +68,9 @@ fun ScrollableContent(scrollState: ScrollState, surfaceGradient: List<Color>) {
             .verticalScroll(state = scrollState)
     ) {
         Spacer(modifier = Modifier.height(50.dp))
-        SpotifyTitle("Good Evening")
+        //SpotifyTitle("Good Evening")
         //HomeGridSection()
-        HomeLanesSection()
+        HomeLanesSection(playlistState = playlistState)
         Spacer(modifier = Modifier.height(100.dp))
     }
 }
@@ -90,22 +95,17 @@ fun HomeGridSection() {
 }
 
 @Composable
-fun HomeLanesSection() {
-    val categories = remember { AlbumsDataProvider.listOfSpotifyHomeLanes }
-    categories.forEachIndexed { index, lane ->
-        SpotifyTitle(text = lane)
-        SpotifyLane(index)
-    }
+fun HomeLanesSection(playlistState: PlaylistState) {
+        SpotifyTitle(text = "Top Playlist")
+        SpotifyLane(playlistState.playlistItems)
 }
 
 @Composable
-fun SpotifyLane(index: Int) {
-    val itemsEven = remember { AlbumsDataProvider.albums }
-    val itemsOdd = remember { AlbumsDataProvider.albums.asReversed() }
+fun SpotifyLane(playlistItem: List<PlaylistItem>) {
     LazyRow {
-        items(itemsEven ) {
-            SpotifyLaneItem(album = it)
-        }
+        items(items = playlistItem, itemContent = {
+            playlistItem -> SpotifyLaneItem(playlistItem = playlistItem)
+        })
     }
 }
 

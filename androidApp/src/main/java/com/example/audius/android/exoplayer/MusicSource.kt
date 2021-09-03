@@ -42,7 +42,7 @@ class MusicSource @Inject constructor(
     suspend fun fetchMediaData() = withContext(Dispatchers.Main){
        state = STATE_INITIALIZING
 
-     val allSongs = navigation.dataRepository.getTrendingList()
+     val allSongs = navigation.dataRepository.getTrendingListData()
         songs = allSongs.map { song ->
             Builder()
                 .putString(METADATA_KEY_ARTIST, song.title)
