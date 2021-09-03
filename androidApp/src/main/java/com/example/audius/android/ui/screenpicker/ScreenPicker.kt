@@ -9,6 +9,7 @@ import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
 import com.example.audius.android.ui.playlistscreen.components.SpotifyHome
 import com.example.audius.android.ui.trendinglistscreen.TrendingListScreen
 import com.example.audius.viewmodel.screens.Screen
+import com.example.audius.viewmodel.screens.trending.fetchMorePlaylistItems
 import com.example.audius.viewmodel.screens.trending.playMusic
 import com.example.audius.viewmodel.screens.trending.skipToNextSong
 
@@ -33,6 +34,7 @@ fun Navigation.ScreenPicker(
             )
         Screen.Playlist ->
             SpotifyHome(
+                lasItemReached = {lastIndex -> events.fetchMorePlaylistItems(lastIndex) },
                 playlistState = stateProvider.get(screenIdentifier = screenIdentifier)
             )
     }
