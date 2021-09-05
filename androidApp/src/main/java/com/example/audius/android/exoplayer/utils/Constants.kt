@@ -7,5 +7,7 @@ object Constants {
 
     const val MEDIA_ROOT_ID = "root_id"
 
+    const val CLICKED_PLAYLIST = "clicked_playlist"
+
     const val NETWORK_ERROR = "Network Error"
 }

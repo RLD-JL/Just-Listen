@@ -1,5 +1,6 @@
 package com.example.audius.android.ui.playlistscreen.components
 
+import android.support.v4.media.MediaBrowserCompat
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -16,11 +17,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
+import com.example.audius.android.exoplayer.MusicServiceConnection
+import com.example.audius.android.exoplayer.utils.Constants
 import com.example.audius.android.ui.test.Album
 import com.example.audius.viewmodel.screens.trending.PlaylistItem
 
 @Composable
-fun SpotifyLaneItem(playlistItem: PlaylistItem) {
+fun SpotifyLaneItem(
+    playlistItem: PlaylistItem,
+    musicServiceConnection: MusicServiceConnection,
+    onPlaylistClicked: (String) -> Unit
+) {
     val context = LocalContext.current
     Column(
         modifier =
@@ -29,14 +36,22 @@ fun SpotifyLaneItem(playlistItem: PlaylistItem) {
             .padding(8.dp)
             .clickable(
                 onClick = {
-                    //Disclaimer: We should pass event top level and there should startActivity
+
                 })
     ) {
         Image(
             painter = rememberImagePainter(playlistItem.songIconList.songImageURL480px),
             modifier = Modifier
                 .width(180.dp)
-                .height(160.dp),
+                .height(160.dp)
+                .clickable(
+                    onClick = {
+                        onPlaylistClicked(playlistItem.id)
+                        musicServiceConnection.subscribe(
+                            Constants.CLICKED_PLAYLIST,
+                            object : MediaBrowserCompat.SubscriptionCallback() {})
+                    }
+                ),
             contentDescription = null,
             contentScale = ContentScale.Crop
         )

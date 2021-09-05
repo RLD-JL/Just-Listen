@@ -2,10 +2,8 @@ package com.example.audius.viewmodel.screens.trending
 
 import com.example.audius.Navigation
 import com.example.audius.ScreenParams
-import com.example.audius.datalayer.datacalls.getRemixPlaylist
-import com.example.audius.datalayer.datacalls.getTopPlaylist
+import com.example.audius.datalayer.datacalls.getPlaylist
 import com.example.audius.datalayer.datacalls.getTrendingList
-import com.example.audius.datalayer.datacalls.getTrendingListData
 import com.example.audius.viewmodel.screens.ScreenInitSettings
 import kotlinx.serialization.Serializable
 
@@ -35,8 +33,8 @@ fun Navigation.initPlaylist(params: PlaylistParams) = ScreenInitSettings(
     title = "Playlist" + params.string,
     initState = {PlaylistState(isLoading = true)},
     callOnInit = {
-        val listData = dataRepository.getTopPlaylist(index = 20)
-        val remixPlaylist = dataRepository.getRemixPlaylist(index = 20)
+        val listData = dataRepository.getPlaylist(index = 20, PlayListEnum.TOP_PLAYLIST)
+        val remixPlaylist = dataRepository.getPlaylist(index = 20, PlayListEnum.REMIX)
         stateManager.updateScreen(PlaylistState::class) {
             it.copy(
                 remixPlaylist = remixPlaylist,
@@ -45,5 +43,5 @@ fun Navigation.initPlaylist(params: PlaylistParams) = ScreenInitSettings(
             )
         }
     },
-    reinitOnEachNavigation = true
+    reinitOnEachNavigation = false
 )

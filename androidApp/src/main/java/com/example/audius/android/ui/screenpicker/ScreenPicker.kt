@@ -9,8 +9,10 @@ import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
 import com.example.audius.android.ui.playlistscreen.components.SpotifyHome
 import com.example.audius.android.ui.trendinglistscreen.TrendingListScreen
 import com.example.audius.viewmodel.screens.Screen
-import com.example.audius.viewmodel.screens.trending.fetchMorePlaylistItems
+import com.example.audius.viewmodel.screens.trending.PlayListEnum.*
+import com.example.audius.viewmodel.screens.trending.fetchPlaylist
 import com.example.audius.viewmodel.screens.trending.playMusic
+import com.example.audius.viewmodel.screens.trending.playMusicFromPlaylist
 import com.example.audius.viewmodel.screens.trending.skipToNextSong
 
 @Composable
@@ -18,9 +20,7 @@ fun Navigation.ScreenPicker(
     screenIdentifier: ScreenIdentifier,
     musicServiceConnection: MusicServiceConnection
 ) {
-    musicServiceConnection.subscribe(
-        MEDIA_ROOT_ID,
-        object : MediaBrowserCompat.SubscriptionCallback() {})
+
     when (screenIdentifier.screen) {
 
         Screen.TrendingList ->
@@ -34,8 +34,16 @@ fun Navigation.ScreenPicker(
             )
         Screen.Playlist ->
             SpotifyHome(
-                lasItemReached = {lastIndex -> events.fetchMorePlaylistItems(lastIndex) },
-                playlistState = stateProvider.get(screenIdentifier = screenIdentifier)
+                lasItemReached = {lastIndex, playListEnum ->
+                    when(playListEnum) {
+                        TOP_PLAYLIST ->events.fetchPlaylist(lastIndex, TOP_PLAYLIST)
+                        REMIX -> events.fetchPlaylist(lastIndex, REMIX)
+                        HOT -> TODO()
+                    }
+                },
+                playlistState = stateProvider.get(screenIdentifier = screenIdentifier),
+                musicServiceConnection = musicServiceConnection,
+                onPlaylistClicked = {playlistId -> events.playMusicFromPlaylist(playlistId = playlistId)}
             )
     }
 }

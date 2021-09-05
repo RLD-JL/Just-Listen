@@ -12,6 +12,7 @@ import com.example.audius.StateManager
 import com.example.audius.android.exoplayer.callbacks.MusicPlaybackPreparer
 import com.example.audius.android.exoplayer.callbacks.MusicPlayerEventListener
 import com.example.audius.android.exoplayer.callbacks.MusicPlayerNotificationListener
+import com.example.audius.android.exoplayer.utils.Constants.CLICKED_PLAYLIST
 import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
 import com.example.audius.android.exoplayer.utils.Constants.NETWORK_ERROR
 import com.example.audius.shared.viewmodel.getAndroidInstance
@@ -29,7 +30,7 @@ import javax.inject.Inject
 private const val SERVICE_TAG = "MusicService"
 
 @AndroidEntryPoint
-class MusicService: MediaBrowserServiceCompat() {
+class MusicService : MediaBrowserServiceCompat() {
 
     @Inject
     lateinit var exoPlayer: SimpleExoPlayer
@@ -67,10 +68,6 @@ class MusicService: MediaBrowserServiceCompat() {
     override fun onCreate() {
         super.onCreate()
 
-        serviceScope.launch {
-            musicSource.fetchMediaData()
-        }
-
         val activityIntent = packageManager?.getLaunchIntentForPackage(packageName)?.let {
             PendingIntent.getActivity(this, 0, it, 0)
         }
@@ -107,7 +104,7 @@ class MusicService: MediaBrowserServiceCompat() {
 
     private inner class MusicQueueNavigator : TimelineQueueNavigator(mediaSession) {
         override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat {
-           return musicSource.songs[windowIndex].description
+            return musicSource.songs[windowIndex].description
         }
     }
 
@@ -142,6 +139,12 @@ class MusicService: MediaBrowserServiceCompat() {
         return BrowserRoot(MEDIA_ROOT_ID, null)
     }
 
+    fun fetchPlaylist() {
+        serviceScope.launch {
+            musicSource.fetchMediaData()
+        }
+    }
+
     override fun onLoadChildren(
         parentId: String,
         result: Result<MutableList<MediaBrowserCompat.MediaItem>>
@@ -152,10 +155,27 @@ class MusicService: MediaBrowserServiceCompat() {
                     if (isInitialized) {
                         result.sendResult(musicSource.asMediaItems())
                         if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
+                            preparePlayer(musicSource.songs, musicSource.songs[0], true)
+                            isPlayerInitialized = true
+                        }
+                    } else {
+                        mediaSession.sendSessionEvent(NETWORK_ERROR, null)
+                    }
+                }
+                if (!resultsSent) {
+                    result.detach()
+                }
+            }
+            CLICKED_PLAYLIST -> {
+                fetchPlaylist()
+                val resultsSent = musicSource.whenReady { isInitialized ->
+                    if (isInitialized) {
+                        result.sendResult(musicSource.asMediaItems())
+                        if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
                             preparePlayer(musicSource.songs, musicSource.songs[0], false)
                             isPlayerInitialized = true
                         }
-                    }else {
+                    } else {
                         mediaSession.sendSessionEvent(NETWORK_ERROR, null)
                     }
                 }

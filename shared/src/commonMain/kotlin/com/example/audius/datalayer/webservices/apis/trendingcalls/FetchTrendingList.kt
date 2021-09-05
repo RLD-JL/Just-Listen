@@ -10,6 +10,10 @@ suspend fun ApiClient.fetchTrendingList(): TrendingListResponse? {
     return getResponse("/tracks/trending?app_name=EXAMPLEAPP")
 }
 
+suspend fun ApiClient.fetchTrackListFromPlaylist(playlistId: String): TrendingListResponse? {
+    return getResponse("/playlists/${playlistId}/tracks?app_name=EXAMPLEAPP ")
+}
+
 
 @Serializable
 data class TrendingListResponse(
