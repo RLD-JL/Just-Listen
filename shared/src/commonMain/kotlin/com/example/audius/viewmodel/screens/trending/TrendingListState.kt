@@ -44,3 +44,10 @@ data class PlaylistItem(
     val id = _data.id
     val songIconList = _data.songImgList
 }
+
+data class PlaylistDetailState(
+    val isLoading: Boolean = false,
+    val playlistName: String = "",
+    val playListCreatedBy: String ="",
+    var playlistIcon: String= ""
+): ScreenState

@@ -3,6 +3,7 @@ package com.example.audius.viewmodel.screens
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
 import com.example.audius.viewmodel.screens.trending.initPlaylist
+import com.example.audius.viewmodel.screens.trending.initPlaylistDetail
 import com.example.audius.viewmodel.screens.trending.initTrendingList
 
 enum class Screen (
@@ -12,5 +13,6 @@ enum class Screen (
     val stackableInstances : Boolean = false,
 ) {
     TrendingList("trendingList", 1, {initTrendingList(it.params())}),
-    Playlist("playlist", 1, {initPlaylist(it.params())})
+    Playlist("playlist", 1, {initPlaylist(it.params())}),
+    PlaylistDetail("playlistDetail", 1, {initPlaylistDetail(it.params())})
 }

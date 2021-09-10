@@ -1,6 +1,7 @@
 package com.example.audius.viewmodel.screens
 
 import com.example.audius.ScreenIdentifier
+import com.example.audius.viewmodel.screens.trending.PlaylistDetailParams
 import com.example.audius.viewmodel.screens.trending.PlaylistParams
 import com.example.audius.viewmodel.screens.trending.TrendingListParams
 
@@ -15,5 +16,6 @@ object navigationSettings {
 
 enum class Level1Navigation(val screenIdentifier: ScreenIdentifier, val rememberVerticalStack: Boolean = false) {
     AllTrending( ScreenIdentifier.get(Screen.TrendingList, TrendingListParams("")), true),
-    Playlist( ScreenIdentifier.get(Screen.Playlist, PlaylistParams("")), true)
+    Playlist( ScreenIdentifier.get(Screen.Playlist, PlaylistParams("")), true),
+    PlaylistDetail( ScreenIdentifier.get(Screen.Playlist, PlaylistDetailParams("")), true)
 }

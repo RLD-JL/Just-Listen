@@ -47,3 +47,19 @@ fun Navigation.initPlaylist(params: PlaylistParams) = ScreenInitSettings(
     },
     reinitOnEachNavigation = false
 )
+
+@Serializable
+data class PlaylistDetailParams(val string: String) : ScreenParams
+
+fun Navigation.initPlaylistDetail(params: PlaylistDetailParams) = ScreenInitSettings(
+    title = "Trending" + params.string,
+    initState = { PlaylistDetailState(isLoading = true) },
+    callOnInit = {
+        stateManager.updateScreen(PlaylistDetailState::class) {
+            it.copy(
+                isLoading = false,
+            )
+        }
+    },
+    reinitOnEachNavigation = true
+)

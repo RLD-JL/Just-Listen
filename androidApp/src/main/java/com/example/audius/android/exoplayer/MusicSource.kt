@@ -7,12 +7,8 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.*
 import androidx.core.net.toUri
 import com.example.audius.Navigation
-import com.example.audius.ScreenIdentifier
-import com.example.audius.ScreenState
 import com.example.audius.StateManager
 import com.example.audius.android.exoplayer.State.*
-import com.example.audius.android.exoplayer.library.MusicSourceInterface
-import com.example.audius.datalayer.datacalls.getTrackListFromPlaylist
 import com.example.audius.viewmodel.screens.trending.PlaylistState
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource

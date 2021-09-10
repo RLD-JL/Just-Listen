@@ -28,7 +28,6 @@ fun SpotifyLaneItem(
     musicServiceConnection: MusicServiceConnection,
     onPlaylistClicked: (String) -> Unit
 ) {
-    val context = LocalContext.current
     Column(
         modifier =
         Modifier

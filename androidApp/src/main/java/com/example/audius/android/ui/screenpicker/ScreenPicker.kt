@@ -7,13 +7,13 @@ import com.example.audius.ScreenIdentifier
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
 import com.example.audius.android.ui.playlistscreen.components.SpotifyHome
+import com.example.audius.android.ui.test.Album
+import com.example.audius.android.ui.test.AlbumsDataProvider
 import com.example.audius.android.ui.trendinglistscreen.TrendingListScreen
 import com.example.audius.viewmodel.screens.Screen
+import com.example.audius.viewmodel.screens.trending.*
 import com.example.audius.viewmodel.screens.trending.PlayListEnum.*
-import com.example.audius.viewmodel.screens.trending.fetchPlaylist
-import com.example.audius.viewmodel.screens.trending.playMusic
-import com.example.audius.viewmodel.screens.trending.playMusicFromPlaylist
-import com.example.audius.viewmodel.screens.trending.skipToNextSong
+import com.guru.composecookbook.spotify.ui.details.components.SpotifyDetailScreen
 
 @Composable
 fun Navigation.ScreenPicker(
@@ -44,8 +44,11 @@ fun Navigation.ScreenPicker(
                 },
                 playlistState = stateProvider.get(screenIdentifier = screenIdentifier),
                 musicServiceConnection = musicServiceConnection,
-                onPlaylistClicked = {playlistId -> events.playMusicFromPlaylist(playlistId = playlistId)}
+                onPlaylistClicked = {playlistId->
+                         navigate(Screen.PlaylistDetail, PlaylistDetailParams("yolo"))
+                         events.playMusicFromPlaylist(playlistId = playlistId)}
             )
+        Screen.PlaylistDetail -> SpotifyDetailScreen(album = AlbumsDataProvider.album)
     }
 }
 
