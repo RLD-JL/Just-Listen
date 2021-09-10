@@ -39,6 +39,7 @@ fun Navigation.ScreenPicker(
                         TOP_PLAYLIST ->events.fetchPlaylist(lastIndex, TOP_PLAYLIST)
                         REMIX -> events.fetchPlaylist(lastIndex, REMIX)
                         HOT -> TODO()
+                        CURRENT_PLAYLIST -> TODO()
                     }
                 },
                 playlistState = stateProvider.get(screenIdentifier = screenIdentifier),

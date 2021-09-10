@@ -17,6 +17,9 @@ suspend fun Repository.getPlaylist(index: Int, playListEnum: PlayListEnum): List
             PlaylistItem(_data = playlistModel)
         } ?: emptyList()
 
+        CURRENT_PLAYLIST -> webservices.fetchPlaylist(index, CURRENT_PLAYLIST)?.data?.map { playlistModel ->
+            PlaylistItem(_data = playlistModel)
+        } ?: emptyList()
         HOT -> TODO()
     }
 }

@@ -21,9 +21,10 @@ fun Events.skipToNextSong() = screenCoroutine{
 fun Events.fetchPlaylist(index: Int, playlistEnum: PlayListEnum) = screenCoroutine {
     stateManager.updateScreen(PlaylistState::class) {
         when(playlistEnum) {
-            REMIX ->  it.copy(remixPlaylist = dataRepository.getPlaylist(index, playlistEnum))
             TOP_PLAYLIST ->  it.copy(playlistItems = dataRepository.getPlaylist(index, playlistEnum))
+            REMIX ->  it.copy(remixPlaylist = dataRepository.getPlaylist(index, playlistEnum))
             HOT -> TODO()
+            CURRENT_PLAYLIST -> TODO()
         }
     }
 }

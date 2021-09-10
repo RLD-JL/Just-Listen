@@ -139,7 +139,7 @@ class MusicService : MediaBrowserServiceCompat() {
         return BrowserRoot(MEDIA_ROOT_ID, null)
     }
 
-    fun fetchPlaylist() {
+    private fun fetchPlaylist() {
         serviceScope.launch {
             musicSource.fetchMediaData()
         }

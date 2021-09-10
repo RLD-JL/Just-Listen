@@ -1,41 +1,32 @@
 package com.example.audius.android.exoplayer
 
-import android.app.Service
-import android.content.Intent
-import android.os.IBinder
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.*
 import androidx.core.net.toUri
-import androidx.lifecycle.AndroidViewModel
 import com.example.audius.Navigation
+import com.example.audius.ScreenIdentifier
+import com.example.audius.ScreenState
 import com.example.audius.StateManager
 import com.example.audius.android.exoplayer.State.*
-import com.example.audius.datalayer.datacalls.getPlaylist
+import com.example.audius.android.exoplayer.library.MusicSourceInterface
 import com.example.audius.datalayer.datacalls.getTrackListFromPlaylist
-import com.example.audius.datalayer.datacalls.getTrendingList
-import com.example.audius.datalayer.datacalls.getTrendingListData
-import com.example.audius.datalayer.webservices.ApiClient
-import com.example.audius.viewmodel.screens.ScreenInitSettings
-import com.example.audius.viewmodel.screens.trending.TrendingListParams
-import com.example.audius.viewmodel.screens.trending.TrendingListState
+import com.example.audius.viewmodel.screens.trending.PlaylistState
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-
 class MusicSource @Inject constructor(
     stateManager: StateManager
 ) {
-
     private val navigation: Navigation = Navigation(stateManager = stateManager)
+
 
     private val onReadyListener = mutableListOf<(Boolean) -> Unit> ()
 
@@ -43,8 +34,10 @@ class MusicSource @Inject constructor(
 
     suspend fun fetchMediaData() = withContext(Dispatchers.Main){
        state = STATE_INITIALIZING
+         val stateProvider = navigation.stateProvider
+         val currentScreen = navigation.currentScreenIdentifier
 
-        val allSongs = navigation.dataRepository.getTrackListFromPlaylist("nqZmb")
+        val allSongs = stateProvider.get<PlaylistState>(currentScreen).currentPlaylist
 
         songs = allSongs.map { song ->
             Builder()
@@ -96,12 +89,12 @@ class MusicSource @Inject constructor(
             }
         }
 
-    fun whenReady(action: (Boolean) -> Unit): Boolean {
-        return if (state == STATE_CREATED || state == STATE_INITIALIZING) {
-            onReadyListener +=action
+     fun whenReady(performAction: (Boolean) -> Unit): Boolean {
+         return if (state == STATE_CREATED || state == STATE_INITIALIZING) {
+            onReadyListener +=performAction
             false
         } else {
-            action(state == STATE_INITIALIZED)
+            performAction(state == STATE_INITIALIZED)
             true
         }
     }

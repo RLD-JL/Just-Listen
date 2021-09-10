@@ -35,11 +35,13 @@ fun Navigation.initPlaylist(params: PlaylistParams) = ScreenInitSettings(
     callOnInit = {
         val listData = dataRepository.getPlaylist(index = 20, PlayListEnum.TOP_PLAYLIST)
         val remixPlaylist = dataRepository.getPlaylist(index = 20, PlayListEnum.REMIX)
+        val currentPlaylist = dataRepository.getPlaylist(index = 20, PlayListEnum.CURRENT_PLAYLIST)
         stateManager.updateScreen(PlaylistState::class) {
             it.copy(
                 remixPlaylist = remixPlaylist,
                 isLoading = true,
-                playlistItems = listData
+                playlistItems = listData,
+                currentPlaylist = currentPlaylist
             )
         }
     },

@@ -31,7 +31,8 @@ data class PlaylistState(
     val playListCreatedBy: String ="",
     var playlistIcon: String= "",
     val playlistItems: List<PlaylistItem> = emptyList(),
-    val remixPlaylist: List<PlaylistItem> = emptyList()
+    val remixPlaylist: List<PlaylistItem> = emptyList(),
+    val currentPlaylist: List<PlaylistItem> = emptyList()
 ): ScreenState
 
 data class PlaylistItem(
@@ -39,6 +40,7 @@ data class PlaylistItem(
 ) {
     val user = _data.user.username
     val title = _data.title
+    val playlistTitle = _data.playlistTitle
     val id = _data.id
     val songIconList = _data.songImgList
 }
