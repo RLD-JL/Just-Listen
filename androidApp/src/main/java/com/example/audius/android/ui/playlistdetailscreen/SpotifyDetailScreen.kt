@@ -1,19 +1,15 @@
 package com.guru.composecookbook.spotify.ui.details.components
 
 import android.graphics.Bitmap
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.isSystemInDarkTheme
+import android.widget.Toast
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -33,6 +29,22 @@ import com.example.audius.android.ui.test.Album
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
 import com.example.audius.android.ui.theme.modifiers.verticalGradientBackground
 import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import androidx.compose.runtime.*
+import androidx.core.graphics.drawable.toBitmap
+import coil.ImageLoader
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
+import coil.request.SuccessResult
+import coil.transform.RoundedCornersTransformation
+import coil.transition.CrossfadeTransition
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
+import kotlinx.coroutines.launch
+
 
 fun spotifySurfaceGradient(isDark: Boolean) =
     if (isDark) listOf(graySurface, Color.Black) else listOf(Color.White, Color.LightGray)
@@ -47,18 +59,37 @@ fun Bitmap.generateDominantColorState(): Palette.Swatch = Palette.Builder(this)
 @Composable
 fun SpotifyDetailScreen(album: Album, playlistDetailState: PlaylistDetailState)
 {
-    val scrollState = rememberScrollState(0)
     val context = LocalContext.current
-    val image = ImageBitmap.imageResource(context.resources, id = album.imageId).asAndroidBitmap()
-    val swatch = remember(album.id) { image.generateDominantColorState() }
-    val dominantColors = listOf(Color(swatch.rgb), MaterialTheme.colors.surface)
-    val dominantGradient = remember { dominantColors }
+    val scrollState = rememberScrollState(0)
     val surfaceGradient = spotifySurfaceGradient(isSystemInDarkTheme()).asReversed()
+    val listColor: MutableState<Int> = remember {
+        mutableStateOf(-10082496)
+    }
+    val imageLoader = ImageLoader(context)
+    val request = ImageRequest.Builder(context)
+        .transformations(RoundedCornersTransformation(12.dp.value))
+        .data(playlistDetailState.playlistIcon)
+        .build()
+    val imagePainter = rememberImagePainter(
+        request = request,
+        imageLoader = imageLoader
+    )
 
+    LaunchedEffect(key1 = imagePainter) {
+        launch {
+            val result = (imageLoader.execute(request) as SuccessResult).drawable
+            val bitmap = (result as BitmapDrawable).bitmap
+            val vibrant = Palette.from(bitmap)
+                .generate().dominantSwatch?.rgb
+            listColor.value = vibrant ?: -13082496
+        }
+    }
+
+    val dominantColors = listOf(Color(listColor.value), MaterialTheme.colors.surface)
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .verticalGradientBackground(dominantGradient)
+            .verticalGradientBackground(dominantColors)
     ) {
         BoxTopSection(album = album, scrollState = scrollState, playlistDetailState = playlistDetailState)
         TopSectionOverlay(scrollState = scrollState)

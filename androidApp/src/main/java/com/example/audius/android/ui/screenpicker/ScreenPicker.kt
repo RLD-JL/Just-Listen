@@ -1,13 +1,17 @@
 package com.example.audius.android.ui.screenpicker
 
-import android.support.v4.media.MediaBrowserCompat
+import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.graphics.drawable.toBitmap
+import androidx.palette.graphics.Palette
+import coil.ImageLoader
+import coil.request.ImageRequest
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
 import com.example.audius.android.exoplayer.MusicServiceConnection
-import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
 import com.example.audius.android.ui.playlistscreen.components.SpotifyHome
-import com.example.audius.android.ui.test.Album
 import com.example.audius.android.ui.test.AlbumsDataProvider
 import com.example.audius.android.ui.trendinglistscreen.TrendingListScreen
 import com.example.audius.viewmodel.screens.Screen
@@ -20,7 +24,6 @@ fun Navigation.ScreenPicker(
     screenIdentifier: ScreenIdentifier,
     musicServiceConnection: MusicServiceConnection
 ) {
-
     when (screenIdentifier.screen) {
 
         Screen.TrendingList ->
@@ -48,8 +51,10 @@ fun Navigation.ScreenPicker(
                          navigate(Screen.PlaylistDetail, PlaylistDetailParams(playlistIcon))
                          events.playMusicFromPlaylist(playlistId = playlistId)}
             )
+
         Screen.PlaylistDetail -> SpotifyDetailScreen(album = AlbumsDataProvider.album,
-            playlistDetailState = stateProvider.get(screenIdentifier = screenIdentifier))
+            playlistDetailState = (stateProvider.get(screenIdentifier = screenIdentifier) as PlaylistDetailState),
+        )
     }
 }
 

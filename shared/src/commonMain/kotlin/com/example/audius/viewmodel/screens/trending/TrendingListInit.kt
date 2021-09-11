@@ -58,7 +58,7 @@ fun Navigation.initPlaylistDetail(params: PlaylistDetailParams) = ScreenInitSett
         stateManager.updateScreen(PlaylistDetailState::class) {
             it.copy(
                 isLoading = false,
-                playlistIcon = params.playlistIcon,
+                playlistIcon = params.playlistIcon
             )
         }
     },
