@@ -26,7 +26,7 @@ import com.example.audius.viewmodel.screens.trending.PlaylistItem
 fun SpotifyLaneItem(
     playlistItem: PlaylistItem,
     musicServiceConnection: MusicServiceConnection,
-    onPlaylistClicked: (String) -> Unit
+    onPlaylistClicked: (String, String) -> Unit
 ) {
     Column(
         modifier =
@@ -45,7 +45,7 @@ fun SpotifyLaneItem(
                 .height(160.dp)
                 .clickable(
                     onClick = {
-                        onPlaylistClicked(playlistItem.id)
+                        onPlaylistClicked(playlistItem.id, playlistItem.songIconList.songImageURL480px)
                         musicServiceConnection.subscribe(
                             Constants.CLICKED_PLAYLIST,
                             object : MediaBrowserCompat.SubscriptionCallback() {})

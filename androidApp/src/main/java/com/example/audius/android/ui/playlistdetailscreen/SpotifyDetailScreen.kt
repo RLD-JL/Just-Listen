@@ -60,7 +60,7 @@ fun SpotifyDetailScreen(album: Album, playlistDetailState: PlaylistDetailState)
             .fillMaxSize()
             .verticalGradientBackground(dominantGradient)
     ) {
-        BoxTopSection(album = album, scrollState = scrollState)
+        BoxTopSection(album = album, scrollState = scrollState, playlistDetailState = playlistDetailState)
         TopSectionOverlay(scrollState = scrollState)
         BottomScrollableContent(scrollState = scrollState, surfaceGradient = surfaceGradient)
         AnimatedToolBar(album, scrollState, surfaceGradient)

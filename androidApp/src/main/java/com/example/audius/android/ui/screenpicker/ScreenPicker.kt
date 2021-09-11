@@ -44,8 +44,8 @@ fun Navigation.ScreenPicker(
                 },
                 playlistState = stateProvider.get(screenIdentifier = screenIdentifier),
                 musicServiceConnection = musicServiceConnection,
-                onPlaylistClicked = {playlistId->
-                         navigate(Screen.PlaylistDetail, PlaylistDetailParams("yolo"))
+                onPlaylistClicked = {playlistId, playlistIcon->
+                         navigate(Screen.PlaylistDetail, PlaylistDetailParams(playlistIcon))
                          events.playMusicFromPlaylist(playlistId = playlistId)}
             )
         Screen.PlaylistDetail -> SpotifyDetailScreen(album = AlbumsDataProvider.album,
