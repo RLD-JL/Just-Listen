@@ -19,7 +19,7 @@ object AlbumsDataProvider {
         artist = "Adele",
         song = "Someone like you",
         descriptions = "Album by Adele-2016",
-        imageId = R.drawable.adele21
+        imageId = R.drawable.camelia
     )
 
     val albums = mutableListOf(
@@ -57,6 +57,30 @@ object AlbumsDataProvider {
         ),
         Album(
             id = 13,
+            artist = "Eminem",
+            song = "The Eminem Show",
+            descriptions = "Album by Eminem-2019",
+            imageId = R.drawable.eminem,
+            genre = "Rap"
+        ),
+        Album(
+            id = 14,
+            artist = "Eminem",
+            song = "The Eminem Show",
+            descriptions = "Album by Eminem-2019",
+            imageId = R.drawable.eminem,
+            genre = "Rap"
+        ),
+        Album(
+            id = 15,
+            artist = "Eminem",
+            song = "The Eminem Show",
+            descriptions = "Album by Eminem-2019",
+            imageId = R.drawable.eminem,
+            genre = "Rap"
+        ),
+        Album(
+            id = 16,
             artist = "Eminem",
             song = "The Eminem Show",
             descriptions = "Album by Eminem-2019",

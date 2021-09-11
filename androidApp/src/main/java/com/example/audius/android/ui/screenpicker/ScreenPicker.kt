@@ -48,7 +48,8 @@ fun Navigation.ScreenPicker(
                          navigate(Screen.PlaylistDetail, PlaylistDetailParams("yolo"))
                          events.playMusicFromPlaylist(playlistId = playlistId)}
             )
-        Screen.PlaylistDetail -> SpotifyDetailScreen(album = AlbumsDataProvider.album)
+        Screen.PlaylistDetail -> SpotifyDetailScreen(album = AlbumsDataProvider.album,
+            playlistDetailState = stateProvider.get(screenIdentifier = screenIdentifier))
     }
 }
 

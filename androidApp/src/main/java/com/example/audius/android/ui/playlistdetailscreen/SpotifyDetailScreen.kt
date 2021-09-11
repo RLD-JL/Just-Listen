@@ -32,6 +32,7 @@ import com.example.audius.android.ui.playlistscreen.components.graySurface
 import com.example.audius.android.ui.test.Album
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
 import com.example.audius.android.ui.theme.modifiers.verticalGradientBackground
+import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
 
 fun spotifySurfaceGradient(isDark: Boolean) =
     if (isDark) listOf(graySurface, Color.Black) else listOf(Color.White, Color.LightGray)
@@ -44,7 +45,8 @@ fun Bitmap.generateDominantColorState(): Palette.Swatch = Palette.Builder(this)
     .maxByOrNull { swatch -> swatch.population }!!
 
 @Composable
-fun SpotifyDetailScreen(album: Album) {
+fun SpotifyDetailScreen(album: Album, playlistDetailState: PlaylistDetailState)
+{
     val scrollState = rememberScrollState(0)
     val context = LocalContext.current
     val image = ImageBitmap.imageResource(context.resources, id = album.imageId).asAndroidBitmap()
