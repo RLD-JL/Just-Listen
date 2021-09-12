@@ -48,7 +48,7 @@ fun Navigation.ScreenPicker(
                 playlistState = stateProvider.get(screenIdentifier = screenIdentifier),
                 musicServiceConnection = musicServiceConnection,
                 onPlaylistClicked = {playlistId, playlistIcon, playlistTitle, playlistCreatedBy->
-                         navigate(Screen.PlaylistDetail, PlaylistDetailParams(playlistIcon,  playlistTitle, playlistCreatedBy))
+                         navigate(Screen.PlaylistDetail, PlaylistDetailParams(playlistId, playlistIcon,  playlistTitle, playlistCreatedBy))
                          events.playMusicFromPlaylist(playlistId = playlistId)}
             )
 

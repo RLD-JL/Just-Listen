@@ -15,11 +15,11 @@ suspend fun ApiClient.fetchRemixPlaylist(index: Int): PlayListResponse? {
     return getResponse("/playlists/search?query=Remixables&app_name=EXAMPLEAPP")
 }
 
-suspend fun ApiClient.fetchPlaylist(index: Int, playListEnum: PlayListEnum): PlayListResponse? {
+suspend fun ApiClient.fetchPlaylist(index: Int, playListEnum: PlayListEnum, playlistId: String=""): PlayListResponse? {
    return when (playListEnum) {
        PlayListEnum.TOP_PLAYLIST -> getResponse("/playlists/top?type=playlist&limit=${index}&app_name=ExampleApp")
        PlayListEnum.REMIX -> getResponse("/playlists/search?query=Remixes&app_name=ExampleApp")
-       PlayListEnum.CURRENT_PLAYLIST -> getResponse("/playlists/DOPRl/tracks?app_name=EXAMPLEAPP ")
+       PlayListEnum.CURRENT_PLAYLIST -> getResponse("/playlists/${playlistId}/tracks?app_name=EXAMPLEAPP ")
        PlayListEnum.HOT -> TODO()
    }
 }

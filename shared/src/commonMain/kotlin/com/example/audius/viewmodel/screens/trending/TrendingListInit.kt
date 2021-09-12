@@ -50,13 +50,13 @@ fun Navigation.initPlaylist(params: PlaylistParams) = ScreenInitSettings(
 )
 
 @Serializable
-data class PlaylistDetailParams(val playlistIcon: String, val playlistTitle: String, val playlistCreatedBy: String) : ScreenParams
+data class PlaylistDetailParams(val playlistId: String, val playlistIcon: String, val playlistTitle: String, val playlistCreatedBy: String) : ScreenParams
 
 fun Navigation.initPlaylistDetail(params: PlaylistDetailParams) = ScreenInitSettings(
     title = "Trending" + params.playlistIcon,
     initState = { PlaylistDetailState(isLoading = true) },
     callOnInit = {
-        val currentPlaylist = dataRepository.getPlaylist(index = 20, PlayListEnum.CURRENT_PLAYLIST)
+        val currentPlaylist = dataRepository.getPlaylist(index = 20, PlayListEnum.CURRENT_PLAYLIST, params.playlistId)
         stateManager.updateScreen(PlaylistDetailState::class) {
             it.copy(
                 isLoading = false,
