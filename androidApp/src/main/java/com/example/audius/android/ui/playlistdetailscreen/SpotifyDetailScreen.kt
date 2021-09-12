@@ -1,7 +1,5 @@
-package com.guru.composecookbook.spotify.ui.details.components
+package com.example.audius.android.ui.playlistdetailscreen
 
-import android.graphics.Bitmap
-import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
@@ -14,10 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.palette.graphics.Palette
@@ -25,24 +20,17 @@ import com.example.audius.android.ui.playlistdetailscreen.components.BoxTopSecti
 import com.example.audius.android.ui.playlistdetailscreen.components.SongListScrollingSection
 import com.example.audius.android.ui.playlistdetailscreen.components.TopSectionOverlay
 import com.example.audius.android.ui.playlistscreen.components.graySurface
-import com.example.audius.android.ui.test.Album
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
 import com.example.audius.android.ui.theme.modifiers.verticalGradientBackground
 import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
-import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
+import androidx.compose.material.IconButton
 import androidx.compose.runtime.*
-import androidx.core.graphics.drawable.toBitmap
 import coil.ImageLoader
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import coil.transform.RoundedCornersTransformation
-import coil.transition.CrossfadeTransition
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.example.audius.viewmodel.screens.trending.PlaylistItem
 import kotlinx.coroutines.launch
 import java.lang.Exception
@@ -51,15 +39,8 @@ import java.lang.Exception
 fun spotifySurfaceGradient(isDark: Boolean) =
     if (isDark) listOf(graySurface, Color.Black) else listOf(Color.White, Color.LightGray)
 
-fun Bitmap.generateDominantColorState(): Palette.Swatch = Palette.Builder(this)
-    .resizeBitmapArea(0)
-    .maximumColorCount(16)
-    .generate()
-    .swatches
-    .maxByOrNull { swatch -> swatch.population }!!
-
 @Composable
-fun SpotifyDetailScreen(playlistDetailState: PlaylistDetailState)
+fun SpotifyDetailScreen(playlistDetailState: PlaylistDetailState, onBackButtonPressed:(Boolean) -> Unit)
 {
     val context = LocalContext.current
     val scrollState = rememberScrollState(0)
@@ -101,12 +82,12 @@ fun SpotifyDetailScreen(playlistDetailState: PlaylistDetailState)
         BoxTopSection(scrollState = scrollState, playlistDetailState = playlistDetailState, playlistPainter = imagePainter)
         TopSectionOverlay(scrollState = scrollState)
         BottomScrollableContent(playlist = playlistDetailState.songPlaylist,scrollState = scrollState, surfaceGradient = surfaceGradient)
-        AnimatedToolBar(playlistDetailState, scrollState, surfaceGradient)
+        AnimatedToolBar(playlistDetailState, scrollState, surfaceGradient, onBackButtonPressed)
     }
 }
 
 @Composable
-fun AnimatedToolBar(playlistDetailState: PlaylistDetailState, scrollState: ScrollState, surfaceGradient: List<Color>) {
+fun AnimatedToolBar(playlistDetailState: PlaylistDetailState, scrollState: ScrollState, surfaceGradient: List<Color>, onBackButtonPressed:(Boolean) -> Unit) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -118,10 +99,12 @@ fun AnimatedToolBar(playlistDetailState: PlaylistDetailState, scrollState: Scrol
             )
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        Icon(
-            imageVector = Icons.Default.ArrowBack, tint = MaterialTheme.colors.onSurface,
-            contentDescription = null
-        )
+        IconButton(onClick = { onBackButtonPressed(true) }) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack, tint = MaterialTheme.colors.onSurface,
+                contentDescription = null,
+                )
+        }
         Text(
             text = playlistDetailState.playlistName,
             color = MaterialTheme.colors.onSurface,
