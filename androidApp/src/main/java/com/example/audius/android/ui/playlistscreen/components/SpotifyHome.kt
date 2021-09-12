@@ -48,7 +48,7 @@ fun SpotifyHome(
     lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistState: PlaylistState,
     musicServiceConnection: MusicServiceConnection,
-    onPlaylistClicked:(String, String) ->Unit
+    onPlaylistClicked:(String, String, String, String) ->Unit
 ) {
     val scrollState = rememberScrollState(0)
     val surfaceGradient = spotifySurfaceGradient(isSystemInDarkTheme())
@@ -72,7 +72,7 @@ fun SpotifyHome(
 @Composable
 fun ScrollableContent(lasItemReached: (Int, PlayListEnum) -> Unit, scrollState: ScrollState,
                       surfaceGradient: List<Color>, playlistState: PlaylistState,
-                      musicServiceConnection: MusicServiceConnection, onPlaylistClicked:(String, String) ->Unit) {
+                      musicServiceConnection: MusicServiceConnection, onPlaylistClicked:(String, String, String, String) ->Unit) {
     Column(
         modifier = Modifier
             .horizontalGradientBackground(surfaceGradient)
@@ -110,7 +110,7 @@ fun HomeGridSection() {
 @Composable
 fun HomeLanesSection(playlistState: PlaylistState, lasItemReached: (Int, PlayListEnum) ->Unit,
                      musicServiceConnection: MusicServiceConnection,
-                     onPlaylistClicked:(String, String) ->Unit)
+                     onPlaylistClicked:(String, String, String, String) ->Unit)
 {
         val list = mutableListOf("Top Playlist", "Remix")
        list.forEachIndexed { index, item->
@@ -126,7 +126,7 @@ fun HomeLanesSection(playlistState: PlaylistState, lasItemReached: (Int, PlayLis
 @Composable
 fun SpotifyLane(playlist: List<PlaylistItem>, lasItemReached: (Int, PlayListEnum) ->Unit,
                 playlistEnum: PlayListEnum, musicServiceConnection: MusicServiceConnection,
-                onPlaylistClicked:(String, String)->Unit) {
+                onPlaylistClicked:(String, String, String, String)->Unit) {
     LazyRow {
         itemsIndexed(items = playlist) { index, playlistItem->
             if (index == playlist.size - 1)

@@ -49,7 +49,7 @@ fun Navigation.initPlaylist(params: PlaylistParams) = ScreenInitSettings(
 )
 
 @Serializable
-data class PlaylistDetailParams(val playlistIcon: String) : ScreenParams
+data class PlaylistDetailParams(val playlistIcon: String, val playlistTitle: String, val playlistCreatedBy: String) : ScreenParams
 
 fun Navigation.initPlaylistDetail(params: PlaylistDetailParams) = ScreenInitSettings(
     title = "Trending" + params.playlistIcon,
@@ -58,7 +58,9 @@ fun Navigation.initPlaylistDetail(params: PlaylistDetailParams) = ScreenInitSett
         stateManager.updateScreen(PlaylistDetailState::class) {
             it.copy(
                 isLoading = false,
-                playlistIcon = params.playlistIcon
+                playlistIcon = params.playlistIcon,
+                playListCreatedBy = params.playlistCreatedBy,
+                playlistName = params.playlistTitle
             )
         }
     },

@@ -17,5 +17,5 @@ object navigationSettings {
 enum class Level1Navigation(val screenIdentifier: ScreenIdentifier, val rememberVerticalStack: Boolean = false) {
     AllTrending( ScreenIdentifier.get(Screen.TrendingList, TrendingListParams("")), true),
     Playlist( ScreenIdentifier.get(Screen.Playlist, PlaylistParams("")), true),
-    PlaylistDetail( ScreenIdentifier.get(Screen.Playlist, PlaylistDetailParams("")), true)
+    PlaylistDetail( ScreenIdentifier.get(Screen.Playlist, PlaylistDetailParams("", "", "")), true)
 }

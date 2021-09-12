@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 fun SpotifyLaneItem(
     playlistItem: PlaylistItem,
     musicServiceConnection: MusicServiceConnection,
-    onPlaylistClicked: (String, String) -> Unit
+    onPlaylistClicked: (String, String, String, String) -> Unit
 ) {
 
     Column(
@@ -56,7 +56,9 @@ fun SpotifyLaneItem(
                     onClick = {
                         onPlaylistClicked(
                             playlistItem.id,
-                            playlistItem.songIconList.songImageURL480px
+                            playlistItem.songIconList.songImageURL480px,
+                            playlistItem.user,
+                            playlistItem.playlistTitle
                         )
                         musicServiceConnection.subscribe(
                             Constants.CLICKED_PLAYLIST,
@@ -67,7 +69,7 @@ fun SpotifyLaneItem(
             contentScale = ContentScale.Crop
         )
         Text(
-            text = "${playlistItem.title}: by ${playlistItem.user}",
+            text = "${playlistItem.playlistTitle}: by ${playlistItem.user}",
             style = typography.body2,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,

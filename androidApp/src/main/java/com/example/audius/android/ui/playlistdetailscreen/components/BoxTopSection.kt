@@ -42,7 +42,7 @@ fun BoxTopSection(album: Album, scrollState: ScrollState, playlistDetailState: P
                 .padding(8.dp)
         )
         Text(
-            text = album.song,
+            text = playlistDetailState.playlistName,
             style = typography.h5.copy(fontWeight = FontWeight.ExtraBold),
             modifier = Modifier.padding(8.dp),
             color = MaterialTheme.colors.onSurface
@@ -60,7 +60,7 @@ fun BoxTopSection(album: Album, scrollState: ScrollState, playlistDetailState: P
                 .padding(vertical = 4.dp, horizontal = 24.dp)
         )
         Text(
-            text = album.descriptions,
+            text = "Playlist created by ${playlistDetailState.playListCreatedBy}",
             style = typography.subtitle2,
             modifier = Modifier.padding(4.dp)
         )
