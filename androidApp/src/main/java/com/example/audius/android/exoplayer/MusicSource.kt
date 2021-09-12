@@ -9,6 +9,7 @@ import androidx.core.net.toUri
 import com.example.audius.Navigation
 import com.example.audius.StateManager
 import com.example.audius.android.exoplayer.State.*
+import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
 import com.example.audius.viewmodel.screens.trending.PlaylistState
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
@@ -23,7 +24,6 @@ class MusicSource @Inject constructor(
 ) {
     private val navigation: Navigation = Navigation(stateManager = stateManager)
 
-
     private val onReadyListener = mutableListOf<(Boolean) -> Unit> ()
 
     var songs = emptyList<MediaMetadataCompat>()
@@ -33,7 +33,7 @@ class MusicSource @Inject constructor(
          val stateProvider = navigation.stateProvider
          val currentScreen = navigation.currentScreenIdentifier
 
-        val allSongs = stateProvider.get<PlaylistState>(currentScreen).currentPlaylist
+        val allSongs = stateProvider.get<PlaylistDetailState>(currentScreen).songPlaylist
 
         songs = allSongs.map { song ->
             Builder()

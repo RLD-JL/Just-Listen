@@ -1,12 +1,10 @@
 package com.example.audius.android.ui.playlistscreen.components
 
-import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,8 +29,6 @@ import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackgroun
 import com.example.audius.viewmodel.screens.trending.PlayListEnum
 import com.example.audius.viewmodel.screens.trending.PlaylistItem
 import com.example.audius.viewmodel.screens.trending.PlaylistState
-import com.example.audius.viewmodel.screens.trending.TrendingListState
-import com.guru.composecookbook.spotify.ui.home.components.SpotifyHomeGridItem
 import com.guru.composecookbook.verticalgrid.VerticalGrid
 
 
@@ -47,7 +42,6 @@ fun spotifySurfaceGradient(isDark: Boolean) =
 fun SpotifyHome(
     lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistState: PlaylistState,
-    musicServiceConnection: MusicServiceConnection,
     onPlaylistClicked:(String, String, String, String) ->Unit
 ) {
     val scrollState = rememberScrollState(0)
@@ -55,7 +49,7 @@ fun SpotifyHome(
     Box(modifier = Modifier.fillMaxSize()) {
         ScrollableContent(lasItemReached = lasItemReached, scrollState = scrollState,
             surfaceGradient = surfaceGradient, playlistState = playlistState,
-        musicServiceConnection = musicServiceConnection, onPlaylistClicked = onPlaylistClicked)
+         onPlaylistClicked = onPlaylistClicked)
         Icon(
             imageVector = Icons.Outlined.Settings,
             tint = MaterialTheme.colors.onSurface,
@@ -72,7 +66,7 @@ fun SpotifyHome(
 @Composable
 fun ScrollableContent(lasItemReached: (Int, PlayListEnum) -> Unit, scrollState: ScrollState,
                       surfaceGradient: List<Color>, playlistState: PlaylistState,
-                      musicServiceConnection: MusicServiceConnection, onPlaylistClicked:(String, String, String, String) ->Unit) {
+                      onPlaylistClicked:(String, String, String, String) ->Unit) {
     Column(
         modifier = Modifier
             .horizontalGradientBackground(surfaceGradient)
@@ -83,7 +77,7 @@ fun ScrollableContent(lasItemReached: (Int, PlayListEnum) -> Unit, scrollState: 
         //SpotifyTitle("Good Evening")
         //HomeGridSection()
         HomeLanesSection(playlistState = playlistState, lasItemReached = lasItemReached,
-            musicServiceConnection = musicServiceConnection, onPlaylistClicked = onPlaylistClicked)
+            onPlaylistClicked = onPlaylistClicked)
         Spacer(modifier = Modifier.height(100.dp))
     }
 }
@@ -109,29 +103,28 @@ fun HomeGridSection() {
 
 @Composable
 fun HomeLanesSection(playlistState: PlaylistState, lasItemReached: (Int, PlayListEnum) ->Unit,
-                     musicServiceConnection: MusicServiceConnection,
                      onPlaylistClicked:(String, String, String, String) ->Unit)
 {
         val list = mutableListOf("Top Playlist", "Remix")
        list.forEachIndexed { index, item->
            SpotifyTitle(text = item)
            if (index==0)
-           SpotifyLane(playlistState.playlistItems, lasItemReached, PlayListEnum.TOP_PLAYLIST, musicServiceConnection,
+           SpotifyLane(playlistState.playlistItems, lasItemReached, PlayListEnum.TOP_PLAYLIST,
                onPlaylistClicked = onPlaylistClicked)
            else
-               SpotifyLane(playlist = playlistState.remixPlaylist, lasItemReached = lasItemReached, PlayListEnum.REMIX, musicServiceConnection, onPlaylistClicked)
+               SpotifyLane(playlist = playlistState.remixPlaylist, lasItemReached = lasItemReached, PlayListEnum.REMIX, onPlaylistClicked)
        }
 }
 
 @Composable
 fun SpotifyLane(playlist: List<PlaylistItem>, lasItemReached: (Int, PlayListEnum) ->Unit,
-                playlistEnum: PlayListEnum, musicServiceConnection: MusicServiceConnection,
+                playlistEnum: PlayListEnum,
                 onPlaylistClicked:(String, String, String, String)->Unit) {
     LazyRow {
         itemsIndexed(items = playlist) { index, playlistItem->
             if (index == playlist.size - 1)
                     lasItemReached(index+20, playlistEnum)
-           SpotifyLaneItem(playlistItem = playlistItem, musicServiceConnection,
+           SpotifyLaneItem(playlistItem = playlistItem,
                onPlaylistClicked = onPlaylistClicked)
         }
     }

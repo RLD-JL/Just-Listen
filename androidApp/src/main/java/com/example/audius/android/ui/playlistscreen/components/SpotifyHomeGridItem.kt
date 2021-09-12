@@ -1,4 +1,4 @@
-package com.guru.composecookbook.spotify.ui.home.components
+package com.example.audius.android.ui.playlistscreen.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable

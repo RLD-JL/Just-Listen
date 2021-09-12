@@ -33,7 +33,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun SpotifyLaneItem(
     playlistItem: PlaylistItem,
-    musicServiceConnection: MusicServiceConnection,
     onPlaylistClicked: (String, String, String, String) -> Unit
 ) {
 

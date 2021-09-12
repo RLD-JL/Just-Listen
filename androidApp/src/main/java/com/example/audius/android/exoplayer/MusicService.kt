@@ -12,6 +12,7 @@ import com.example.audius.StateManager
 import com.example.audius.android.exoplayer.callbacks.MusicPlaybackPreparer
 import com.example.audius.android.exoplayer.callbacks.MusicPlayerEventListener
 import com.example.audius.android.exoplayer.callbacks.MusicPlayerNotificationListener
+import com.example.audius.android.exoplayer.library.extension.BrowseTree
 import com.example.audius.android.exoplayer.utils.Constants.CLICKED_PLAYLIST
 import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
 import com.example.audius.android.exoplayer.utils.Constants.NETWORK_ERROR
@@ -51,6 +52,9 @@ class MusicService : MediaBrowserServiceCompat() {
 
     private val musicSource = MusicSource(stateManager = stateManager)
 
+    private val browseTree: BrowseTree by lazy {
+        BrowseTree(applicationContext, musicSource = musicSource)
+    }
     @Inject
     lateinit var dataSourceFactory: DefaultDataSourceFactory
 
