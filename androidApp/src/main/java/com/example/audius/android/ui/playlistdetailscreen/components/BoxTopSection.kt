@@ -11,6 +11,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -21,7 +22,7 @@ import com.example.audius.android.ui.test.Album
 import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
 
 @Composable
-fun BoxTopSection(album: Album, scrollState: ScrollState, playlistDetailState: PlaylistDetailState) {
+fun BoxTopSection(album: Album, scrollState: ScrollState, playlistDetailState: PlaylistDetailState, playlistPainter: Painter) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(
             modifier = Modifier
@@ -34,7 +35,7 @@ fun BoxTopSection(album: Album, scrollState: ScrollState, playlistDetailState: P
             else 250.dp - Dp(scrollState.value / 20f)
         val animateImageSize = animateDpAsState(dynamicValue).value
         Image(
-            painter = rememberImagePainter(playlistDetailState.playlistIcon),
+            painter = playlistPainter,
             contentDescription = null,
             modifier = Modifier
                 .size(animateImageSize)
