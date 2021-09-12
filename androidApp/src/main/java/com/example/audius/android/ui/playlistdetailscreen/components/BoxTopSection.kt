@@ -22,7 +22,7 @@ import com.example.audius.android.ui.test.Album
 import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
 
 @Composable
-fun BoxTopSection(album: Album, scrollState: ScrollState, playlistDetailState: PlaylistDetailState, playlistPainter: Painter) {
+fun BoxTopSection(scrollState: ScrollState, playlistDetailState: PlaylistDetailState, playlistPainter: Painter) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(
             modifier = Modifier
