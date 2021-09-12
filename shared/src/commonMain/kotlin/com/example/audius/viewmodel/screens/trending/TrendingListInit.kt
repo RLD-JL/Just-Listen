@@ -5,6 +5,7 @@ import com.example.audius.ScreenParams
 import com.example.audius.datalayer.datacalls.getPlaylist
 import com.example.audius.datalayer.datacalls.getTrendingList
 import com.example.audius.viewmodel.screens.ScreenInitSettings
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -55,12 +56,14 @@ fun Navigation.initPlaylistDetail(params: PlaylistDetailParams) = ScreenInitSett
     title = "Trending" + params.playlistIcon,
     initState = { PlaylistDetailState(isLoading = true) },
     callOnInit = {
+        val currentPlaylist = dataRepository.getPlaylist(index = 20, PlayListEnum.CURRENT_PLAYLIST)
         stateManager.updateScreen(PlaylistDetailState::class) {
             it.copy(
                 isLoading = false,
                 playlistIcon = params.playlistIcon,
                 playListCreatedBy = params.playlistCreatedBy,
-                playlistName = params.playlistTitle
+                playlistName = params.playlistTitle,
+                songPlaylist = currentPlaylist
             )
         }
     },

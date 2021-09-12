@@ -22,16 +22,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberImagePainter
 import com.example.audius.android.ui.test.Album
+import com.example.audius.viewmodel.screens.trending.PlaylistItem
 
 @Composable
-fun SpotifySongListItem(album: Album) {
+fun SpotifySongListItem(playlistItem: PlaylistItem) {
     Row(
         modifier = Modifier.padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Image(
-            painter = painterResource(id = album.imageId),
+            painter = rememberImagePainter(playlistItem.songIconList.songImageURL150px),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -44,18 +46,17 @@ fun SpotifySongListItem(album: Album) {
                 .weight(1f)
         ) {
             Text(
-                text = album.song,
+                text = playlistItem.playlistTitle,
                 style = typography.h6.copy(fontSize = 16.sp),
                 color = MaterialTheme.colors.onSurface
             )
             Text(
-                text = "${album.artist}, ${album.descriptions}",
+                text = "${playlistItem.title} by ${playlistItem.user}",
                 style = typography.subtitle2,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }
-        if (album.id % 3 == 0) {
             Icon(
                 imageVector = Icons.Default.Favorite,
                 contentDescription = null,
@@ -64,7 +65,6 @@ fun SpotifySongListItem(album: Album) {
                     .padding(4.dp)
                     .size(20.dp)
             )
-        }
         Icon(
             imageVector = Icons.Default.MoreVert,
             contentDescription = null,

@@ -14,15 +14,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.audius.android.ui.test.AlbumsDataProvider
+import com.example.audius.viewmodel.screens.trending.PlaylistItem
 
 
 @Composable
-fun SongListScrollingSection() {
+fun SongListScrollingSection(playlist: List<PlaylistItem>) {
     ShuffleButton()
     DownloadedRow()
-    val items = remember { AlbumsDataProvider.albums }
-    items.forEach {
-        SpotifySongListItem(album = it)
+    playlist.forEach { playlistItem ->
+        SpotifySongListItem(playlistItem = playlistItem)
     }
 
 }

@@ -52,7 +52,7 @@ fun Navigation.ScreenPicker(
                          events.playMusicFromPlaylist(playlistId = playlistId)}
             )
 
-        Screen.PlaylistDetail -> SpotifyDetailScreen(album = AlbumsDataProvider.album,
+        Screen.PlaylistDetail -> SpotifyDetailScreen(
             playlistDetailState = (stateProvider.get(screenIdentifier = screenIdentifier) as PlaylistDetailState),
         )
     }

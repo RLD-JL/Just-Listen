@@ -49,5 +49,6 @@ data class PlaylistDetailState(
     val isLoading: Boolean = false,
     val playlistName: String = "",
     val playListCreatedBy: String ="",
-    var playlistIcon: String= ""
+    var playlistIcon: String= "",
+    var songPlaylist: List<PlaylistItem> = emptyList()
 ): ScreenState

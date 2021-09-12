@@ -43,7 +43,9 @@ import coil.transition.CrossfadeTransition
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.example.audius.viewmodel.screens.trending.PlaylistItem
 import kotlinx.coroutines.launch
+import java.lang.Exception
 
 
 fun spotifySurfaceGradient(isDark: Boolean) =
@@ -57,7 +59,7 @@ fun Bitmap.generateDominantColorState(): Palette.Swatch = Palette.Builder(this)
     .maxByOrNull { swatch -> swatch.population }!!
 
 @Composable
-fun SpotifyDetailScreen(album: Album, playlistDetailState: PlaylistDetailState)
+fun SpotifyDetailScreen(playlistDetailState: PlaylistDetailState)
 {
     val context = LocalContext.current
     val scrollState = rememberScrollState(0)
@@ -77,11 +79,16 @@ fun SpotifyDetailScreen(album: Album, playlistDetailState: PlaylistDetailState)
 
     LaunchedEffect(key1 = imagePainter) {
         launch {
-            val result = (imageLoader.execute(request) as SuccessResult).drawable
-            val bitmap = (result as BitmapDrawable).bitmap
-            val vibrant = Palette.from(bitmap)
-                .generate().dominantSwatch?.rgb
-            listColor.value = vibrant ?: -13082496
+            try {
+                val result = (imageLoader.execute(request) as SuccessResult).drawable
+                val bitmap = (result as BitmapDrawable).bitmap
+                val vibrant = Palette.from(bitmap)
+                    .generate().dominantSwatch?.rgb
+                listColor.value = vibrant ?: -13082496
+            } catch (exception: Exception) {
+
+            }
+
         }
     }
 
@@ -93,13 +100,13 @@ fun SpotifyDetailScreen(album: Album, playlistDetailState: PlaylistDetailState)
     ) {
         BoxTopSection(scrollState = scrollState, playlistDetailState = playlistDetailState, playlistPainter = imagePainter)
         TopSectionOverlay(scrollState = scrollState)
-        BottomScrollableContent(scrollState = scrollState, surfaceGradient = surfaceGradient)
-        AnimatedToolBar(album, scrollState, surfaceGradient)
+        BottomScrollableContent(playlist = playlistDetailState.songPlaylist,scrollState = scrollState, surfaceGradient = surfaceGradient)
+        AnimatedToolBar(playlistDetailState, scrollState, surfaceGradient)
     }
 }
 
 @Composable
-fun AnimatedToolBar(album: Album, scrollState: ScrollState, surfaceGradient: List<Color>) {
+fun AnimatedToolBar(playlistDetailState: PlaylistDetailState, scrollState: ScrollState, surfaceGradient: List<Color>) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -116,7 +123,7 @@ fun AnimatedToolBar(album: Album, scrollState: ScrollState, surfaceGradient: Lis
             contentDescription = null
         )
         Text(
-            text = album.song,
+            text = playlistDetailState.playlistName,
             color = MaterialTheme.colors.onSurface,
             modifier = Modifier
                 .padding(16.dp)
@@ -130,11 +137,11 @@ fun AnimatedToolBar(album: Album, scrollState: ScrollState, surfaceGradient: Lis
 }
 
 @Composable
-fun BottomScrollableContent(scrollState: ScrollState, surfaceGradient: List<Color>) {
+fun BottomScrollableContent(playlist: List<PlaylistItem>, scrollState: ScrollState, surfaceGradient: List<Color>) {
     Column(modifier = Modifier.verticalScroll(state = scrollState)) {
         Spacer(modifier = Modifier.height(480.dp))
         Column(modifier = Modifier.horizontalGradientBackground(surfaceGradient)) {
-            SongListScrollingSection()
+            SongListScrollingSection(playlist = playlist)
         }
         Spacer(modifier = Modifier.height(50.dp))
     }
