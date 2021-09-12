@@ -60,9 +60,6 @@ fun SpotifyLaneItem(
                             playlistItem.user,
                             playlistItem.playlistTitle
                         )
-                        musicServiceConnection.subscribe(
-                            Constants.CLICKED_PLAYLIST,
-                            object : MediaBrowserCompat.SubscriptionCallback() {})
                     }
                 ),
             contentDescription = null,

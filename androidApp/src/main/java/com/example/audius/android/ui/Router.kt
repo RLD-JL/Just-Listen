@@ -1,5 +1,6 @@
 package com.example.audius.android.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import com.example.audius.Navigation
@@ -13,5 +14,11 @@ fun Navigation.Router(musicServiceConnection: MusicServiceConnection) {
 
     screenStatesToRemove.forEach {
         screenUIisStateHolder.removeState(it.URI)
+    }
+
+    if (!only1ScreenInBackstack) {
+        BackHandler { // catching the back button to update the DKMPViewModel
+            exitScreen()
+        }
     }
 }
