@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
 
 typealias URI = String
 
-class ScreenIdentifier private constructor(
+class ScreenIdentifier constructor(
     val screen : Screen,
     var params: ScreenParams? = null,
     var paramsAsString: String? = null,

@@ -24,6 +24,8 @@ import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackgroun
 import com.example.audius.android.ui.theme.modifiers.verticalGradientBackground
 import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
 import android.graphics.drawable.BitmapDrawable
+import android.media.browse.MediaBrowser
+import android.support.v4.media.MediaBrowserCompat
 import androidx.compose.material.IconButton
 import androidx.compose.runtime.*
 import coil.ImageLoader
@@ -31,6 +33,8 @@ import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import coil.transform.RoundedCornersTransformation
+import com.example.audius.android.exoplayer.MusicServiceConnection
+import com.example.audius.android.exoplayer.utils.Constants
 import com.example.audius.viewmodel.screens.trending.PlaylistItem
 import kotlinx.coroutines.launch
 import java.lang.Exception
@@ -40,7 +44,8 @@ fun spotifySurfaceGradient(isDark: Boolean) =
     if (isDark) listOf(graySurface, Color.Black) else listOf(Color.White, Color.LightGray)
 
 @Composable
-fun SpotifyDetailScreen(playlistDetailState: PlaylistDetailState, onBackButtonPressed:(Boolean) -> Unit)
+fun SpotifyDetailScreen(playlistDetailState: PlaylistDetailState, onBackButtonPressed:(Boolean) -> Unit,
+musicServiceConnection: MusicServiceConnection)
 {
     val context = LocalContext.current
     val scrollState = rememberScrollState(0)
@@ -81,7 +86,7 @@ fun SpotifyDetailScreen(playlistDetailState: PlaylistDetailState, onBackButtonPr
     ) {
         BoxTopSection(scrollState = scrollState, playlistDetailState = playlistDetailState, playlistPainter = imagePainter)
         TopSectionOverlay(scrollState = scrollState)
-        BottomScrollableContent(playlist = playlistDetailState.songPlaylist,scrollState = scrollState, surfaceGradient = surfaceGradient)
+        BottomScrollableContent(playlist = playlistDetailState.songPlaylist,scrollState = scrollState, surfaceGradient = surfaceGradient, musicServiceConnection)
         AnimatedToolBar(playlistDetailState, scrollState, surfaceGradient, onBackButtonPressed)
     }
 }
@@ -120,11 +125,11 @@ fun AnimatedToolBar(playlistDetailState: PlaylistDetailState, scrollState: Scrol
 }
 
 @Composable
-fun BottomScrollableContent(playlist: List<PlaylistItem>, scrollState: ScrollState, surfaceGradient: List<Color>) {
+fun BottomScrollableContent(playlist: List<PlaylistItem>, scrollState: ScrollState, surfaceGradient: List<Color>, musicServiceConnection: MusicServiceConnection) {
     Column(modifier = Modifier.verticalScroll(state = scrollState)) {
         Spacer(modifier = Modifier.height(480.dp))
         Column(modifier = Modifier.horizontalGradientBackground(surfaceGradient)) {
-            SongListScrollingSection(playlist = playlist)
+            SongListScrollingSection(playlist = playlist, musicServiceConnection = musicServiceConnection)
         }
         Spacer(modifier = Modifier.height(50.dp))
     }

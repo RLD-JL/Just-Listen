@@ -27,12 +27,16 @@ class StateManager(repo: Repository) {
 
     val currentScreenIdentifier : ScreenIdentifier
         get() = currentVerticalBackstack.lastOrNull() ?: level1Backstack.last()
+
     val currentLevel1ScreenIdentifier : ScreenIdentifier
         get() = level1Backstack.last()
+
     val currentVerticalBackstack: MutableList<ScreenIdentifier>
         get() = verticalBackstacks[currentLevel1ScreenIdentifier.URI]!!
+
     val currentVerticalNavigationLevelsMap: MutableMap<Int, ScreenIdentifier>
         get() = verticalNavigationLevels[currentLevel1ScreenIdentifier.URI]!!
+
     val only1ScreenInBackstack : Boolean
         get() = level1Backstack.size + currentVerticalBackstack.size == 2
 
@@ -87,13 +91,9 @@ class StateManager(repo: Repository) {
         }
     }
 
-
     fun triggerRecomposition() {
         mutableStateFlow.value = AppState(mutableStateFlow.value.recompositionIndex+1)
     }
-
-
-
 
     // ADD SCREEN FUNCTIONS
 
@@ -138,11 +138,7 @@ class StateManager(repo: Repository) {
         currentVerticalNavigationLevelsMap[screenIdentifier.screen.navigationLevel] = screenIdentifier
     }
 
-
-
-
     // REMOVE SCREEN FUNCTIONS
-
     fun removeScreen(screenIdentifier: ScreenIdentifier) {
         if (screenIdentifier.screen.navigationLevel == 1) {
             level1Backstack.remove(screenIdentifier)
@@ -164,10 +160,7 @@ class StateManager(repo: Repository) {
         lastRemovedScreens.add(screenIdentifier)
     }
 
-
-
     // LEVEL 1 NAVIGATION FUNCTIONS
-
     fun clearLevel1Screen(screenIdentifier: ScreenIdentifier, sameAsNewScreen: Boolean) {
         // debugLogger.log("clear vertical backstack /"+screenIdentifier.URI)
         if (!screenIdentifier.level1VerticalBackstackEnabled()) {

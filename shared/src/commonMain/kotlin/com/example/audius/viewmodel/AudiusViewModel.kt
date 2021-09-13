@@ -13,6 +13,7 @@ class AudiusViewModel (repo: Repository) {
     }
 
     val state = StateManager(repo)
+    val repository = repo
 
     val stateFlow: StateFlow<AppState>
         get() = stateManager.mutableStateFlow

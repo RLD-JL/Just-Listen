@@ -44,10 +44,11 @@ fun Navigation.ScreenPicker(
             )
 
         Screen.PlaylistDetail -> SpotifyDetailScreen(
-            playlistDetailState = (stateProvider.get(screenIdentifier = screenIdentifier) as PlaylistDetailState),
+            playlistDetailState = stateProvider.get(screenIdentifier = screenIdentifier),
             onBackButtonPressed = {onBackButtonPressed ->
                 if (onBackButtonPressed) exitScreen()
-            })
+            },
+            musicServiceConnection = musicServiceConnection)
     }
 }
 

@@ -10,7 +10,7 @@ enum class Screen (
     val asString: String,
     val navigationLevel : Int = 1,
     val initSettings: Navigation.(ScreenIdentifier) -> ScreenInitSettings,
-    val stackableInstances : Boolean = false,
+    val stackableInstances : Boolean = true,
 ) {
     TrendingList("trendingList", 1, {initTrendingList(it.params())}),
     Playlist("playlist", 1, {initPlaylist(it.params())}),

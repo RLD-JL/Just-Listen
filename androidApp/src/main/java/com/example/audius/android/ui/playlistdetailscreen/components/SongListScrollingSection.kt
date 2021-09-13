@@ -1,5 +1,8 @@
 package com.example.audius.android.ui.playlistdetailscreen.components
 
+import android.media.browse.MediaBrowser
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaMetadataCompat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,13 +16,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.audius.android.exoplayer.MusicServiceConnection
+import com.example.audius.android.exoplayer.utils.Constants
 import com.example.audius.android.ui.test.AlbumsDataProvider
 import com.example.audius.viewmodel.screens.trending.PlaylistItem
+import com.google.android.exoplayer2.MediaMetadata
 
 
 @Composable
-fun SongListScrollingSection(playlist: List<PlaylistItem>) {
-    ShuffleButton()
+fun SongListScrollingSection(playlist: List<PlaylistItem>, musicServiceConnection: MusicServiceConnection) {
+    ShuffleButton(musicServiceConnection)
     DownloadedRow()
     playlist.forEach { playlistItem ->
         SpotifySongListItem(playlistItem = playlistItem)
@@ -53,9 +59,9 @@ fun DownloadedRow() {
 }
 
 @Composable
-fun ShuffleButton() {
+fun ShuffleButton(musicServiceConnection: MusicServiceConnection) {
     Button(
-        onClick = {},
+        onClick = {musicServiceConnection.subscribe(Constants.CLICKED_PLAYLIST, object: MediaBrowserCompat.SubscriptionCallback() {})},
         colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green),
         modifier = Modifier
             .fillMaxWidth()

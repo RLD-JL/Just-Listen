@@ -26,9 +26,6 @@ class Navigation(val stateManager: StateManager) {
     val currentScreenIdentifier : ScreenIdentifier
         get() = stateManager.currentScreenIdentifier
 
-    val currentLevel1ScreenIdentifier : ScreenIdentifier
-        get() = stateManager.currentLevel1ScreenIdentifier
-
     val only1ScreenInBackstack : Boolean
         get() = stateManager.only1ScreenInBackstack
 
@@ -55,7 +52,6 @@ class Navigation(val stateManager: StateManager) {
         }
         return false
     }
-
 
     fun navigate(screen: Screen, params: ScreenParams? = null) {
         navigateByScreenIdentifier(ScreenIdentifier.get(screen,params))

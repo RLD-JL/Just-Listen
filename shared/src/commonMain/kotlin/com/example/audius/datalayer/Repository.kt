@@ -1,7 +1,9 @@
 package com.example.audius.datalayer
 
 import com.example.audius.datalayer.localdb.Trending
+import com.example.audius.datalayer.localdb.playlistdetail.PlaylistDetail
 import com.example.audius.datalayer.models.SongIconList
+import com.example.audius.datalayer.models.UserModel
 import com.example.audius.datalayer.webservices.ApiClient
 import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.db.SqlDriver
@@ -28,9 +30,24 @@ class Repository(private val sqlDriver: SqlDriver, private val useDefaultDispatc
         }
     }
 
+    private val listOfStringsAdapter2 = object : ColumnAdapter<UserModel, String> {
+        override fun decode(databaseValue: String): UserModel {
+            return if(databaseValue.isEmpty())
+                UserModel()
+            else {
+                UserModel(databaseValue)
+            }
+        }
+
+        override fun encode(value: UserModel): String {
+            return value.username
+        }
+    }
+
     val adapter = Trending.Adapter(listOfStringsAdapter)
+    val adapter2 = PlaylistDetail.Adapter(listOfStringsAdapter,listOfStringsAdapter2)
     internal val webservices by lazy { ApiClient() }
-    internal val localDb by lazy { LocalDb(sqlDriver, adapter) }
+    internal val localDb by lazy { LocalDb(sqlDriver, adapter2,adapter) }
 
     // we run each repository function on a Dispatchers.Default coroutine
     // we pass useDefaultDispatcher=false just for the TestRepository instance

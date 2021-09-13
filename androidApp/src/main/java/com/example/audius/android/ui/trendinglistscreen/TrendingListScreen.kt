@@ -1,43 +1,27 @@
 package com.example.audius.android.ui.trendinglistscreen
 
+import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.widget.Toast
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
-import androidx.compose.material.MaterialTheme.typography
-import androidx.compose.material.SnackbarDefaults.backgroundColor
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberImagePainter
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.isPlayEnabled
 import com.example.audius.android.exoplayer.isPlaying
 import com.example.audius.android.exoplayer.isPrepared
+import com.example.audius.android.exoplayer.utils.Constants
 import com.example.audius.android.ui.bottombars.PlayerBottomBar
-import com.example.audius.android.ui.playlistscreen.components.SpotifyHome
 import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.viewmodel.screens.trending.TrendingListState
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.util.Util
 
 @Composable
 fun TrendingListScreen(
@@ -58,7 +42,8 @@ fun TrendingListScreen(
                         TrendingListRow(
                             data = item,
                             onLastItemClick = {
-                                play(musicServiceConnection = musicServiceConnection, item.id)
+                                musicServiceConnection.subscribe(Constants.CLICKED_PLAYLIST, object : MediaBrowserCompat.SubscriptionCallback() {})
+                              //  play(musicServiceConnection = musicServiceConnection, item.id)
                                 onLastItemClick(item.id, item.songIconList)
                             }
                         )

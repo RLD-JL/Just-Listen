@@ -7,19 +7,24 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.*
 import androidx.core.net.toUri
 import com.example.audius.Navigation
+import com.example.audius.ScreenIdentifier
 import com.example.audius.StateManager
 import com.example.audius.android.exoplayer.State.*
+import com.example.audius.datalayer.datacalls.getCurrentPlaylist
+import com.example.audius.datalayer.datacalls.getPlaylist
+import com.example.audius.viewmodel.screens.Screen
+import com.example.audius.viewmodel.screens.trending.PlayListEnum
 import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
 import com.example.audius.viewmodel.screens.trending.PlaylistState
+import com.example.audius.viewmodel.screens.trending.TrendingListState
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
-class MusicSource @Inject constructor(
+class MusicSource (
     stateManager: StateManager
 ) {
     private val navigation: Navigation = Navigation(stateManager = stateManager)
@@ -31,9 +36,9 @@ class MusicSource @Inject constructor(
     suspend fun fetchMediaData() = withContext(Dispatchers.Main){
        state = STATE_INITIALIZING
          val stateProvider = navigation.stateProvider
-         val currentScreen = navigation.currentScreenIdentifier
+         val currentScreen = navigation.stateManager.currentScreenIdentifier
 
-        val allSongs = stateProvider.get<PlaylistDetailState>(currentScreen).songPlaylist
+        val allSongs = navigation.dataRepository.getCurrentPlaylist()
 
         songs = allSongs.map { song ->
             Builder()
