@@ -13,7 +13,6 @@ import com.example.audius.android.exoplayer.callbacks.MusicPlaybackPreparer
 import com.example.audius.android.exoplayer.callbacks.MusicPlayerEventListener
 import com.example.audius.android.exoplayer.callbacks.MusicPlayerNotificationListener
 import com.example.audius.android.exoplayer.library.extension.BrowseTree
-import com.example.audius.android.exoplayer.utils.Constants.CLICKED_PLAYLIST
 import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
 import com.example.audius.android.exoplayer.utils.Constants.NETWORK_ERROR
 import com.example.audius.shared.viewmodel.getAndroidInstance
@@ -23,7 +22,6 @@ import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.util.Util
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import javax.inject.Inject
@@ -71,6 +69,8 @@ class MusicService : MediaBrowserServiceCompat() {
 
     override fun onCreate() {
         super.onCreate()
+
+        fetchPlaylist("clicked_playlist")
 
         val activityIntent = packageManager?.getLaunchIntentForPackage(packageName)?.let {
             PendingIntent.getActivity(this, 0, it, 0)
@@ -130,6 +130,10 @@ class MusicService : MediaBrowserServiceCompat() {
 
     override fun onDestroy() {
         super.onDestroy()
+        mediaSession.run {
+            isActive = false
+            release()
+        }
         serviceScope.cancel()
         exoPlayer.removeListener(musicPlayerEventListener)
         exoPlayer.release()
@@ -140,21 +144,39 @@ class MusicService : MediaBrowserServiceCompat() {
         clientUid: Int,
         rootHints: Bundle?
     ): BrowserRoot? {
-        return BrowserRoot(MEDIA_ROOT_ID, null)
+        return BrowserRoot("/", null)
     }
 
-    private fun fetchPlaylist() {
+     private fun fetchPlaylist(playlistName: String) {
         serviceScope.launch {
-            musicSource.fetchMediaData()
+            musicSource.fetchMediaData(playlistName)
         }
     }
 
     override fun onLoadChildren(
         parentId: String,
-        result: Result<MutableList<MediaBrowserCompat.MediaItem>>
+        result: Result<List<MediaBrowserCompat.MediaItem>>
     ) {
         when (parentId) {
             MEDIA_ROOT_ID -> {
+                val resultsSent = musicSource.whenReady { isInitialized ->
+                    if (isInitialized) {
+                        result.sendResult(musicSource.asMediaItems())
+                        if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
+                            preparePlayer(musicSource.songs, musicSource.songs[0], false)
+                            isPlayerInitialized = true
+
+                        }
+                    } else {
+                        mediaSession.sendSessionEvent(NETWORK_ERROR, null)
+                        result.sendResult(null)
+                    }
+                }
+                if (!resultsSent) {
+                    result.detach()
+                }
+            }
+            else -> {
                 val resultsSent = musicSource.whenReady { isInitialized ->
                     if (isInitialized) {
                         result.sendResult(musicSource.asMediaItems())
@@ -164,23 +186,7 @@ class MusicService : MediaBrowserServiceCompat() {
                         }
                     } else {
                         mediaSession.sendSessionEvent(NETWORK_ERROR, null)
-                    }
-                }
-                if (!resultsSent) {
-                    result.detach()
-                }
-            }
-            CLICKED_PLAYLIST -> {
-                fetchPlaylist()
-                val resultsSent = musicSource.whenReady { isInitialized ->
-                    if (isInitialized) {
-                        result.sendResult(musicSource.asMediaItems())
-                        if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
-                            preparePlayer(musicSource.songs, musicSource.songs[0], false)
-                            isPlayerInitialized = true
-                        }
-                    } else {
-                        mediaSession.sendSessionEvent(NETWORK_ERROR, null)
+                        result.sendResult(null)
                     }
                 }
                 if (!resultsSent) {

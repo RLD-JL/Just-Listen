@@ -7,12 +7,9 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.*
 import androidx.core.net.toUri
 import com.example.audius.Navigation
-import com.example.audius.ScreenIdentifier
 import com.example.audius.StateManager
 import com.example.audius.android.exoplayer.State.*
 import com.example.audius.datalayer.datacalls.getCurrentPlaylist
-import com.example.audius.datalayer.datacalls.getPlaylist
-import com.example.audius.viewmodel.screens.Screen
 import com.example.audius.viewmodel.screens.trending.PlayListEnum
 import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
 import com.example.audius.viewmodel.screens.trending.PlaylistState
@@ -26,14 +23,18 @@ import kotlinx.coroutines.withContext
 
 class MusicSource (
     stateManager: StateManager
-) {
+) : Iterable<MediaMetadataCompat> {
     private val navigation: Navigation = Navigation(stateManager = stateManager)
 
     private val onReadyListener = mutableListOf<(Boolean) -> Unit> ()
 
     var songs = emptyList<MediaMetadataCompat>()
 
-    suspend fun fetchMediaData() = withContext(Dispatchers.Main){
+    var playlistDetailState = PlaylistDetailState()
+
+    override fun iterator(): Iterator<MediaMetadataCompat> = songs.iterator()
+
+    suspend fun fetchMediaData(playlistName: String) = withContext(Dispatchers.Main){
        state = STATE_INITIALIZING
          val stateProvider = navigation.stateProvider
          val currentScreen = navigation.stateManager.currentScreenIdentifier
@@ -50,7 +51,8 @@ class MusicSource (
                 .putString(METADATA_KEY_MEDIA_URI, setSongUrl(song.id))
                 .putString(METADATA_KEY_ALBUM_ART_URI, song.songIconList.songImageURL480px)
                 .putString(METADATA_KEY_DISPLAY_SUBTITLE, song.title)
-                .putString(METADATA_KEY_DISPLAY_DESCRIPTION, song.title).build()
+                .putString(METADATA_KEY_DISPLAY_DESCRIPTION, song.title)
+                .putString(METADATA_KEY_ALBUM, playlistName).build()
         }
     state = STATE_INITIALIZED
     }
@@ -95,7 +97,7 @@ class MusicSource (
             onReadyListener +=performAction
             false
         } else {
-            performAction(state == STATE_INITIALIZED)
+            performAction(state != STATE_ERROR)
             true
         }
     }

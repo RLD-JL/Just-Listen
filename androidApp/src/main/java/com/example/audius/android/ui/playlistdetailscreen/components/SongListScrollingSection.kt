@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.utils.Constants
+import com.example.audius.android.exoplayer.utils.Constants.CLICKED_PLAYLIST
 import com.example.audius.android.ui.test.AlbumsDataProvider
 import com.example.audius.viewmodel.screens.trending.PlaylistItem
 import com.google.android.exoplayer2.MediaMetadata
@@ -61,7 +62,7 @@ fun DownloadedRow() {
 @Composable
 fun ShuffleButton(musicServiceConnection: MusicServiceConnection) {
     Button(
-        onClick = {musicServiceConnection.subscribe(Constants.CLICKED_PLAYLIST, object: MediaBrowserCompat.SubscriptionCallback() {})},
+        onClick = { musicServiceConnection.subscribe(CLICKED_PLAYLIST, object: MediaBrowserCompat.SubscriptionCallback() {}) },
         colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green),
         modifier = Modifier
             .fillMaxWidth()
