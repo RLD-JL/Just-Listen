@@ -8,15 +8,11 @@ import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.media.MediaBrowserServiceCompat
-import com.example.audius.StateManager
 import com.example.audius.android.exoplayer.callbacks.MusicPlaybackPreparer
 import com.example.audius.android.exoplayer.callbacks.MusicPlayerEventListener
 import com.example.audius.android.exoplayer.callbacks.MusicPlayerNotificationListener
-import com.example.audius.android.exoplayer.library.extension.BrowseTree
 import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
 import com.example.audius.android.exoplayer.utils.Constants.NETWORK_ERROR
-import com.example.audius.shared.viewmodel.getAndroidInstance
-import com.example.audius.viewmodel.AudiusViewModel
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
@@ -47,9 +43,6 @@ class MusicService : MediaBrowserServiceCompat() {
     @Inject
     lateinit var musicSource: MusicSource
 
-    private val browseTree: BrowseTree by lazy {
-        BrowseTree(applicationContext, musicSource = musicSource)
-    }
     @Inject
     lateinit var dataSourceFactory: DefaultDataSourceFactory
 
@@ -141,12 +134,6 @@ class MusicService : MediaBrowserServiceCompat() {
         rootHints: Bundle?
     ): BrowserRoot? {
         return BrowserRoot("/", null)
-    }
-
-      fun fetchPlaylist() {
-        serviceScope.launch {
-            musicSource.fetchMediaData()
-        }
     }
 
     override fun onLoadChildren(

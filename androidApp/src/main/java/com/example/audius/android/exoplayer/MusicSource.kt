@@ -6,33 +6,23 @@ import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.*
 import androidx.core.net.toUri
-import com.example.audius.Navigation
-import com.example.audius.StateManager
 import com.example.audius.android.exoplayer.State.*
-import com.example.audius.datalayer.datacalls.getCurrentPlaylist
 import com.example.audius.viewmodel.screens.trending.*
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
-class MusicSource (
+class MusicSource {
 
-) : Iterable<MediaMetadataCompat> {
-
-
-    private val onReadyListener = mutableListOf<(Boolean) -> Unit> ()
+    private val onReadyListener = mutableListOf<(Boolean) -> Unit>()
 
     var songs = emptyList<MediaMetadataCompat>()
 
     var playlist: List<PlaylistItem> = emptyList()
 
-    override fun iterator(): Iterator<MediaMetadataCompat> = songs.iterator()
-
-     fun fetchMediaData() {
-       state = STATE_INITIALIZING
+    fun fetchMediaData() {
+        state = STATE_INITIALIZING
 
         songs = playlist.map { song ->
             Builder()
@@ -47,12 +37,12 @@ class MusicSource (
                 .putString(METADATA_KEY_DISPLAY_DESCRIPTION, song.title)
                 .putString(METADATA_KEY_ALBUM, "playlistName").build()
         }
-    state = STATE_INITIALIZED
+        state = STATE_INITIALIZED
     }
 
     fun asMediaSource(dataSourceFactory: DefaultDataSourceFactory): ConcatenatingMediaSource {
         val concatenatingMediaSource = ConcatenatingMediaSource()
-        songs.forEach {song ->
+        songs.forEach { song ->
             val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
                 .createMediaSource(MediaItem.fromUri(song.getString(METADATA_KEY_MEDIA_URI)))
             concatenatingMediaSource.addMediaSource(mediaSource)
@@ -76,7 +66,7 @@ class MusicSource (
             if (value == STATE_INITIALIZED || value == STATE_ERROR) {
                 synchronized(onReadyListener) {
                     field = value
-                    onReadyListener.forEach{listener->
+                    onReadyListener.forEach { listener ->
                         listener(state == STATE_INITIALIZED)
                     }
                 }
@@ -85,9 +75,9 @@ class MusicSource (
             }
         }
 
-     fun whenReady(performAction: (Boolean) -> Unit): Boolean {
-         return if (state == STATE_CREATED || state == STATE_INITIALIZING) {
-            onReadyListener +=performAction
+    fun whenReady(performAction: (Boolean) -> Unit): Boolean {
+        return if (state == STATE_CREATED || state == STATE_INITIALIZING) {
+            onReadyListener += performAction
             false
         } else {
             performAction(state != STATE_ERROR)
@@ -96,10 +86,9 @@ class MusicSource (
     }
 
     private fun setSongUrl(songId: String): String {
-       return "https://discoveryprovider.audius2.prod-us-west-2.staked.cloud/v1/tracks/${songId}/stream?app_name=EXAMPLEAPP"
+        return "https://discoveryprovider.audius2.prod-us-west-2.staked.cloud/v1/tracks/${songId}/stream?app_name=EXAMPLEAPP"
     }
 }
-
 
 enum class State {
     STATE_CREATED,
