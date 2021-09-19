@@ -51,12 +51,7 @@ fun TrendingListScreen(
                 }
                 if (trendingListState.playMusic) {
                     if (trendingListState.songId != "") {
-                        PlayerBottomBar(
-                            Modifier.align(Alignment.BottomCenter),
-                            songIcon = musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString(),
-                            title = musicServiceConnection.currentPlayingSong.value?.description?.mediaId.toString(),
-                            onSkipNextPressed = { skipToNext(musicServiceConnection) }
-                        )
+
                     }
                 }
             }

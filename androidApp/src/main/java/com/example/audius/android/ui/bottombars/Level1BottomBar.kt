@@ -17,6 +17,7 @@ import com.example.audius.ScreenIdentifier
 import com.example.audius.android.exoplayer.MusicService
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.viewmodel.screens.Level1Navigation
+import com.example.audius.viewmodel.screens.trending.skipToNextSong
 
 @Composable
 fun Navigation.Level1BottomBar(
@@ -25,12 +26,16 @@ fun Navigation.Level1BottomBar(
 ) {
     Box(modifier = Modifier.fillMaxWidth()) {
         if (musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
-            || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PAUSED) {
+            || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PAUSED
+            || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_SKIPPING_TO_NEXT
+            || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_BUFFERING
+            || musicServiceConnection.isConnected.value) {
             val songIcon =
                 musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
             val title = musicServiceConnection.currentPlayingSong.value?.description?.title.toString()
-            PlayerBottomBar(modifier = Modifier, songIcon = songIcon, title = title) {
-            }
+            PlayerBottomBar(modifier = Modifier, songIcon = songIcon, title = title,
+                onSkipNextPressed = {musicServiceConnection.transportControls.skipToNext()},
+                musicServiceConnection = musicServiceConnection)
         }
 
         BottomNavigation(modifier = Modifier.align(Alignment.BottomCenter), content = {
