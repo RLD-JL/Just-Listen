@@ -1,5 +1,6 @@
 package com.example.audius.android.ui.bottombars
 
+import android.media.session.PlaybackState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.BottomAppBar
@@ -13,14 +14,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
+import com.example.audius.android.exoplayer.MusicService
+import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.viewmodel.screens.Level1Navigation
 
 @Composable
 fun Navigation.Level1BottomBar(
-    selectedTab: ScreenIdentifier
+    selectedTab: ScreenIdentifier,
+    musicServiceConnection: MusicServiceConnection
 ) {
     Box(modifier = Modifier.fillMaxWidth()) {
-        PlayerBottomBar(modifier = Modifier, songIcon = "", title ="yolooo" ) {
+        if (musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
+            || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PAUSED) {
+            val songIcon =
+                musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
+            val title = musicServiceConnection.currentPlayingSong.value?.description?.title.toString()
+            PlayerBottomBar(modifier = Modifier, songIcon = songIcon, title = title) {
+            }
         }
 
         BottomNavigation(modifier = Modifier.align(Alignment.BottomCenter), content = {

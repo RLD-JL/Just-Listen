@@ -16,7 +16,7 @@ fun Navigation.OnePane(
     Scaffold(
         bottomBar = {
             if (currentScreenIdentifier.screen.navigationLevel == 1) Level1BottomBar(
-                currentScreenIdentifier
+                currentScreenIdentifier, musicServiceConnection
             )
         },
         content = {
