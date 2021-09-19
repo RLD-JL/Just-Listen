@@ -98,7 +98,6 @@ class MusicService : MediaBrowserServiceCompat() {
 
         musicPlayerEventListener = MusicPlayerEventListener(this)
         exoPlayer.addListener(musicPlayerEventListener)
-        musicNotificationManager.showNotification(exoPlayer)
     }
 
     private inner class MusicQueueNavigator : TimelineQueueNavigator(mediaSession) {
@@ -116,6 +115,8 @@ class MusicService : MediaBrowserServiceCompat() {
         exoPlayer.setMediaSource(musicSource.asMediaSource(dataSourceFactory = dataSourceFactory))
         exoPlayer.seekTo(currentSongIndex, 0L)
         exoPlayer.playWhenReady = playNow
+        musicNotificationManager.showNotification(exoPlayer)
+
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -175,7 +176,7 @@ class MusicService : MediaBrowserServiceCompat() {
                 val resultsSent = musicSource.whenReady { isInitialized ->
                     if (isInitialized) {
                         result.sendResult(musicSource.asMediaItems())
-                        if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
+                        if (musicSource.songs.isNotEmpty()) {
                             preparePlayer(musicSource.songs, musicSource.songs[0], true)
                             isPlayerInitialized = true
                         }
