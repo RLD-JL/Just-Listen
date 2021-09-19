@@ -10,10 +10,7 @@ import com.example.audius.Navigation
 import com.example.audius.StateManager
 import com.example.audius.android.exoplayer.State.*
 import com.example.audius.datalayer.datacalls.getCurrentPlaylist
-import com.example.audius.viewmodel.screens.trending.PlayListEnum
-import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
-import com.example.audius.viewmodel.screens.trending.PlaylistState
-import com.example.audius.viewmodel.screens.trending.TrendingListState
+import com.example.audius.viewmodel.screens.trending.*
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
@@ -22,26 +19,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class MusicSource (
-    stateManager: StateManager
+
 ) : Iterable<MediaMetadataCompat> {
-    private val navigation: Navigation = Navigation(stateManager = stateManager)
+
 
     private val onReadyListener = mutableListOf<(Boolean) -> Unit> ()
 
     var songs = emptyList<MediaMetadataCompat>()
 
-    var playlistDetailState = PlaylistDetailState()
+    var playlist: List<PlaylistItem> = emptyList()
 
     override fun iterator(): Iterator<MediaMetadataCompat> = songs.iterator()
 
-    suspend fun fetchMediaData(playlistName: String) = withContext(Dispatchers.Main){
+     fun fetchMediaData() {
        state = STATE_INITIALIZING
-         val stateProvider = navigation.stateProvider
-         val currentScreen = navigation.stateManager.currentScreenIdentifier
 
-        val allSongs = navigation.dataRepository.getCurrentPlaylist()
-
-        songs = allSongs.map { song ->
+        songs = playlist.map { song ->
             Builder()
                 .putString(METADATA_KEY_ARTIST, song.title)
                 .putString(METADATA_KEY_MEDIA_ID, song.id)
@@ -52,7 +45,7 @@ class MusicSource (
                 .putString(METADATA_KEY_ALBUM_ART_URI, song.songIconList.songImageURL480px)
                 .putString(METADATA_KEY_DISPLAY_SUBTITLE, song.title)
                 .putString(METADATA_KEY_DISPLAY_DESCRIPTION, song.title)
-                .putString(METADATA_KEY_ALBUM, playlistName).build()
+                .putString(METADATA_KEY_ALBUM, "playlistName").build()
         }
     state = STATE_INITIALIZED
     }

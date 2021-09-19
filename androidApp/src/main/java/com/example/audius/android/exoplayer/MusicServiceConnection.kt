@@ -12,8 +12,12 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
 import com.example.audius.android.exoplayer.utils.Constants.NETWORK_ERROR
+import com.example.audius.viewmodel.screens.trending.PlaylistItem
+import javax.inject.Inject
 
-class MusicServiceConnection(context: Context) {
+class MusicServiceConnection @Inject constructor(
+    val musicSource: MusicSource,
+    context: Context) {
 
     val isConnected: MutableState<Boolean> = mutableStateOf(false)
 
@@ -41,6 +45,11 @@ class MusicServiceConnection(context: Context) {
 
     val transportControls: MediaControllerCompat.TransportControls
         get() = mediaController.transportControls
+
+    fun updatePlaylist(list: List<PlaylistItem>) {
+        musicSource.playlist = list
+        musicSource.fetchMediaData()
+    }
 
     fun subscribe(parentId: String, callback: MediaBrowserCompat.SubscriptionCallback) {
         mediaBrowser.subscribe(parentId, callback)

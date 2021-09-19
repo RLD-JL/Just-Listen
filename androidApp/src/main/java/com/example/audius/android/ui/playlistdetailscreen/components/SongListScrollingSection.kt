@@ -26,7 +26,7 @@ import com.google.android.exoplayer2.MediaMetadata
 
 @Composable
 fun SongListScrollingSection(playlist: List<PlaylistItem>, musicServiceConnection: MusicServiceConnection) {
-    ShuffleButton(musicServiceConnection)
+    ShuffleButton(musicServiceConnection, playlist)
     DownloadedRow()
     playlist.forEach { playlistItem ->
         SpotifySongListItem(playlistItem = playlistItem)
@@ -60,9 +60,10 @@ fun DownloadedRow() {
 }
 
 @Composable
-fun ShuffleButton(musicServiceConnection: MusicServiceConnection) {
+fun ShuffleButton(musicServiceConnection: MusicServiceConnection, playlist: List<PlaylistItem>) {
     Button(
-        onClick = { musicServiceConnection.subscribe(CLICKED_PLAYLIST, object: MediaBrowserCompat.SubscriptionCallback() {}) },
+        onClick = { musicServiceConnection.updatePlaylist(playlist)
+            musicServiceConnection.subscribe(CLICKED_PLAYLIST, object: MediaBrowserCompat.SubscriptionCallback() {}) },
         colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green),
         modifier = Modifier
             .fillMaxWidth()

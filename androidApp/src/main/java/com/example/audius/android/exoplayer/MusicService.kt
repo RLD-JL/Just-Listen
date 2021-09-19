@@ -34,10 +34,6 @@ class MusicService : MediaBrowserServiceCompat() {
     @Inject
     lateinit var exoPlayer: SimpleExoPlayer
 
-    private val model = AudiusViewModel.Factory.getAndroidInstance(this)
-
-    var stateManager: StateManager = model.state
-
     lateinit var musicNotificationManager: MusicNotificationManager
 
     private val serviceJob = Job()
@@ -48,7 +44,8 @@ class MusicService : MediaBrowserServiceCompat() {
 
     var isForegroundService = false
 
-    private val musicSource = MusicSource(stateManager = stateManager)
+    @Inject
+    lateinit var musicSource: MusicSource
 
     private val browseTree: BrowseTree by lazy {
         BrowseTree(applicationContext, musicSource = musicSource)
@@ -69,8 +66,6 @@ class MusicService : MediaBrowserServiceCompat() {
 
     override fun onCreate() {
         super.onCreate()
-
-        fetchPlaylist("clicked_playlist")
 
         val activityIntent = packageManager?.getLaunchIntentForPackage(packageName)?.let {
             PendingIntent.getActivity(this, 0, it, 0)
@@ -147,15 +142,15 @@ class MusicService : MediaBrowserServiceCompat() {
         return BrowserRoot("/", null)
     }
 
-     private fun fetchPlaylist(playlistName: String) {
+      fun fetchPlaylist() {
         serviceScope.launch {
-            musicSource.fetchMediaData(playlistName)
+            musicSource.fetchMediaData()
         }
     }
 
     override fun onLoadChildren(
         parentId: String,
-        result: Result<List<MediaBrowserCompat.MediaItem>>
+        result: Result<MutableList<MediaBrowserCompat.MediaItem>>
     ) {
         when (parentId) {
             MEDIA_ROOT_ID -> {
