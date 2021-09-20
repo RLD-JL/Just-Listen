@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.utils.Constants
 import com.example.audius.android.exoplayer.utils.Constants.CLICKED_PLAYLIST
+import com.example.audius.android.ui.bottombars.play
 import com.example.audius.android.ui.test.AlbumsDataProvider
 import com.example.audius.viewmodel.screens.trending.PlaylistItem
 import com.google.android.exoplayer2.MediaMetadata
@@ -29,7 +30,7 @@ fun SongListScrollingSection(playlist: List<PlaylistItem>, musicServiceConnectio
     ShuffleButton(musicServiceConnection, playlist)
     DownloadedRow()
     playlist.forEach { playlistItem ->
-        SpotifySongListItem(playlistItem = playlistItem, musicServiceConnection = musicServiceConnection)
+        SpotifySongListItem(playlistItem = playlistItem, musicServiceConnection = musicServiceConnection, playlist = playlist)
     }
 
 }

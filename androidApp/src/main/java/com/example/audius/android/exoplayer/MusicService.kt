@@ -164,7 +164,7 @@ class MusicService : MediaBrowserServiceCompat() {
                 val resultsSent = musicSource.whenReady { isInitialized ->
                     if (isInitialized) {
                         result.sendResult(musicSource.asMediaItems())
-                        if (musicSource.songs.isNotEmpty()) {
+                        if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
                             preparePlayer(musicSource.songs, musicSource.songs[0], false)
                             isPlayerInitialized = true
                         }

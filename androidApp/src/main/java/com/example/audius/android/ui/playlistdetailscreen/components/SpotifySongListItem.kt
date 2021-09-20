@@ -1,5 +1,6 @@
 package com.example.audius.android.ui.playlistdetailscreen.components
 
+import android.support.v4.media.MediaBrowserCompat
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -25,14 +26,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import com.example.audius.android.exoplayer.MusicServiceConnection
+import com.example.audius.android.exoplayer.utils.Constants.CLICKED_PLAYLIST
 import com.example.audius.android.ui.test.Album
 import com.example.audius.viewmodel.screens.trending.PlaylistItem
 
 @Composable
-fun SpotifySongListItem(playlistItem: PlaylistItem, musicServiceConnection: MusicServiceConnection) {
+fun SpotifySongListItem(playlistItem: PlaylistItem, musicServiceConnection: MusicServiceConnection, playlist: List<PlaylistItem>) {
     Row(
         modifier = Modifier.padding(8.dp).clickable(
-            onClick = {musicServiceConnection.transportControls.playFromMediaId(playlistItem.id, null)}
+            onClick = {musicServiceConnection.updatePlaylist(playlist)
+                        musicServiceConnection.subscribe(CLICKED_PLAYLIST, object : MediaBrowserCompat.SubscriptionCallback() {})
+                musicServiceConnection.transportControls.playFromMediaId(playlistItem.id, null)}
         ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
