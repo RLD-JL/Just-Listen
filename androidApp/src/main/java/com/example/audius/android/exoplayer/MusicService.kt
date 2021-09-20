@@ -105,7 +105,7 @@ class MusicService : MediaBrowserServiceCompat() {
         playNow: Boolean
     ) {
         val currentSongIndex = if (curPlayingSong == null) 0 else songs.indexOf(itemToPlay)
-        exoPlayer.setMediaSource(musicSource.asMediaSource(dataSourceFactory = dataSourceFactory))
+        exoPlayer.prepare(musicSource.asMediaSource(dataSourceFactory = dataSourceFactory))
         exoPlayer.seekTo(currentSongIndex, 0L)
         exoPlayer.playWhenReady = playNow
         musicNotificationManager.showNotification(exoPlayer)
@@ -164,7 +164,7 @@ class MusicService : MediaBrowserServiceCompat() {
                     if (isInitialized) {
                         result.sendResult(musicSource.asMediaItems())
                         if (musicSource.songs.isNotEmpty()) {
-                            preparePlayer(musicSource.songs, musicSource.songs[0], true)
+                            preparePlayer(musicSource.songs, musicSource.songs[0], false)
                             isPlayerInitialized = true
                         }
                     } else {

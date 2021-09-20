@@ -67,22 +67,22 @@ fun PlayerBottomBar(
         )
         if (musicServiceConnection.playbackState.value?.state != PlaybackState.STATE_PLAYING) {
             Icon(
-                imageVector = Icons.Default.PlayArrow, modifier = Modifier.padding(8.dp).clickable(
-                    onClick = {play(musicServiceConnection,musicServiceConnection.currentPlayingSong.value?.description?.mediaId ?: "")}
+                painter = painterResource(id = R.drawable.exo_icon_play), modifier = Modifier.padding(8.dp).clickable(
+                    onClick = {musicServiceConnection.transportControls.play()}
                 ),
                 contentDescription = null
             )
         } else {
             Icon(
-                painter = painterResource(id = R.drawable.ic_paused), modifier = Modifier.padding(8.dp).clickable(
-                    onClick = {play(musicServiceConnection,musicServiceConnection.currentPlayingSong.value?.description?.mediaId ?: "")}
+                painter = painterResource(id = R.drawable.exo_icon_pause), modifier = Modifier.padding(8.dp).clickable(
+                    onClick = {musicServiceConnection.transportControls.pause()}
                 ),
                 contentDescription = null
             )
         }
 
         Icon(
-            imageVector = Icons.Default.ArrowForward,
+            painter = painterResource(id = R.drawable.exo_ic_skip_next),
             modifier = Modifier
                 .padding(8.dp)
                 .clickable(onClick = onSkipNextPressed),

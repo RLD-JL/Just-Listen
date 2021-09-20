@@ -29,7 +29,7 @@ fun Navigation.Level1BottomBar(
             || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PAUSED
             || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_SKIPPING_TO_NEXT
             || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_BUFFERING
-            || musicServiceConnection.isConnected.value) {
+            || musicServiceConnection.currentPlayingSong.value !=null) {
             val songIcon =
                 musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
             val title = musicServiceConnection.currentPlayingSong.value?.description?.title.toString()
