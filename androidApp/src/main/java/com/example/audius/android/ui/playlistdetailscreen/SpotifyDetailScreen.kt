@@ -25,6 +25,7 @@ import com.example.audius.android.ui.theme.modifiers.verticalGradientBackground
 import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
 import android.graphics.drawable.BitmapDrawable
 import android.support.v4.media.MediaBrowserCompat
+import android.widget.Toast
 import androidx.compose.material.IconButton
 import androidx.compose.runtime.*
 import coil.ImageLoader
@@ -37,7 +38,6 @@ import com.example.audius.viewmodel.screens.trending.PlaylistItem
 import kotlinx.coroutines.launch
 import java.lang.Exception
 
-
 fun spotifySurfaceGradient(isDark: Boolean) =
     if (isDark) listOf(graySurface, Color.Black) else listOf(Color.White, Color.LightGray)
 
@@ -46,61 +46,70 @@ fun SpotifyDetailScreen(
     playlistDetailState: PlaylistDetailState, onBackButtonPressed: (Boolean) -> Unit,
     musicServiceConnection: MusicServiceConnection
 ) {
-    val context = LocalContext.current
-    val scrollState = rememberScrollState(0)
-    val surfaceGradient = spotifySurfaceGradient(isSystemInDarkTheme()).asReversed()
-    val listColor: MutableState<Int> = remember {
-        mutableStateOf(-10082496)
-    }
-    val imageLoader = ImageLoader(context)
-    val request = ImageRequest.Builder(context)
-        .data(playlistDetailState.playlistIcon)
-        .build()
-    val imagePainter = rememberImagePainter(
-        request = request,
-        imageLoader = imageLoader
-    )
+    if (playlistDetailState.isLoading) {
+        Toast.makeText(LocalContext.current, "LOADING SCREEN KEKW", Toast.LENGTH_SHORT).show()
+    } else {
 
-     LaunchedEffect(key1 = imagePainter) {
-        launch {
-            try {
-                val result = (imageLoader.execute(request) as SuccessResult).drawable
-                val bitmap = (result as BitmapDrawable).bitmap
-                val vibrant = Palette.from(bitmap)
-                    .generate().dominantSwatch?.rgb
-                listColor.value = vibrant ?: -13082496
-            } catch (exception: Exception) {
-
-            }
-
+        val context = LocalContext.current
+        val scrollState = rememberScrollState(0)
+        val surfaceGradient = spotifySurfaceGradient(isSystemInDarkTheme()).asReversed()
+        val listColor: MutableState<Int> = remember {
+            mutableStateOf(-13082496)
         }
-    }
-
-    val dominantColors = listOf(Color(listColor.value), MaterialTheme.colors.surface)
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalGradientBackground(dominantColors)
-    ) {
-        BoxTopSection(
-            scrollState = scrollState,
-            playlistDetailState = playlistDetailState,
-            playlistPainter = imagePainter
+        val imageLoader = ImageLoader(context)
+        val request = ImageRequest.Builder(context)
+            .data(playlistDetailState.playlistIcon)
+            .build()
+        val imagePainter = rememberImagePainter(
+            request = request,
+            imageLoader = imageLoader
         )
-        TopSectionOverlay(scrollState = scrollState)
-        BottomScrollableContent(playlist = playlistDetailState.songPlaylist,
-            scrollState = scrollState,
-            surfaceGradient = surfaceGradient,
-            onShuffleClicked = {
-                playMusic(
-                    musicServiceConnection,
-                    playlistDetailState.songPlaylist
-                )
-            },
-            onSongClicked = { songId ->
-                playMusicFromId(musicServiceConnection, playlistDetailState.songPlaylist, songId)
-            })
-        AnimatedToolBar(playlistDetailState, scrollState, surfaceGradient, onBackButtonPressed)
+
+        LaunchedEffect(key1 = imagePainter) {
+            launch {
+                try {
+                    val result = (imageLoader.execute(request) as SuccessResult).drawable
+                    val bitmap = (result as BitmapDrawable).bitmap
+                    val vibrant = Palette.from(bitmap)
+                        .generate().dominantSwatch?.rgb
+                    listColor.value = vibrant ?: -13082496
+                } catch (exception: Exception) {
+
+                }
+            }
+        }
+
+        val dominantColors = listOf(Color(listColor.value), MaterialTheme.colors.surface)
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalGradientBackground(dominantColors)
+        ) {
+            BoxTopSection(
+                scrollState = scrollState,
+                playlistDetailState = playlistDetailState,
+                playlistPainter = imagePainter
+            )
+            TopSectionOverlay(scrollState = scrollState)
+            BottomScrollableContent(playlist = playlistDetailState.songPlaylist,
+                scrollState = scrollState,
+                surfaceGradient = surfaceGradient,
+                onShuffleClicked = {
+                    playMusic(
+                        musicServiceConnection,
+                        playlistDetailState.songPlaylist
+                    )
+                },
+                onSongClicked = { songId ->
+                    playMusicFromId(
+                        musicServiceConnection,
+                        playlistDetailState.songPlaylist,
+                        songId
+                    )
+                })
+            AnimatedToolBar(playlistDetailState, scrollState, surfaceGradient, onBackButtonPressed)
+        }
     }
 }
 
