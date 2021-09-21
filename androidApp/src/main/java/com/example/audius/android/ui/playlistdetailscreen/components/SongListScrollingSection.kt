@@ -1,8 +1,6 @@
 package com.example.audius.android.ui.playlistdetailscreen.components
 
-import android.media.browse.MediaBrowser
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaMetadataCompat
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,21 +14,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.audius.android.exoplayer.MusicServiceConnection
-import com.example.audius.android.exoplayer.utils.Constants
-import com.example.audius.android.exoplayer.utils.Constants.CLICKED_PLAYLIST
-import com.example.audius.android.ui.bottombars.play
-import com.example.audius.android.ui.test.AlbumsDataProvider
 import com.example.audius.viewmodel.screens.trending.PlaylistItem
-import com.google.android.exoplayer2.MediaMetadata
 
 
 @Composable
-fun SongListScrollingSection(playlist: List<PlaylistItem>, musicServiceConnection: MusicServiceConnection) {
-    ShuffleButton(musicServiceConnection, playlist)
+fun SongListScrollingSection(playlist: List<PlaylistItem>, onSongClicked: (String) -> Unit, onShuffleClicked: () ->Unit) {
+    ShuffleButton(onShuffleClicked)
     DownloadedRow()
     playlist.forEach { playlistItem ->
-        SpotifySongListItem(playlistItem = playlistItem, musicServiceConnection = musicServiceConnection, playlist = playlist)
+        SpotifySongListItem(playlistItem = playlistItem, onSongClicked = onSongClicked)
     }
 
 }
@@ -61,10 +53,9 @@ fun DownloadedRow() {
 }
 
 @Composable
-fun ShuffleButton(musicServiceConnection: MusicServiceConnection, playlist: List<PlaylistItem>) {
+fun ShuffleButton(onShuffleClicked: () -> Unit) {
     Button(
-        onClick = { musicServiceConnection.updatePlaylist(playlist)
-            musicServiceConnection.subscribe(CLICKED_PLAYLIST, object: MediaBrowserCompat.SubscriptionCallback() {}) },
+        onClick = { onShuffleClicked()},
         colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green),
         modifier = Modifier
             .fillMaxWidth()
