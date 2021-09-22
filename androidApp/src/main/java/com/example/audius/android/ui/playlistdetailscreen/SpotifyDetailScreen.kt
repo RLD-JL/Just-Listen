@@ -46,6 +46,10 @@ fun SpotifyDetailScreen(
     playlistDetailState: PlaylistDetailState, onBackButtonPressed: (Boolean) -> Unit,
     musicServiceConnection: MusicServiceConnection
 ) {
+    var isPlayerReady: MutableState<Boolean> = remember {
+        mutableStateOf(false)
+    }
+
     if (playlistDetailState.isLoading) {
         Toast.makeText(LocalContext.current, "LOADING SCREEN KEKW", Toast.LENGTH_SHORT).show()
     } else {
@@ -98,15 +102,19 @@ fun SpotifyDetailScreen(
                 onShuffleClicked = {
                     playMusic(
                         musicServiceConnection,
-                        playlistDetailState.songPlaylist
+                        playlistDetailState.songPlaylist,
+                        isPlayerReady.value
                     )
+                    isPlayerReady.value = true
                 },
                 onSongClicked = { songId ->
                     playMusicFromId(
                         musicServiceConnection,
                         playlistDetailState.songPlaylist,
-                        songId
+                        songId,
+                        isPlayerReady.value
                     )
+                    isPlayerReady.value = true
                 })
             AnimatedToolBar(playlistDetailState, scrollState, surfaceGradient, onBackButtonPressed)
         }
@@ -173,15 +181,29 @@ fun BottomScrollableContent(
 fun playMusicFromId(
     musicServiceConnection: MusicServiceConnection,
     playlist: List<PlaylistItem>,
-    songId: String
+    songId: String,
+    isPlayerReady: Boolean
 ) {
-    playMusic(musicServiceConnection, playlist)
-    musicServiceConnection.transportControls.playFromMediaId(songId, null)
+    if (isPlayerReady) {
+        musicServiceConnection.transportControls.playFromMediaId(songId, null)
+    } else {
+        playMusic(musicServiceConnection, playlist, isPlayerReady, songId, )
+    }
 }
 
-fun playMusic(musicServiceConnection: MusicServiceConnection, playlist: List<PlaylistItem>) {
-    musicServiceConnection.updatePlaylist(playlist)
-    musicServiceConnection.subscribe(
-        Constants.CLICKED_PLAYLIST,
-        object : MediaBrowserCompat.SubscriptionCallback() {})
+fun playMusic(
+    musicServiceConnection: MusicServiceConnection,
+    playlist: List<PlaylistItem>,
+    isPlayerReady: Boolean,
+    playFromId: String = ""
+) {
+    if (!isPlayerReady) {
+        musicServiceConnection.updatePlaylist(playlist)
+        musicServiceConnection.subscribe(
+            Constants.CLICKED_PLAYLIST,
+            object : MediaBrowserCompat.SubscriptionCallback() {})
+    }
+    if (playFromId != "") {
+        musicServiceConnection.transportControls.playFromMediaId(playFromId, null)
+    }
 }

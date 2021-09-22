@@ -1,5 +1,6 @@
 package com.example.audius.datalayer.webservices
 
+import com.example.audius.datalayer.utils.Constants.BASEURL
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.features.json.JsonFeature
@@ -8,7 +9,7 @@ import kotlinx.serialization.json.Json
 
 class ApiClient {
 
-    val baseUrl = "https://discoveryprovider.audius.co/v1"
+    val baseUrl = "${BASEURL}v1"
 
     val client = HttpClient {
         install(JsonFeature) {

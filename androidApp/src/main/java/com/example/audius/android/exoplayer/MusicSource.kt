@@ -7,6 +7,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.*
 import androidx.core.net.toUri
 import com.example.audius.android.exoplayer.State.*
+import com.example.audius.datalayer.utils.Constants.BASEURL
 import com.example.audius.viewmodel.screens.trending.*
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
@@ -86,7 +87,7 @@ class MusicSource {
     }
 
     private fun setSongUrl(songId: String): String {
-        return "https://discoveryprovider.audius2.prod-us-west-2.staked.cloud/v1/tracks/${songId}/stream?app_name=EXAMPLEAPP"
+        return "${BASEURL}/v1/tracks/${songId}/stream?app_name=EXAMPLEAPP"
     }
 }
 
