@@ -2,8 +2,11 @@ package com.example.audius.android.di
 
 import android.content.Context
 import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.upstream.DefaultAllocator
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import dagger.Module
@@ -22,8 +25,10 @@ object ServiceModule {
     @ServiceScoped
     fun provideExoPlayer(
         @ApplicationContext context: Context,
-        audioAttributes: AudioAttributes
-    ) = SimpleExoPlayer.Builder(context).build().apply {
+        audioAttributes: AudioAttributes,
+        trackSelector: DefaultTrackSelector,
+        loadControl: DefaultLoadControl
+    ) = SimpleExoPlayer.Builder(context).setLoadControl(loadControl).setTrackSelector(trackSelector).build().apply {
         setAudioAttributes(audioAttributes, true)
         setHandleAudioBecomingNoisy(true)
     }
@@ -34,6 +39,27 @@ object ServiceModule {
         .setContentType(C.CONTENT_TYPE_MUSIC)
         .setUsage(C.USAGE_MEDIA)
         .build()
+
+    @Provides
+    @ServiceScoped
+    fun provideTrackSelector(@ApplicationContext context: Context) = DefaultTrackSelector(context)
+
+    @Provides
+    @ServiceScoped
+    fun provideLoadControl(): DefaultLoadControl {
+        return DefaultLoadControl.Builder()
+            .setAllocator(DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE))
+            .setBufferDurationsMs(
+                1 * 30 * 1000, // this is it!
+                2 * 30 * 1000,
+                DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,
+                DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
+            )
+            .setTargetBufferBytes(DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES)
+            .setPrioritizeTimeOverSizeThresholds(DefaultLoadControl.DEFAULT_PRIORITIZE_TIME_OVER_SIZE_THRESHOLDS)
+            .build()
+    }
+
 
     @Provides
     @ServiceScoped
