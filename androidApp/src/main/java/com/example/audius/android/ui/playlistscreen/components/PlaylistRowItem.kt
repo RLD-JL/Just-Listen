@@ -31,7 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun SpotifyLaneItem(
+fun PlaylistRowItem(
     playlistItem: PlaylistItem,
     onPlaylistClicked: (String, String, String, String) -> Unit
 ) {

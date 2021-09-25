@@ -29,12 +29,10 @@ import com.example.audius.viewmodel.screens.trending.PlaylistItem
 import com.example.audius.viewmodel.screens.trending.PlaylistState
 import com.guru.composecookbook.verticalgrid.VerticalGrid
 
-
 val graySurface = Color(0xFF2A2A2A)
 
 fun spotifySurfaceGradient(isDark: Boolean) =
     if (isDark) listOf(graySurface, Color.Black) else listOf(Color.White, Color.LightGray)
-
 
 @Composable
 fun PlaylistDetailScreen(
@@ -73,7 +71,7 @@ fun ScrollableContent(lasItemReached: (Int, PlayListEnum) -> Unit, scrollState: 
         Spacer(modifier = Modifier.height(50.dp))
         //SpotifyTitle("Good Evening")
         //HomeGridSection()
-        HomeLanesSection(playlistState = playlistState, lasItemReached = lasItemReached,
+        ListOfCollections(playlistState = playlistState, lasItemReached = lasItemReached,
             onPlaylistClicked = onPlaylistClicked)
         Spacer(modifier = Modifier.height(100.dp))
     }
@@ -99,29 +97,29 @@ fun HomeGridSection() {
 }
 
 @Composable
-fun HomeLanesSection(playlistState: PlaylistState, lasItemReached: (Int, PlayListEnum) ->Unit,
+fun ListOfCollections(playlistState: PlaylistState, lasItemReached: (Int, PlayListEnum) ->Unit,
                      onPlaylistClicked:(String, String, String, String) ->Unit)
 {
         val list = mutableListOf("Top Playlist", "Remix")
        list.forEachIndexed { index, item->
            SpotifyTitle(text = item)
            if (index==0)
-           SpotifyLane(playlistState.playlistItems, lasItemReached, PlayListEnum.TOP_PLAYLIST,
+           PlaylistRow(playlistState.playlistItems, lasItemReached, PlayListEnum.TOP_PLAYLIST,
                onPlaylistClicked = onPlaylistClicked)
            else
-               SpotifyLane(playlist = playlistState.remixPlaylist, lasItemReached = lasItemReached, PlayListEnum.REMIX, onPlaylistClicked)
+               PlaylistRow(playlist = playlistState.remixPlaylist, lasItemReached = lasItemReached, PlayListEnum.REMIX, onPlaylistClicked)
        }
 }
 
 @Composable
-fun SpotifyLane(playlist: List<PlaylistItem>, lasItemReached: (Int, PlayListEnum) ->Unit,
+fun PlaylistRow(playlist: List<PlaylistItem>, lasItemReached: (Int, PlayListEnum) ->Unit,
                 playlistEnum: PlayListEnum,
                 onPlaylistClicked:(String, String, String, String)->Unit) {
     LazyRow {
         itemsIndexed(items = playlist) { index, playlistItem->
             if (index == playlist.size - 1)
                     lasItemReached(index+20, playlistEnum)
-           SpotifyLaneItem(playlistItem = playlistItem,
+           PlaylistRowItem(playlistItem = playlistItem,
                onPlaylistClicked = onPlaylistClicked)
         }
     }
