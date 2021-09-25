@@ -33,7 +33,7 @@ fun Navigation.Level1BottomBar(
             val songIcon =
                 musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
             val title = musicServiceConnection.currentPlayingSong.value?.description?.title.toString()
-            PlayerBottomBar(modifier = Modifier, songIcon = songIcon, title = title,
+            PlayerBottomBar(modifier = Modifier.offset(y = (2).dp), songIcon = songIcon, title = title,
                 onSkipNextPressed = {musicServiceConnection.transportControls.skipToNext()},
                 musicServiceConnection = musicServiceConnection)
         }
