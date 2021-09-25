@@ -19,7 +19,7 @@ import androidx.palette.graphics.Palette
 import com.example.audius.android.ui.playlistdetailscreen.components.BoxTopSection
 import com.example.audius.android.ui.playlistdetailscreen.components.SongListScrollingSection
 import com.example.audius.android.ui.playlistdetailscreen.components.TopSectionOverlay
-import com.example.audius.android.ui.playlistscreen.components.graySurface
+import com.example.audius.android.ui.playlistscreen.graySurface
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
 import com.example.audius.android.ui.theme.modifiers.verticalGradientBackground
 import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
@@ -42,11 +42,11 @@ fun spotifySurfaceGradient(isDark: Boolean) =
     if (isDark) listOf(graySurface, Color.Black) else listOf(Color.White, Color.LightGray)
 
 @Composable
-fun SpotifyDetailScreen(
+fun PlaylistDetailScreen(
     playlistDetailState: PlaylistDetailState, onBackButtonPressed: (Boolean) -> Unit,
     musicServiceConnection: MusicServiceConnection
 ) {
-    var isPlayerReady: MutableState<Boolean> = remember {
+    val isPlayerReady: MutableState<Boolean> = remember {
         mutableStateOf(false)
     }
 

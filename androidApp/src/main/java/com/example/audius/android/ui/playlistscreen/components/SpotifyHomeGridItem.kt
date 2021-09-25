@@ -19,7 +19,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.audius.android.ui.playlistscreen.components.graySurface
+import com.example.audius.android.ui.playlistscreen.graySurface
 import com.example.audius.android.ui.test.Album
 @Composable
 fun SpotifyHomeGridItem(album: Album) {

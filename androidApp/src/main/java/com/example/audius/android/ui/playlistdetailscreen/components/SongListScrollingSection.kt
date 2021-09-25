@@ -22,7 +22,7 @@ fun SongListScrollingSection(playlist: List<PlaylistItem>, onSongClicked: (Strin
     ShuffleButton(onShuffleClicked)
     DownloadedRow()
     playlist.forEach { playlistItem ->
-        SpotifySongListItem(playlistItem = playlistItem, onSongClicked = onSongClicked)
+        SongListItem(playlistItem = playlistItem, onSongClicked = onSongClicked)
     }
 
 }

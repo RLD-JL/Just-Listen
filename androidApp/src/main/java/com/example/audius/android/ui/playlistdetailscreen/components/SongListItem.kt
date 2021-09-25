@@ -25,7 +25,7 @@ import coil.compose.rememberImagePainter
 import com.example.audius.viewmodel.screens.trending.PlaylistItem
 
 @Composable
-fun SpotifySongListItem(playlistItem: PlaylistItem, onSongClicked: (String) ->Unit) {
+fun SongListItem(playlistItem: PlaylistItem, onSongClicked: (String) ->Unit) {
     Row(
         modifier = Modifier.padding(8.dp).clickable(
             onClick = {onSongClicked(playlistItem.id) }

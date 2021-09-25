@@ -4,12 +4,12 @@ import androidx.compose.runtime.Composable
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
 import com.example.audius.android.exoplayer.MusicServiceConnection
-import com.example.audius.android.ui.playlistscreen.components.PlaylistDetailScreen
+import com.example.audius.android.ui.playlistscreen.PlaylistScreen
 import com.example.audius.android.ui.trendinglistscreen.TrendingListScreen
 import com.example.audius.viewmodel.screens.Screen
 import com.example.audius.viewmodel.screens.trending.*
 import com.example.audius.viewmodel.screens.trending.PlayListEnum.*
-import com.example.audius.android.ui.playlistdetailscreen.SpotifyDetailScreen
+import com.example.audius.android.ui.playlistdetailscreen.PlaylistDetailScreen
 
 @Composable
 fun Navigation.ScreenPicker(
@@ -28,7 +28,7 @@ fun Navigation.ScreenPicker(
                 onSkipNextPressed = { events.skipToNextSong() }
             )
         Screen.Playlist ->
-            PlaylistDetailScreen(
+            PlaylistScreen(
                 lasItemReached = {lastIndex, playListEnum ->
                     when(playListEnum) {
                         TOP_PLAYLIST ->events.fetchPlaylist(lastIndex, TOP_PLAYLIST)
@@ -43,7 +43,7 @@ fun Navigation.ScreenPicker(
                          events.playMusicFromPlaylist(playlistId = playlistId)}
             )
 
-        Screen.PlaylistDetail -> SpotifyDetailScreen(
+        Screen.PlaylistDetail -> PlaylistDetailScreen(
             playlistDetailState = stateProvider.get(screenIdentifier = screenIdentifier),
             onBackButtonPressed = {onBackButtonPressed ->
                 if (onBackButtonPressed) exitScreen()

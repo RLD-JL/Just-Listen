@@ -1,4 +1,4 @@
-package com.example.audius.android.ui.playlistscreen.components
+package com.example.audius.android.ui.playlistscreen
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ScrollState
@@ -22,6 +22,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.audius.android.ui.playlistscreen.components.PlaylistRowItem
+import com.example.audius.android.ui.playlistscreen.components.SpotifyHomeGridItem
 import com.example.audius.android.ui.test.AlbumsDataProvider
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
 import com.example.audius.viewmodel.screens.trending.PlayListEnum
@@ -35,7 +37,7 @@ fun spotifySurfaceGradient(isDark: Boolean) =
     if (isDark) listOf(graySurface, Color.Black) else listOf(Color.White, Color.LightGray)
 
 @Composable
-fun PlaylistDetailScreen(
+fun PlaylistScreen(
     lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistState: PlaylistState,
     onPlaylistClicked:(String, String, String, String) ->Unit
