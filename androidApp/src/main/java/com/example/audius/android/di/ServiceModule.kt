@@ -26,9 +26,7 @@ object ServiceModule {
     fun provideExoPlayer(
         @ApplicationContext context: Context,
         audioAttributes: AudioAttributes,
-        trackSelector: DefaultTrackSelector,
-        loadControl: DefaultLoadControl
-    ) = SimpleExoPlayer.Builder(context).setLoadControl(loadControl).setTrackSelector(trackSelector).build().apply {
+    ) = SimpleExoPlayer.Builder(context).build().apply {
         setAudioAttributes(audioAttributes, true)
         setHandleAudioBecomingNoisy(true)
     }
@@ -39,27 +37,6 @@ object ServiceModule {
         .setContentType(C.CONTENT_TYPE_MUSIC)
         .setUsage(C.USAGE_MEDIA)
         .build()
-
-    @Provides
-    @ServiceScoped
-    fun provideTrackSelector(@ApplicationContext context: Context) = DefaultTrackSelector(context)
-
-    @Provides
-    @ServiceScoped
-    fun provideLoadControl(): DefaultLoadControl {
-        return DefaultLoadControl.Builder()
-            .setAllocator(DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE))
-            .setBufferDurationsMs(
-                1 * 30 * 1000, // this is it!
-                2 * 30 * 1000,
-                DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,
-                DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
-            )
-            .setTargetBufferBytes(DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES)
-            .setPrioritizeTimeOverSizeThresholds(DefaultLoadControl.DEFAULT_PRIORITIZE_TIME_OVER_SIZE_THRESHOLDS)
-            .build()
-    }
-
 
     @Provides
     @ServiceScoped
