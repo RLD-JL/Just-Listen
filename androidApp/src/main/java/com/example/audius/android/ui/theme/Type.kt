@@ -1,4 +1,4 @@
-package com.example.myapplication.ui.theme
+package com.example.audius.android.ui.theme
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle
