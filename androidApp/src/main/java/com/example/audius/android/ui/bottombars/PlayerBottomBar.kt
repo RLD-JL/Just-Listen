@@ -75,7 +75,6 @@ fun PlayerBottomBar(
                 contentDescription = null
             )
         }
-
             isLoading(musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_BUFFERING)
 
         Icon(
