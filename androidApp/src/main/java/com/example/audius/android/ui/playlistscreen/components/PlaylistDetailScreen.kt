@@ -21,9 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.test.AlbumsDataProvider
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
 import com.example.audius.viewmodel.screens.trending.PlayListEnum
@@ -39,7 +37,7 @@ fun spotifySurfaceGradient(isDark: Boolean) =
 
 
 @Composable
-fun SpotifyHome(
+fun PlaylistDetailScreen(
     lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistState: PlaylistState,
     onPlaylistClicked:(String, String, String, String) ->Unit
@@ -59,7 +57,6 @@ fun SpotifyHome(
                 .padding(start = 12.dp, end = 12.dp, top = 36.dp, bottom = 12.dp)
                 .alpha(animateFloatAsState(1f - scrollState.value / 200f).value)
         )
-      //  PlayerBottomBar(Modifier.align(Alignment.BottomCenter))
     }
 }
 
@@ -128,10 +125,4 @@ fun SpotifyLane(playlist: List<PlaylistItem>, lasItemReached: (Int, PlayListEnum
                onPlaylistClicked = onPlaylistClicked)
         }
     }
-}
-
-@Preview
-@Composable
-fun PreviewSpotifyHome() {
-    PreviewSpotifyHome()
 }
