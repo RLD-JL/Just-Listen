@@ -19,7 +19,6 @@ import androidx.palette.graphics.Palette
 import com.example.audius.android.ui.playlistdetailscreen.components.BoxTopSection
 import com.example.audius.android.ui.playlistdetailscreen.components.SongListScrollingSection
 import com.example.audius.android.ui.playlistdetailscreen.components.TopSectionOverlay
-import com.example.audius.android.ui.playlistscreen.graySurface
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
 import com.example.audius.android.ui.theme.modifiers.verticalGradientBackground
 import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
@@ -34,12 +33,12 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.utils.Constants
+import com.example.audius.android.ui.theme.graySurface
+import com.example.audius.android.ui.theme.utils.ThemeMode
 import com.example.audius.viewmodel.screens.trending.PlaylistItem
 import kotlinx.coroutines.launch
 import java.lang.Exception
 
-fun spotifySurfaceGradient(isDark: Boolean) =
-    if (isDark) listOf(graySurface, Color.Black) else listOf(Color.White, Color.LightGray)
 
 @Composable
 fun PlaylistDetailScreen(
@@ -56,7 +55,7 @@ fun PlaylistDetailScreen(
 
         val context = LocalContext.current
         val scrollState = rememberScrollState(0)
-        val surfaceGradient = spotifySurfaceGradient(isSystemInDarkTheme()).asReversed()
+        val surfaceGradient = ThemeMode.spotifySurfaceGradient(isSystemInDarkTheme()).asReversed()
         val listColor: MutableState<Int> = remember {
             mutableStateOf(-13082496)
         }

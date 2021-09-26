@@ -10,7 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
@@ -26,15 +25,13 @@ import com.example.audius.android.ui.playlistscreen.components.PlaylistRowItem
 import com.example.audius.android.ui.playlistscreen.components.SpotifyHomeGridItem
 import com.example.audius.android.ui.test.AlbumsDataProvider
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
+import com.example.audius.android.ui.theme.typography
+import com.example.audius.android.ui.theme.utils.ThemeMode
 import com.example.audius.viewmodel.screens.trending.PlayListEnum
 import com.example.audius.viewmodel.screens.trending.PlaylistItem
 import com.example.audius.viewmodel.screens.trending.PlaylistState
 import com.guru.composecookbook.verticalgrid.VerticalGrid
 
-val graySurface = Color(0xFF2A2A2A)
-
-fun spotifySurfaceGradient(isDark: Boolean) =
-    if (isDark) listOf(graySurface, Color.Black) else listOf(Color.White, Color.LightGray)
 
 @Composable
 fun PlaylistScreen(
@@ -43,8 +40,8 @@ fun PlaylistScreen(
     onPlaylistClicked:(String, String, String, String) ->Unit
 ) {
     val scrollState = rememberScrollState(0)
-    val surfaceGradient = spotifySurfaceGradient(isSystemInDarkTheme())
-    Box(modifier = Modifier.fillMaxSize()) {
+    val surfaceGradient = ThemeMode.spotifySurfaceGradient(isSystemInDarkTheme())
+    Box(modifier = Modifier.fillMaxSize(1f)) {
         ScrollableContent(lasItemReached = lasItemReached, scrollState = scrollState,
             surfaceGradient = surfaceGradient, playlistState = playlistState,
          onPlaylistClicked = onPlaylistClicked)

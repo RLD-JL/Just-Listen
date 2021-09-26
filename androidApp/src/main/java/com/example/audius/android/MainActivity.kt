@@ -3,10 +3,12 @@ package com.example.audius.android
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.audius.android.exoplayer.MusicServiceConnection
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import com.example.audius.android.ui.MainComposable
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
+import com.example.audius.android.ui.theme.utils.AppThemeState
+import com.example.audius.android.ui.theme.AudiusTheme
+import com.example.audius.android.ui.theme.ColorPallet
 
 
 class MainActivity : ComponentActivity() {
@@ -17,7 +19,10 @@ class MainActivity : ComponentActivity() {
         val musicServiceConnection = (application as AudiusApp).musicServiceConnection
 
         setContent {
-            MainComposable(model, musicServiceConnection)
+            val appTheme = remember { mutableStateOf(AppThemeState()) }
+            AudiusTheme(darkTheme = appTheme.value.darkTheme, colorPallet = ColorPallet.PURPLE ) {
+                MainComposable(model, musicServiceConnection)
+            }
         }
     }
 }

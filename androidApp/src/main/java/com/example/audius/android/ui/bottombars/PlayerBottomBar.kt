@@ -4,6 +4,7 @@ import android.media.session.PlaybackState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -19,6 +20,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import com.example.audius.android.R
 import com.example.audius.android.exoplayer.MusicServiceConnection
+import com.example.audius.android.ui.theme.graySurface
+import com.example.audius.android.ui.theme.typography
+import com.example.audius.android.ui.theme.utils.ThemeMode
 
 @Composable
 fun PlayerBottomBar(
@@ -28,12 +32,14 @@ fun PlayerBottomBar(
     onSkipNextPressed: () -> Unit,
     musicServiceConnection: MusicServiceConnection
 ) {
+    val backgroundColor =
+        if (isSystemInDarkTheme()) graySurface else MaterialTheme.colors.background
     val bottomBarHeight = 57.dp
     Row(
         modifier = modifier
             .padding(bottom = bottomBarHeight)
             .fillMaxWidth()
-            .background(color = SnackbarDefaults.backgroundColor),
+            .background(color = backgroundColor),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
@@ -44,7 +50,7 @@ fun PlayerBottomBar(
         )
         Text(
             text = title,
-            style = MaterialTheme.typography.h6.copy(fontSize = 14.sp),
+            style = typography.h6.copy(fontSize = 14.sp),
             modifier = Modifier
                 .padding(8.dp)
                 .weight(1f),

@@ -1,6 +1,7 @@
 package com.example.audius.android.ui.bottombars
 
 import android.media.session.PlaybackState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.BottomAppBar
@@ -16,6 +17,7 @@ import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
 import com.example.audius.android.exoplayer.MusicService
 import com.example.audius.android.exoplayer.MusicServiceConnection
+import com.example.audius.android.ui.theme.graySurface
 import com.example.audius.viewmodel.screens.Level1Navigation
 import com.example.audius.viewmodel.screens.trending.skipToNextSong
 
@@ -24,6 +26,9 @@ fun Navigation.Level1BottomBar(
     selectedTab: ScreenIdentifier,
     musicServiceConnection: MusicServiceConnection
 ) {
+    val bottomNavBackground =
+        if (isSystemInDarkTheme()) graySurface else MaterialTheme.colors.background
+
     Box(modifier = Modifier.fillMaxWidth()) {
         if (musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
             || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PAUSED
@@ -38,7 +43,8 @@ fun Navigation.Level1BottomBar(
                 musicServiceConnection = musicServiceConnection)
         }
 
-        BottomNavigation(modifier = Modifier.align(Alignment.BottomCenter), content = {
+        BottomNavigation(backgroundColor = bottomNavBackground,
+            modifier = Modifier.align(Alignment.BottomCenter), content = {
             BottomNavigationItem(
                 icon = { Icon(Icons.Default.Menu, "ALL") },
                 label = { Text("Playlist", fontSize = 13.sp) },
