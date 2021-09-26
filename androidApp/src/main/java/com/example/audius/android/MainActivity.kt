@@ -3,6 +3,7 @@ package com.example.audius.android
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.example.audius.android.ui.MainComposable
@@ -19,8 +20,7 @@ class MainActivity : ComponentActivity() {
         val musicServiceConnection = (application as AudiusApp).musicServiceConnection
 
         setContent {
-            val appTheme = remember { mutableStateOf(AppThemeState()) }
-            AudiusTheme(darkTheme = appTheme.value.darkTheme, colorPallet = ColorPallet.DARK ) {
+            AudiusTheme(darkTheme = isSystemInDarkTheme(), colorPallet = ColorPallet.DARK ) {
                 MainComposable(model, musicServiceConnection)
             }
         }

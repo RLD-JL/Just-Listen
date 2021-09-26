@@ -125,6 +125,20 @@ private val DarkColorPalette = darkColors(
     error = Color.Red
 )
 
+
+private val LightColorPalette = darkColors(
+    primary = Color.Black,
+    primaryVariant = primaryGray,
+    secondary = Color.DarkGray,
+    background = Color.White,
+    surface = Color.White,
+    onPrimary = Color.White,
+    onSecondary = Color.Black,
+    onBackground = Color.Black,
+    onSurface = Color.Black,
+    error = Color.Red
+)
+
 enum class ColorPallet {
     PURPLE, GREEN, ORANGE, BLUE, DARK
 }
@@ -140,7 +154,7 @@ fun AudiusTheme(
         ColorPallet.PURPLE -> if (darkTheme) DarkPurpleColorPalette else LightPurpleColorPalette
         ColorPallet.ORANGE -> if (darkTheme) DarkOrangeColorPalette else LightOrangeColorPalette
         ColorPallet.BLUE -> if (darkTheme) DarkBlueColorPalette else LightBlueColorPalette
-        ColorPallet.DARK -> if (darkTheme) DarkColorPalette else DarkColorPalette
+        ColorPallet.DARK -> if (darkTheme) DarkColorPalette else LightColorPalette
     }
 
     MaterialTheme(

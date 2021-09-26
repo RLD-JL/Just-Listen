@@ -26,8 +26,6 @@ fun Navigation.Level1BottomBar(
     selectedTab: ScreenIdentifier,
     musicServiceConnection: MusicServiceConnection
 ) {
-    val bottomNavBackground =
-        if (isSystemInDarkTheme()) graySurface else MaterialTheme.colors.background
 
     Box(modifier = Modifier.fillMaxWidth()) {
         if (musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
@@ -43,7 +41,7 @@ fun Navigation.Level1BottomBar(
                 musicServiceConnection = musicServiceConnection)
         }
 
-        BottomNavigation(backgroundColor = bottomNavBackground,
+        BottomNavigation(
             modifier = Modifier.align(Alignment.BottomCenter), content = {
             BottomNavigationItem(
                 icon = { Icon(Icons.Default.Menu, "ALL") },
