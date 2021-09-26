@@ -122,7 +122,7 @@ private val DarkColorPalette = darkColors(
     onSecondary = Color.White,
     onBackground = Color.White,
     onSurface = Color.White,
-    error = Color.Red,
+    error = Color.Red
 )
 
 enum class ColorPallet {
