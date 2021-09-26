@@ -55,7 +55,7 @@ fun PlaylistDetailScreen(
 
         val context = LocalContext.current
         val scrollState = rememberScrollState(0)
-        val surfaceGradient = ThemeMode.spotifySurfaceGradient(isSystemInDarkTheme()).asReversed()
+        val surfaceGradient = ThemeMode.spotifySurfaceGradient(isSystemInDarkTheme())
         val listColor: MutableState<Int> = remember {
             mutableStateOf(-13082496)
         }

@@ -33,12 +33,10 @@ val typography = Typography(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
-        color = Color.Gray
     ),
     subtitle2 = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        color = Color.Gray
     ),
 )

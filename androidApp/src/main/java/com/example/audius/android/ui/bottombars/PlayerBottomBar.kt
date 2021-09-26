@@ -101,7 +101,7 @@ fun isLoading(isLoading: Boolean) {
             contentAlignment = Alignment.Center,
             modifier = Modifier.size(24.dp*2f)
          ) {
-            CircularProgressIndicator(color = Color.Black)
+            CircularProgressIndicator()
             Icon(
                 painter = painterResource(id = R.drawable.exo_icon_pause), modifier = Modifier,
                 contentDescription = null

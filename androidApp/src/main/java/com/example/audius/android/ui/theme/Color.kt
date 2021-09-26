@@ -26,6 +26,11 @@ val tiktokRed = Color(0xFFEE1D52)
 val tiktokBlack = Color(0xFF010101)
 val blue = Color(0xFF5851DB)
 
+val primaryDark = Color(0xFF010101)
+val secondDark = Color(0xFF272323)
+val primaryGray = Color(0xFF2A2A2A)
+
+
 val orange = Color(0xFFF56040)
 val yellow = Color(0xFFFCAF45)
 val graySurface = Color(0xFF2A2A2A)

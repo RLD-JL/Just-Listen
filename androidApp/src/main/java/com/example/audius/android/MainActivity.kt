@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val appTheme = remember { mutableStateOf(AppThemeState()) }
-            AudiusTheme(darkTheme = appTheme.value.darkTheme, colorPallet = ColorPallet.PURPLE ) {
+            AudiusTheme(darkTheme = appTheme.value.darkTheme, colorPallet = ColorPallet.DARK ) {
                 MainComposable(model, musicServiceConnection)
             }
         }
