@@ -63,7 +63,6 @@ fun ScrollableContent(lasItemReached: (Int, PlayListEnum) -> Unit, scrollState: 
                       onPlaylistClicked:(String, String, String, String) ->Unit) {
     Column(
         modifier = Modifier
-            .horizontalGradientBackground(surfaceGradient)
             .padding(8.dp)
             .verticalScroll(state = scrollState)
     ) {

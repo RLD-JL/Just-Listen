@@ -32,14 +32,13 @@ fun PlayerBottomBar(
     onSkipNextPressed: () -> Unit,
     musicServiceConnection: MusicServiceConnection
 ) {
-    val backgroundColor =
-        if (isSystemInDarkTheme()) graySurface else MaterialTheme.colors.background
+
     val bottomBarHeight = 57.dp
     Row(
         modifier = modifier
             .padding(bottom = bottomBarHeight)
             .fillMaxWidth()
-            .background(color = backgroundColor),
+            .background(color = MaterialTheme.colors.primaryVariant),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(

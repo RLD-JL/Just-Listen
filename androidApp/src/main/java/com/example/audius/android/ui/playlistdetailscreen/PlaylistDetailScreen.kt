@@ -56,9 +56,7 @@ fun PlaylistDetailScreen(
         val context = LocalContext.current
         val scrollState = rememberScrollState(0)
         val surfaceGradient = ThemeMode.spotifySurfaceGradient(isSystemInDarkTheme())
-        val listColor: MutableState<Int> = remember {
-            mutableStateOf(-13082496)
-        }
+
         val imageLoader = ImageLoader(context)
         val request = ImageRequest.Builder(context)
             .data(playlistDetailState.playlistIcon)
@@ -68,26 +66,10 @@ fun PlaylistDetailScreen(
             imageLoader = imageLoader
         )
 
-        LaunchedEffect(key1 = imagePainter) {
-            launch {
-                try {
-                    val result = (imageLoader.execute(request) as SuccessResult).drawable
-                    val bitmap = (result as BitmapDrawable).bitmap
-                    val vibrant = Palette.from(bitmap)
-                        .generate().dominantSwatch?.rgb
-                    listColor.value = vibrant ?: -13082496
-                } catch (exception: Exception) {
-
-                }
-            }
-        }
-
-        val dominantColors = listOf(Color(listColor.value), MaterialTheme.colors.surface)
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalGradientBackground(dominantColors)
         ) {
             BoxTopSection(
                 scrollState = scrollState,
