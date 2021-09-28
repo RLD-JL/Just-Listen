@@ -79,7 +79,6 @@ fun PlaylistDetailScreen(
             TopSectionOverlay(scrollState = scrollState)
             BottomScrollableContent(playlist = playlistDetailState.songPlaylist,
                 scrollState = scrollState,
-                surfaceGradient = surfaceGradient,
                 onShuffleClicked = {
                     playMusic(
                         musicServiceConnection,
@@ -97,7 +96,7 @@ fun PlaylistDetailScreen(
                     )
                     isPlayerReady.value = true
                 })
-            AnimatedToolBar(playlistDetailState, scrollState, surfaceGradient, onBackButtonPressed)
+            AnimatedToolBar(playlistDetailState, scrollState, onBackButtonPressed)
         }
     }
 }
@@ -106,7 +105,6 @@ fun PlaylistDetailScreen(
 fun AnimatedToolBar(
     playlistDetailState: PlaylistDetailState,
     scrollState: ScrollState,
-    surfaceGradient: List<Color>,
     onBackButtonPressed: (Boolean) -> Unit
 ) {
     Row(
@@ -116,7 +114,7 @@ fun AnimatedToolBar(
             .fillMaxWidth()
             .horizontalGradientBackground(
                 if (Dp(scrollState.value.toFloat()) < 1080.dp)
-                    listOf(Color.Transparent, Color.Transparent) else surfaceGradient
+                    listOf(Color.Transparent, Color.Transparent) else listOf(MaterialTheme.colors.background,  MaterialTheme.colors.background)
             )
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
@@ -142,13 +140,12 @@ fun AnimatedToolBar(
 
 @Composable
 fun BottomScrollableContent(
-    playlist: List<PlaylistItem>, scrollState: ScrollState,
-    surfaceGradient: List<Color>, onSongClicked: (String) -> Unit,
+    playlist: List<PlaylistItem>, scrollState: ScrollState, onSongClicked: (String) -> Unit,
     onShuffleClicked: () -> Unit
 ) {
     Column(modifier = Modifier.verticalScroll(state = scrollState)) {
         Spacer(modifier = Modifier.height(480.dp))
-        Column(modifier = Modifier.horizontalGradientBackground(surfaceGradient)) {
+        Column(modifier = Modifier.horizontalGradientBackground(listOf(MaterialTheme.colors.background,  MaterialTheme.colors.background))) {
             SongListScrollingSection(
                 playlist = playlist,
                 onSongClicked = onSongClicked,

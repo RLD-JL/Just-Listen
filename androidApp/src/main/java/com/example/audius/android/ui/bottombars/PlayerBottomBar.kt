@@ -33,17 +33,17 @@ fun PlayerBottomBar(
     musicServiceConnection: MusicServiceConnection
 ) {
 
-    val bottomBarHeight = 57.dp
+    val bottomBarHeight = 50.dp
     Row(
         modifier = modifier
-            .padding(bottom = bottomBarHeight)
+            .offset(y = -bottomBarHeight)
             .fillMaxWidth()
             .background(color = MaterialTheme.colors.primaryVariant),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             painter = rememberImagePainter(songIcon),
-            modifier = Modifier.size(65.dp),
+            modifier = Modifier.size(50.dp).offset(x = 5.dp),
             contentDescription = null,
             contentScale = ContentScale.Crop,
         )
