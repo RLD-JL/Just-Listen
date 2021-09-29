@@ -40,7 +40,7 @@ fun Navigation.initPlaylist(params: PlaylistParams) = ScreenInitSettings(
         stateManager.updateScreen(PlaylistState::class) {
             it.copy(
                 remixPlaylist = remixPlaylist,
-                isLoading = true,
+                isLoading = false,
                 playlistItems = listData,
                 currentPlaylist = currentPlaylist
             )

@@ -45,13 +45,13 @@ fun Navigation.Level1BottomBar(
             modifier = Modifier.align(Alignment.BottomCenter), content = {
             BottomNavigationItem(
                 icon = { Icon(Icons.Default.Menu, "ALL") },
-                label = { Text("Playlist", fontSize = 13.sp) },
+                label = { Text("Playlist", fontSize = 10.sp) },
                 selected = selectedTab.URI == Level1Navigation.Playlist.screenIdentifier.URI,
                 onClick = { navigateByLevel1Menu(Level1Navigation.Playlist) }
             )
             BottomNavigationItem(
                 icon = { Icon(Icons.Default.Star, "FAVORITES") },
-                label = { Text("Favourites", fontSize = 13.sp) },
+                label = { Text("Favourites", fontSize = 10.sp) },
                 selected = selectedTab.URI == Level1Navigation.AllTrending.screenIdentifier.URI,
                 onClick = { navigateByLevel1Menu(Level1Navigation.AllTrending) }
             )

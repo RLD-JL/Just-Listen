@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.audius.android.ui.loadingscreen.LoadingScreen
 import com.example.audius.android.ui.playlistscreen.components.PlaylistRowItem
 import com.example.audius.android.ui.playlistscreen.components.SpotifyHomeGridItem
 import com.example.audius.android.ui.test.AlbumsDataProvider
@@ -37,30 +38,36 @@ import com.guru.composecookbook.verticalgrid.VerticalGrid
 fun PlaylistScreen(
     lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistState: PlaylistState,
-    onPlaylistClicked:(String, String, String, String) ->Unit
+    onPlaylistClicked: (String, String, String, String) -> Unit
 ) {
-    val scrollState = rememberScrollState(0)
-    val surfaceGradient = ThemeMode.spotifySurfaceGradient(isSystemInDarkTheme())
-    Box(modifier = Modifier.fillMaxSize(1f)) {
-        ScrollableContent(lasItemReached = lasItemReached, scrollState = scrollState,
-            surfaceGradient = surfaceGradient, playlistState = playlistState,
-         onPlaylistClicked = onPlaylistClicked)
-        Icon(
-            imageVector = Icons.Outlined.Settings,
-            tint = MaterialTheme.colors.onSurface,
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(start = 12.dp, end = 12.dp, top = 36.dp, bottom = 12.dp)
-                .alpha(animateFloatAsState(1f - scrollState.value / 200f).value)
-        )
+    if (playlistState.isLoading) {
+        LoadingScreen()
+    } else {
+        val scrollState = rememberScrollState(0)
+        Box(modifier = Modifier.fillMaxSize(1f)) {
+            ScrollableContent(
+                lasItemReached = lasItemReached, scrollState = scrollState,
+                playlistState = playlistState,
+                onPlaylistClicked = onPlaylistClicked
+            )
+            Icon(
+                imageVector = Icons.Outlined.Settings,
+                tint = MaterialTheme.colors.onSurface,
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(start = 12.dp, end = 12.dp, top = 36.dp, bottom = 12.dp)
+                    .alpha(animateFloatAsState(1f - scrollState.value / 200f).value)
+            )
+        }
     }
 }
 
 @Composable
-fun ScrollableContent(lasItemReached: (Int, PlayListEnum) -> Unit, scrollState: ScrollState,
-                      surfaceGradient: List<Color>, playlistState: PlaylistState,
-                      onPlaylistClicked:(String, String, String, String) ->Unit) {
+fun ScrollableContent(
+    lasItemReached: (Int, PlayListEnum) -> Unit, scrollState: ScrollState, playlistState: PlaylistState,
+    onPlaylistClicked: (String, String, String, String) -> Unit
+) {
     Column(
         modifier = Modifier
             .padding(8.dp)
@@ -69,8 +76,10 @@ fun ScrollableContent(lasItemReached: (Int, PlayListEnum) -> Unit, scrollState: 
         Spacer(modifier = Modifier.height(50.dp))
         //SpotifyTitle("Good Evening")
         //HomeGridSection()
-        ListOfCollections(playlistState = playlistState, lasItemReached = lasItemReached,
-            onPlaylistClicked = onPlaylistClicked)
+        ListOfCollections(
+            playlistState = playlistState, lasItemReached = lasItemReached,
+            onPlaylistClicked = onPlaylistClicked
+        )
         Spacer(modifier = Modifier.height(100.dp))
     }
 }
@@ -95,30 +104,42 @@ fun HomeGridSection() {
 }
 
 @Composable
-fun ListOfCollections(playlistState: PlaylistState, lasItemReached: (Int, PlayListEnum) ->Unit,
-                     onPlaylistClicked:(String, String, String, String) ->Unit)
-{
-        val list = mutableListOf("Top Playlist", "Remix")
-       list.forEachIndexed { index, item->
-           SpotifyTitle(text = item)
-           if (index==0)
-           PlaylistRow(playlistState.playlistItems, lasItemReached, PlayListEnum.TOP_PLAYLIST,
-               onPlaylistClicked = onPlaylistClicked)
-           else
-               PlaylistRow(playlist = playlistState.remixPlaylist, lasItemReached = lasItemReached, PlayListEnum.REMIX, onPlaylistClicked)
-       }
+fun ListOfCollections(
+    playlistState: PlaylistState, lasItemReached: (Int, PlayListEnum) -> Unit,
+    onPlaylistClicked: (String, String, String, String) -> Unit
+) {
+    val list = mutableListOf("Top Playlist", "Remix")
+    list.forEachIndexed { index, item ->
+        SpotifyTitle(text = item)
+        if (index == 0)
+            PlaylistRow(
+                playlistState.playlistItems, lasItemReached, PlayListEnum.TOP_PLAYLIST,
+                onPlaylistClicked = onPlaylistClicked
+            )
+        else
+            PlaylistRow(
+                playlist = playlistState.remixPlaylist,
+                lasItemReached = lasItemReached,
+                PlayListEnum.REMIX,
+                onPlaylistClicked
+            )
+    }
 }
 
 @Composable
-fun PlaylistRow(playlist: List<PlaylistItem>, lasItemReached: (Int, PlayListEnum) ->Unit,
-                playlistEnum: PlayListEnum,
-                onPlaylistClicked:(String, String, String, String)->Unit) {
+fun PlaylistRow(
+    playlist: List<PlaylistItem>, lasItemReached: (Int, PlayListEnum) -> Unit,
+    playlistEnum: PlayListEnum,
+    onPlaylistClicked: (String, String, String, String) -> Unit
+) {
     LazyRow {
-        itemsIndexed(items = playlist) { index, playlistItem->
+        itemsIndexed(items = playlist) { index, playlistItem ->
             if (index == playlist.size - 1)
-                    lasItemReached(index+20, playlistEnum)
-           PlaylistRowItem(playlistItem = playlistItem,
-               onPlaylistClicked = onPlaylistClicked)
+                lasItemReached(index + 20, playlistEnum)
+            PlaylistRowItem(
+                playlistItem = playlistItem,
+                onPlaylistClicked = onPlaylistClicked
+            )
         }
     }
 }

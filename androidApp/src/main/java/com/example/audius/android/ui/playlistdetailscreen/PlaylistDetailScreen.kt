@@ -33,6 +33,7 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.utils.Constants
+import com.example.audius.android.ui.loadingscreen.LoadingScreen
 import com.example.audius.android.ui.theme.graySurface
 import com.example.audius.android.ui.theme.utils.ThemeMode
 import com.example.audius.viewmodel.screens.trending.PlaylistItem
@@ -45,14 +46,12 @@ fun PlaylistDetailScreen(
     playlistDetailState: PlaylistDetailState, onBackButtonPressed: (Boolean) -> Unit,
     musicServiceConnection: MusicServiceConnection
 ) {
-    val isPlayerReady: MutableState<Boolean> = remember {
-        mutableStateOf(false)
-    }
-
     if (playlistDetailState.isLoading) {
-        Toast.makeText(LocalContext.current, "LOADING SCREEN KEKW", Toast.LENGTH_SHORT).show()
+       LoadingScreen()
     } else {
-
+        val isPlayerReady: MutableState<Boolean> = remember {
+            mutableStateOf(false)
+        }
         val context = LocalContext.current
         val scrollState = rememberScrollState(0)
         val surfaceGradient = ThemeMode.spotifySurfaceGradient(isSystemInDarkTheme())
@@ -114,7 +113,10 @@ fun AnimatedToolBar(
             .fillMaxWidth()
             .horizontalGradientBackground(
                 if (Dp(scrollState.value.toFloat()) < 1080.dp)
-                    listOf(Color.Transparent, Color.Transparent) else listOf(MaterialTheme.colors.background,  MaterialTheme.colors.background)
+                    listOf(
+                        Color.Transparent,
+                        Color.Transparent
+                    ) else listOf(MaterialTheme.colors.background, MaterialTheme.colors.background)
             )
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
