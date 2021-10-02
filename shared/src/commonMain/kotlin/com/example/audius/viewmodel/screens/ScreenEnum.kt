@@ -2,9 +2,9 @@ package com.example.audius.viewmodel.screens
 
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
-import com.example.audius.viewmodel.screens.trending.initPlaylist
-import com.example.audius.viewmodel.screens.trending.initPlaylistDetail
-import com.example.audius.viewmodel.screens.trending.initTrendingList
+import com.example.audius.viewmodel.screens.playlist.initPlaylist
+import com.example.audius.viewmodel.screens.playlist.initTrendingList
+import com.example.audius.viewmodel.screens.playlistdetail.initPlaylistDetail
 
 enum class Screen (
     val asString: String,

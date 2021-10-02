@@ -1,9 +1,9 @@
 package com.example.audius.viewmodel.screens
 
 import com.example.audius.ScreenIdentifier
-import com.example.audius.viewmodel.screens.trending.PlaylistDetailParams
-import com.example.audius.viewmodel.screens.trending.PlaylistParams
-import com.example.audius.viewmodel.screens.trending.TrendingListParams
+import com.example.audius.viewmodel.screens.playlist.PlaylistParams
+import com.example.audius.viewmodel.screens.playlist.TrendingListParams
+import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailParams
 
 object navigationSettings {
     val homeScreen = Level1Navigation.Playlist // the start screen should be specified here

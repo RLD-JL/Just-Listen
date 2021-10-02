@@ -1,4 +1,4 @@
-package com.example.audius.viewmodel.screens.trending
+package com.example.audius.viewmodel.screens.playlist
 
 import com.example.audius.ScreenState
 import com.example.audius.datalayer.models.PlayListModel
@@ -45,10 +45,3 @@ data class PlaylistItem(
     val songIconList = _data.songImgList
 }
 
-data class PlaylistDetailState(
-    val isLoading: Boolean = false,
-    val playlistName: String = "",
-    val playListCreatedBy: String ="",
-    var playlistIcon: String= "",
-    var songPlaylist: List<PlaylistItem> = emptyList()
-): ScreenState

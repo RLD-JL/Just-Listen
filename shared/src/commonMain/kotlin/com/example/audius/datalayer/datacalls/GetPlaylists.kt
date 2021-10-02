@@ -1,16 +1,12 @@
 package com.example.audius.datalayer.datacalls
 
 import com.example.audius.datalayer.Repository
-import com.example.audius.datalayer.localdb.getTrendingList
 import com.example.audius.datalayer.localdb.playlistdetail.getPlaylistDetail
 import com.example.audius.datalayer.localdb.playlistdetail.setPlaylistDetail
-import com.example.audius.datalayer.localdb.setTrendingList
 import com.example.audius.datalayer.webservices.apis.playlistcalls.fetchPlaylist
-import com.example.audius.datalayer.webservices.apis.trendingcalls.fetchTrendingList
-import com.example.audius.viewmodel.screens.trending.PlayListEnum
-import com.example.audius.viewmodel.screens.trending.PlayListEnum.*
-import com.example.audius.viewmodel.screens.trending.PlaylistItem
-import com.example.audius.viewmodel.screens.trending.TrendingListItem
+import com.example.audius.viewmodel.screens.playlist.PlayListEnum
+import com.example.audius.viewmodel.screens.playlist.PlayListEnum.*
+import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 
 suspend fun Repository.getPlaylist(index: Int, playListEnum: PlayListEnum, playlistId: String= ""): List<PlaylistItem> {
     return when (playListEnum) {

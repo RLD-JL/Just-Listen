@@ -15,30 +15,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.palette.graphics.Palette
 import com.example.audius.android.ui.playlistdetailscreen.components.BoxTopSection
 import com.example.audius.android.ui.playlistdetailscreen.components.SongListScrollingSection
 import com.example.audius.android.ui.playlistdetailscreen.components.TopSectionOverlay
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
-import com.example.audius.android.ui.theme.modifiers.verticalGradientBackground
-import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
-import android.graphics.drawable.BitmapDrawable
 import android.support.v4.media.MediaBrowserCompat
-import android.widget.Toast
 import androidx.compose.material.IconButton
 import androidx.compose.runtime.*
 import coil.ImageLoader
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
-import coil.request.SuccessResult
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.utils.Constants
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
-import com.example.audius.android.ui.theme.graySurface
 import com.example.audius.android.ui.theme.utils.ThemeMode
-import com.example.audius.viewmodel.screens.trending.PlaylistItem
-import kotlinx.coroutines.launch
-import java.lang.Exception
+import com.example.audius.viewmodel.screens.playlist.PlaylistItem
+import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailState
 
 
 @Composable
@@ -54,7 +46,6 @@ fun PlaylistDetailScreen(
         }
         val context = LocalContext.current
         val scrollState = rememberScrollState(0)
-        val surfaceGradient = ThemeMode.spotifySurfaceGradient(isSystemInDarkTheme())
 
         val imageLoader = ImageLoader(context)
         val request = ImageRequest.Builder(context)

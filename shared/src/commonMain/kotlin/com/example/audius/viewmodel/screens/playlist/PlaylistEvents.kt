@@ -1,9 +1,9 @@
-package com.example.audius.viewmodel.screens.trending
+package com.example.audius.viewmodel.screens.playlist
 
 import com.example.audius.datalayer.datacalls.getPlaylist
 import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.viewmodel.Events
-import com.example.audius.viewmodel.screens.trending.PlayListEnum.*
+import com.example.audius.viewmodel.screens.playlist.PlayListEnum.*
 
 fun Events.playMusic(songId: String, songIcon: SongIconList) = screenCoroutine{
 

@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -19,9 +18,8 @@ import com.example.audius.android.exoplayer.isPlayEnabled
 import com.example.audius.android.exoplayer.isPlaying
 import com.example.audius.android.exoplayer.isPrepared
 import com.example.audius.android.exoplayer.utils.Constants
-import com.example.audius.android.ui.bottombars.PlayerBottomBar
 import com.example.audius.datalayer.models.SongIconList
-import com.example.audius.viewmodel.screens.trending.TrendingListState
+import com.example.audius.viewmodel.screens.playlist.TrendingListState
 
 @Composable
 fun TrendingListScreen(

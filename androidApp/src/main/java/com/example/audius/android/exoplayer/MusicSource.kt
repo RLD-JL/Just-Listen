@@ -8,7 +8,7 @@ import android.support.v4.media.MediaMetadataCompat.*
 import androidx.core.net.toUri
 import com.example.audius.android.exoplayer.State.*
 import com.example.audius.datalayer.utils.Constants.BASEURL
-import com.example.audius.viewmodel.screens.trending.*
+import com.example.audius.viewmodel.screens.playlist.*
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource

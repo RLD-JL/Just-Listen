@@ -1,10 +1,8 @@
 package com.example.audius.android.ui.bottombars
 
 import android.media.session.PlaybackState
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.material.BottomAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Star
@@ -15,11 +13,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
-import com.example.audius.android.exoplayer.MusicService
 import com.example.audius.android.exoplayer.MusicServiceConnection
-import com.example.audius.android.ui.theme.graySurface
 import com.example.audius.viewmodel.screens.Level1Navigation
-import com.example.audius.viewmodel.screens.trending.skipToNextSong
 
 @Composable
 fun Navigation.Level1BottomBar(

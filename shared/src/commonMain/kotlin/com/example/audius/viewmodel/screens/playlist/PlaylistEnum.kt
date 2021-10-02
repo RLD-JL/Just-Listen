@@ -1,4 +1,4 @@
-package com.example.audius.viewmodel.screens.trending
+package com.example.audius.viewmodel.screens.playlist
 
 enum class PlayListEnum {
     REMIX,

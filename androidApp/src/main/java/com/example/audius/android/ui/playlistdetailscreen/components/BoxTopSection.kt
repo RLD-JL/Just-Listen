@@ -12,14 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberImagePainter
-import com.example.audius.android.ui.test.Album
-import com.example.audius.viewmodel.screens.trending.PlaylistDetailState
+import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailState
 
 @Composable
 fun BoxTopSection(scrollState: ScrollState, playlistDetailState: PlaylistDetailState, playlistPainter: Painter) {

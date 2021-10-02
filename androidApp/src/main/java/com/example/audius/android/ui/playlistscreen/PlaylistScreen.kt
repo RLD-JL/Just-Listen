@@ -2,7 +2,6 @@ package com.example.audius.android.ui.playlistscreen
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -18,19 +17,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
 import com.example.audius.android.ui.playlistscreen.components.PlaylistRowItem
 import com.example.audius.android.ui.playlistscreen.components.SpotifyHomeGridItem
 import com.example.audius.android.ui.test.AlbumsDataProvider
-import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
 import com.example.audius.android.ui.theme.typography
-import com.example.audius.android.ui.theme.utils.ThemeMode
-import com.example.audius.viewmodel.screens.trending.PlayListEnum
-import com.example.audius.viewmodel.screens.trending.PlaylistItem
-import com.example.audius.viewmodel.screens.trending.PlaylistState
+import com.example.audius.viewmodel.screens.playlist.PlayListEnum
+import com.example.audius.viewmodel.screens.playlist.PlaylistItem
+import com.example.audius.viewmodel.screens.playlist.PlaylistState
 import com.guru.composecookbook.verticalgrid.VerticalGrid
 
 

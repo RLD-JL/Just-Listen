@@ -1,7 +1,6 @@
 package com.example.audius.viewmodel
 
 import com.example.audius.StateManager
-import com.example.audius.viewmodel.screens.trending.PlayListEnum
 
 class Events(val stateManager: StateManager) {
     val dataRepository

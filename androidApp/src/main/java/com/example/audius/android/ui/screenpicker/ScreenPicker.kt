@@ -7,9 +7,10 @@ import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.playlistscreen.PlaylistScreen
 import com.example.audius.android.ui.trendinglistscreen.TrendingListScreen
 import com.example.audius.viewmodel.screens.Screen
-import com.example.audius.viewmodel.screens.trending.*
-import com.example.audius.viewmodel.screens.trending.PlayListEnum.*
+import com.example.audius.viewmodel.screens.playlist.*
+import com.example.audius.viewmodel.screens.playlist.PlayListEnum.*
 import com.example.audius.android.ui.playlistdetailscreen.PlaylistDetailScreen
+import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailParams
 
 @Composable
 fun Navigation.ScreenPicker(

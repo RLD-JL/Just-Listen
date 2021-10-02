@@ -10,9 +10,8 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
 import com.example.audius.android.exoplayer.utils.Constants.NETWORK_ERROR
-import com.example.audius.viewmodel.screens.trending.PlaylistItem
+import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import javax.inject.Inject
 
 class MusicServiceConnection @Inject constructor(

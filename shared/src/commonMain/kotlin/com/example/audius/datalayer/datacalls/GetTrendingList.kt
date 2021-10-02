@@ -3,10 +3,9 @@ package com.example.audius.datalayer.datacalls
 import com.example.audius.datalayer.Repository
 import com.example.audius.datalayer.localdb.getTrendingList
 import com.example.audius.datalayer.localdb.setTrendingList
-import com.example.audius.datalayer.webservices.apis.trendingcalls.TrendingListResponse
 import com.example.audius.datalayer.webservices.apis.trendingcalls.fetchTrackListFromPlaylist
 import com.example.audius.datalayer.webservices.apis.trendingcalls.fetchTrendingList
-import com.example.audius.viewmodel.screens.trending.TrendingListItem
+import com.example.audius.viewmodel.screens.playlist.TrendingListItem
 
 suspend fun Repository.getTrendingListData(): List<TrendingListItem> = withRepoContext {
 
