@@ -67,7 +67,9 @@ fun PlaylistScreen(
 
 @Composable
 fun ScrollableContent(
-    lasItemReached: (Int, PlayListEnum) -> Unit, scrollState: ScrollState, playlistState: PlaylistState,
+    lasItemReached: (Int, PlayListEnum) -> Unit,
+    scrollState: ScrollState,
+    playlistState: PlaylistState,
     onPlaylistClicked: (String, String, String, String) -> Unit
 ) {
     Column(
@@ -110,22 +112,31 @@ fun ListOfCollections(
     playlistState: PlaylistState, lasItemReached: (Int, PlayListEnum) -> Unit,
     onPlaylistClicked: (String, String, String, String) -> Unit
 ) {
-    val list = mutableListOf("Top Playlist", "Remix")
+    val list = mutableListOf("Top Playlist", "Remix", "Yolo")
 
     list.forEachIndexed { index, item ->
         SpotifyTitle(text = item)
-        if (index == 0)
-            PlaylistRow(
-                playlistState.playlistItems, lasItemReached, PlayListEnum.TOP_PLAYLIST,
-                onPlaylistClicked = onPlaylistClicked
+        when (index) {
+            0 -> PlaylistRow(
+                playlist = playlistState.playlistItems,
+                lasItemReached = lasItemReached,
+                PlayListEnum.TOP_PLAYLIST,
+                onPlaylistClicked
             )
-        else
-            PlaylistRow(
+            1 -> PlaylistRow(
                 playlist = playlistState.remixPlaylist,
                 lasItemReached = lasItemReached,
                 PlayListEnum.REMIX,
                 onPlaylistClicked
             )
+            2 -> PlaylistRow(
+                playlist = playlistState.remixPlaylist,
+                lasItemReached = lasItemReached,
+                PlayListEnum.REMIX,
+                onPlaylistClicked
+            )
+
+        }
     }
 }
 
@@ -138,11 +149,14 @@ fun PlaylistRow(
     LazyRow {
         itemsIndexed(items = playlist) { index, playlistItem ->
 
-           if (index == playlist.size - 1)
+            if (index == playlist.size - 1)
                 lasItemReached(index + 20, playlistEnum)
 
-            val painter = rememberImagePainter(request = ImageRequest.Builder(context = LocalContext.current).placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
-                .data(playlistItem.songIconList.songImageURL480px).build())
+            val painter = rememberImagePainter(
+                request = ImageRequest.Builder(context = LocalContext.current)
+                    .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
+                    .data(playlistItem.songIconList.songImageURL480px).build()
+            )
 
             PlaylistRowItem(
                 playlistItem = playlistItem,
