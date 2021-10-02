@@ -1,5 +1,6 @@
 package com.example.audius.android.ui.playlistdetailscreen
 
+import android.graphics.drawable.ColorDrawable
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
@@ -22,13 +23,13 @@ import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackgroun
 import android.support.v4.media.MediaBrowserCompat
 import androidx.compose.material.IconButton
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.toArgb
 import coil.ImageLoader
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.utils.Constants
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
-import com.example.audius.android.ui.theme.utils.ThemeMode
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailState
 
@@ -50,6 +51,7 @@ fun PlaylistDetailScreen(
         val imageLoader = ImageLoader(context)
         val request = ImageRequest.Builder(context)
             .data(playlistDetailState.playlistIcon)
+            .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
             .build()
         val imagePainter = rememberImagePainter(
             request = request,

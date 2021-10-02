@@ -1,5 +1,6 @@
 package com.example.audius.android.ui.playlistscreen
 
+import android.graphics.drawable.ColorDrawable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.*
@@ -17,8 +18,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.ImageLoader
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
 import com.example.audius.android.ui.playlistscreen.components.PlaylistRowItem
 import com.example.audius.android.ui.playlistscreen.components.SpotifyHomeGridItem
@@ -105,6 +111,7 @@ fun ListOfCollections(
     onPlaylistClicked: (String, String, String, String) -> Unit
 ) {
     val list = mutableListOf("Top Playlist", "Remix")
+
     list.forEachIndexed { index, item ->
         SpotifyTitle(text = item)
         if (index == 0)
@@ -130,11 +137,17 @@ fun PlaylistRow(
 ) {
     LazyRow {
         itemsIndexed(items = playlist) { index, playlistItem ->
-            if (index == playlist.size - 1)
+
+           if (index == playlist.size - 1)
                 lasItemReached(index + 20, playlistEnum)
+
+            val painter = rememberImagePainter(request = ImageRequest.Builder(context = LocalContext.current).placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
+                .data(playlistItem.songIconList.songImageURL480px).build())
+
             PlaylistRowItem(
                 playlistItem = playlistItem,
-                onPlaylistClicked = onPlaylistClicked
+                onPlaylistClicked = onPlaylistClicked,
+                painter
             )
         }
     }

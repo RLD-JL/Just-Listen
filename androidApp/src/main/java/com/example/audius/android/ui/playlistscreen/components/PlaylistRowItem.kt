@@ -1,28 +1,35 @@
 package com.example.audius.android.ui.playlistscreen.components
 
 
+import android.graphics.drawable.ColorDrawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.ImageLoader
 import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.example.audius.android.ui.theme.typography
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 
 @Composable
 fun PlaylistRowItem(
     playlistItem: PlaylistItem,
-    onPlaylistClicked: (String, String, String, String) -> Unit
+    onPlaylistClicked: (String, String, String, String) -> Unit,
+    imagePainter: Painter
 ) {
-
     Column(
         modifier =
         Modifier
@@ -33,8 +40,9 @@ fun PlaylistRowItem(
 
                 })
     ) {
+
         Image(
-            painter = rememberImagePainter(playlistItem.songIconList.songImageURL480px),
+            painter = imagePainter,
             modifier = Modifier
                 .width(180.dp)
                 .height(160.dp)
