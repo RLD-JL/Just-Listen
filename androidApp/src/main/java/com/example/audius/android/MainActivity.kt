@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
         val musicServiceConnection = (application as AudiusApp).musicServiceConnection
 
         setContent {
-            AudiusTheme(darkTheme = isSystemInDarkTheme(), colorPallet = ColorPallet.DARK ) {
+            AudiusTheme(darkTheme = true, colorPallet = ColorPallet.DARK ) {
                 window.statusBarColor = MaterialTheme.colors.background.toArgb()
                 window.navigationBarColor = MaterialTheme.colors.primaryVariant.toArgb()
                 MainComposable(model, musicServiceConnection)
