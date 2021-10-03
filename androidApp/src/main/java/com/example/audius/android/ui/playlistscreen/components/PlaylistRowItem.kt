@@ -28,7 +28,6 @@ import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 fun PlaylistRowItem(
     playlistItem: PlaylistItem,
     onPlaylistClicked: (String, String, String, String) -> Unit,
-    imagePainter: Painter
 ) {
     Column(
         modifier =
@@ -40,9 +39,14 @@ fun PlaylistRowItem(
 
                 })
     ) {
+        val painter = rememberImagePainter(
+            request = ImageRequest.Builder(context = LocalContext.current)
+                .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
+                .data(playlistItem.songIconList.songImageURL480px).build()
+        )
 
         Image(
-            painter = imagePainter,
+            painter = painter,
             modifier = Modifier
                 .width(180.dp)
                 .height(160.dp)
@@ -62,7 +66,7 @@ fun PlaylistRowItem(
         Text(
             text = "${playlistItem.playlistTitle}: by ${playlistItem.user}",
             style = typography.subtitle2,
-            maxLines = 2,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(vertical = 8.dp)
         )

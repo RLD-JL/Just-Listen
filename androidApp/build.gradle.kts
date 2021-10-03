@@ -10,18 +10,18 @@ dependencies {
     implementation(project(":shared"))
     implementation("com.google.android.material:material:1.4.0")
     implementation("androidx.appcompat:appcompat:1.3.1")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.1")
     implementation("androidx.compose.ui:ui:${rootProject.extra["compose_version"]}")
     implementation("androidx.compose.material:material:${rootProject.extra["compose_version"]}")
     implementation("androidx.compose.ui:ui-tooling-preview:${rootProject.extra["compose_version"]}")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:1.0.0-alpha07")
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.4.0-rc01")
     implementation("androidx.activity:activity-compose:1.3.1")
     implementation ("androidx.palette:palette-ktx:1.0.0")
 
-    implementation ("com.google.android.exoplayer:exoplayer:2.15.0")
-    implementation ("com.google.android.exoplayer:extension-mediasession:2.15.0")
-    implementation ("com.google.android.exoplayer:exoplayer-ui:2.11.8")
+    implementation ("com.google.android.exoplayer:exoplayer:2.15.1")
+    implementation ("com.google.android.exoplayer:extension-mediasession:2.15.1")
+    implementation ("com.google.android.exoplayer:exoplayer-ui:2.15.1")
 
     implementation("androidx.lifecycle:lifecycle-process:2.3.1")
     implementation("io.coil-kt:coil-compose:1.3.1")
@@ -42,7 +42,7 @@ kapt {
 }
 
 android {
-    compileSdk = 30
+    compileSdk = 31
     defaultConfig {
         applicationId = "com.example.audius.android"
         minSdk = 21

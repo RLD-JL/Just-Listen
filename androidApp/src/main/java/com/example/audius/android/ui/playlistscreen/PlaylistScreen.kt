@@ -112,8 +112,9 @@ fun ListOfCollections(
     playlistState: PlaylistState, lasItemReached: (Int, PlayListEnum) -> Unit,
     onPlaylistClicked: (String, String, String, String) -> Unit
 ) {
-    val list = mutableListOf("Top Playlist", "Remix", "Yolo")
-
+    val list = remember {
+        mutableListOf("Top Playlist", "Remix", "Yolo")
+    }
     list.forEachIndexed { index, item ->
         SpotifyTitle(text = item)
         when (index) {
@@ -135,7 +136,6 @@ fun ListOfCollections(
                 PlayListEnum.REMIX,
                 onPlaylistClicked
             )
-
         }
     }
 }
@@ -149,19 +149,13 @@ fun PlaylistRow(
     LazyRow {
         itemsIndexed(items = playlist) { index, playlistItem ->
 
-            if (index == playlist.size - 1)
+            if (index == playlist.size - 3)
                 lasItemReached(index + 20, playlistEnum)
-
-            val painter = rememberImagePainter(
-                request = ImageRequest.Builder(context = LocalContext.current)
-                    .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
-                    .data(playlistItem.songIconList.songImageURL480px).build()
-            )
 
             PlaylistRowItem(
                 playlistItem = playlistItem,
                 onPlaylistClicked = onPlaylistClicked,
-                painter
+
             )
         }
     }
