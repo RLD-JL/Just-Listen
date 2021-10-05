@@ -26,20 +26,16 @@ import com.example.audius.android.ui.theme.utils.ThemeMode
 
 @Composable
 fun PlayerBottomBar(
-    modifier: Modifier,
     songIcon: String,
     title: String,
     onSkipNextPressed: () -> Unit,
     musicServiceConnection: MusicServiceConnection
 ) {
 
-    val bottomBarHeight = 50.dp
     Row(
-        modifier = modifier
-            .offset(y = -bottomBarHeight)
+        modifier = Modifier
             .fillMaxWidth()
             .background(color = MaterialTheme.colors.primaryVariant),
-        verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             painter = rememberImagePainter(songIcon),

@@ -146,7 +146,6 @@ fun BottomScrollableContent(
                 onSongClicked = onSongClicked,
                 onShuffleClicked = onShuffleClicked
             )
-            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }

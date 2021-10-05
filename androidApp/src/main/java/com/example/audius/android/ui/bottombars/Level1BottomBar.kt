@@ -21,23 +21,8 @@ fun Navigation.Level1BottomBar(
     selectedTab: ScreenIdentifier,
     musicServiceConnection: MusicServiceConnection
 ) {
-
-    Box(modifier = Modifier.fillMaxWidth()) {
-        if (musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
-            || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PAUSED
-            || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_SKIPPING_TO_NEXT
-            || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_BUFFERING
-            || musicServiceConnection.currentPlayingSong.value !=null) {
-            val songIcon =
-                musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
-            val title = musicServiceConnection.currentPlayingSong.value?.description?.title.toString()
-            PlayerBottomBar(modifier = Modifier.offset(y = (2).dp), songIcon = songIcon, title = title,
-                onSkipNextPressed = {musicServiceConnection.transportControls.skipToNext()},
-                musicServiceConnection = musicServiceConnection)
-        }
-
         BottomNavigation(
-            modifier = Modifier.align(Alignment.BottomCenter), content = {
+             content = {
             BottomNavigationItem(
                 icon = { Icon(Icons.Default.Menu, "ALL") },
                 label = { Text("Playlist", fontSize = 10.sp) },
@@ -51,5 +36,4 @@ fun Navigation.Level1BottomBar(
                 onClick = { navigateByLevel1Menu(Level1Navigation.AllTrending) }
             )
         })
-    }
 }
