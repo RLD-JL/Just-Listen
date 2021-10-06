@@ -1,6 +1,7 @@
 package com.example.audius.android.ui.bottombars
 
 import android.media.session.PlaybackState
+import android.widget.SeekBar
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,7 +45,9 @@ fun PlayerBottomBar(
         ) {
             Image(
                 painter = rememberImagePainter(songIcon),
-                modifier = Modifier.size(50.dp).offset(x = 5.dp),
+                modifier = Modifier
+                    .size(50.dp)
+                    .offset(x = 5.dp),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
             )
@@ -91,6 +94,7 @@ fun PlayerBottomBar(
                 contentDescription = null,
             )
         }
+        LinearProgressIndicator(progress = 0.2f, Modifier.fillMaxWidth().height(1.dp))
     }
 }
 
