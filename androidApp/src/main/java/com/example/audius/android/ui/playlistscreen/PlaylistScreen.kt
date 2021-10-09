@@ -1,6 +1,5 @@
 package com.example.audius.android.ui.playlistscreen
 
-import android.graphics.drawable.ColorDrawable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.*
@@ -18,13 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import coil.ImageLoader
-import coil.compose.rememberImagePainter
-import coil.request.ImageRequest
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
 import com.example.audius.android.ui.playlistscreen.components.PlaylistRowItem
 import com.example.audius.android.ui.playlistscreen.components.SpotifyHomeGridItem
@@ -78,7 +72,7 @@ fun ScrollableContent(
             .verticalScroll(state = scrollState)
     ) {
         Spacer(modifier = Modifier.height(50.dp))
-        //SpotifyTitle("Good Evening")
+        SpotifyTitle("Good Evening")
         //HomeGridSection()
         ListOfCollections(
             playlistState = playlistState, lasItemReached = lasItemReached,
