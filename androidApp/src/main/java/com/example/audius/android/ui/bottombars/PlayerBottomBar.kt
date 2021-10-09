@@ -1,7 +1,6 @@
 package com.example.audius.android.ui.bottombars
 
 import android.media.session.PlaybackState
-import android.widget.SeekBar
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import com.example.audius.android.R
+import com.example.audius.android.exoplayer.MusicService.Companion.curSongDuration
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.theme.typography
 
@@ -94,7 +94,11 @@ fun PlayerBottomBar(
                 contentDescription = null,
             )
         }
-        LinearProgressIndicator(progress = 0.2f, Modifier.fillMaxWidth().height(1.dp))
+
+        LinearProgressIndicator(progress = musicServiceConnection.songDuration.value/curSongDuration.toFloat(),
+            Modifier
+                .fillMaxWidth()
+                .height(1.dp))
     }
 }
 

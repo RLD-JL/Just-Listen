@@ -12,6 +12,10 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.example.audius.android.exoplayer.utils.Constants.NETWORK_ERROR
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MusicServiceConnection @Inject constructor(
@@ -21,6 +25,8 @@ class MusicServiceConnection @Inject constructor(
     val isConnected: MutableState<Boolean> = mutableStateOf(false)
 
     val networkError: MutableState<Boolean> = mutableStateOf(false)
+
+    val songDuration: MutableState<Long> = mutableStateOf(0)
 
     val playbackState: MutableState<PlaybackStateCompat?> = mutableStateOf(PlaybackStateCompat.fromPlaybackState(null))
 
@@ -40,6 +46,7 @@ class MusicServiceConnection @Inject constructor(
         null
     ).apply {
         connect()
+        updateSong()
     }
 
     val transportControls: MediaControllerCompat.TransportControls
@@ -48,6 +55,23 @@ class MusicServiceConnection @Inject constructor(
     fun updatePlaylist(list: List<PlaylistItem>) {
         musicSource.playlist = list
         musicSource.fetchMediaData()
+    }
+
+    private fun updateSong() {
+        val serviceScope = CoroutineScope(Dispatchers.IO)
+
+        serviceScope.launch {
+            while(true) {
+                val pos = playbackState.value?.currentPlaybackPosition
+                if(songDuration.value != pos) {
+                        pos?.let {
+                            songDuration.value = it
+                        }
+                }
+                delay(100L)
+            }
+        }
+
     }
 
     fun subscribe(parentId: String, callback: MediaBrowserCompat.SubscriptionCallback) {
