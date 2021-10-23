@@ -40,20 +40,11 @@ fun PlaylistScreen(
         LoadingScreen()
     } else {
         val scrollState = rememberScrollState(0)
-        Box(modifier = Modifier.fillMaxSize(1f)) {
+        Box(modifier = Modifier.fillMaxSize()) {
             ScrollableContent(
                 lasItemReached = lasItemReached, scrollState = scrollState,
                 playlistState = playlistState,
                 onPlaylistClicked = onPlaylistClicked
-            )
-            Icon(
-                imageVector = Icons.Outlined.Settings,
-                tint = MaterialTheme.colors.onSurface,
-                contentDescription = null,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(start = 12.dp, end = 12.dp, top = 36.dp, bottom = 12.dp)
-                    .alpha(animateFloatAsState(1f - scrollState.value / 200f).value)
             )
         }
     }
@@ -69,7 +60,6 @@ fun ScrollableContent(
     Column(
         modifier = Modifier
             .padding(8.dp)
-            .verticalScroll(state = scrollState)
     ) {
         Spacer(modifier = Modifier.height(50.dp))
         SpotifyTitle("Good Evening")

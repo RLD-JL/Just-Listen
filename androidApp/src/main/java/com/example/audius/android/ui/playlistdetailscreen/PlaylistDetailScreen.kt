@@ -138,7 +138,7 @@ fun BottomScrollableContent(
     playlist: List<PlaylistItem>, scrollState: ScrollState, onSongClicked: (String) -> Unit,
     onShuffleClicked: () -> Unit
 ) {
-    Column(modifier = Modifier.verticalScroll(state = scrollState)) {
+    Column(modifier = Modifier) {
         Spacer(modifier = Modifier.height(480.dp))
         Column(modifier = Modifier.horizontalGradientBackground(listOf(MaterialTheme.colors.background,  MaterialTheme.colors.background))) {
             SongListScrollingSection(
