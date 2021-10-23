@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -79,11 +81,15 @@ fun Navigation.OnePane(
                         }.coerceIn(0f, 1f)
 
                         val bottomBarPadding = it.calculateBottomPadding()
-                        Surface(modifier = Modifier.fillMaxSize().padding(bottom = bottomBarPadding)) {
-                            LazyColumn {
-                                item{ saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
+                        val scrollState = rememberScrollState(0)
+
+                        Surface(modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = bottomBarPadding)) {
+                            Column(modifier = Modifier) {
+                                 saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
                                     ScreenPicker(currentScreenIdentifier, musicServiceConnection)
-                                }}
+                                }
                             }
                         }
 

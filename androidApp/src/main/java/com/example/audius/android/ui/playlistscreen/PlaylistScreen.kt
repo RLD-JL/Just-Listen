@@ -59,8 +59,7 @@ fun ScrollableContent(
 ) {
     Column(
         modifier = Modifier
-            .padding(8.dp)
-    ) {
+            .padding(8.dp).verticalScroll(scrollState)) {
         Spacer(modifier = Modifier.height(50.dp))
         SpotifyTitle("Good Evening")
         //HomeGridSection()
