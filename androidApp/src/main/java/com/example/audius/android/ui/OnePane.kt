@@ -47,11 +47,6 @@ fun Navigation.OnePane(
         val fabSize = with(LocalDensity.current) { 56.dp.toPx() }
         val dragRange = constraints.maxHeight.toFloat()
         val scope = rememberCoroutineScope()
-        val wishlisted = (1..3).map { "Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it " +
-                "Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it " +
-                "Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it " +
-                "Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it " +
-                "Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it Wishlisted Book $it " }
 
             Scaffold(
                 bottomBar = {
@@ -60,9 +55,7 @@ fun Navigation.OnePane(
                     }
                 },
                 content = {
-
-
-
+                    
                     Box(
                         Modifier.swipeable(
                             state = sheetState,
@@ -81,7 +74,6 @@ fun Navigation.OnePane(
                         }.coerceIn(0f, 1f)
 
                         val bottomBarPadding = it.calculateBottomPadding()
-                        val scrollState = rememberScrollState(0)
 
                         Surface(modifier = Modifier
                             .fillMaxSize()
