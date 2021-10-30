@@ -55,7 +55,7 @@ fun Navigation.OnePane(
                     }
                 },
                 content = {
-                    
+
                     Box(
                         Modifier.swipeable(
                             state = sheetState,
@@ -73,13 +73,10 @@ fun Navigation.OnePane(
                             -sheetState.offset.value / dragRange
                         }.coerceIn(0f, 1f)
 
-                        val bottomBarPadding = it.calculateBottomPadding()
-
                         Surface(modifier = Modifier
-                            .fillMaxSize()
-                            .padding(bottom = bottomBarPadding)) {
+                            .fillMaxSize()) {
                             Column(modifier = Modifier) {
-                                 saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
+                                saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
                                     ScreenPicker(currentScreenIdentifier, musicServiceConnection)
                                 }
                             }

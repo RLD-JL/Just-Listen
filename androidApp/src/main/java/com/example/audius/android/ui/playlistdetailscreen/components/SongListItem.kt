@@ -1,5 +1,6 @@
 package com.example.audius.android.ui.playlistdetailscreen.components
 
+import android.graphics.drawable.ColorDrawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -17,23 +18,33 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 
 @Composable
-fun SongListItem(playlistItem: PlaylistItem, onSongClicked: (String) ->Unit) {
+fun SongListItem(playlistItem: PlaylistItem, onSongClicked: (String) -> Unit) {
     Row(
-        modifier = Modifier.padding(8.dp).clickable(
-            onClick = {onSongClicked(playlistItem.id) }
-        ),
+        modifier = Modifier
+            .padding(8.dp)
+            .clickable(
+                onClick = { onSongClicked(playlistItem.id) }
+            ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        val painter = rememberImagePainter(
+            request = ImageRequest.Builder(context = LocalContext.current)
+                .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
+                .data(playlistItem.songIconList.songImageURL150px).build()
+        )
         Image(
-            painter = rememberImagePainter(playlistItem.songIconList.songImageURL150px),
+            painter = painter,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -57,14 +68,14 @@ fun SongListItem(playlistItem: PlaylistItem, onSongClicked: (String) ->Unit) {
                 overflow = TextOverflow.Ellipsis
             )
         }
-            Icon(
-                imageVector = Icons.Default.Favorite,
-                contentDescription = null,
-                tint = MaterialTheme.colors.primaryVariant,
-                modifier = Modifier
-                    .padding(4.dp)
-                    .size(20.dp)
-            )
+        Icon(
+            imageVector = Icons.Default.Favorite,
+            contentDescription = null,
+            tint = MaterialTheme.colors.primaryVariant,
+            modifier = Modifier
+                .padding(4.dp)
+                .size(20.dp)
+        )
         Icon(
             imageVector = Icons.Default.MoreVert,
             contentDescription = null,

@@ -40,24 +40,18 @@ fun PlaylistDetailScreen(
     musicServiceConnection: MusicServiceConnection
 ) {
     if (playlistDetailState.isLoading) {
-       LoadingScreen()
+        LoadingScreen()
     } else {
         val isPlayerReady: MutableState<Boolean> = remember {
             mutableStateOf(false)
         }
-        val context = LocalContext.current
         val scrollState = rememberScrollState(0)
 
-        val imageLoader = ImageLoader(context)
-        val request = ImageRequest.Builder(context)
-            .data(playlistDetailState.playlistIcon)
-            .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
-            .build()
-        val imagePainter = rememberImagePainter(
-            request = request,
-            imageLoader = imageLoader
+        val painter = rememberImagePainter(
+            request = ImageRequest.Builder(context = LocalContext.current)
+                .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
+                .data(playlistDetailState.playlistIcon).build()
         )
-
 
         Box(
             modifier = Modifier
@@ -66,7 +60,7 @@ fun PlaylistDetailScreen(
             BoxTopSection(
                 scrollState = scrollState,
                 playlistDetailState = playlistDetailState,
-                playlistPainter = imagePainter
+                playlistPainter = painter
             )
             TopSectionOverlay(scrollState = scrollState)
             BottomScrollableContent(playlist = playlistDetailState.songPlaylist,
@@ -140,7 +134,14 @@ fun BottomScrollableContent(
 ) {
     Column(modifier = Modifier.verticalScroll(scrollState)) {
         Spacer(modifier = Modifier.height(480.dp))
-        Column(modifier = Modifier.horizontalGradientBackground(listOf(MaterialTheme.colors.background,  MaterialTheme.colors.background))) {
+        Column(
+            modifier = Modifier.horizontalGradientBackground(
+                listOf(
+                    MaterialTheme.colors.background,
+                    MaterialTheme.colors.background
+                )
+            )
+        ) {
             SongListScrollingSection(
                 playlist = playlist,
                 onSongClicked = onSongClicked,
@@ -159,7 +160,7 @@ fun playMusicFromId(
     if (isPlayerReady) {
         musicServiceConnection.transportControls.playFromMediaId(songId, null)
     } else {
-        playMusic(musicServiceConnection, playlist, isPlayerReady, songId, )
+        playMusic(musicServiceConnection, playlist, isPlayerReady, songId)
     }
 }
 
