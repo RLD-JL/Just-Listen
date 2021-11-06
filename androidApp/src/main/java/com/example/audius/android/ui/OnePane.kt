@@ -1,5 +1,7 @@
 package com.example.audius.android.ui
 
+import android.media.session.PlaybackState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,6 +29,7 @@ import com.example.audius.android.ui.bottombars.Level1BottomBar
 import com.example.audius.android.ui.bottombars.PlayerBottomBar
 import com.example.audius.android.ui.screenpicker.ScreenPicker
 import com.example.audius.android.ui.utils.lerp
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -35,13 +38,46 @@ enum class SheetState { Open, Closed }
 val LazyListState.isScrolled: Boolean
     get() = firstVisibleItemIndex > 0 || firstVisibleItemScrollOffset > 0
 
-
 @ExperimentalMaterialApi
 @Composable
 fun Navigation.OnePane(
     saveableStateHolder: SaveableStateHolder,
     musicServiceConnection: MusicServiceConnection
 ) {
+    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState()
+    val coroutineScope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+
+    Scaffold(
+        bottomBar = {
+            if (currentScreenIdentifier.screen.navigationLevel == 1) {
+                Level1BottomBar(currentScreenIdentifier)
+            }
+        },
+        content = {
+            val bottomBarPadding = it.calculateBottomPadding()
+            Surface {
+                BottomSheetScaffold(modifier = if (musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
+                    || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PAUSED
+                    || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_SKIPPING_TO_NEXT
+                    || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_BUFFERING
+                    || musicServiceConnection.currentPlayingSong.value != null) {
+                        Modifier.padding(bottom = bottomBarPadding)} else Modifier,
+                    sheetContent = {
+                    PlayerBarSheet( onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
+                        musicServiceConnection = musicServiceConnection)
+                }, content = {
+                    Column(modifier = Modifier.padding(bottom = bottomBarPadding )) {
+                        saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
+                            ScreenPicker(currentScreenIdentifier, musicServiceConnection)
+                        }
+                    }
+                })
+
+            }
+        })
+
+    /*
     BoxWithConstraints {
         val sheetState = rememberSwipeableState(SheetState.Closed)
         val fabSize = with(LocalDensity.current) { 56.dp.toPx() }
@@ -97,32 +133,19 @@ fun Navigation.OnePane(
 
 
     }
+
+     */
 }
 
 @Composable
 fun PlayerBarSheet(
-    openFraction: Float,
-    height: Float,
     onSkipNextPressed: () -> Unit,
     musicServiceConnection: MusicServiceConnection,
-    updateSheet: (SheetState) -> Unit
 ) {
-
-    // Use the fraction that the sheet is open to drive the transformation from FAB -> Sheet
-    val fabSize = with(LocalDensity.current) { 56.dp.toPx() }
-    val offsetY = lerp(height - (2*fabSize) , 0f, openFraction)
-
-    Surface(
-        modifier = Modifier.graphicsLayer {
-            translationY = offsetY
-        }
-    ) {
         PlayerBottomBar(
-            openFraction,
-            updateSheet,
             onSkipNextPressed = onSkipNextPressed,
             musicServiceConnection = musicServiceConnection
         )
-    }
+
 }
 

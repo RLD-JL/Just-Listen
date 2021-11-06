@@ -38,10 +38,8 @@ import com.example.audius.android.ui.utils.lerp
 
 @Composable
 fun PlayerBottomBar(
-    openFraction: Float,
-    updateSheet: (SheetState) -> Unit,
     onSkipNextPressed: () -> Unit,
-    musicServiceConnection: MusicServiceConnection
+    musicServiceConnection: MusicServiceConnection,
 ) {
     if (musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
         || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PAUSED
@@ -54,63 +52,13 @@ fun PlayerBottomBar(
         val title =
             musicServiceConnection.currentPlayingSong.value?.description?.title.toString()
 
-
-        Box(modifier = Modifier.fillMaxWidth()) {
-
-            val lessonsAlpha = lerp(0f, 1f, 0.2f, 0.8f, openFraction)
-
-            Column( modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer { alpha = lessonsAlpha }
-                ) {
-                val scroll = rememberLazyListState()
-                val appBarElevation by animateDpAsState(if (scroll.isScrolled) 4.dp else 0.dp)
-                val appBarColor =
-                    if (appBarElevation > 0.dp) MaterialTheme.colors.surface else Color.Transparent
-                TopAppBar(
-                    backgroundColor = appBarColor,
-                    elevation = appBarElevation
-                ) {
-                    Text(
-                        text = "course.name",
-                        style = MaterialTheme.typography.subtitle1,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .weight(1f)
-                            .align(Alignment.CenterVertically)
-                    )
-                    IconButton(
-                        onClick = { updateSheet(SheetState.Closed) },
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = ""
-                        )
-                    }
-                }
-            }
-        }
-
-
-        val fabAlpha = lerp(1f, 0f, 0f, 0.10f, openFraction)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .graphicsLayer { alpha = fabAlpha } // visually center contents
-        ) {
-            PlayBar(songIcon, title, musicServiceConnection, onSkipNextPressed, updateSheet)
+            PlayBar(songIcon, title, musicServiceConnection, onSkipNextPressed)
             LinearProgressIndicator(
                 progress = musicServiceConnection.songDuration.value / curSongDuration.toFloat(),
                 Modifier
                     .fillMaxWidth()
-                    .height(1.dp)
-                    .align(Alignment.BottomCenter)
-            )
-        }
-
+                    .height(1.dp))
+        Text("", modifier = Modifier.fillMaxSize())
     }
 }
 
@@ -121,21 +69,15 @@ fun PlayBar(
     title: String,
     musicServiceConnection: MusicServiceConnection,
     onSkipNextPressed: () -> Unit,
-    updateSheet: (SheetState) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = MaterialTheme.colors.primaryVariant)
-            .clickable {
-                updateSheet(SheetState.Open)
-            },
+            .background(color = MaterialTheme.colors.primaryVariant),
     ) {
         Image(
             painter = rememberImagePainter(songIcon),
-            modifier = Modifier
-                .size(50.dp)
-                .offset(x = 5.dp),
+            modifier = Modifier.size(50.dp),
             contentDescription = null,
             contentScale = ContentScale.Crop,
         )
