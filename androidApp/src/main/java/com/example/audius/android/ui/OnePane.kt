@@ -36,7 +36,6 @@ fun Navigation.OnePane(
         },
         content = {
             val bottomBarPadding = it.calculateBottomPadding()
-            Surface {
                 BottomSheetScaffold(
                     sheetContent = {
                         PlayerBarSheet(
@@ -56,7 +55,6 @@ fun Navigation.OnePane(
                         bottomBarPadding + 65.dp
                     } else bottomBarPadding - 50.dp
                 )
-            }
         })
 }
 
