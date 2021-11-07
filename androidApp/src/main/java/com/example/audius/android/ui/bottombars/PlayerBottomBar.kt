@@ -1,52 +1,33 @@
 package com.example.audius.android.ui.bottombars
 
 import android.media.session.PlaybackState
-import android.service.quicksettings.Tile
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.AddCircle
-import androidx.compose.material.icons.rounded.ArrowForward
-import androidx.compose.material.icons.rounded.Person
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.example.audius.android.R
 import com.example.audius.android.exoplayer.MusicService.Companion.curSongDuration
 import com.example.audius.android.exoplayer.MusicServiceConnection
-import com.example.audius.android.ui.SheetState
-import com.example.audius.android.ui.isScrolled
 import com.example.audius.android.ui.theme.typography
-import com.example.audius.android.ui.utils.lerp
 
+@ExperimentalCoilApi
 @Composable
 fun PlayerBottomBar(
     onSkipNextPressed: () -> Unit,
     musicServiceConnection: MusicServiceConnection,
 ) {
-    if (musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
-        || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PAUSED
-        || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_SKIPPING_TO_NEXT
-        || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_BUFFERING
-        || musicServiceConnection.currentPlayingSong.value != null
-    ) {
         val songIcon =
             musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
         val title =
@@ -59,10 +40,11 @@ fun PlayerBottomBar(
                     .fillMaxWidth()
                     .height(1.dp))
         Text("", modifier = Modifier.fillMaxSize())
-    }
+
 }
 
 
+@ExperimentalCoilApi
 @Composable
 fun PlayBar(
     songIcon: String,
