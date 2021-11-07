@@ -15,14 +15,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.example.audius.android.R
 import com.example.audius.android.exoplayer.MusicService.Companion.curSongDuration
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.theme.typography
 
-@ExperimentalCoilApi
 @Composable
 fun PlayerBottomBar(
     onSkipNextPressed: () -> Unit,
@@ -34,17 +32,10 @@ fun PlayerBottomBar(
             musicServiceConnection.currentPlayingSong.value?.description?.title.toString()
 
             PlayBar(songIcon, title, musicServiceConnection, onSkipNextPressed)
-            LinearProgressIndicator(
-                progress = musicServiceConnection.songDuration.value / curSongDuration.toFloat(),
-                Modifier
-                    .fillMaxWidth()
-                    .height(1.dp))
-        Text("", modifier = Modifier.fillMaxSize())
 
 }
 
 
-@ExperimentalCoilApi
 @Composable
 fun PlayBar(
     songIcon: String,
@@ -52,6 +43,8 @@ fun PlayBar(
     musicServiceConnection: MusicServiceConnection,
     onSkipNextPressed: () -> Unit,
 ) {
+    Column() {
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -105,6 +98,12 @@ fun PlayBar(
                 .clickable(onClick = onSkipNextPressed),
             contentDescription = null,
         )
+    }
+        LinearProgressIndicator(
+            progress = musicServiceConnection.songDuration.value / curSongDuration.toFloat(),
+            Modifier
+                .fillMaxWidth()
+                .height(1.dp))
     }
 }
 
