@@ -10,17 +10,18 @@ import androidx.compose.material.ExperimentalMaterialApi
  *  1.0f - Expanded
  *  0.0f - Collapsed
  */
-@OptIn(ExperimentalMaterialApi::class)
-val BottomSheetScaffoldState.currentFraction: Float
+
+@ExperimentalMaterialApi
+val BottomSheetScaffoldState.fraction: Float
     get() {
         val fraction = bottomSheetState.progress.fraction
-        val targetValue = bottomSheetState.targetValue
         val currentValue = bottomSheetState.currentValue
+        val targetValue = bottomSheetState.targetValue
 
         return when {
-            currentValue == BottomSheetValue.Collapsed && targetValue == BottomSheetValue.Collapsed -> 0f
-            currentValue == BottomSheetValue.Expanded && targetValue == BottomSheetValue.Expanded -> 1f
-            currentValue == BottomSheetValue.Collapsed && targetValue == BottomSheetValue.Expanded -> fraction
-            else -> 1f - fraction
+            currentValue == BottomSheetValue.Collapsed && (targetValue != BottomSheetValue.Expanded)&& fraction == 1f-> 0f
+            targetValue == BottomSheetValue.Collapsed && fraction == 1f -> 0f
+            currentValue == BottomSheetValue.Expanded && fraction != 1f -> 1f - fraction
+            else -> fraction
         }
     }

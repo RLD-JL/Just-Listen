@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -20,9 +19,11 @@ import com.example.audius.android.R
 import com.example.audius.android.exoplayer.MusicService.Companion.curSongDuration
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.theme.typography
+import com.example.audius.android.ui.utils.lerp
 
 @Composable
 fun PlayerBottomBar(
+    currentFraction: Float,
     onSkipNextPressed: () -> Unit,
     musicServiceConnection: MusicServiceConnection,
 ) {
@@ -31,19 +32,19 @@ fun PlayerBottomBar(
         val title =
             musicServiceConnection.currentPlayingSong.value?.description?.title.toString()
 
-            PlayBar(songIcon, title, musicServiceConnection, onSkipNextPressed)
+            PlayBar(currentFraction, songIcon, title, musicServiceConnection, onSkipNextPressed)
 
 }
 
-
 @Composable
 fun PlayBar(
+    currentFraction: Float,
     songIcon: String,
     title: String,
     musicServiceConnection: MusicServiceConnection,
     onSkipNextPressed: () -> Unit,
 ) {
-    Column() {
+    Column(Modifier.fillMaxSize()) {
 
     Row(
         modifier = Modifier
@@ -52,9 +53,8 @@ fun PlayBar(
     ) {
         Image(
             painter = rememberImagePainter(songIcon),
-            modifier = Modifier.size(50.dp),
+            modifier = Modifier.size(lerp(50f,250f,currentFraction).dp),
             contentDescription = null,
-            contentScale = ContentScale.Crop,
         )
         Text(
             text = title,
