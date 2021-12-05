@@ -32,7 +32,7 @@ fun Navigation.OnePane(
                 || musicServiceConnection.currentPlayingSong.value != null
 
     val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Expanded)
+        bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     )
     Scaffold(
         bottomBar = {
@@ -46,7 +46,6 @@ fun Navigation.OnePane(
                     modifier = Modifier.fillMaxSize(),
                     scaffoldState = scaffoldState,
                     sheetContent = {
-                        if(shouldHavePlayBar)
                                 PlayerBarSheet(currentFraction = scaffoldState.fraction,
                                     onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
                                     musicServiceConnection = musicServiceConnection

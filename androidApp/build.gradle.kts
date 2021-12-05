@@ -25,7 +25,7 @@ dependencies {
     implementation ("com.google.android.exoplayer:exoplayer-ui:2.15.1")
 
     implementation("androidx.lifecycle:lifecycle-process:2.3.1")
-    implementation("io.coil-kt:coil-compose:1.3.1")
+    implementation("io.coil-kt:coil-compose:1.4.0")
     implementation("com.google.dagger:hilt-android:2.38.1")
     kapt("com.google.dagger:hilt-android-compiler:2.38.1")
     implementation ("com.github.bumptech.glide:glide:4.12.0")

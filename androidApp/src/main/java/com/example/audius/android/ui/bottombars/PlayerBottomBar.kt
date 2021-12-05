@@ -1,7 +1,6 @@
 package com.example.audius.android.ui.bottombars
 
 import android.media.session.PlaybackState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,11 +12,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.example.audius.android.R
 import com.example.audius.android.exoplayer.MusicService.Companion.curSongDuration
 import com.example.audius.android.exoplayer.MusicServiceConnection
@@ -55,14 +55,24 @@ fun PlayBar(
                     .fillMaxWidth()
                     .background(color = MaterialTheme.colors.primaryVariant),
             ) {
-
+                val painter = rememberImagePainter(
+                    request = ImageRequest.Builder(context = LocalContext.current)
+                        .data(songIcon).build(),
+                    onExecute = { previous, current ->
+                        (widthSize(currentFraction) == 300f) || previous?.request?.data != current.request.data
+                    },
+                )
                 Image(
-                    painter = rememberImagePainter(songIcon),
+                    painter = painter,
                     modifier = Modifier
-                        .size(width = widthSize(currentFraction).dp,
-                            height =  heightSize(currentFraction).dp)
-                        .offset(x = offsetX(currentFraction,constraints.maxWidth.value).dp,
-                                y = offsetY(currentFraction, constraints.maxHeight.value).dp),
+                        .size(
+                            width = widthSize(currentFraction).dp,
+                            height = heightSize(currentFraction).dp
+                        )
+                        .offset(
+                            x = offsetX(currentFraction, constraints.maxWidth.value).dp,
+                            y = offsetY(currentFraction, constraints.maxHeight.value).dp
+                        ),
                     contentDescription = null,
                     contentScale = ContentScale.FillBounds
                 )
