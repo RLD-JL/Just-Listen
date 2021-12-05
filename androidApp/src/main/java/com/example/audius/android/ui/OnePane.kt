@@ -4,6 +4,7 @@ import android.media.session.PlaybackState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -14,6 +15,7 @@ import com.example.audius.android.ui.bottombars.Level1BottomBar
 import com.example.audius.android.ui.bottombars.PlayerBottomBar
 import com.example.audius.android.ui.extensions.fraction
 import com.example.audius.android.ui.screenpicker.ScreenPicker
+import kotlinx.coroutines.launch
 
 @ExperimentalCoilApi
 @ExperimentalMaterialApi
@@ -30,9 +32,8 @@ fun Navigation.OnePane(
                 || musicServiceConnection.currentPlayingSong.value != null
 
     val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
+        bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Expanded)
     )
-
     Scaffold(
         bottomBar = {
             if (currentScreenIdentifier.screen.navigationLevel == 1) {
@@ -45,6 +46,7 @@ fun Navigation.OnePane(
                     modifier = Modifier.fillMaxSize(),
                     scaffoldState = scaffoldState,
                     sheetContent = {
+                        if(shouldHavePlayBar)
                                 PlayerBarSheet(currentFraction = scaffoldState.fraction,
                                     onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
                                     musicServiceConnection = musicServiceConnection

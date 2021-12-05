@@ -31,6 +31,22 @@ fun lerp(
     return startValue + fraction * (endValue - startValue)
 }
 
+fun widthSize(@FloatRange(from = 0.0, to = 1.0) fraction: Float) : Float {
+    return lerp(50f,300f,fraction)
+}
+
+fun heightSize(@FloatRange(from = 0.0, to = 1.0) fraction: Float) : Float {
+    return widthSize(fraction)
+}
+
+fun offsetX(@FloatRange(from = 0.0, to = 1.0) fraction: Float, screenWidth: Float) : Float {
+   return lerp(0f, (screenWidth - widthSize(fraction))/2,fraction)
+}
+
+fun offsetY(@FloatRange(from = 0.0, to = 1.0) fraction: Float, screenHeight: Float): Float {
+   return lerp(0f, screenHeight/10, fraction)
+}
+
 /**
  * Linearly interpolate between two [Float]s when the [fraction] is in a given range.
  */

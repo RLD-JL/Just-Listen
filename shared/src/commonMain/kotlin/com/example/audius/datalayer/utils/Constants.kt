@@ -2,6 +2,6 @@ package com.example.audius.datalayer.utils
 
 object Constants {
 
-    const val BASEURL = "https://dn1.nodeoperator.io"
+    const val BASEURL = "https://discoveryprovider.audius.co"
 
 }

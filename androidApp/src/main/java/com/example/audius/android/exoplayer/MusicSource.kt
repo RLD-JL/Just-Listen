@@ -33,7 +33,7 @@ class MusicSource {
                 .putString(METADATA_KEY_DISPLAY_TITLE, song.title)
                 .putString(METADATA_KEY_DISPLAY_ICON_URI, song.songIconList.songImageURL1000px)
                 .putString(METADATA_KEY_MEDIA_URI, setSongUrl(song.id))
-                .putString(METADATA_KEY_ALBUM_ART_URI, song.songIconList.songImageURL480px)
+                .putString(METADATA_KEY_ALBUM_ART_URI, song.songIconList.songImageURL1000px)
                 .putString(METADATA_KEY_DISPLAY_SUBTITLE, song.title)
                 .putString(METADATA_KEY_DISPLAY_DESCRIPTION, song.title)
                 .putString(METADATA_KEY_ALBUM, "playlistName").build()
