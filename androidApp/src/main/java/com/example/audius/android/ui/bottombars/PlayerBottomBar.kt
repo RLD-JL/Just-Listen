@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -76,56 +77,61 @@ fun PlayBar(
                     contentDescription = null,
                     contentScale = ContentScale.FillBounds
                 )
-                Text(
-                    text = title,
-                    style = typography.h6.copy(fontSize = 10.sp),
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .weight(1f),
-                )
-                Icon(
-                    imageVector = Icons.Default.FavoriteBorder, modifier = Modifier.padding(8.dp),
-                    contentDescription = null
-                )
-                if (musicServiceConnection.playbackState.value?.state != PlaybackState.STATE_PLAYING &&
-                    musicServiceConnection.playbackState.value?.state != PlaybackState.STATE_BUFFERING
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.exo_icon_play),
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .clickable(
-                                onClick = { musicServiceConnection.transportControls.play() }
-                            ),
-                        contentDescription = null
-                    )
+                Row(Modifier.graphicsLayer(alpha = 1f - currentFraction)) {
+                    if (currentFraction != 1f) {
+                        Text(
+                            text = title,
+                            style = typography.h6.copy(fontSize = 10.sp),
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .weight(1f),
+                        )
+                        Icon(
+                            imageVector = Icons.Default.FavoriteBorder,
+                            modifier = Modifier.padding(8.dp),
+                            contentDescription = null
+                        )
+                        if (musicServiceConnection.playbackState.value?.state != PlaybackState.STATE_PLAYING &&
+                            musicServiceConnection.playbackState.value?.state != PlaybackState.STATE_BUFFERING
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.exo_icon_play),
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .clickable(
+                                        onClick = { musicServiceConnection.transportControls.play() }
+                                    ),
+                                contentDescription = null
+                            )
+                        }
+                        IsLoading(musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_BUFFERING)
+                        if (musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.exo_icon_pause),
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .clickable(
+                                        onClick = { musicServiceConnection.transportControls.pause() }
+                                    ),
+                                contentDescription = null
+                            )
+                        }
+                        Icon(
+                            painter = painterResource(id = R.drawable.exo_ic_skip_next),
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .clickable(onClick = onSkipNextPressed),
+                            contentDescription = null,
+                        )
+                    }
                 }
-                if (musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.exo_icon_pause),
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .clickable(
-                                onClick = { musicServiceConnection.transportControls.pause() }
-                            ),
-                        contentDescription = null
-                    )
-                }
-                IsLoading(musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_BUFFERING)
-
-                Icon(
-                    painter = painterResource(id = R.drawable.exo_ic_skip_next),
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .clickable(onClick = onSkipNextPressed),
-                    contentDescription = null,
-                )
             }
             LinearProgressIndicator(
                 progress = musicServiceConnection.songDuration.value / curSongDuration.toFloat(),
                 Modifier
                     .fillMaxWidth()
                     .height(1.dp)
+                    .graphicsLayer(alpha = 1f - currentFraction)
             )
         }
     }
