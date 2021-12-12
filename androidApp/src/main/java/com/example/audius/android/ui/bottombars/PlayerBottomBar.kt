@@ -64,6 +64,7 @@ fun PlayBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(IntrinsicSize.Max)
             ) {
                 val painter = rememberImagePainter(
                     request = ImageRequest.Builder(context = LocalContext.current)
@@ -128,18 +129,19 @@ fun PlayBarActionsMinimized(
     currentFraction: Float, musicServiceConnection: MusicServiceConnection,
     title: String, onSkipNextPressed: () -> Unit
 ) {
-    Row(Modifier.graphicsLayer(alpha = 1f - currentFraction * 2)) {
+    Row(Modifier.graphicsLayer(alpha = 1f - currentFraction * 2).height(IntrinsicSize.Max)) {
         if (currentFraction != 1f) {
             Text(
                 text = title,
                 style = typography.h6.copy(fontSize = 10.sp),
                 modifier = Modifier
                     .padding(8.dp)
-                    .weight(1f),
+                    .weight(0.7f),
+                maxLines = 3
             )
             Icon(
                 imageVector = Icons.Default.FavoriteBorder,
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(8.dp).size(25.dp),
                 contentDescription = null
             )
             if (musicServiceConnection.playbackState.value?.state != PlaybackState.STATE_PLAYING &&
@@ -151,11 +153,11 @@ fun PlayBarActionsMinimized(
                         .padding(8.dp)
                         .clickable(
                             onClick = { musicServiceConnection.transportControls.play() }
-                        ),
+                        ).size(30.dp),
                     contentDescription = null
                 )
             }
-            IsLoading(musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_BUFFERING)
+            IsLoading(musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_BUFFERING, Modifier)
             if (musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING) {
                 Icon(
                     painter = painterResource(id = R.drawable.exo_icon_pause),
@@ -163,7 +165,7 @@ fun PlayBarActionsMinimized(
                         .padding(8.dp)
                         .clickable(
                             onClick = { musicServiceConnection.transportControls.pause() }
-                        ),
+                        ).size(30.dp),
                     contentDescription = null
                 )
             }
@@ -171,7 +173,7 @@ fun PlayBarActionsMinimized(
                 painter = painterResource(id = R.drawable.exo_ic_skip_next),
                 modifier = Modifier
                     .padding(8.dp)
-                    .clickable(onClick = onSkipNextPressed),
+                    .clickable(onClick = onSkipNextPressed).size(30.dp),
                 contentDescription = null,
             )
         }
@@ -239,15 +241,14 @@ fun PlayBarActionsMaximized(
 }
 
 @Composable
-fun IsLoading(isLoading: Boolean) {
+fun IsLoading(isLoading: Boolean, modifier: Modifier) {
     if (isLoading) {
-        Box(
+        Box(modifier =  modifier.size(46.dp),
             contentAlignment = Alignment.Center,
-            modifier = Modifier.size(24.dp * 2f)
         ) {
             CircularProgressIndicator()
             Icon(
-                painter = painterResource(id = R.drawable.exo_icon_pause), modifier = Modifier,
+                painter = painterResource(id = R.drawable.exo_icon_pause), modifier = modifier.size(30.dp),
                 contentDescription = null
             )
         }
