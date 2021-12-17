@@ -4,7 +4,6 @@ import android.media.session.PlaybackState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -12,10 +11,9 @@ import coil.annotation.ExperimentalCoilApi
 import com.example.audius.Navigation
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.bottombars.Level1BottomBar
-import com.example.audius.android.ui.bottombars.PlayerBottomBar
+import com.example.audius.android.ui.bottombars.playbar.PlayerBottomBar
 import com.example.audius.android.ui.extensions.fraction
 import com.example.audius.android.ui.screenpicker.ScreenPicker
-import kotlinx.coroutines.launch
 
 @ExperimentalCoilApi
 @ExperimentalMaterialApi

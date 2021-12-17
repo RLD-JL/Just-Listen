@@ -1,8 +1,7 @@
-package com.example.audius.android.ui.bottombars
+package com.example.audius.android.ui.bottombars.playbar
 
 import android.media.session.PlaybackState
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -28,7 +27,6 @@ import coil.request.ImageRequest
 import com.example.audius.android.R
 import com.example.audius.android.exoplayer.MusicService.Companion.curSongDuration
 import com.example.audius.android.exoplayer.MusicServiceConnection
-import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
 import com.example.audius.android.ui.theme.modifiers.verticalGradientBackground
 import com.example.audius.android.ui.theme.typography
 import com.example.audius.android.ui.utils.*
@@ -174,66 +172,6 @@ fun PlayBarActionsMinimized(
                 modifier = Modifier
                     .padding(8.dp)
                     .clickable(onClick = onSkipNextPressed).size(30.dp),
-                contentDescription = null,
-            )
-        }
-    }
-}
-
-@Composable
-fun PlayBarActionsMaximized(
-    currentFraction: Float,
-    musicServiceConnection: MusicServiceConnection,
-    title: String,
-    onSkipNextPressed: () -> Unit
-) {
-    if (currentFraction == 1f) {
-        Row(Modifier.padding(top = heightSize(currentFraction).dp / 2)) {
-
-            Icon(
-                modifier = Modifier.size(40.dp),
-                painter = painterResource(id = R.drawable.exo_styled_controls_shuffle_on),
-                contentDescription = null,
-            )
-            Icon(
-                modifier = Modifier.size(40.dp),
-                painter = painterResource(id = R.drawable.exo_ic_skip_previous),
-                contentDescription = null,
-            )
-            if (musicServiceConnection.playbackState.value?.state != PlaybackState.STATE_PLAYING &&
-                musicServiceConnection.playbackState.value?.state != PlaybackState.STATE_BUFFERING
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.exo_icon_play),
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clickable(
-                            onClick = { musicServiceConnection.transportControls.play() }
-                        ),
-                    contentDescription = null
-                )
-            } else {
-                Icon(
-                    painter = painterResource(id = R.drawable.exo_icon_pause),
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clickable(
-                            onClick = { musicServiceConnection.transportControls.pause() }
-                        ),
-                    contentDescription = null
-                )
-            }
-
-            Icon(
-                painter = painterResource(id = R.drawable.exo_ic_skip_next),
-                modifier = Modifier
-                    .size(40.dp)
-                    .clickable(onClick = onSkipNextPressed),
-                contentDescription = null,
-            )
-            Icon(
-                modifier = Modifier.size(40.dp),
-                painter = painterResource(id = R.drawable.exo_controls_repeat_all),
                 contentDescription = null,
             )
         }
