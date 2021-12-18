@@ -30,7 +30,9 @@ import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.theme.modifiers.verticalGradientBackground
 import com.example.audius.android.ui.theme.typography
 import com.example.audius.android.ui.utils.*
+import kotlinx.coroutines.InternalCoroutinesApi
 
+@InternalCoroutinesApi
 @Composable
 fun PlayerBottomBar(
     currentFraction: Float,
@@ -46,6 +48,7 @@ fun PlayerBottomBar(
 
 }
 
+@InternalCoroutinesApi
 @Composable
 fun PlayBar(
     currentFraction: Float,
@@ -116,7 +119,8 @@ fun PlayBar(
                 currentFraction,
                 musicServiceConnection,
                 title,
-                onSkipNextPressed
+                onSkipNextPressed,
+                constraints.maxWidth.value
             )
         }
     }

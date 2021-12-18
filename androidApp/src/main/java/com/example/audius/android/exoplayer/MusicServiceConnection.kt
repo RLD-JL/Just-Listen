@@ -12,10 +12,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.example.audius.android.exoplayer.utils.Constants.NETWORK_ERROR
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import javax.inject.Inject
 
 class MusicServiceConnection @Inject constructor(
@@ -29,6 +26,8 @@ class MusicServiceConnection @Inject constructor(
     val songDuration: MutableState<Long> = mutableStateOf(0)
 
     val playbackState: MutableState<PlaybackStateCompat?> = mutableStateOf(PlaybackStateCompat.fromPlaybackState(null))
+
+    val sliderClicked: MutableState<Boolean> = mutableStateOf(false)
 
     val currentPlayingSong: MutableState<MediaMetadataCompat?> = mutableStateOf(MediaMetadataCompat.fromMediaMetadata(null))
 
@@ -57,21 +56,21 @@ class MusicServiceConnection @Inject constructor(
         musicSource.fetchMediaData()
     }
 
-    private fun updateSong() {
+    fun updateSong() {
         val serviceScope = CoroutineScope(Dispatchers.IO)
 
         serviceScope.launch {
-            while(true) {
-                val pos = playbackState.value?.currentPlaybackPosition
-                if(songDuration.value != pos) {
+                while (!sliderClicked.value) {
+                    ensureActive()
+                    val pos = playbackState.value?.currentPlaybackPosition
+                    if (songDuration.value != pos) {
                         pos?.let {
                             songDuration.value = it
                         }
+                    }
+                    delay(100L)
                 }
-                delay(100L)
-            }
-        }
-
+          }
     }
 
     fun subscribe(parentId: String, callback: MediaBrowserCompat.SubscriptionCallback) {
