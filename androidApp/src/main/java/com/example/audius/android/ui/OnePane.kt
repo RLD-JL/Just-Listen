@@ -7,16 +7,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.annotation.ExperimentalCoilApi
 import com.example.audius.Navigation
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.bottombars.Level1BottomBar
-import com.example.audius.android.ui.bottombars.playbar.PlayerBottomBar
+import com.example.audius.android.ui.bottombars.playbar.PlayerBarSheetContent
 import com.example.audius.android.ui.extensions.fraction
 import com.example.audius.android.ui.screenpicker.ScreenPicker
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.launch
 
 @ExperimentalCoilApi
@@ -50,7 +48,7 @@ fun Navigation.OnePane(
                     modifier = Modifier.fillMaxSize(),
                     scaffoldState = scaffoldState,
                     sheetContent = {
-                                PlayerBarSheet(
+                        PlayerBarSheetContent(
                                     onCollapsedClicked = {coroutineScope.launch {scaffoldState.bottomSheetState.collapse()}},
                                     bottomPadding = bottomBarPadding,
                                     currentFraction = scaffoldState.fraction,
@@ -72,29 +70,3 @@ fun Navigation.OnePane(
                 )
         })
 }
-
-@OptIn(InternalCoroutinesApi::class)
-@ExperimentalCoilApi
-@Composable
-fun PlayerBarSheet(
-    bottomPadding: Dp,
-    currentFraction: Float,
-    onSkipNextPressed: () -> Unit,
-    musicServiceConnection: MusicServiceConnection,
-    onCollapsedClicked: () -> Unit,
-) {
-    val songIcon =
-        musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
-    val title =
-        musicServiceConnection.currentPlayingSong.value?.description?.title.toString()
-
-    PlayerBottomBar(
-        onCollapsedClicked = onCollapsedClicked,
-        bottomPadding = bottomPadding,
-        currentFraction = currentFraction,
-        songIcon = songIcon, title = title,
-        musicServiceConnection = musicServiceConnection, onSkipNextPressed = onSkipNextPressed
-    )
-
-}
-

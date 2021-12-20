@@ -1,4 +1,4 @@
-package com.example.audius.android.ui.bottombars.playbar
+package com.example.audius.android.ui.bottombars.playbar.components
 
 import android.media.session.PlaybackState
 import androidx.compose.foundation.BorderStroke
@@ -38,7 +38,6 @@ fun PlayBarActionsMaximized(
     title: String,
     onSkipNextPressed: () -> Unit,
     maxWidth: Float,
-    maxHeight: Float
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
