@@ -4,8 +4,10 @@ import android.media.session.PlaybackState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.annotation.ExperimentalCoilApi
 import com.example.audius.Navigation
@@ -14,6 +16,8 @@ import com.example.audius.android.ui.bottombars.Level1BottomBar
 import com.example.audius.android.ui.bottombars.playbar.PlayerBottomBar
 import com.example.audius.android.ui.extensions.fraction
 import com.example.audius.android.ui.screenpicker.ScreenPicker
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.launch
 
 @ExperimentalCoilApi
 @ExperimentalMaterialApi
@@ -32,6 +36,8 @@ fun Navigation.OnePane(
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     )
+
+    val coroutineScope = rememberCoroutineScope()
     Scaffold(
         bottomBar = {
             if (currentScreenIdentifier.screen.navigationLevel == 1) {
@@ -44,7 +50,10 @@ fun Navigation.OnePane(
                     modifier = Modifier.fillMaxSize(),
                     scaffoldState = scaffoldState,
                     sheetContent = {
-                                PlayerBarSheet(currentFraction = scaffoldState.fraction,
+                                PlayerBarSheet(
+                                    onCollapsedClicked = {coroutineScope.launch {scaffoldState.bottomSheetState.collapse()}},
+                                    bottomPadding = bottomBarPadding,
+                                    currentFraction = scaffoldState.fraction,
                                     onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
                                     musicServiceConnection = musicServiceConnection
                                 )
@@ -64,17 +73,22 @@ fun Navigation.OnePane(
         })
 }
 
+@OptIn(InternalCoroutinesApi::class)
 @ExperimentalCoilApi
 @Composable
 fun PlayerBarSheet(
+    bottomPadding: Dp,
     currentFraction: Float,
     onSkipNextPressed: () -> Unit,
     musicServiceConnection: MusicServiceConnection,
+    onCollapsedClicked: () -> Unit,
 ) {
     PlayerBottomBar(
+        bottomPadding = bottomPadding,
         currentFraction = currentFraction,
         onSkipNextPressed = onSkipNextPressed,
-        musicServiceConnection = musicServiceConnection
+        musicServiceConnection = musicServiceConnection,
+        onCollapsedClicked = onCollapsedClicked,
     )
 
 }

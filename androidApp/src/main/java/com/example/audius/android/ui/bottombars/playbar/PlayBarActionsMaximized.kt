@@ -4,9 +4,7 @@ import android.media.session.PlaybackState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.DragInteraction
-import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -14,27 +12,33 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.audius.android.R
 import com.example.audius.android.exoplayer.MusicService
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.extensions.ModifiedSlider
-import com.example.audius.android.ui.utils.heightSize
 import com.example.audius.android.ui.utils.offsetX
+import com.example.audius.android.ui.utils.offsetY
+import com.example.audius.android.ui.utils.widthSize
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 
 @InternalCoroutinesApi
 @Composable
 fun PlayBarActionsMaximized(
+    bottomPadding: Dp,
     currentFraction: Float,
     musicServiceConnection: MusicServiceConnection,
     title: String,
     onSkipNextPressed: () -> Unit,
-    boxConstraints: Float
+    maxWidth: Float,
+    maxHeight: Float
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -65,19 +69,23 @@ fun PlayBarActionsMaximized(
         var sliderPosition by remember { mutableStateOf(0f) }
         sliderPosition =
             musicServiceConnection.songDuration.value / MusicService.curSongDuration.toFloat()
-        Column(Modifier.offset(
-            y = (heightSize(currentFraction)/2).dp
-        )) {
-            ModifiedSlider(
-                interactionSource = interactionSource,
-                modifier = Modifier
-                    .offset(x = offsetX(currentFraction, boxConstraints).dp)
-                    .width(300.dp),
-                value = sliderPosition, onValueChange = {
-                    musicServiceConnection.sliderClicked.value = true
-                    musicServiceConnection.songDuration.value =
-                        (it * MusicService.curSongDuration).toLong()
-                })
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(bottom = bottomPadding + 5.dp),
+                verticalArrangement = Arrangement.Bottom ) {
+            Text(modifier = Modifier.align(Alignment.CenterHorizontally),text = title, textAlign = TextAlign.Center)
+                ModifiedSlider(
+                    interactionSource = interactionSource,
+                    modifier = Modifier
+                        .offset(x = offsetX(currentFraction, maxWidth).dp)
+                        .width(widthSize(currentFraction, maxWidth).dp),
+                    value = sliderPosition, onValueChange = {
+                        musicServiceConnection.sliderClicked.value = true
+                        musicServiceConnection.songDuration.value =
+                            (it * MusicService.curSongDuration).toLong()
+                    })
+
             Row(
                 Modifier.height(IntrinsicSize.Max)
             ) {
