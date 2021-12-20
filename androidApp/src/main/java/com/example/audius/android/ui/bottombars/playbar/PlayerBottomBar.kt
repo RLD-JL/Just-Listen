@@ -38,29 +38,6 @@ import kotlinx.coroutines.InternalCoroutinesApi
 fun PlayerBottomBar(
     bottomPadding: Dp,
     currentFraction: Float,
-    onSkipNextPressed: () -> Unit,
-    musicServiceConnection: MusicServiceConnection,
-    onCollapsedClicked: () -> Unit,
-) {
-    val songIcon =
-        musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
-    val title =
-        musicServiceConnection.currentPlayingSong.value?.description?.title.toString()
-
-    PlayBar(onCollapsedClicked = onCollapsedClicked,
-        bottomPadding = bottomPadding,
-        currentFraction = currentFraction,
-        songIcon = songIcon, title = title,
-        musicServiceConnection = musicServiceConnection, onSkipNextPressed = onSkipNextPressed
-    )
-
-}
-
-@InternalCoroutinesApi
-@Composable
-fun PlayBar(
-    bottomPadding: Dp,
-    currentFraction: Float,
     songIcon: String,
     title: String,
     musicServiceConnection: MusicServiceConnection,

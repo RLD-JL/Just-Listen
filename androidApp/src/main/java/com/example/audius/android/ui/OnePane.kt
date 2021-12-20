@@ -83,12 +83,17 @@ fun PlayerBarSheet(
     musicServiceConnection: MusicServiceConnection,
     onCollapsedClicked: () -> Unit,
 ) {
+    val songIcon =
+        musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
+    val title =
+        musicServiceConnection.currentPlayingSong.value?.description?.title.toString()
+
     PlayerBottomBar(
+        onCollapsedClicked = onCollapsedClicked,
         bottomPadding = bottomPadding,
         currentFraction = currentFraction,
-        onSkipNextPressed = onSkipNextPressed,
-        musicServiceConnection = musicServiceConnection,
-        onCollapsedClicked = onCollapsedClicked,
+        songIcon = songIcon, title = title,
+        musicServiceConnection = musicServiceConnection, onSkipNextPressed = onSkipNextPressed
     )
 
 }
