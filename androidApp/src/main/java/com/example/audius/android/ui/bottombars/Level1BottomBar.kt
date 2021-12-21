@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
@@ -13,8 +14,10 @@ import com.example.audius.viewmodel.screens.Level1Navigation
 @Composable
 fun Navigation.Level1BottomBar(
     selectedTab: ScreenIdentifier,
+    modifier: Modifier
 ) {
         BottomNavigation(
+            modifier = modifier,
              content = {
             BottomNavigationItem(
                 icon = { Icon(Icons.Default.Menu, "ALL") },

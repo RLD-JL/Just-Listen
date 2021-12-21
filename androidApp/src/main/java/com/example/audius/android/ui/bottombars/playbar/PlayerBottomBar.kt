@@ -31,6 +31,7 @@ fun PlayerBottomBar(
     musicServiceConnection: MusicServiceConnection,
     onSkipNextPressed: () -> Unit,
     onCollapsedClicked: () -> Unit,
+    onMoreClicked: () -> Unit,
 ) {
     val dominantListOfColor = remember { mutableMapOf<String, List<Color>>() }
     val list = dominantListOfColor[title]
@@ -41,7 +42,7 @@ fun PlayerBottomBar(
         val constraints = this@BoxWithConstraints
         Column(Modifier.fillMaxSize()) {
 
-            PlayBarTopSection(currentFraction, onCollapsedClicked)
+            PlayBarTopSection(currentFraction, onCollapsedClicked, onMoreClicked)
 
             PlayBarSwipeActions(
                 songIcon, currentFraction, constraints, dominantListOfColor,

@@ -15,7 +15,7 @@ import com.example.audius.android.R
 import com.example.audius.android.ui.utils.lerp
 
 @Composable
-fun PlayBarTopSection(currentFraction: Float, onCollapsedClicked: () -> Unit) {
+fun PlayBarTopSection(currentFraction: Float, onCollapsedClicked: () -> Unit, onMoreClicked: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -37,7 +37,7 @@ fun PlayBarTopSection(currentFraction: Float, onCollapsedClicked: () -> Unit) {
                 .size(lerp(0f, 30f, currentFraction).dp)
                 .graphicsLayer {
                     alpha = if (currentFraction == 1f) 1f else 0f
-                },
+                }.clickable(onClick = onMoreClicked),
             contentDescription = null
         )
     }
