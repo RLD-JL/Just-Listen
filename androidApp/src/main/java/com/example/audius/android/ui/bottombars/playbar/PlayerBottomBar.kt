@@ -8,9 +8,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil.compose.ImagePainter
 import com.example.audius.android.R
 import com.example.audius.android.exoplayer.MusicService.Companion.curSongDuration
 import com.example.audius.android.exoplayer.MusicServiceConnection
@@ -32,6 +34,7 @@ fun PlayerBottomBar(
     onSkipNextPressed: () -> Unit,
     onCollapsedClicked: () -> Unit,
     onMoreClicked: () -> Unit,
+    painterLoaded: (Painter) -> Unit,
 ) {
     val dominantListOfColor = remember { mutableMapOf<String, List<Color>>() }
     val list = dominantListOfColor[title]
@@ -46,7 +49,7 @@ fun PlayerBottomBar(
 
             PlayBarSwipeActions(
                 songIcon, currentFraction, constraints, dominantListOfColor,
-                title, musicServiceConnection, onSkipNextPressed
+                title, musicServiceConnection, onSkipNextPressed, painterLoaded
             )
             LinearProgressIndicator(
                 progress = musicServiceConnection.songDuration.value / curSongDuration.toFloat(),

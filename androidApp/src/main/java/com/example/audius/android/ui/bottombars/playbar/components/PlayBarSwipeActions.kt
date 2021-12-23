@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -22,7 +23,8 @@ import com.example.audius.android.ui.utils.widthSize
 @Composable
 fun PlayBarSwipeActions(songIcon: String, currentFraction: Float, constraints: BoxWithConstraintsScope,
                         dominantListOfColor: MutableMap<String, List<Color>>, title: String,
-                        musicServiceConnection: MusicServiceConnection, onSkipNextPressed: () -> Unit) {
+                        musicServiceConnection: MusicServiceConnection, onSkipNextPressed: () -> Unit,
+                        painterLoaded: (Painter) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -38,9 +40,13 @@ fun PlayBarSwipeActions(songIcon: String, currentFraction: Float, constraints: B
                 ) >= constraints.maxWidth.value * 0.85f) || previous?.request?.data != current.request.data
             }
         )
+
+
+
         (painter.state as? ImagePainter.State.Success)?.let { successState ->
             LaunchedEffect(Unit) {
                 val drawable = successState.result.drawable
+                painterLoaded(successState.painter)
                 Palette.Builder(drawable.toBitmap()).generate { palette ->
                     palette?.dominantSwatch?.let {
                         dominantListOfColor[title] =
