@@ -21,14 +21,18 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import com.example.audius.android.ui.extensions.noRippleClickable
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
+import com.example.audius.android.ui.playlistscreen.Header
+import com.example.audius.android.ui.playlistscreen.components.TrackGridItem
+import com.example.audius.viewmodel.interfaces.Item
 import com.example.audius.viewmodel.screens.search.SearchScreenState
+import com.example.audius.viewmodel.screens.search.TrackItem
+import com.guru.composecookbook.verticalgrid.VerticalGrid
 
 @ExperimentalComposeUiApi
 @Composable
@@ -47,7 +51,11 @@ searchScreenState: SearchScreenState) {
         ) {
             Column(Modifier.background(Color.Black)) {
                 AnimatedToolBar(onBackPressed, requester, onSearchPressed)
-                ShowPreviousSearches(searchScreenState.listOfSearches)
+                if (searchScreenState.searchResultTracks.isEmpty()) {
+                    ShowPreviousSearches(searchScreenState.listOfSearches)
+                } else {
+                    ShowSearchResults(searchScreenState.searchResultTracks)
+                }
             }
         }
     }
@@ -136,5 +144,24 @@ fun ItemRowSearch(itemSearched: String) {
         Icon(imageVector = Icons.Default.Search, contentDescription = null)
         Text(text = itemSearched)
         Icon(imageVector = Icons.Default.Share, contentDescription = null)
+    }
+}
+
+
+@Composable
+fun ShowSearchResults(searchResultTracks: List<TrackItem>) {
+    Column(Modifier.fillMaxSize()) {
+        Header(text = "Top Find")
+        SearchGridTracks(list = searchResultTracks)
+    }
+}
+
+
+@Composable
+fun SearchGridTracks(list: List<Item>) {
+    VerticalGrid {
+        list.forEach { item->
+            TrackGridItem(item)
+        }
     }
 }

@@ -19,11 +19,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberImagePainter
 import com.example.audius.android.ui.test.Album
 import com.example.audius.android.ui.theme.graySurface
+import com.example.audius.viewmodel.interfaces.Item
 
 @Composable
-fun SpotifyHomeGridItem(album: Album) {
+fun TrackGridItem(item: Item) {
     val cardColor = if (isSystemInDarkTheme()) graySurface else MaterialTheme.colors.background
     Card(
         elevation = 4.dp,
@@ -35,14 +37,15 @@ fun SpotifyHomeGridItem(album: Album) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(id = album.imageId),
+                painter = rememberImagePainter(item.songIconList.songImageURL150px),
                 contentDescription = null,
                 modifier = Modifier.size(55.dp),
                 contentScale = ContentScale.Crop
             )
             Text(
-                text = album.song,
+                text = item.title,
                 style = typography.h6.copy(fontSize = 14.sp),
+                maxLines = 3,
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
         }

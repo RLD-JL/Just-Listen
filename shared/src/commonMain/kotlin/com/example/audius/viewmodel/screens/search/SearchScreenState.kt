@@ -10,7 +10,7 @@ data class SearchScreenState(
     var isLoading: Boolean = false,
     val searchFor: String = "",
     var listOfSearches: List<String> = emptyList(),
-    var searchResultTracks: List<String> = emptyList(),
+    var searchResultTracks: List<TrackItem> = emptyList(),
     var searchResultPlaylist: List<String> = emptyList()
 ) : ScreenState
 
@@ -21,5 +21,4 @@ data class TrackItem(val _data: PlayListModel) : Item {
     override val playlistTitle = _data.playlistTitle
     override val id = _data.id
     override val songIconList = _data.songImgList
-
 }

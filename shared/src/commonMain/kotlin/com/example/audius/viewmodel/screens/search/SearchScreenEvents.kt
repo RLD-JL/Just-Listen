@@ -14,7 +14,6 @@ fun Events.searchFor(searchInfo: String) = screenCoroutine {
     }
     stateManager.updateScreen(SearchScreenState::class) { searchState ->
         val tracksList = dataRepository.searchForTracks(searchInfo)
-        println("yolo search= $tracksList")
         searchState.copy(searchResultTracks = tracksList, isLoading = false)
     }
 }

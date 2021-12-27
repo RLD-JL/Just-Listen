@@ -20,14 +20,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
 import com.example.audius.android.ui.playlistscreen.components.PlaylistRowItem
-import com.example.audius.android.ui.playlistscreen.components.SpotifyHomeGridItem
-import com.example.audius.android.ui.test.AlbumsDataProvider
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
 import com.example.audius.android.ui.theme.typography
 import com.example.audius.viewmodel.screens.playlist.PlayListEnum
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import com.example.audius.viewmodel.screens.playlist.PlaylistState
-import com.guru.composecookbook.verticalgrid.VerticalGrid
 
 @Composable
 fun PlaylistScreen(
@@ -103,16 +100,6 @@ fun Header(text: String, modifier: Modifier = Modifier) {
         style = typography.h5.copy(fontWeight = FontWeight.ExtraBold),
         modifier = modifier.padding(start = 8.dp, end = 4.dp, bottom = 8.dp, top = 24.dp)
     )
-}
-
-@Composable
-fun HomeGridSection() {
-    val items = remember { AlbumsDataProvider.albums }
-    VerticalGrid {
-        items.take(6).forEach {
-            SpotifyHomeGridItem(album = it)
-        }
-    }
 }
 
 @Composable
