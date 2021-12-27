@@ -3,6 +3,7 @@ package com.example.audius.viewmodel.screens.playlist
 import com.example.audius.ScreenState
 import com.example.audius.datalayer.models.PlayListModel
 import com.example.audius.datalayer.models.TrendingListModel
+import com.example.audius.viewmodel.interfaces.Item
 
 data class TrendingListState(
     val isLoading: Boolean = false,
@@ -37,11 +38,11 @@ data class PlaylistState(
 
 data class PlaylistItem(
     val _data: PlayListModel,
-) {
-    val user = _data.user.username
-    val title = _data.title
-    val playlistTitle = _data.playlistTitle
-    val id = _data.id
-    val songIconList = _data.songImgList
+) : Item{
+    override val user = _data.user.username
+    override val title = _data.title
+    override val playlistTitle = _data.playlistTitle
+    override val id = _data.id
+    override val songIconList = _data.songImgList
 }
 
