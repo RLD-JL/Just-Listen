@@ -31,6 +31,7 @@ import coil.request.ImageRequest
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.utils.Constants
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
+import com.example.audius.viewmodel.interfaces.Item
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailState
 
@@ -154,7 +155,7 @@ fun BottomScrollableContent(
 
 fun playMusicFromId(
     musicServiceConnection: MusicServiceConnection,
-    playlist: List<PlaylistItem>,
+    playlist: List<Item>,
     songId: String,
     isPlayerReady: Boolean
 ) {
@@ -167,7 +168,7 @@ fun playMusicFromId(
 
 fun playMusic(
     musicServiceConnection: MusicServiceConnection,
-    playlist: List<PlaylistItem>,
+    playlist: List<Item>,
     isPlayerReady: Boolean,
     playFromId: String = ""
 ) {

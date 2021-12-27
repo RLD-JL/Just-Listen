@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.example.audius.android.exoplayer.utils.Constants.NETWORK_ERROR
+import com.example.audius.viewmodel.interfaces.Item
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import kotlinx.coroutines.*
 import javax.inject.Inject
@@ -51,7 +52,7 @@ class MusicServiceConnection @Inject constructor(
     val transportControls: MediaControllerCompat.TransportControls
         get() = mediaController.transportControls
 
-    fun updatePlaylist(list: List<PlaylistItem>) {
+    fun updatePlaylist(list: List<Item>) {
         musicSource.playlist = list
         musicSource.fetchMediaData()
     }

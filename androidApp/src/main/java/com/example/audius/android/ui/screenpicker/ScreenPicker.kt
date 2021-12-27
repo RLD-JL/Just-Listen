@@ -1,18 +1,24 @@
 package com.example.audius.android.ui.screenpicker
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
+import com.example.audius.ScreenState
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.playlistscreen.PlaylistScreen
 import com.example.audius.android.ui.trendinglistscreen.TrendingListScreen
 import com.example.audius.viewmodel.screens.playlist.*
 import com.example.audius.viewmodel.screens.playlist.PlayListEnum.*
 import com.example.audius.android.ui.playlistdetailscreen.PlaylistDetailScreen
+import com.example.audius.android.ui.playlistdetailscreen.playMusicFromId
 import com.example.audius.android.ui.searchscreen.SearchScreen
 import com.example.audius.viewmodel.screens.Screen.*
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailParams
 import com.example.audius.viewmodel.screens.search.SearchInitParams
+import com.example.audius.viewmodel.screens.search.SearchScreenState
 import com.example.audius.viewmodel.screens.search.saveSearchInfo
 import com.example.audius.viewmodel.screens.search.searchFor
 
@@ -22,6 +28,10 @@ fun Navigation.ScreenPicker(
     screenIdentifier: ScreenIdentifier,
     musicServiceConnection: MusicServiceConnection
 ) {
+    val isPlayerReady: MutableState<Boolean> = remember {
+        mutableStateOf(false)
+    }
+
     when (screenIdentifier.screen) {
 
         TrendingList ->
@@ -64,7 +74,16 @@ fun Navigation.ScreenPicker(
                 events.saveSearchInfo(search)
                 events.searchFor(search)
             },
-            searchScreenState =  stateProvider.get(screenIdentifier = screenIdentifier)
+            searchScreenState =  stateProvider.get(screenIdentifier = screenIdentifier),
+            onSongPressed = { songId ->
+                playMusicFromId(
+                    musicServiceConnection,
+                    (stateProvider.get(screenIdentifier = screenIdentifier) as SearchScreenState).searchResultTracks,
+                    songId,
+                    isPlayerReady.value,
+                )
+                isPlayerReady.value = true
+            }
         )
     }
 }

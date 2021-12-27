@@ -38,6 +38,7 @@ import com.guru.composecookbook.verticalgrid.VerticalGrid
 @Composable
 fun SearchScreen(onBackPressed: (Boolean) -> Unit,
 onSearchPressed: (String) ->Unit,
+onSongPressed: (String) ->Unit,
 searchScreenState: SearchScreenState) {
     val requester = FocusRequester()
     val focusManager = LocalFocusManager.current
@@ -54,7 +55,7 @@ searchScreenState: SearchScreenState) {
                 if (searchScreenState.searchResultTracks.isEmpty()) {
                     ShowPreviousSearches(searchScreenState.listOfSearches)
                 } else {
-                    ShowSearchResults(searchScreenState.searchResultTracks)
+                    ShowSearchResults(searchScreenState.searchResultTracks, onSongPressed)
                 }
             }
         }
@@ -149,19 +150,19 @@ fun ItemRowSearch(itemSearched: String) {
 
 
 @Composable
-fun ShowSearchResults(searchResultTracks: List<TrackItem>) {
+fun ShowSearchResults(searchResultTracks: List<TrackItem>, onSongPressed: (String) -> Unit) {
     Column(Modifier.fillMaxSize()) {
         Header(text = "Top Find")
-        SearchGridTracks(list = searchResultTracks)
+        SearchGridTracks(list = searchResultTracks, onSongPressed)
     }
 }
 
 
 @Composable
-fun SearchGridTracks(list: List<Item>) {
+fun SearchGridTracks(list: List<Item>, onSongPressed: (String) -> Unit) {
     VerticalGrid {
         list.forEach { item->
-            TrackGridItem(item)
+            TrackGridItem(item, onSongPressed)
         }
     }
 }
