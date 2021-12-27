@@ -1,0 +1,13 @@
+CREATE TABLE SearchScreenInfo  (
+id INTEGER NOT NULL PRIMARY KEY,
+   searchFor TEXT NOT NULL
+);
+
+getSearchScreenInfo:
+SELECT * FROM SearchScreenInfo;
+
+upsertSearchScreenInfo {
+    INSERT OR REPLACE INTO SearchScreenInfo(searchFor)
+    VALUES(:searchFor);
+}
+

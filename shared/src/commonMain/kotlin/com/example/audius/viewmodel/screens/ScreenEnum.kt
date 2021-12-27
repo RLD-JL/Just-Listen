@@ -5,6 +5,7 @@ import com.example.audius.ScreenIdentifier
 import com.example.audius.viewmodel.screens.playlist.initPlaylist
 import com.example.audius.viewmodel.screens.playlist.initTrendingList
 import com.example.audius.viewmodel.screens.playlistdetail.initPlaylistDetail
+import com.example.audius.viewmodel.screens.search.initSearch
 
 enum class Screen (
     val asString: String,
@@ -14,5 +15,6 @@ enum class Screen (
 ) {
     TrendingList("trendingList", 1, {initTrendingList(it.params())}),
     Playlist("playlist", 1, {initPlaylist(it.params())}),
-    PlaylistDetail("playlistDetail", 1, {initPlaylistDetail(it.params())})
+    PlaylistDetail("playlistDetail", 1, {initPlaylistDetail(it.params())}),
+    Search("screen", 1, {initSearch(it.params())})
 }

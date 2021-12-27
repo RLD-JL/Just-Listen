@@ -1,7 +1,7 @@
 package com.example.audius.android.ui.playlistscreen
 
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -11,30 +11,30 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
 import com.example.audius.android.ui.playlistscreen.components.PlaylistRowItem
 import com.example.audius.android.ui.playlistscreen.components.SpotifyHomeGridItem
 import com.example.audius.android.ui.test.AlbumsDataProvider
+import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
 import com.example.audius.android.ui.theme.typography
 import com.example.audius.viewmodel.screens.playlist.PlayListEnum
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import com.example.audius.viewmodel.screens.playlist.PlaylistState
 import com.guru.composecookbook.verticalgrid.VerticalGrid
 
-
 @Composable
 fun PlaylistScreen(
     lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistState: PlaylistState,
-    onPlaylistClicked: (String, String, String, String) -> Unit
+    onPlaylistClicked: (String, String, String, String) -> Unit,
+    onSearchClicked: () -> Unit
 ) {
     if (playlistState.isLoading) {
         LoadingScreen()
@@ -46,7 +46,31 @@ fun PlaylistScreen(
                 playlistState = playlistState,
                 onPlaylistClicked = onPlaylistClicked
             )
+            AnimatedToolBar(onSearchClicked)
         }
+    }
+}
+
+@Composable
+fun AnimatedToolBar(
+    onSearchClicked: () -> Unit
+) {
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalGradientBackground(
+                listOf(MaterialTheme.colors.background, MaterialTheme.colors.background)
+            )
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+       Header(text = "Good evening")
+        Icon(
+            modifier = Modifier.clickable(onClick = onSearchClicked),
+            imageVector = Icons.Default.Search, tint = MaterialTheme.colors.onSurface,
+            contentDescription = null
+        )
     }
 }
 
@@ -59,9 +83,10 @@ fun ScrollableContent(
 ) {
     Column(
         modifier = Modifier
-            .padding(8.dp).verticalScroll(scrollState)) {
+            .padding(8.dp)
+            .verticalScroll(scrollState)
+    ) {
         Spacer(modifier = Modifier.height(50.dp))
-        SpotifyTitle("Good Evening")
         //HomeGridSection()
         ListOfCollections(
             playlistState = playlistState, lasItemReached = lasItemReached,
@@ -72,7 +97,7 @@ fun ScrollableContent(
 }
 
 @Composable
-fun SpotifyTitle(text: String, modifier: Modifier = Modifier) {
+fun Header(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
         style = typography.h5.copy(fontWeight = FontWeight.ExtraBold),
@@ -99,7 +124,7 @@ fun ListOfCollections(
         mutableListOf("Top Playlist", "Remix", "Yolo")
     }
     list.forEachIndexed { index, item ->
-        SpotifyTitle(text = item)
+        Header(text = item)
         when (index) {
             0 -> PlaylistRow(
                 playlist = playlistState.playlistItems,
@@ -139,7 +164,7 @@ fun PlaylistRow(
                 playlistItem = playlistItem,
                 onPlaylistClicked = onPlaylistClicked,
 
-            )
+                )
         }
     }
 }

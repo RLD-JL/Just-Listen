@@ -16,6 +16,8 @@ import com.example.audius.android.ui.bottombars.playbar.PlayerBarSheetContent
 import com.example.audius.android.ui.extensions.fraction
 import com.example.audius.android.ui.screenpicker.ScreenPicker
 import com.example.audius.android.ui.utils.lerp
+import com.example.audius.viewmodel.screens.Screen
+import com.example.audius.viewmodel.screens.Screen.*
 import kotlinx.coroutines.launch
 
 @ExperimentalCoilApi
@@ -40,7 +42,8 @@ fun Navigation.OnePane(
     Scaffold(
         bottomBar = {
             if (currentScreenIdentifier.screen.navigationLevel == 1) {
-                Level1BottomBar(currentScreenIdentifier, Modifier.offset(y = lerp(0f, 65f, scaffoldState.fraction).dp))
+                Level1BottomBar(currentScreenIdentifier,
+                    Modifier.offset(y = lerp(0f, 65f, scaffoldState.fraction).dp))
             }
         },
         content = {

@@ -22,6 +22,7 @@ import com.example.audius.android.ui.playlistdetailscreen.components.TopSectionO
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
 import android.support.v4.media.MediaBrowserCompat
 import androidx.compose.material.IconButton
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.toArgb
 import coil.ImageLoader
@@ -121,7 +122,7 @@ fun AnimatedToolBar(
                 .alpha(((scrollState.value + 0.001f) / 1000).coerceIn(0f, 1f))
         )
         Icon(
-            imageVector = Icons.Default.MoreVert, tint = MaterialTheme.colors.onSurface,
+            imageVector = Icons.Default.Search, tint = MaterialTheme.colors.onSurface,
             contentDescription = null
         )
     }
