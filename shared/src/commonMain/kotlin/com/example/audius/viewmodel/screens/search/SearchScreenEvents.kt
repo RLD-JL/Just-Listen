@@ -1,6 +1,7 @@
 package com.example.audius.viewmodel.screens.search
 
 import com.example.audius.datalayer.datacalls.search.saveSearch
+import com.example.audius.datalayer.datacalls.search.searchForPlaylist
 import com.example.audius.datalayer.datacalls.search.searchForTracks
 import com.example.audius.viewmodel.Events
 
@@ -14,6 +15,8 @@ fun Events.searchFor(searchInfo: String) = screenCoroutine {
     }
     stateManager.updateScreen(SearchScreenState::class) { searchState ->
         val tracksList = dataRepository.searchForTracks(searchInfo)
-        searchState.copy(searchResultTracks = tracksList, isLoading = false, searchFor = searchInfo)
+        val playList = dataRepository.searchForPlaylist(searchInfo)
+        searchState.copy(searchResultTracks = tracksList, isLoading = false, searchFor = searchInfo,
+        searchResultPlaylist = playList)
     }
 }

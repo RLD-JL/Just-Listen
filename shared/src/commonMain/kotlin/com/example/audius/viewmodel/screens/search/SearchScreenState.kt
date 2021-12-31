@@ -11,7 +11,7 @@ data class SearchScreenState(
     val searchFor: String = "",
     var listOfSearches: List<String> = emptyList(),
     var searchResultTracks: List<TrackItem> = emptyList(),
-    var searchResultPlaylist: List<String> = emptyList()
+    var searchResultPlaylist: List<PlaylistItem> = emptyList()
 ) : ScreenState
 
 

@@ -2,6 +2,8 @@ package com.example.audius.android.ui.searchscreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -31,8 +33,10 @@ import com.example.audius.android.R
 import com.example.audius.android.ui.extensions.noRippleClickable
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
 import com.example.audius.android.ui.playlistscreen.Header
+import com.example.audius.android.ui.playlistscreen.components.PlaylistRowItem
 import com.example.audius.android.ui.playlistscreen.components.TrackGridItem
 import com.example.audius.viewmodel.interfaces.Item
+import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import com.example.audius.viewmodel.screens.search.SearchScreenState
 import com.example.audius.viewmodel.screens.search.TrackItem
 import com.guru.composecookbook.verticalgrid.VerticalGrid
@@ -43,6 +47,7 @@ fun SearchScreen(
     onBackPressed: (Boolean) -> Unit,
     onSearchPressed: (String) -> Unit,
     onSongPressed: (String) -> Unit,
+    onPlaylistPressed: (String, String, String, String) -> Unit,
     searchScreenState: SearchScreenState
 ) {
     val requester = FocusRequester()
@@ -58,7 +63,8 @@ fun SearchScreen(
         Column(
             Modifier
                 .background(MaterialTheme.colors.background)
-                .verticalScroll(scrollState)) {
+                .verticalScroll(scrollState)
+        ) {
             AnimatedToolBar(
                 onBackPressed,
                 requester,
@@ -73,7 +79,11 @@ fun SearchScreen(
                     ShowPreviousSearches(searchScreenState.listOfSearches)
                 }
                 else -> {
-                    ShowSearchResults(searchScreenState.searchResultTracks, onSongPressed)
+                    ShowSearchResults(
+                        searchScreenState.searchResultTracks,
+                        searchScreenState.searchResultPlaylist, onSongPressed = onSongPressed,
+                        onPlaylistPressed = onPlaylistPressed
+                    )
                 }
             }
         }
@@ -138,8 +148,10 @@ fun AnimatedToolBar(
             .graphicsLayer {
                 alpha = if (inputField.value.isNotEmpty()) 1f else 0f
             },
-            onClick = { inputField.value = ""
-                        keyboardController?.show()}) {
+            onClick = {
+                inputField.value = ""
+                keyboardController?.show()
+            }) {
             Icon(
                 imageVector = Icons.Default.Close, tint = MaterialTheme.colors.onSurface,
                 contentDescription = null
@@ -163,26 +175,38 @@ fun ShowPreviousSearches(listOfSearches: List<String>) {
 
 @Composable
 fun ItemRowSearch(itemSearched: String) {
-    Row(Modifier.fillMaxWidth().padding(top = 10.dp)) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp)
+    ) {
         Icon(imageVector = Icons.Default.Search, contentDescription = null)
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement  =  Arrangement.SpaceBetween) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(modifier = Modifier.padding(start = 5.dp), text = itemSearched)
             Icon(
                 tint = MaterialTheme.colors.primary,
-                painter = painterResource(id = R.drawable.ic_baseline_north_west_24), contentDescription = null)
+                painter = painterResource(id = R.drawable.ic_baseline_north_west_24),
+                contentDescription = null
+            )
         }
     }
 }
 
 
 @Composable
-fun ShowSearchResults(searchResultTracks: List<TrackItem>, onSongPressed: (String) -> Unit) {
+fun ShowSearchResults(
+    searchResultTracks: List<TrackItem>,
+    searchResultPlaylist: List<PlaylistItem>,
+    onSongPressed: (String) -> Unit,
+    onPlaylistPressed: (String, String, String, String) -> Unit
+) {
     Column(Modifier.fillMaxSize()) {
         Header(text = "Top Find")
         SearchGridTracks(list = searchResultTracks, onSongPressed)
+        Header(text = "Playlist", modifier = Modifier.padding(top = 10.dp))
+        PlaylistResult(playlist = searchResultPlaylist, onPlaylistPressed)
     }
 }
-
 
 @Composable
 fun SearchGridTracks(list: List<Item>, onSongPressed: (String) -> Unit) {
@@ -192,3 +216,19 @@ fun SearchGridTracks(list: List<Item>, onSongPressed: (String) -> Unit) {
         }
     }
 }
+
+@Composable
+fun PlaylistResult(
+    playlist: List<PlaylistItem>,
+    onPlaylistPressed: (String, String, String, String) -> Unit
+) {
+    LazyRow{
+        itemsIndexed(items = playlist) {  index, playlistItem ->
+            PlaylistRowItem(
+                playlistItem = playlistItem,
+                onPlaylistClicked = onPlaylistPressed,
+                )
+        }
+    }
+}
+

@@ -16,5 +16,5 @@ enum class Screen (
     TrendingList("trendingList", 1, {initTrendingList(it.params())}),
     Playlist("playlist", 1, {initPlaylist(it.params())}),
     PlaylistDetail("playlistDetail", 1, {initPlaylistDetail(it.params())}),
-    Search("screen", 1, {initSearch(it.params())})
+    Search("screen", 1, {initSearch()})
 }

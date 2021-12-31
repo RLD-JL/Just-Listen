@@ -6,10 +6,7 @@ import com.example.audius.datalayer.datacalls.search.getSearchList
 import com.example.audius.viewmodel.screens.ScreenInitSettings
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class SearchInitParams(val search: String) : ScreenParams
-
-fun Navigation.initSearch(params: ScreenParams) = ScreenInitSettings(
+fun Navigation.initSearch() = ScreenInitSettings(
     title = "Search",
     initState = { SearchScreenState(isLoading = true) },
     callOnInit = {
@@ -21,5 +18,5 @@ fun Navigation.initSearch(params: ScreenParams) = ScreenInitSettings(
         }
 
     },
-    reinitOnEachNavigation = true
+    reinitOnEachNavigation = false
 )

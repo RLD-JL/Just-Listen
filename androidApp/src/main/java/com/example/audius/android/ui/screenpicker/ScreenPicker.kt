@@ -6,7 +6,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
-import com.example.audius.ScreenState
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.playlistscreen.PlaylistScreen
 import com.example.audius.android.ui.trendinglistscreen.TrendingListScreen
@@ -17,7 +16,6 @@ import com.example.audius.android.ui.playlistdetailscreen.playMusicFromId
 import com.example.audius.android.ui.searchscreen.SearchScreen
 import com.example.audius.viewmodel.screens.Screen.*
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailParams
-import com.example.audius.viewmodel.screens.search.SearchInitParams
 import com.example.audius.viewmodel.screens.search.SearchScreenState
 import com.example.audius.viewmodel.screens.search.saveSearchInfo
 import com.example.audius.viewmodel.screens.search.searchFor
@@ -57,7 +55,7 @@ fun Navigation.ScreenPicker(
                 onPlaylistClicked = {playlistId, playlistIcon, playlistTitle, playlistCreatedBy->
                          navigate(PlaylistDetail, PlaylistDetailParams(playlistId, playlistIcon,  playlistTitle, playlistCreatedBy))
                          events.playMusicFromPlaylist(playlistId = playlistId)},
-                onSearchClicked = {navigate(Search, SearchInitParams("yolo"))}
+                onSearchClicked = {navigate(Search)}
             )
 
         PlaylistDetail -> PlaylistDetailScreen(
@@ -84,7 +82,10 @@ fun Navigation.ScreenPicker(
                     isPlayerReady.value,
                 )
                 isPlayerReady.value = true
-            }
+            },
+            onPlaylistPressed = {playlistId, playlistIcon, playlistTitle, playlistCreatedBy->
+                navigate(PlaylistDetail, PlaylistDetailParams(playlistId, playlistIcon,  playlistTitle, playlistCreatedBy))
+                events.playMusicFromPlaylist(playlistId = playlistId)}
         )
     }
 }
