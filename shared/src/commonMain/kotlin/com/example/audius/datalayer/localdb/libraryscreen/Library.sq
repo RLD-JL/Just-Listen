@@ -1,0 +1,18 @@
+import com.example.audius.datalayer.models.SongIconList;
+import com.example.audius.datalayer.models.UserModel;
+
+CREATE TABLE Library  (
+     id TEXT NOT NULL PRIMARY KEY,
+       title TEXT NOT NULL,
+       playlistName TEXT NOT NULL,
+       songImgList TEXT AS SongIconList NOT NULL,
+       user TEXT AS UserModel NOT NULL
+);
+
+getFavoritePlaylist:
+SELECT * FROM Library;
+
+upsertLibrary {
+    INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName)
+    VALUES(:id, :title, :user,  :songImgList, :playlistName);
+}
