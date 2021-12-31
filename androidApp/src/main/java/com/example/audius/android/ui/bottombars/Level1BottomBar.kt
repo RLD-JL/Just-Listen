@@ -29,8 +29,8 @@ fun Navigation.Level1BottomBar(
             BottomNavigationItem(
                 icon = { Icon(painter = painterResource(id = R.drawable.ic_baseline_library_music_24), "FAVORITES") },
                 label = { Text("Library", fontSize = 10.sp) },
-                selected = selectedTab.URI == Level1Navigation.AllTrending.screenIdentifier.URI,
-                onClick = { navigateByLevel1Menu(Level1Navigation.AllTrending) }
+                selected = selectedTab.URI == Level1Navigation.Library.screenIdentifier.URI,
+                onClick = { navigateByLevel1Menu(Level1Navigation.Library) }
             )
         })
 }

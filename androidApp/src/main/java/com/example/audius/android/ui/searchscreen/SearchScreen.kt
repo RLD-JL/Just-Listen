@@ -230,7 +230,7 @@ fun PlaylistResult(
     onPlaylistPressed: (String, String, String, String) -> Unit
 ) {
     LazyRow{
-        itemsIndexed(items = playlist) {  index, playlistItem ->
+        itemsIndexed(items = playlist) {  _, playlistItem ->
             PlaylistRowItem(
                 playlistItem = playlistItem,
                 onPlaylistClicked = onPlaylistPressed,

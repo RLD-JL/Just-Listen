@@ -8,7 +8,7 @@ import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.playlistscreen.PlaylistScreen
-import com.example.audius.android.ui.trendinglistscreen.TrendingListScreen
+import com.example.audius.android.ui.libraryscreen.LibraryScreen
 import com.example.audius.viewmodel.screens.playlist.*
 import com.example.audius.viewmodel.screens.playlist.PlayListEnum.*
 import com.example.audius.android.ui.playlistdetailscreen.PlaylistDetailScreen
@@ -33,15 +33,10 @@ fun Navigation.ScreenPicker(
 
     when (screenIdentifier.screen) {
 
-        TrendingList ->
-            TrendingListScreen(
+        Library ->
+            LibraryScreen(
                 musicServiceConnection = musicServiceConnection,
-                trendingListState = stateProvider.get(screenIdentifier),
-                onLastItemClick = { songId, songIcon ->
-                    events.playMusic(songId = songId, songIcon = songIcon)
-                },
-                onSkipNextPressed = { events.skipToNextSong() }
-            )
+                libraryState = stateProvider.get(screenIdentifier))
         Playlist ->
             PlaylistScreen(
                 lasItemReached = {lastIndex, playListEnum ->

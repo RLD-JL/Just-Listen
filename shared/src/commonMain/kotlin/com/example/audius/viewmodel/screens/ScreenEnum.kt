@@ -2,8 +2,8 @@ package com.example.audius.viewmodel.screens
 
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
+import com.example.audius.viewmodel.screens.library.initLibrary
 import com.example.audius.viewmodel.screens.playlist.initPlaylist
-import com.example.audius.viewmodel.screens.playlist.initTrendingList
 import com.example.audius.viewmodel.screens.playlistdetail.initPlaylistDetail
 import com.example.audius.viewmodel.screens.search.initSearch
 
@@ -13,7 +13,7 @@ enum class Screen (
     val initSettings: Navigation.(ScreenIdentifier) -> ScreenInitSettings,
     val stackableInstances : Boolean = true,
 ) {
-    TrendingList("trendingList", 1, {initTrendingList(it.params())}),
+    Library("library", 1, {initLibrary(it.params())}),
     Playlist("playlist", 1, {initPlaylist(it.params())}),
     PlaylistDetail("playlistDetail", 1, {initPlaylistDetail(it.params())}),
     Search("screen", 1, {initSearch()})

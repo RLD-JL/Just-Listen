@@ -1,4 +1,4 @@
-package com.example.audius.datalayer.datacalls
+package com.example.audius.datalayer.datacalls.playlist
 
 import com.example.audius.datalayer.Repository
 import com.example.audius.datalayer.localdb.playlistdetail.getPlaylistDetail

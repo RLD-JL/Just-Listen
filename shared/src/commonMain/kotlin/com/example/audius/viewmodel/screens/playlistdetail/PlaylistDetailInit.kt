@@ -2,7 +2,7 @@ package com.example.audius.viewmodel.screens.playlistdetail
 
 import com.example.audius.Navigation
 import com.example.audius.ScreenParams
-import com.example.audius.datalayer.datacalls.getPlaylist
+import com.example.audius.datalayer.datacalls.playlist.getPlaylist
 import com.example.audius.viewmodel.screens.ScreenInitSettings
 import com.example.audius.viewmodel.screens.playlist.PlayListEnum
 import kotlinx.serialization.Serializable
