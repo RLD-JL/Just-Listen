@@ -31,6 +31,8 @@ import coil.request.ImageRequest
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.utils.Constants
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
+import com.example.audius.datalayer.models.SongIconList
+import com.example.audius.datalayer.models.UserModel
 import com.example.audius.viewmodel.interfaces.Item
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailState
@@ -39,7 +41,8 @@ import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailState
 @Composable
 fun PlaylistDetailScreen(
     playlistDetailState: PlaylistDetailState, onBackButtonPressed: (Boolean) -> Unit,
-    musicServiceConnection: MusicServiceConnection
+    musicServiceConnection: MusicServiceConnection,
+    onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
 ) {
     if (playlistDetailState.isLoading) {
         LoadingScreen()
@@ -65,7 +68,8 @@ fun PlaylistDetailScreen(
                 playlistPainter = painter
             )
             TopSectionOverlay(scrollState = scrollState)
-            BottomScrollableContent(playlist = playlistDetailState.songPlaylist,
+            BottomScrollableContent(
+                playlist = playlistDetailState.songPlaylist,
                 scrollState = scrollState,
                 onShuffleClicked = {
                     playMusic(
@@ -83,7 +87,9 @@ fun PlaylistDetailScreen(
                         isPlayerReady.value
                     )
                     isPlayerReady.value = true
-                })
+                },
+                onFavoritePressed = onFavoritePressed
+            )
             AnimatedToolBar(playlistDetailState, scrollState, onBackButtonPressed)
         }
     }
@@ -132,7 +138,8 @@ fun AnimatedToolBar(
 @Composable
 fun BottomScrollableContent(
     playlist: List<PlaylistItem>, scrollState: ScrollState, onSongClicked: (String) -> Unit,
-    onShuffleClicked: () -> Unit
+    onShuffleClicked: () -> Unit,
+    onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
 ) {
     Column(modifier = Modifier.verticalScroll(scrollState)) {
         Spacer(modifier = Modifier.height(480.dp))
@@ -147,7 +154,8 @@ fun BottomScrollableContent(
             SongListScrollingSection(
                 playlist = playlist,
                 onSongClicked = onSongClicked,
-                onShuffleClicked = onShuffleClicked
+                onShuffleClicked = onShuffleClicked,
+                onFavoritePressed = onFavoritePressed
             )
         }
     }

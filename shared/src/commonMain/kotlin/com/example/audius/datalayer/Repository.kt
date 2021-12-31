@@ -45,7 +45,7 @@ class Repository(private val sqlDriver: SqlDriver, private val useDefaultDispatc
     }
 
     private val adapter = PlaylistDetail.Adapter(listOfStringsAdapter,listOfStringsAdapter2)
-    private val libraryAdapter = Library.Adapter(listOfStringsAdapter,listOfStringsAdapter2)
+    private val libraryAdapter = Library.Adapter(listOfStringsAdapter2,listOfStringsAdapter)
     internal val webservices by lazy { ApiClient() }
     internal val localDb by lazy { LocalDb(sqlDriver, libraryAdapter, adapter) }
 

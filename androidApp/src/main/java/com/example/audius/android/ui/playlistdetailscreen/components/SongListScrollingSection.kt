@@ -14,15 +14,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.audius.datalayer.models.SongIconList
+import com.example.audius.datalayer.models.UserModel
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 
 
 @Composable
-fun SongListScrollingSection(playlist: List<PlaylistItem>, onSongClicked: (String) -> Unit, onShuffleClicked: () ->Unit) {
+fun SongListScrollingSection(
+    playlist: List<PlaylistItem>,
+    onSongClicked: (String) -> Unit,
+    onShuffleClicked: () -> Unit,
+    onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
+) {
     ShuffleButton(onShuffleClicked)
     DownloadedRow()
     playlist.forEach { playlistItem ->
-        SongListItem(playlistItem = playlistItem, onSongClicked = onSongClicked)
+        SongListItem(
+            playlistItem = playlistItem,
+            onSongClicked = onSongClicked,
+            onFavoritePressed = onFavoritePressed
+        )
     }
 
 }
@@ -55,7 +66,7 @@ fun DownloadedRow() {
 @Composable
 fun ShuffleButton(onShuffleClicked: () -> Unit) {
     Button(
-        onClick = { onShuffleClicked()},
+        onClick = { onShuffleClicked() },
         colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green),
         modifier = Modifier
             .fillMaxWidth()

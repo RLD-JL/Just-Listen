@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.Text
@@ -26,10 +27,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
+import com.example.audius.datalayer.models.SongIconList
+import com.example.audius.datalayer.models.UserModel
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 
 @Composable
-fun SongListItem(playlistItem: PlaylistItem, onSongClicked: (String) -> Unit) {
+fun SongListItem(
+    playlistItem: PlaylistItem, onSongClicked: (String) -> Unit,
+    onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
+) {
     Row(
         modifier = Modifier
             .padding(8.dp)
@@ -68,14 +74,21 @@ fun SongListItem(playlistItem: PlaylistItem, onSongClicked: (String) -> Unit) {
                 overflow = TextOverflow.Ellipsis
             )
         }
-        Icon(
-            imageVector = Icons.Default.Favorite,
-            contentDescription = null,
-            tint = MaterialTheme.colors.primaryVariant,
-            modifier = Modifier
-                .padding(4.dp)
-                .size(20.dp)
-        )
+        IconButton(onClick = {
+            onFavoritePressed(
+                playlistItem.id, playlistItem.title,
+                UserModel(playlistItem.user), playlistItem.songIconList
+            )
+        }) {
+            Icon(
+                imageVector = Icons.Default.Favorite,
+                contentDescription = null,
+                tint = MaterialTheme.colors.primaryVariant,
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(20.dp)
+            )
+        }
         Icon(
             imageVector = Icons.Default.MoreVert,
             contentDescription = null,

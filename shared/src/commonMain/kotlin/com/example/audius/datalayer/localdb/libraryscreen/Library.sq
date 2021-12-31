@@ -4,9 +4,9 @@ import com.example.audius.datalayer.models.UserModel;
 CREATE TABLE Library  (
      id TEXT NOT NULL PRIMARY KEY,
        title TEXT NOT NULL,
-       playlistName TEXT NOT NULL,
+       user TEXT AS UserModel NOT NULL,
        songImgList TEXT AS SongIconList NOT NULL,
-       user TEXT AS UserModel NOT NULL
+       playlistName TEXT NOT NULL
 );
 
 getFavoritePlaylist:
