@@ -2,6 +2,7 @@ package com.example.audius.android.ui.libraryscreen
 
 import android.support.v4.media.MediaMetadataCompat
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.example.audius.android.exoplayer.MusicServiceConnection
@@ -16,7 +17,12 @@ fun LibraryScreen(
     libraryState: LibraryState
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-
+        Column() {
+            libraryState.favoritePlaylistItems.forEach { 
+                Text(text = "${it.playlistTitle} by ${it.user}")
+            }
+            
+        }
     }
 }
 
