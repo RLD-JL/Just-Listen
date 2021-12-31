@@ -73,6 +73,7 @@ fun Navigation.ScreenPicker(
             onSearchPressed = {search ->
                 events.saveSearchInfo(search)
                 events.searchFor(search)
+                isPlayerReady.value = false
             },
             searchScreenState =  stateProvider.get(screenIdentifier = screenIdentifier),
             onSongPressed = { songId ->
