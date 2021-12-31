@@ -1,10 +1,9 @@
 CREATE TABLE SearchScreenInfo  (
-id INTEGER NOT NULL PRIMARY KEY,
-   searchFor TEXT NOT NULL
+   searchFor TEXT NOT NULL PRIMARY KEY
 );
 
 getSearchScreenInfo:
-SELECT * FROM SearchScreenInfo;
+SELECT searchFor FROM SearchScreenInfo;
 
 upsertSearchScreenInfo {
     INSERT OR REPLACE INTO SearchScreenInfo(searchFor)

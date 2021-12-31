@@ -58,8 +58,7 @@ fun SearchScreen(
         Column(
             Modifier
                 .background(MaterialTheme.colors.background)
-                .verticalScroll(scrollState)
-                .padding(top = 5.dp)) {
+                .verticalScroll(scrollState)) {
             AnimatedToolBar(
                 onBackPressed,
                 requester,
@@ -164,7 +163,7 @@ fun ShowPreviousSearches(listOfSearches: List<String>) {
 
 @Composable
 fun ItemRowSearch(itemSearched: String) {
-    Row(Modifier.fillMaxWidth()) {
+    Row(Modifier.fillMaxWidth().padding(top = 10.dp)) {
         Icon(imageVector = Icons.Default.Search, contentDescription = null)
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement  =  Arrangement.SpaceBetween) {
             Text(modifier = Modifier.padding(start = 5.dp), text = itemSearched)

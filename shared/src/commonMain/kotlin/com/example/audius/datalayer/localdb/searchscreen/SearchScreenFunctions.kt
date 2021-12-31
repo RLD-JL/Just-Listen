@@ -9,8 +9,5 @@ fun LocalDb.saveSearchInfo(searchFor: String) {
 }
 
 fun LocalDb.getSearchInfo(): List<String> {
-    return searchScreenInfoQueries.getSearchScreenInfo(mapper = ::SearchScreenInfo).executeAsList()
-        .map { searchScreen ->
-        searchScreen.searchFor
-        }.toList()
+    return searchScreenInfoQueries.getSearchScreenInfo().executeAsList()
 }
