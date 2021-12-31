@@ -19,6 +19,7 @@ import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailParams
 import com.example.audius.viewmodel.screens.search.SearchScreenState
 import com.example.audius.viewmodel.screens.search.saveSearchInfo
 import com.example.audius.viewmodel.screens.search.searchFor
+import com.example.audius.viewmodel.screens.search.updateSearch
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -85,7 +86,9 @@ fun Navigation.ScreenPicker(
             },
             onPlaylistPressed = {playlistId, playlistIcon, playlistTitle, playlistCreatedBy->
                 navigate(PlaylistDetail, PlaylistDetailParams(playlistId, playlistIcon,  playlistTitle, playlistCreatedBy))
-                events.playMusicFromPlaylist(playlistId = playlistId)}
+                events.playMusicFromPlaylist(playlistId = playlistId)},
+            onPreviousSearchedPressed = {searchText -> events.updateSearch(searchText)},
+            updateSearch =  {searchText -> events.updateSearch(searchText)}
         )
     }
 }

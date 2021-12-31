@@ -20,3 +20,10 @@ fun Events.searchFor(searchInfo: String) = screenCoroutine {
         searchResultPlaylist = playList)
     }
 }
+
+fun Events.updateSearch(searchInfo: String) = screenCoroutine {
+    stateManager.updateScreen(SearchScreenState::class) {
+        println("update screen=$searchInfo")
+        it.copy(searchFor = searchInfo)
+    }
+}

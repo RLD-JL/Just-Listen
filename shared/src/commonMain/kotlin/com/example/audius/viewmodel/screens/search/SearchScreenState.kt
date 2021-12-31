@@ -8,7 +8,7 @@ import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 
 data class SearchScreenState(
     var isLoading: Boolean = false,
-    val searchFor: String = "",
+    var searchFor: String = "",
     var listOfSearches: List<String> = emptyList(),
     var searchResultTracks: List<TrackItem> = emptyList(),
     var searchResultPlaylist: List<PlaylistItem> = emptyList()

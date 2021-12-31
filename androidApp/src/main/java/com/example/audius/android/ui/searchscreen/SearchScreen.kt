@@ -1,6 +1,7 @@
 package com.example.audius.android.ui.searchscreen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -48,7 +49,9 @@ fun SearchScreen(
     onSearchPressed: (String) -> Unit,
     onSongPressed: (String) -> Unit,
     onPlaylistPressed: (String, String, String, String) -> Unit,
-    searchScreenState: SearchScreenState
+    searchScreenState: SearchScreenState,
+    onPreviousSearchedPressed: (String) -> Unit,
+    updateSearch: (String) -> Unit
 ) {
     val requester = FocusRequester()
     val focusManager = LocalFocusManager.current
@@ -69,14 +72,16 @@ fun SearchScreen(
                 onBackPressed,
                 requester,
                 onSearchPressed,
-                searchScreenState.searchFor
+                searchScreenState,
+                updateSearch = updateSearch
             )
             when {
                 searchScreenState.isLoading -> {
-                    LoadingScreen(5.dp)
+                    LoadingScreen(10.dp)
                 }
                 searchScreenState.searchResultTracks.isEmpty() -> {
-                    ShowPreviousSearches(searchScreenState.listOfSearches)
+                    ShowPreviousSearches(searchScreenState.listOfSearches,
+                        onPreviousSearchedPressed = onPreviousSearchedPressed)
                 }
                 else -> {
                     ShowSearchResults(
@@ -96,9 +101,10 @@ fun AnimatedToolBar(
     onBackPressed: (Boolean) -> Unit,
     requester: FocusRequester,
     onSearchPressed: (String) -> Unit,
-    searchedFor: String
+    searchedFor: SearchScreenState,
+    updateSearch: (String) -> Unit
 ) {
-    val inputField = remember { mutableStateOf(searchedFor) }
+    val searchFor = searchedFor.searchFor
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Row(
@@ -116,9 +122,9 @@ fun AnimatedToolBar(
         TextField(modifier = Modifier
             .weight(0.6f)
             .focusRequester(requester),
-            value = inputField.value,
+            value = searchFor,
             onValueChange = { newInput ->
-                inputField.value = newInput
+                updateSearch(newInput)
             },
             label = {
                 Text(text = "Search")
@@ -135,7 +141,7 @@ fun AnimatedToolBar(
             },
             keyboardActions = KeyboardActions(
                 onSearch = {
-                    onSearchPressed(inputField.value)
+                    onSearchPressed(searchFor)
                     keyboardController?.hide()
                 }
             ),
@@ -146,10 +152,10 @@ fun AnimatedToolBar(
         IconButton(modifier = Modifier
             .weight(0.2f)
             .graphicsLayer {
-                alpha = if (inputField.value.isNotEmpty()) 1f else 0f
+                alpha = if (searchFor.isNotEmpty()) 1f else 0f
             },
             onClick = {
-                inputField.value = ""
+                updateSearch("")
                 keyboardController?.show()
             }) {
             Icon(
@@ -160,25 +166,26 @@ fun AnimatedToolBar(
     }
 
     LaunchedEffect(Unit) {
-        if (inputField.value.isEmpty()) {
+        if (searchFor.isEmpty()) {
             requester.requestFocus()
         }
     }
 }
 
 @Composable
-fun ShowPreviousSearches(listOfSearches: List<String>) {
+fun ShowPreviousSearches(listOfSearches: List<String>, onPreviousSearchedPressed: (String) ->Unit) {
     listOfSearches.forEach { itemSearched ->
-        ItemRowSearch(itemSearched)
+        ItemRowSearch(itemSearched, onPreviousSearchedPressed)
     }
 }
 
 @Composable
-fun ItemRowSearch(itemSearched: String) {
+fun ItemRowSearch(itemSearched: String, onPreviousSearchedPressed: (String) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
             .padding(top = 10.dp)
+            .clickable(onClick = {onPreviousSearchedPressed(itemSearched)})
     ) {
         Icon(imageVector = Icons.Default.Search, contentDescription = null)
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
