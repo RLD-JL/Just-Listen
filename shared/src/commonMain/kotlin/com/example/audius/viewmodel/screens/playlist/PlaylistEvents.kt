@@ -11,6 +11,7 @@ fun Events.fetchPlaylist(index: Int, playlistEnum: PlayListEnum) = screenCorouti
             REMIX ->  it.copy(remixPlaylist = dataRepository.getPlaylist(index, playlistEnum))
             HOT -> TODO()
             CURRENT_PLAYLIST -> TODO()
+            FAVORITE -> it.copy(currentPlaylist = dataRepository.getPlaylist(0,playlistEnum))
         }
     }
 }

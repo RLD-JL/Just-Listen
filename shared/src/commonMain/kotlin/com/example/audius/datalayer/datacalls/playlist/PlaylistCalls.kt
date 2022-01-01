@@ -1,6 +1,7 @@
 package com.example.audius.datalayer.datacalls.playlist
 
 import com.example.audius.datalayer.Repository
+import com.example.audius.datalayer.localdb.libraryscreen.getFavoritePlaylist
 import com.example.audius.datalayer.localdb.playlistdetail.getPlaylistDetail
 import com.example.audius.datalayer.localdb.playlistdetail.setPlaylistDetail
 import com.example.audius.datalayer.webservices.apis.playlistcalls.fetchPlaylist
@@ -30,6 +31,11 @@ suspend fun Repository.getPlaylist(index: Int, playListEnum: PlayListEnum, playl
         localDb.getPlaylistDetail().map {
                 elem->PlaylistItem(_data = elem)
         }.toList() }
+        FAVORITE -> {
+            localDb.getFavoritePlaylist().map {playlistModel ->
+                PlaylistItem(playlistModel)
+            }.toList()
+        }
     }
 }
 

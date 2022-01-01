@@ -1,8 +1,12 @@
 package com.example.audius.android.ui.libraryscreen
 
 import android.support.v4.media.MediaMetadataCompat
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.example.audius.android.exoplayer.MusicServiceConnection
@@ -14,15 +18,40 @@ import com.example.audius.viewmodel.screens.library.LibraryState
 @Composable
 fun LibraryScreen(
     musicServiceConnection: MusicServiceConnection,
-    libraryState: LibraryState
+    libraryState: LibraryState,
+    onPlaylistPressed: (String, String, String, String) -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column() {
-            libraryState.favoritePlaylistItems.forEach { 
+            libraryState.favoritePlaylistItems.forEach {
                 Text(text = "${it.playlistTitle} by ${it.user}")
             }
-            
+            FavoritePlaylist(libraryState, onPlaylistPressed)
         }
+    }
+}
+
+@Composable
+fun FavoritePlaylist(
+    libraryState: LibraryState,
+    onPlaylistPressed: (String, String, String, String) -> Unit
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(
+                onClick = {
+                    onPlaylistPressed(
+                        "Favorite",
+                        libraryState.favoritePlaylistItems[1].songIconList.songImageURL480px,
+                        "Favorite",
+                        "You"
+                    )
+                }
+            )
+    ) {
+        Icon(imageVector = Icons.Default.FavoriteBorder, contentDescription = null)
+        Text(text = "Favorite Playlist")
     }
 }
 

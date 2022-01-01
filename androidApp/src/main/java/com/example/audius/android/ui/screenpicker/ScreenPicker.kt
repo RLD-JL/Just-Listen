@@ -38,7 +38,15 @@ fun Navigation.ScreenPicker(
         Library ->
             LibraryScreen(
                 musicServiceConnection = musicServiceConnection,
-                libraryState = stateProvider.get(screenIdentifier)
+                libraryState = stateProvider.get(screenIdentifier),
+                onPlaylistPressed =  { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
+                    navigate(
+                        PlaylistDetail,
+                        PlaylistDetailParams(playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
+                        FAVORITE)
+                    )
+                    events.playMusicFromPlaylist(playlistId = playlistId)
+                }
             )
         Playlist ->
             PlaylistScreen(
@@ -48,6 +56,7 @@ fun Navigation.ScreenPicker(
                         REMIX -> events.fetchPlaylist(lastIndex, REMIX)
                         HOT -> TODO()
                         CURRENT_PLAYLIST -> TODO()
+                        FAVORITE -> TODO()
                     }
                 },
                 playlistState = stateProvider.get(screenIdentifier = screenIdentifier),
@@ -58,7 +67,8 @@ fun Navigation.ScreenPicker(
                             playlistId,
                             playlistIcon,
                             playlistTitle,
-                            playlistCreatedBy
+                            playlistCreatedBy,
+                            CURRENT_PLAYLIST
                         )
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)
@@ -97,7 +107,8 @@ fun Navigation.ScreenPicker(
             onPlaylistPressed = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
                 navigate(
                     PlaylistDetail,
-                    PlaylistDetailParams(playlistId, playlistIcon, playlistTitle, playlistCreatedBy)
+                    PlaylistDetailParams(playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
+                    CURRENT_PLAYLIST)
                 )
                 events.playMusicFromPlaylist(playlistId = playlistId)
             },
