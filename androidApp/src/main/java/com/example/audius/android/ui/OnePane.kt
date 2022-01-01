@@ -57,8 +57,6 @@ fun Navigation.OnePane(
                                     currentFraction = scaffoldState.fraction,
                                     onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
                                     musicServiceConnection = musicServiceConnection,
-                            songIsPlaying = { id, title, user, songIcon ->
-                                events.saveSongToRecent(id, title, user, songIcon)}
                                 )
                     }, content = {
                         Column(
