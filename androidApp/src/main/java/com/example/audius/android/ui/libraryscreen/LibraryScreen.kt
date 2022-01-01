@@ -43,7 +43,7 @@ fun FavoritePlaylist(
                 onClick = {
                     onPlaylistPressed(
                         "Favorite",
-                        libraryState.favoritePlaylistItems[1].songIconList.songImageURL480px,
+                        libraryState.favoritePlaylistItems[0].songIconList.songImageURL480px,
                         "Favorite",
                         "You"
                     )
