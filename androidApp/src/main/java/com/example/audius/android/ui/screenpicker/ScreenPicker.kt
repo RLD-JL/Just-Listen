@@ -16,7 +16,7 @@ import com.example.audius.android.ui.playlistdetailscreen.PlaylistDetailScreen
 import com.example.audius.android.ui.playlistdetailscreen.playMusicFromId
 import com.example.audius.android.ui.searchscreen.SearchScreen
 import com.example.audius.viewmodel.screens.Screen.*
-import com.example.audius.viewmodel.screens.library.saveTrackToFavorites
+import com.example.audius.viewmodel.screens.library.saveSongToFavorites
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailParams
 import com.example.audius.viewmodel.screens.search.SearchScreenState
 import com.example.audius.viewmodel.screens.search.saveSearchInfo
@@ -83,7 +83,7 @@ fun Navigation.ScreenPicker(
             },
             musicServiceConnection = musicServiceConnection,
             onFavoritePressed = {id, title, userModel, songIconList ->
-                events.saveTrackToFavorites(id, title, userModel, songIconList)}
+                events.saveSongToFavorites(id, title, userModel, songIconList)}
         )
         Search -> SearchScreen(
             onBackPressed = {

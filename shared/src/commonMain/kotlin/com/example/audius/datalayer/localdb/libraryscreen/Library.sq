@@ -6,13 +6,22 @@ CREATE TABLE Library  (
        title TEXT NOT NULL,
        user TEXT AS UserModel NOT NULL,
        songImgList TEXT AS SongIconList NOT NULL,
-       playlistName TEXT NOT NULL
+       playlistName TEXT NOT NULL,
+       recentPlayed INTEGER AS Boolean DEFAULT 0
 );
 
 getFavoritePlaylist:
 SELECT * FROM Library;
 
-upsertLibrary {
+getRecentPlayed:
+SELECT * FROM Library WHERE recentPlayed = 1;
+
+upsertLibraryFavorite {
     INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName)
     VALUES(:id, :title, :user,  :songImgList, :playlistName);
+}
+
+upsertLibraryRecent {
+    INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName, recentPlayed)
+    VALUES(:id, :title, :user,  :songImgList, :playlistName, 1);
 }
