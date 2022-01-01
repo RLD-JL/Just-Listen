@@ -11,7 +11,7 @@ CREATE TABLE Library  (
 );
 
 getFavoritePlaylist:
-SELECT * FROM Library;
+SELECT * FROM Library WHERE recentPlayed = 0;
 
 getRecentPlayed:
 SELECT * FROM Library WHERE recentPlayed = 1;
