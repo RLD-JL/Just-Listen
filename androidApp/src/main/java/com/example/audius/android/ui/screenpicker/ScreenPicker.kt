@@ -15,9 +15,13 @@ import com.example.audius.viewmodel.screens.playlist.PlayListEnum.*
 import com.example.audius.android.ui.playlistdetailscreen.PlaylistDetailScreen
 import com.example.audius.android.ui.playlistdetailscreen.playMusicFromId
 import com.example.audius.android.ui.searchscreen.SearchScreen
+import com.example.audius.datalayer.models.SongIconList
+import com.example.audius.datalayer.models.UserModel
 import com.example.audius.viewmodel.screens.Screen.*
 import com.example.audius.viewmodel.screens.library.saveSongToFavorites
+import com.example.audius.viewmodel.screens.library.saveSongToRecent
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailParams
+import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailState
 import com.example.audius.viewmodel.screens.search.SearchScreenState
 import com.example.audius.viewmodel.screens.search.saveSearchInfo
 import com.example.audius.viewmodel.screens.search.searchFor
@@ -39,11 +43,13 @@ fun Navigation.ScreenPicker(
             LibraryScreen(
                 musicServiceConnection = musicServiceConnection,
                 libraryState = stateProvider.get(screenIdentifier),
-                onPlaylistPressed =  { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
+                onPlaylistPressed = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
                     navigate(
                         PlaylistDetail,
-                        PlaylistDetailParams(playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
-                        FAVORITE)
+                        PlaylistDetailParams(
+                            playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
+                            FAVORITE
+                        )
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)
                 }
@@ -82,8 +88,22 @@ fun Navigation.ScreenPicker(
                 if (onBackButtonPressed) exitScreen()
             },
             musicServiceConnection = musicServiceConnection,
-            onFavoritePressed = {id, title, userModel, songIconList ->
-                events.saveSongToFavorites(id, title, userModel, songIconList)}
+            onFavoritePressed = { id, title, userModel, songIconList ->
+                events.saveSongToFavorites(id, title, userModel, songIconList)
+            },
+            onSongPressed = { songId, title, userModel, songIconList ->
+
+                playMusicFromId(
+                    musicServiceConnection,
+                    (stateProvider.get(screenIdentifier = screenIdentifier) as PlaylistDetailState).songPlaylist,
+                    songId,
+                    isPlayerReady.value,
+                )
+
+                isPlayerReady.value = true
+
+                events.saveSongToRecent(songId, title, userModel, songIconList)
+            }
         )
         Search -> SearchScreen(
             onBackPressed = {
@@ -95,7 +115,7 @@ fun Navigation.ScreenPicker(
                 isPlayerReady.value = false
             },
             searchScreenState = stateProvider.get(screenIdentifier = screenIdentifier),
-            onSongPressed = { songId ->
+            onSongPressed = { songId, title, user, songIcon ->
                 playMusicFromId(
                     musicServiceConnection,
                     (stateProvider.get(screenIdentifier = screenIdentifier) as SearchScreenState).searchResultTracks,
@@ -103,12 +123,16 @@ fun Navigation.ScreenPicker(
                     isPlayerReady.value,
                 )
                 isPlayerReady.value = true
+
+                events.saveSongToRecent(songId, title, UserModel(user), songIcon)
             },
             onPlaylistPressed = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
                 navigate(
                     PlaylistDetail,
-                    PlaylistDetailParams(playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
-                    CURRENT_PLAYLIST)
+                    PlaylistDetailParams(
+                        playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
+                        CURRENT_PLAYLIST
+                    )
                 )
                 events.playMusicFromPlaylist(playlistId = playlistId)
             },

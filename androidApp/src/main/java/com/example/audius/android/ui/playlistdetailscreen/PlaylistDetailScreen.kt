@@ -8,7 +8,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -25,7 +24,6 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.toArgb
-import coil.ImageLoader
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.example.audius.android.exoplayer.MusicServiceConnection
@@ -37,11 +35,11 @@ import com.example.audius.viewmodel.interfaces.Item
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailState
 
-
 @Composable
 fun PlaylistDetailScreen(
     playlistDetailState: PlaylistDetailState, onBackButtonPressed: (Boolean) -> Unit,
     musicServiceConnection: MusicServiceConnection,
+    onSongPressed: (String, String, UserModel, SongIconList) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
 ) {
     if (playlistDetailState.isLoading) {
@@ -79,15 +77,7 @@ fun PlaylistDetailScreen(
                     )
                     isPlayerReady.value = true
                 },
-                onSongClicked = { songId ->
-                    playMusicFromId(
-                        musicServiceConnection,
-                        playlistDetailState.songPlaylist,
-                        songId,
-                        isPlayerReady.value
-                    )
-                    isPlayerReady.value = true
-                },
+                onSongClicked = onSongPressed,
                 onFavoritePressed = onFavoritePressed
             )
             AnimatedToolBar(playlistDetailState, scrollState, onBackButtonPressed)
@@ -137,7 +127,9 @@ fun AnimatedToolBar(
 
 @Composable
 fun BottomScrollableContent(
-    playlist: List<PlaylistItem>, scrollState: ScrollState, onSongClicked: (String) -> Unit,
+    playlist: List<PlaylistItem>,
+    scrollState: ScrollState,
+    onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
     onShuffleClicked: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
 ) {

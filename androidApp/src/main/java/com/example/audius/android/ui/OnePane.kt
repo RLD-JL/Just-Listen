@@ -16,8 +16,7 @@ import com.example.audius.android.ui.bottombars.playbar.PlayerBarSheetContent
 import com.example.audius.android.ui.extensions.fraction
 import com.example.audius.android.ui.screenpicker.ScreenPicker
 import com.example.audius.android.ui.utils.lerp
-import com.example.audius.viewmodel.screens.Screen
-import com.example.audius.viewmodel.screens.Screen.*
+import com.example.audius.viewmodel.screens.library.saveSongToRecent
 import kotlinx.coroutines.launch
 
 @ExperimentalCoilApi
@@ -57,7 +56,9 @@ fun Navigation.OnePane(
                                     bottomPadding = bottomBarPadding,
                                     currentFraction = scaffoldState.fraction,
                                     onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
-                                    musicServiceConnection = musicServiceConnection
+                                    musicServiceConnection = musicServiceConnection,
+                            songIsPlaying = { id, title, user, songIcon ->
+                                events.saveSongToRecent(id, title, user, songIcon)}
                                 )
                     }, content = {
                         Column(

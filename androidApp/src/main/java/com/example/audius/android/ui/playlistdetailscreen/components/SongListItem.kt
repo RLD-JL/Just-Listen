@@ -33,14 +33,19 @@ import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 
 @Composable
 fun SongListItem(
-    playlistItem: PlaylistItem, onSongClicked: (String) -> Unit,
+    playlistItem: PlaylistItem, onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
 ) {
     Row(
         modifier = Modifier
             .padding(8.dp)
             .clickable(
-                onClick = { onSongClicked(playlistItem.id) }
+                onClick = {
+                    onSongClicked(
+                        playlistItem.id, playlistItem.title,
+                        UserModel(playlistItem.user), playlistItem.songIconList
+                    )
+                }
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {

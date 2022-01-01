@@ -1,6 +1,5 @@
 package com.example.audius.android.ui.playlistdetailscreen.components
 
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,11 +17,10 @@ import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.datalayer.models.UserModel
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 
-
 @Composable
 fun SongListScrollingSection(
     playlist: List<PlaylistItem>,
-    onSongClicked: (String) -> Unit,
+    onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
     onShuffleClicked: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
 ) {

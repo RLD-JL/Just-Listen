@@ -23,7 +23,7 @@ fun LibraryScreen(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column() {
-            libraryState.favoritePlaylistItems.forEach {
+            libraryState.recentSongsItems.forEach {
                 Text(text = "${it.playlistTitle} by ${it.user}")
             }
             FavoritePlaylist(libraryState, onPlaylistPressed)

@@ -36,6 +36,7 @@ import com.example.audius.android.ui.loadingscreen.LoadingScreen
 import com.example.audius.android.ui.playlistscreen.Header
 import com.example.audius.android.ui.playlistscreen.components.PlaylistRowItem
 import com.example.audius.android.ui.playlistscreen.components.TrackGridItem
+import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.viewmodel.interfaces.Item
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import com.example.audius.viewmodel.screens.search.SearchScreenState
@@ -47,7 +48,7 @@ import com.guru.composecookbook.verticalgrid.VerticalGrid
 fun SearchScreen(
     onBackPressed: (Boolean) -> Unit,
     onSearchPressed: (String) -> Unit,
-    onSongPressed: (String) -> Unit,
+    onSongPressed: (String, String, String, SongIconList) -> Unit,
     onPlaylistPressed: (String, String, String, String) -> Unit,
     searchScreenState: SearchScreenState,
     onPreviousSearchedPressed: (String) -> Unit,
@@ -204,7 +205,7 @@ fun ItemRowSearch(itemSearched: String, onPreviousSearchedPressed: (String) -> U
 fun ShowSearchResults(
     searchResultTracks: List<TrackItem>,
     searchResultPlaylist: List<PlaylistItem>,
-    onSongPressed: (String) -> Unit,
+    onSongPressed: (String, String, String, SongIconList) -> Unit,
     onPlaylistPressed: (String, String, String, String) -> Unit
 ) {
     Column(Modifier.fillMaxSize()) {
@@ -216,7 +217,7 @@ fun ShowSearchResults(
 }
 
 @Composable
-fun SearchGridTracks(list: List<Item>, onSongPressed: (String) -> Unit) {
+fun SearchGridTracks(list: List<Item>, onSongPressed: (String, String, String, SongIconList) -> Unit) {
     VerticalGrid {
         list.forEach { item ->
             TrackGridItem(item, onSongPressed)

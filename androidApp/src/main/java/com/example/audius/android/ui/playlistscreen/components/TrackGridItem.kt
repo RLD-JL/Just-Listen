@@ -20,10 +20,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import com.example.audius.android.ui.theme.graySurface
+import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.viewmodel.interfaces.Item
 
 @Composable
-fun TrackGridItem(item: Item, onSongPressed: (String) -> Unit) {
+fun TrackGridItem(item: Item, onSongPressed: (String, String, String, SongIconList) -> Unit) {
     val cardColor = if (isSystemInDarkTheme()) graySurface else MaterialTheme.colors.background
     Card(
         elevation = 4.dp,
@@ -31,7 +32,7 @@ fun TrackGridItem(item: Item, onSongPressed: (String) -> Unit) {
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
             .padding(8.dp)
-            .clickable(onClick = {onSongPressed(item.id)})
+            .clickable(onClick = {onSongPressed(item.id, item.title, item.user, item.songIconList)})
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
