@@ -45,8 +45,8 @@ fun RowListOfRecentActivity(
     onPlaylistClicked: (String, String, String, String) -> Unit
 ) {
 
-    LazyRow{
-        itemsIndexed(items = libraryState.recentSongsItems) {  _, playlistItem ->
+    LazyRow {
+        itemsIndexed(items = libraryState.recentSongsItems) { _, playlistItem ->
             PlaylistRowItem(
                 playlistItem = playlistItem,
                 onPlaylistClicked = onPlaylistClicked,
@@ -61,14 +61,20 @@ fun FavoritePlaylist(
     libraryState: LibraryState,
     onPlaylistPressed: (String, String, String, String) -> Unit
 ) {
+    val songIcon =
+        if (libraryState.favoritePlaylistItems.isNotEmpty())
+            libraryState.favoritePlaylistItems[0].songIconList.songImageURL480px
+        else
+            ""
     Row(
         Modifier
-            .fillMaxWidth().padding(top = 30.dp)
+            .fillMaxWidth()
+            .padding(top = 30.dp)
             .clickable(
                 onClick = {
                     onPlaylistPressed(
                         "Favorite",
-                        libraryState.favoritePlaylistItems[0].songIconList.songImageURL480px,
+                        songIcon,
                         "Favorite",
                         "You"
                     )
