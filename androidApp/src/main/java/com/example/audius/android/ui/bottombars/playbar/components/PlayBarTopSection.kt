@@ -24,7 +24,7 @@ fun PlayBarTopSection(currentFraction: Float, onCollapsedClicked: () -> Unit, on
             painter = painterResource(id = R.drawable.ic_down_arrow_foreground),
             modifier = Modifier
                 .clickable(onClick = onCollapsedClicked)
-                .size(lerp(0f, 30f, currentFraction).dp)
+                .size(lerp(0f, 50f, currentFraction).dp)
                 .graphicsLayer {
                     alpha = if (currentFraction == 1f) 1f else 0f
                 },
@@ -34,7 +34,7 @@ fun PlayBarTopSection(currentFraction: Float, onCollapsedClicked: () -> Unit, on
             painter = painterResource(id = R.drawable.ic_more_foreground),
             modifier = Modifier
                 .clickable(onClick = onCollapsedClicked)
-                .size(lerp(0f, 30f, currentFraction).dp)
+                .size(lerp(0f, 50f, currentFraction).dp)
                 .graphicsLayer {
                     alpha = if (currentFraction == 1f) 1f else 0f
                 }.clickable(onClick = onMoreClicked),
