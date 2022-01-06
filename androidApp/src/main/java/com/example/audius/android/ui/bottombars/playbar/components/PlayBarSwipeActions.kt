@@ -44,7 +44,7 @@ fun PlayBarSwipeActions(songIcon: String, currentFraction: Float, constraints: B
 
 
         (painter.state as? ImagePainter.State.Success)?.let { successState ->
-            LaunchedEffect(Unit) {
+
                 val drawable = successState.result.drawable
                 painterLoaded(successState.painter)
                 Palette.Builder(drawable.toBitmap()).generate { palette ->
@@ -53,7 +53,7 @@ fun PlayBarSwipeActions(songIcon: String, currentFraction: Float, constraints: B
                             listOf(Color(it.rgb), Color(it.rgb).copy(alpha = 0.6f))
                     }
                 }
-            }
+
         }
         Image(
             painter = painter,

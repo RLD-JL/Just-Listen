@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
@@ -31,7 +32,8 @@ fun PlaylistScreen(
     lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistState: PlaylistState,
     onPlaylistClicked: (String, String, String, String) -> Unit,
-    onSearchClicked: () -> Unit
+    onSearchClicked: () -> Unit,
+    painterLoaded: (Painter) -> Unit
 ) {
     if (playlistState.isLoading) {
         LoadingScreen()
@@ -41,7 +43,8 @@ fun PlaylistScreen(
             ScrollableContent(
                 lasItemReached = lasItemReached, scrollState = scrollState,
                 playlistState = playlistState,
-                onPlaylistClicked = onPlaylistClicked
+                onPlaylistClicked = onPlaylistClicked,
+                painterLoaded = painterLoaded
             )
             AnimatedToolBar(onSearchClicked)
         }
@@ -76,7 +79,8 @@ fun ScrollableContent(
     lasItemReached: (Int, PlayListEnum) -> Unit,
     scrollState: ScrollState,
     playlistState: PlaylistState,
-    onPlaylistClicked: (String, String, String, String) -> Unit
+    onPlaylistClicked: (String, String, String, String) -> Unit,
+    painterLoaded: (Painter) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -87,7 +91,8 @@ fun ScrollableContent(
         //HomeGridSection()
         ListOfCollections(
             playlistState = playlistState, lasItemReached = lasItemReached,
-            onPlaylistClicked = onPlaylistClicked
+            onPlaylistClicked = onPlaylistClicked,
+            painterLoaded = painterLoaded
         )
         Spacer(modifier = Modifier.height(100.dp))
     }
@@ -105,7 +110,8 @@ fun Header(text: String, modifier: Modifier = Modifier) {
 @Composable
 fun ListOfCollections(
     playlistState: PlaylistState, lasItemReached: (Int, PlayListEnum) -> Unit,
-    onPlaylistClicked: (String, String, String, String) -> Unit
+    onPlaylistClicked: (String, String, String, String) -> Unit,
+    painterLoaded: (Painter) -> Unit
 ) {
     val list = remember {
         mutableListOf("Top Playlist", "Remix", "Yolo")
@@ -117,19 +123,22 @@ fun ListOfCollections(
                 playlist = playlistState.playlistItems,
                 lasItemReached = lasItemReached,
                 PlayListEnum.TOP_PLAYLIST,
-                onPlaylistClicked
+                onPlaylistClicked,
+                painterLoaded
             )
             1 -> PlaylistRow(
                 playlist = playlistState.remixPlaylist,
                 lasItemReached = lasItemReached,
                 PlayListEnum.REMIX,
-                onPlaylistClicked
+                onPlaylistClicked,
+                painterLoaded
             )
             2 -> PlaylistRow(
                 playlist = playlistState.remixPlaylist,
                 lasItemReached = lasItemReached,
                 PlayListEnum.REMIX,
-                onPlaylistClicked
+                onPlaylistClicked,
+                painterLoaded
             )
         }
     }
@@ -139,7 +148,8 @@ fun ListOfCollections(
 fun PlaylistRow(
     playlist: List<PlaylistItem>, lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistEnum: PlayListEnum,
-    onPlaylistClicked: (String, String, String, String) -> Unit
+    onPlaylistClicked: (String, String, String, String) -> Unit,
+    painterLoaded: (Painter) -> Unit
 ) {
     LazyRow {
         itemsIndexed(items = playlist) { index, playlistItem ->
@@ -150,7 +160,7 @@ fun PlaylistRow(
             PlaylistRowItem(
                 playlistItem = playlistItem,
                 onPlaylistClicked = onPlaylistClicked,
-
+                painterLoaded = painterLoaded
                 )
         }
     }

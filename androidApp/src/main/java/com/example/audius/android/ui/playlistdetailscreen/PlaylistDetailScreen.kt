@@ -28,6 +28,7 @@ import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.utils.Constants
+import com.example.audius.android.mapper.PlaylistDetailMapper
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
 import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.datalayer.models.UserModel
@@ -40,7 +41,7 @@ fun PlaylistDetailScreen(
     playlistDetailState: PlaylistDetailState, onBackButtonPressed: (Boolean) -> Unit,
     musicServiceConnection: MusicServiceConnection,
     onSongPressed: (String, String, UserModel, SongIconList) -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
+    onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit,
 ) {
     if (playlistDetailState.isLoading) {
         LoadingScreen()
@@ -50,7 +51,9 @@ fun PlaylistDetailScreen(
         }
         val scrollState = rememberScrollState(0)
 
-        val painter = rememberImagePainter(
+        val convertToPainter = (playlistDetailState.painter as PlaylistDetailMapper).painter
+
+        val painter = convertToPainter ?: rememberImagePainter(
             request = ImageRequest.Builder(context = LocalContext.current)
                 .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
                 .data(playlistDetailState.playlistIcon).build()

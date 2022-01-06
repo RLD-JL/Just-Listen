@@ -5,9 +5,11 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.graphics.painter.Painter
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
 import com.example.audius.android.exoplayer.MusicServiceConnection
+import com.example.audius.android.mapper.PlaylistDetailMapper
 import com.example.audius.android.ui.playlistscreen.PlaylistScreen
 import com.example.audius.android.ui.libraryscreen.LibraryScreen
 import com.example.audius.viewmodel.screens.playlist.*
@@ -15,7 +17,6 @@ import com.example.audius.viewmodel.screens.playlist.PlayListEnum.*
 import com.example.audius.android.ui.playlistdetailscreen.PlaylistDetailScreen
 import com.example.audius.android.ui.playlistdetailscreen.playMusicFromId
 import com.example.audius.android.ui.searchscreen.SearchScreen
-import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.datalayer.models.UserModel
 import com.example.audius.viewmodel.screens.Screen.*
 import com.example.audius.viewmodel.screens.library.saveSongToFavorites
@@ -37,6 +38,8 @@ fun Navigation.ScreenPicker(
         mutableStateOf(false)
     }
 
+    val mutablePainter = remember { mutableStateOf<Painter?>(null) }
+
     when (screenIdentifier.screen) {
 
         Library ->
@@ -48,7 +51,8 @@ fun Navigation.ScreenPicker(
                         PlaylistDetail,
                         PlaylistDetailParams(
                             playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
-                            FAVORITE
+                            FAVORITE,
+                            painter = PlaylistDetailMapper(mutablePainter.value)
                         )
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)
@@ -66,6 +70,7 @@ fun Navigation.ScreenPicker(
                     }
                 },
                 playlistState = stateProvider.get(screenIdentifier = screenIdentifier),
+                painterLoaded = {painter-> mutablePainter.value = painter},
                 onPlaylistClicked = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
                     navigate(
                         PlaylistDetail,
@@ -74,7 +79,8 @@ fun Navigation.ScreenPicker(
                             playlistIcon,
                             playlistTitle,
                             playlistCreatedBy,
-                            CURRENT_PLAYLIST
+                            CURRENT_PLAYLIST,
+                            painter = PlaylistDetailMapper(mutablePainter.value)
                         )
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)
@@ -103,7 +109,7 @@ fun Navigation.ScreenPicker(
                 isPlayerReady.value = true
 
                 events.saveSongToRecent(songId, title, userModel, songIconList)
-            }
+            },
         )
         Search -> SearchScreen(
             onBackPressed = {
@@ -131,7 +137,8 @@ fun Navigation.ScreenPicker(
                     PlaylistDetail,
                     PlaylistDetailParams(
                         playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
-                        CURRENT_PLAYLIST
+                        CURRENT_PLAYLIST,
+                        painter = PlaylistDetailMapper(mutablePainter.value)
                     )
                 )
                 events.playMusicFromPlaylist(playlistId = playlistId)
@@ -141,4 +148,3 @@ fun Navigation.ScreenPicker(
         )
     }
 }
-

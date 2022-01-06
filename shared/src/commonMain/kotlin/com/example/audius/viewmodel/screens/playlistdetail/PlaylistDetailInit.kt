@@ -7,19 +7,18 @@ import com.example.audius.viewmodel.screens.ScreenInitSettings
 import com.example.audius.viewmodel.screens.playlist.PlayListEnum
 import kotlinx.serialization.Serializable
 
-@Serializable
 data class PlaylistDetailParams(
     val playlistId: String,
     val playlistIcon: String,
     val playlistTitle: String,
     val playlistCreatedBy: String,
-    val playlistEnum: PlayListEnum
-) :
-    ScreenParams
+    val playlistEnum: PlayListEnum,
+    val painter: Any
+) : ScreenParams
 
 fun Navigation.initPlaylistDetail(params: PlaylistDetailParams) = ScreenInitSettings(
     title = "PlaylistEnum" + params.playlistIcon,
-    initState = { PlaylistDetailState(isLoading = true) },
+    initState = { PlaylistDetailState(isLoading = true, painter = params.painter) },
     callOnInit = {
         val currentPlaylist =
             dataRepository.getPlaylist(index = 20, params.playlistEnum, params.playlistId)

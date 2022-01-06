@@ -9,5 +9,6 @@ data class PlaylistDetailState(
     val playlistName: String = "",
     val playListCreatedBy: String ="",
     var playlistIcon: String= "",
-    var songPlaylist: List<PlaylistItem> = emptyList()
+    var songPlaylist: List<PlaylistItem> = emptyList(),
+    val painter: Any
 ): ScreenState

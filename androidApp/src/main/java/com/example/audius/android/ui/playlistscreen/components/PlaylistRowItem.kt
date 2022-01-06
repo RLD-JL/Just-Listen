@@ -18,7 +18,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.ImageLoader
+import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.example.audius.android.ui.theme.typography
@@ -28,6 +28,8 @@ import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 fun PlaylistRowItem(
     playlistItem: PlaylistItem,
     onPlaylistClicked: (String, String, String, String) -> Unit,
+    mutablePainter: MutableState<ImagePainter?>? = null,
+    painterLoaded: (Painter) -> Unit
 ) {
     Column(
         modifier =
@@ -39,11 +41,15 @@ fun PlaylistRowItem(
 
                 })
     ) {
-        val painter = rememberImagePainter(
+        val painter = mutablePainter?.value ?:  rememberImagePainter(
             request = ImageRequest.Builder(context = LocalContext.current)
                 .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
                 .data(playlistItem.songIconList.songImageURL480px).build()
         )
+
+        (painter.state as? ImagePainter.State.Success)?.let { successState ->
+           // mutablePainter?.value = successState.painter
+        }
 
         Image(
             painter = painter,
@@ -52,6 +58,7 @@ fun PlaylistRowItem(
                 .height(160.dp)
                 .clickable(
                     onClick = {
+                        painterLoaded(painter)
                         onPlaylistClicked(
                             playlistItem.id,
                             playlistItem.songIconList.songImageURL480px,
