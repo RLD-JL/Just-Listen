@@ -34,10 +34,9 @@ class ApiClient {
         try {
             // please notice, Ktor Client is switching to a background thread under the hood
             // so the http call doesn't happen on the main thread, even if the coroutine has been launched on Dispatchers.Main
-            val resp = client.get<T>(url)
-            return resp
+            return client.get<T>(url)
         } catch (e: Exception) {
-            println("someError"+e.cause+" message= "+e.message)
+            println("Something went wrong" + e.cause + " message= " + e.message)
         }
         return null
     }
