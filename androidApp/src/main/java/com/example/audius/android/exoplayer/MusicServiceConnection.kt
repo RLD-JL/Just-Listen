@@ -69,7 +69,7 @@ class MusicServiceConnection @Inject constructor(
                             songDuration.value = it
                         }
                     }
-                    delay(100L)
+                    delay(1000L)
                 }
           }
     }

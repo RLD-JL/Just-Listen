@@ -1,7 +1,6 @@
 package com.example.audius.datalayer.localdb.playlistdetail
 
 import com.example.audius.datalayer.models.PlayListModel
-import com.example.audius.datalayer.models.TrendingListModel
 import myLocal.db.LocalDb
 
 fun LocalDb.getPlaylistDetail() : List<PlayListModel> {
