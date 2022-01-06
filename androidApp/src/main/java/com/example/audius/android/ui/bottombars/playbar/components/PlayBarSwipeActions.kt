@@ -28,7 +28,6 @@ fun PlayBarSwipeActions(songIcon: String, currentFraction: Float, constraints: B
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(5.dp)
     ) {
         val painter = rememberImagePainter(
             request = ImageRequest.Builder(context = LocalContext.current)
