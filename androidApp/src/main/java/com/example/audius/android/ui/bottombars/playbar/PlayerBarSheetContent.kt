@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -24,6 +25,7 @@ fun PlayerBarSheetContent(
     onSkipNextPressed: () -> Unit,
     musicServiceConnection: MusicServiceConnection,
     onCollapsedClicked: () -> Unit,
+    dominantListOfColor: MutableMap<String, List<Color>>
 ) {
     val songIcon =
         musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
@@ -63,7 +65,8 @@ fun PlayerBarSheetContent(
             },
             painterLoaded = { painter ->
                 mutablePainter.value = painter
-            }
+            },
+        dominantListOfColor = dominantListOfColor
         )
     }
 

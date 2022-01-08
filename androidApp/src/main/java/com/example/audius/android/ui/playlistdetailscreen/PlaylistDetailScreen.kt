@@ -42,6 +42,7 @@ fun PlaylistDetailScreen(
     musicServiceConnection: MusicServiceConnection,
     onSongPressed: (String, String, UserModel, SongIconList) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit,
+    dominantListOfColor: MutableMap<String, List<Color>>
 ) {
     if (playlistDetailState.isLoading) {
         LoadingScreen()
@@ -81,7 +82,8 @@ fun PlaylistDetailScreen(
                     isPlayerReady.value = true
                 },
                 onSongClicked = onSongPressed,
-                onFavoritePressed = onFavoritePressed
+                onFavoritePressed = onFavoritePressed,
+                dominantListOfColor = dominantListOfColor
             )
             AnimatedToolBar(playlistDetailState, scrollState, onBackButtonPressed)
         }
@@ -134,7 +136,8 @@ fun BottomScrollableContent(
     scrollState: ScrollState,
     onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
     onShuffleClicked: () -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
+    onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit,
+    dominantListOfColor: MutableMap<String, List<Color>>
 ) {
     Column(modifier = Modifier.verticalScroll(scrollState)) {
         Spacer(modifier = Modifier.height(480.dp))
@@ -150,7 +153,8 @@ fun BottomScrollableContent(
                 playlist = playlist,
                 onSongClicked = onSongClicked,
                 onShuffleClicked = onShuffleClicked,
-                onFavoritePressed = onFavoritePressed
+                onFavoritePressed = onFavoritePressed,
+                dominantListOfColor = dominantListOfColor
             )
         }
     }

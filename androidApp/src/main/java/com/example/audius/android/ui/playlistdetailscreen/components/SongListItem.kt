@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,6 +26,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.drawable.toBitmap
+import androidx.palette.graphics.Palette
+import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.example.audius.datalayer.models.SongIconList
@@ -34,6 +38,7 @@ import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 @Composable
 fun SongListItem(
     playlistItem: PlaylistItem, onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
+    dominantListOfColor: MutableMap<String, List<Color>>,
     onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
 ) {
     Row(
@@ -52,8 +57,22 @@ fun SongListItem(
         val painter = rememberImagePainter(
             request = ImageRequest.Builder(context = LocalContext.current)
                 .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
-                .data(playlistItem.songIconList.songImageURL150px).build()
+                .data(playlistItem.songIconList.songImageURL150px).allowHardware(false).build()
         )
+
+        (painter.state as? ImagePainter.State.Success)?.let { successState ->
+        LaunchedEffect(Unit) {
+            val drawable = successState.result.drawable
+            Palette.Builder(drawable.toBitmap()).generate { palette ->
+                palette?.dominantSwatch?.let {
+                    dominantListOfColor[playlistItem.title] =
+                        listOf(Color(it.rgb), Color(it.rgb).copy(alpha = 0.6f))
+                }
+            }
+        }
+
+        }
+
         Image(
             painter = painter,
             contentDescription = null,

@@ -4,9 +4,11 @@ import android.media.session.PlaybackState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import coil.annotation.ExperimentalCoilApi
 import com.example.audius.Navigation
@@ -37,6 +39,8 @@ fun Navigation.OnePane(
         bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     )
 
+    val dominantListOfColor = remember { mutableMapOf<String, List<Color>>() }
+
     val coroutineScope = rememberCoroutineScope()
     Scaffold(
         bottomBar = {
@@ -57,6 +61,7 @@ fun Navigation.OnePane(
                                     currentFraction = scaffoldState.fraction,
                                     onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
                                     musicServiceConnection = musicServiceConnection,
+                                    dominantListOfColor =dominantListOfColor
                                 )
                     }, content = {
                         Column(
@@ -64,7 +69,7 @@ fun Navigation.OnePane(
                                 Modifier.padding(bottom = bottomBarPadding)
                         ) {
                             saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
-                                ScreenPicker(currentScreenIdentifier, musicServiceConnection)
+                                ScreenPicker(currentScreenIdentifier, musicServiceConnection, dominantListOfColor = dominantListOfColor)
                             }
                         }
                     }, sheetPeekHeight = if (shouldHavePlayBar) {

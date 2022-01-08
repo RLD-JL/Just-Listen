@@ -5,6 +5,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
@@ -32,7 +33,8 @@ import com.example.audius.viewmodel.screens.search.updateSearch
 @Composable
 fun Navigation.ScreenPicker(
     screenIdentifier: ScreenIdentifier,
-    musicServiceConnection: MusicServiceConnection
+    musicServiceConnection: MusicServiceConnection,
+    dominantListOfColor: MutableMap<String, List<Color>>
 ) {
     val isPlayerReady: MutableState<Boolean> = remember {
         mutableStateOf(false)
@@ -110,6 +112,7 @@ fun Navigation.ScreenPicker(
 
                 events.saveSongToRecent(songId, title, userModel, songIconList)
             },
+            dominantListOfColor = dominantListOfColor
         )
         Search -> SearchScreen(
             onBackPressed = {

@@ -22,6 +22,7 @@ fun SongListScrollingSection(
     playlist: List<PlaylistItem>,
     onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
     onShuffleClicked: () -> Unit,
+    dominantListOfColor: MutableMap<String, List<Color>>,
     onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
 ) {
     ShuffleButton(onShuffleClicked)
@@ -30,7 +31,8 @@ fun SongListScrollingSection(
         SongListItem(
             playlistItem = playlistItem,
             onSongClicked = onSongClicked,
-            onFavoritePressed = onFavoritePressed
+            onFavoritePressed = onFavoritePressed,
+            dominantListOfColor = dominantListOfColor
         )
     }
 

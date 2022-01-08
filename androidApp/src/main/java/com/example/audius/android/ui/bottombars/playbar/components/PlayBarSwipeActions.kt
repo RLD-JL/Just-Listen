@@ -43,16 +43,7 @@ fun PlayBarSwipeActions(songIcon: String, currentFraction: Float, constraints: B
 
 
         (painter.state as? ImagePainter.State.Success)?.let { successState ->
-
-                val drawable = successState.result.drawable
                 painterLoaded(successState.painter)
-                Palette.Builder(drawable.toBitmap()).generate { palette ->
-                    palette?.dominantSwatch?.let {
-                        dominantListOfColor[title] =
-                            listOf(Color(it.rgb), Color(it.rgb).copy(alpha = 0.6f))
-                    }
-                }
-
         }
         Image(
             painter = painter,

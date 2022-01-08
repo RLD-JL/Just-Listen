@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil.compose.ImagePainter
 import com.example.audius.android.R
 import com.example.audius.android.exoplayer.MusicService.Companion.curSongDuration
 import com.example.audius.android.exoplayer.MusicServiceConnection
@@ -35,8 +34,8 @@ fun PlayerBottomBar(
     onCollapsedClicked: () -> Unit,
     onMoreClicked: () -> Unit,
     painterLoaded: (Painter) -> Unit,
+    dominantListOfColor: MutableMap<String, List<Color>>
 ) {
-    val dominantListOfColor = remember { mutableMapOf<String, List<Color>>() }
     val list = dominantListOfColor[title]
     BoxWithConstraints(
         modifier = if (list?.isNotEmpty() == true) Modifier.verticalGradientBackground(list)
