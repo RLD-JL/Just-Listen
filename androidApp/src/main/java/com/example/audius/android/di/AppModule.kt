@@ -1,6 +1,7 @@
 package com.example.audius.android.di
 
 import android.content.Context
+import coil.ImageLoader
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.MusicSource
 import dagger.Module
@@ -25,5 +26,14 @@ object AppModule {
     @Provides
     fun provideMusicSource(
     ) = MusicSource()
+
+    @Singleton
+    @Provides
+    fun providesImageLoader(
+        @ApplicationContext context: Context
+    ) = ImageLoader.Builder(context)
+        .availableMemoryPercentage(0.25)
+        .crossfade(true)
+        .build()
 
 }

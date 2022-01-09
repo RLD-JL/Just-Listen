@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
+import coil.imageLoader
 import com.example.audius.android.ui.MainComposable
 import com.example.audius.android.ui.theme.utils.AppThemeState
 import com.example.audius.android.ui.theme.AudiusTheme
@@ -25,12 +26,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val model = (application as AudiusApp).model
         val musicServiceConnection = (application as AudiusApp).musicServiceConnection
+        val imageLoader = (application as AudiusApp).imageLoader
 
         setContent {
             AudiusTheme(darkTheme = true, colorPallet = ColorPallet.DARK ) {
                 window.statusBarColor = MaterialTheme.colors.background.toArgb()
                 window.navigationBarColor = MaterialTheme.colors.primaryVariant.toArgb()
-                MainComposable(model, musicServiceConnection)
+                MainComposable(model, musicServiceConnection, imageLoader = imageLoader)
             }
         }
     }

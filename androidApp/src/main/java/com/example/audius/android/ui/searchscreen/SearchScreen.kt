@@ -28,6 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import coil.ImageLoader
 import com.example.audius.android.R
 import com.example.audius.android.ui.extensions.noRippleClickable
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
@@ -50,7 +51,8 @@ fun SearchScreen(
     onPlaylistPressed: (String, String, String, String) -> Unit,
     searchScreenState: SearchScreenState,
     onPreviousSearchedPressed: (String) -> Unit,
-    updateSearch: (String) -> Unit
+    updateSearch: (String) -> Unit,
+    imageLoader: ImageLoader
 ) {
     val requester = FocusRequester()
     val focusManager = LocalFocusManager.current
@@ -86,7 +88,8 @@ fun SearchScreen(
                     ShowSearchResults(
                         searchScreenState.searchResultTracks,
                         searchScreenState.searchResultPlaylist, onSongPressed = onSongPressed,
-                        onPlaylistPressed = onPlaylistPressed
+                        onPlaylistPressed = onPlaylistPressed,
+                        imageLoader = imageLoader
                     )
                 }
             }
@@ -204,13 +207,14 @@ fun ShowSearchResults(
     searchResultTracks: List<TrackItem>,
     searchResultPlaylist: List<PlaylistItem>,
     onSongPressed: (String, String, String, SongIconList) -> Unit,
-    onPlaylistPressed: (String, String, String, String) -> Unit
+    onPlaylistPressed: (String, String, String, String) -> Unit,
+    imageLoader: ImageLoader
 ) {
     Column(Modifier.fillMaxSize()) {
         Header(text = "Top Find")
         SearchGridTracks(list = searchResultTracks, onSongPressed)
         Header(text = "Playlist", modifier = Modifier.padding(top = 10.dp))
-        PlaylistResult(playlist = searchResultPlaylist, onPlaylistPressed)
+        PlaylistResult(playlist = searchResultPlaylist, onPlaylistPressed, imageLoader = imageLoader)
     }
 }
 
@@ -226,14 +230,16 @@ fun SearchGridTracks(list: List<Item>, onSongPressed: (String, String, String, S
 @Composable
 fun PlaylistResult(
     playlist: List<PlaylistItem>,
-    onPlaylistPressed: (String, String, String, String) -> Unit
+    onPlaylistPressed: (String, String, String, String) -> Unit,
+    imageLoader: ImageLoader
 ) {
     LazyRow{
         itemsIndexed(items = playlist) {  _, playlistItem ->
             PlaylistRowItem(
                 playlistItem = playlistItem,
                 onPlaylistClicked = onPlaylistPressed,
-                painterLoaded = {}
+                painterLoaded = {},
+                imageLoader = imageLoader
                 )
         }
     }

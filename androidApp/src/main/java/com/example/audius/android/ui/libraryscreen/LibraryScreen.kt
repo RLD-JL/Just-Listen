@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import coil.ImageLoader
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.isPlayEnabled
 import com.example.audius.android.exoplayer.isPlaying
@@ -24,7 +25,8 @@ import com.example.audius.viewmodel.screens.library.LibraryState
 fun LibraryScreen(
     musicServiceConnection: MusicServiceConnection,
     libraryState: LibraryState,
-    onPlaylistPressed: (String, String, String, String) -> Unit
+    onPlaylistPressed: (String, String, String, String) -> Unit,
+    imageLoader: ImageLoader
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column() {
@@ -33,7 +35,8 @@ fun LibraryScreen(
                 {
 
                 }
-            })
+            },
+            imageLoader=imageLoader)
             FavoritePlaylist(libraryState, onPlaylistPressed)
         }
     }
@@ -42,7 +45,8 @@ fun LibraryScreen(
 @Composable
 fun RowListOfRecentActivity(
     libraryState: LibraryState,
-    onPlaylistClicked: (String, String, String, String) -> Unit
+    onPlaylistClicked: (String, String, String, String) -> Unit,
+    imageLoader: ImageLoader
 ) {
 
     LazyRow {
@@ -52,7 +56,8 @@ fun RowListOfRecentActivity(
                 onPlaylistClicked = onPlaylistClicked,
                 painterLoaded = { yolo ->
 
-                }
+                },
+                imageLoader = imageLoader
             )
         }
     }

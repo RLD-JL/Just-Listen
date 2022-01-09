@@ -1,7 +1,9 @@
 package com.example.audius.android.ui.playlistscreen.components
 
 
+import android.annotation.SuppressLint
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -18,18 +20,22 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.ImageLoader
 import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.example.audius.android.ui.theme.typography
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
+import kotlinx.coroutines.launch
+
 
 @Composable
 fun PlaylistRowItem(
+    imageLoader: ImageLoader,
     playlistItem: PlaylistItem,
     onPlaylistClicked: (String, String, String, String) -> Unit,
     mutablePainter: MutableState<ImagePainter?>? = null,
-    painterLoaded: (Painter) -> Unit
+    painterLoaded: (Painter) -> Unit,
 ) {
     Column(
         modifier =
@@ -41,15 +47,15 @@ fun PlaylistRowItem(
 
                 })
     ) {
-        val painter = mutablePainter?.value ?:  rememberImagePainter(
-            request = ImageRequest.Builder(context = LocalContext.current)
+
+
+        val request = ImageRequest.Builder(context = LocalContext.current)
                 .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
                 .data(playlistItem.songIconList.songImageURL480px).build()
-        )
 
-        (painter.state as? ImagePainter.State.Success)?.let { successState ->
-           // mutablePainter?.value = successState.painter
-        }
+        val painter = rememberImagePainter(request = request, imageLoader = imageLoader)
+
+
 
         Image(
             painter = painter,

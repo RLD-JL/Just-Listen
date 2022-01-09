@@ -11,6 +11,7 @@ import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import coil.ImageLoader
 import coil.annotation.ExperimentalCoilApi
 import com.example.audius.Navigation
 import com.example.audius.android.exoplayer.MusicServiceConnection
@@ -27,7 +28,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun Navigation.OnePane(
     saveableStateHolder: SaveableStateHolder,
-    musicServiceConnection: MusicServiceConnection
+    musicServiceConnection: MusicServiceConnection,
+    imageLoader: ImageLoader
 ) {
     val shouldHavePlayBar =
         musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
@@ -70,7 +72,9 @@ fun Navigation.OnePane(
                                 Modifier.padding(bottom = bottomBarPadding)
                         ) {
                             saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
-                                ScreenPicker(currentScreenIdentifier, musicServiceConnection, dominantColor = { dominantColorMutable.value = it})
+                                ScreenPicker(currentScreenIdentifier, musicServiceConnection,
+                                    imageLoader = imageLoader,
+                                    dominantColor = { dominantColorMutable.value = it})
                             }
                         }
                     }, sheetPeekHeight = if (shouldHavePlayBar) {

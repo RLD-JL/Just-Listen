@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.ImageLoader
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
 import com.example.audius.android.ui.playlistscreen.components.PlaylistRowItem
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
@@ -33,7 +34,8 @@ fun PlaylistScreen(
     playlistState: PlaylistState,
     onPlaylistClicked: (String, String, String, String) -> Unit,
     onSearchClicked: () -> Unit,
-    painterLoaded: (Painter) -> Unit
+    painterLoaded: (Painter) -> Unit,
+    imageLoader: ImageLoader,
 ) {
     if (playlistState.isLoading) {
         LoadingScreen()
@@ -44,7 +46,8 @@ fun PlaylistScreen(
                 lasItemReached = lasItemReached, scrollState = scrollState,
                 playlistState = playlistState,
                 onPlaylistClicked = onPlaylistClicked,
-                painterLoaded = painterLoaded
+                painterLoaded = painterLoaded,
+                imageLoader = imageLoader
             )
             AnimatedToolBar(onSearchClicked)
         }
@@ -80,7 +83,8 @@ fun ScrollableContent(
     scrollState: ScrollState,
     playlistState: PlaylistState,
     onPlaylistClicked: (String, String, String, String) -> Unit,
-    painterLoaded: (Painter) -> Unit
+    painterLoaded: (Painter) -> Unit,
+    imageLoader: ImageLoader
 ) {
     Column(
         modifier = Modifier
@@ -92,7 +96,8 @@ fun ScrollableContent(
         ListOfCollections(
             playlistState = playlistState, lasItemReached = lasItemReached,
             onPlaylistClicked = onPlaylistClicked,
-            painterLoaded = painterLoaded
+            painterLoaded = painterLoaded,
+            imageLoader=  imageLoader
         )
         Spacer(modifier = Modifier.height(100.dp))
     }
@@ -111,7 +116,8 @@ fun Header(text: String, modifier: Modifier = Modifier) {
 fun ListOfCollections(
     playlistState: PlaylistState, lasItemReached: (Int, PlayListEnum) -> Unit,
     onPlaylistClicked: (String, String, String, String) -> Unit,
-    painterLoaded: (Painter) -> Unit
+    painterLoaded: (Painter) -> Unit,
+    imageLoader: ImageLoader
 ) {
     val list = remember {
         mutableListOf("Top Playlist", "Remix", "Yolo")
@@ -124,21 +130,24 @@ fun ListOfCollections(
                 lasItemReached = lasItemReached,
                 PlayListEnum.TOP_PLAYLIST,
                 onPlaylistClicked,
-                painterLoaded
+                painterLoaded,
+                imageLoader = imageLoader
             )
             1 -> PlaylistRow(
                 playlist = playlistState.remixPlaylist,
                 lasItemReached = lasItemReached,
                 PlayListEnum.REMIX,
                 onPlaylistClicked,
-                painterLoaded
+                painterLoaded,
+                imageLoader = imageLoader
             )
             2 -> PlaylistRow(
                 playlist = playlistState.remixPlaylist,
                 lasItemReached = lasItemReached,
                 PlayListEnum.REMIX,
                 onPlaylistClicked,
-                painterLoaded
+                painterLoaded,
+                imageLoader = imageLoader
             )
         }
     }
@@ -149,7 +158,8 @@ fun PlaylistRow(
     playlist: List<PlaylistItem>, lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistEnum: PlayListEnum,
     onPlaylistClicked: (String, String, String, String) -> Unit,
-    painterLoaded: (Painter) -> Unit
+    painterLoaded: (Painter) -> Unit,
+    imageLoader: ImageLoader
 ) {
     LazyRow {
         itemsIndexed(items = playlist) { index, playlistItem ->
@@ -160,7 +170,8 @@ fun PlaylistRow(
             PlaylistRowItem(
                 playlistItem = playlistItem,
                 onPlaylistClicked = onPlaylistClicked,
-                painterLoaded = painterLoaded
+                painterLoaded = painterLoaded,
+                imageLoader = imageLoader
                 )
         }
     }

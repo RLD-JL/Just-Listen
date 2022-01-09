@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import coil.ImageLoader
 import coil.annotation.ExperimentalCoilApi
 import com.example.audius.Navigation
 import com.example.audius.android.exoplayer.MusicServiceConnection
@@ -11,10 +12,11 @@ import com.example.audius.android.exoplayer.MusicServiceConnection
 @ExperimentalCoilApi
 @ExperimentalMaterialApi
 @Composable
-fun Navigation.Router(musicServiceConnection: MusicServiceConnection) {
+fun Navigation.Router(musicServiceConnection: MusicServiceConnection,
+                      imageLoader: ImageLoader) {
     val screenUIisStateHolder = rememberSaveableStateHolder()
 
-    OnePane(screenUIisStateHolder, musicServiceConnection)
+    OnePane(screenUIisStateHolder, musicServiceConnection, imageLoader = imageLoader)
 
     screenStatesToRemove.forEach {
         screenUIisStateHolder.removeState(it.URI)

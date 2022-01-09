@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import coil.ImageLoader
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
 import com.example.audius.android.exoplayer.MusicServiceConnection
@@ -35,7 +36,8 @@ import com.example.audius.viewmodel.screens.search.updateSearch
 fun Navigation.ScreenPicker(
     screenIdentifier: ScreenIdentifier,
     musicServiceConnection: MusicServiceConnection,
-    dominantColor: (Int) -> Unit
+    dominantColor: (Int) -> Unit,
+    imageLoader: ImageLoader,
 ) {
     val isPlayerReady: MutableState<Boolean> = remember {
         mutableStateOf(false)
@@ -59,10 +61,12 @@ fun Navigation.ScreenPicker(
                         )
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)
-                }
+                },
+                imageLoader = imageLoader
             )
         Playlist ->
             PlaylistScreen(
+                imageLoader= imageLoader,
                 lasItemReached = { lastIndex, playListEnum ->
                     when (playListEnum) {
                         TOP_PLAYLIST -> events.fetchPlaylist(lastIndex, TOP_PLAYLIST)
@@ -117,6 +121,7 @@ fun Navigation.ScreenPicker(
             }
         )
         Search -> SearchScreen(
+            imageLoader = imageLoader,
             onBackPressed = {
                 exitScreen()
             },
