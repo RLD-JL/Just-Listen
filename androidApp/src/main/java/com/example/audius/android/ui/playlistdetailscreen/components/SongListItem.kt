@@ -17,6 +17,8 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,14 +40,16 @@ import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 @Composable
 fun SongListItem(
     playlistItem: PlaylistItem, onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
-    dominantListOfColor: MutableMap<String, List<Color>>,
+    dominantColor: (Int) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
 ) {
+    val dominantColorMutable = remember { mutableStateOf(-123123123) }
     Row(
         modifier = Modifier
             .padding(8.dp)
             .clickable(
                 onClick = {
+                    dominantColor(dominantColorMutable.value)
                     onSongClicked(
                         playlistItem.id, playlistItem.title,
                         UserModel(playlistItem.user), playlistItem.songIconList
@@ -60,13 +64,14 @@ fun SongListItem(
                 .data(playlistItem.songIconList.songImageURL150px).allowHardware(false).build()
         )
 
+
+
         (painter.state as? ImagePainter.State.Success)?.let { successState ->
         LaunchedEffect(Unit) {
             val drawable = successState.result.drawable
             Palette.Builder(drawable.toBitmap()).generate { palette ->
                 palette?.dominantSwatch?.let {
-                    dominantListOfColor[playlistItem.title] =
-                        listOf(Color(it.rgb), Color(it.rgb).copy(alpha = 0.6f))
+                    dominantColorMutable.value = it.rgb
                 }
             }
         }

@@ -10,5 +10,5 @@ data class PlaylistDetailState(
     val playListCreatedBy: String ="",
     var playlistIcon: String= "",
     var songPlaylist: List<PlaylistItem> = emptyList(),
-    val painter: Any
+    val dominantColor: Int = 0
 ): ScreenState

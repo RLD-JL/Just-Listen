@@ -42,7 +42,7 @@ fun PlaylistDetailScreen(
     musicServiceConnection: MusicServiceConnection,
     onSongPressed: (String, String, UserModel, SongIconList) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit,
-    dominantListOfColor: MutableMap<String, List<Color>>
+    dominantColor: (Int) -> Unit
 ) {
     if (playlistDetailState.isLoading) {
         LoadingScreen()
@@ -52,9 +52,7 @@ fun PlaylistDetailScreen(
         }
         val scrollState = rememberScrollState(0)
 
-        val convertToPainter = (playlistDetailState.painter as PlaylistDetailMapper).painter
-
-        val painter = convertToPainter ?: rememberImagePainter(
+        val painter =  rememberImagePainter(
             request = ImageRequest.Builder(context = LocalContext.current)
                 .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
                 .data(playlistDetailState.playlistIcon).build()
@@ -83,7 +81,7 @@ fun PlaylistDetailScreen(
                 },
                 onSongClicked = onSongPressed,
                 onFavoritePressed = onFavoritePressed,
-                dominantListOfColor = dominantListOfColor
+                dominantColor = dominantColor
             )
             AnimatedToolBar(playlistDetailState, scrollState, onBackButtonPressed)
         }
@@ -137,7 +135,7 @@ fun BottomScrollableContent(
     onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
     onShuffleClicked: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit,
-    dominantListOfColor: MutableMap<String, List<Color>>
+    dominantColor: (Int) -> Unit
 ) {
     Column(modifier = Modifier.verticalScroll(scrollState)) {
         Spacer(modifier = Modifier.height(480.dp))
@@ -154,7 +152,7 @@ fun BottomScrollableContent(
                 onSongClicked = onSongClicked,
                 onShuffleClicked = onShuffleClicked,
                 onFavoritePressed = onFavoritePressed,
-                dominantListOfColor = dominantListOfColor
+                dominantColor = dominantColor
             )
         }
     }

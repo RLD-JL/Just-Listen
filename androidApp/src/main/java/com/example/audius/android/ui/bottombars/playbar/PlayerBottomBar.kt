@@ -34,12 +34,11 @@ fun PlayerBottomBar(
     onCollapsedClicked: () -> Unit,
     onMoreClicked: () -> Unit,
     painterLoaded: (Painter) -> Unit,
-    dominantListOfColor: MutableMap<String, List<Color>>
+    dominantColor: Int
 ) {
-    val list = dominantListOfColor[title]
+    val list = listOf(Color(dominantColor), Color(dominantColor).copy(alpha = 0.6f))
     BoxWithConstraints(
-        modifier = if (list?.isNotEmpty() == true) Modifier.verticalGradientBackground(list)
-        else Modifier
+        modifier =  Modifier.verticalGradientBackground(list)
     ) {
         val constraints = this@BoxWithConstraints
         Column(Modifier.fillMaxSize()) {
@@ -47,7 +46,7 @@ fun PlayerBottomBar(
             PlayBarTopSection(currentFraction, onCollapsedClicked, onMoreClicked)
 
             PlayBarSwipeActions(
-                songIcon, currentFraction, constraints, dominantListOfColor,
+                songIcon, currentFraction, constraints,
                 title, musicServiceConnection, onSkipNextPressed, painterLoaded
             )
             LinearProgressIndicator(

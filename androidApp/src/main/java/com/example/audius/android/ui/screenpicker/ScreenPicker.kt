@@ -24,6 +24,7 @@ import com.example.audius.viewmodel.screens.library.saveSongToFavorites
 import com.example.audius.viewmodel.screens.library.saveSongToRecent
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailParams
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailState
+import com.example.audius.viewmodel.screens.playlistdetail.saveDominantColor
 import com.example.audius.viewmodel.screens.search.SearchScreenState
 import com.example.audius.viewmodel.screens.search.saveSearchInfo
 import com.example.audius.viewmodel.screens.search.searchFor
@@ -34,7 +35,7 @@ import com.example.audius.viewmodel.screens.search.updateSearch
 fun Navigation.ScreenPicker(
     screenIdentifier: ScreenIdentifier,
     musicServiceConnection: MusicServiceConnection,
-    dominantListOfColor: MutableMap<String, List<Color>>
+    dominantColor: (Int) -> Unit
 ) {
     val isPlayerReady: MutableState<Boolean> = remember {
         mutableStateOf(false)
@@ -99,6 +100,8 @@ fun Navigation.ScreenPicker(
             onFavoritePressed = { id, title, userModel, songIconList ->
                 events.saveSongToFavorites(id, title, userModel, songIconList)
             },
+            dominantColor = {color -> events.saveDominantColor(color)
+                    dominantColor(color)},
             onSongPressed = { songId, title, userModel, songIconList ->
 
                 playMusicFromId(
@@ -111,8 +114,7 @@ fun Navigation.ScreenPicker(
                 isPlayerReady.value = true
 
                 events.saveSongToRecent(songId, title, userModel, songIconList)
-            },
-            dominantListOfColor = dominantListOfColor
+            }
         )
         Search -> SearchScreen(
             onBackPressed = {

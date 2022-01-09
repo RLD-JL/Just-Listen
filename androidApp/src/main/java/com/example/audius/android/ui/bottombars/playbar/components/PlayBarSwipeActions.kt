@@ -21,8 +21,7 @@ import com.example.audius.android.ui.utils.offsetX
 import com.example.audius.android.ui.utils.widthSize
 
 @Composable
-fun PlayBarSwipeActions(songIcon: String, currentFraction: Float, constraints: BoxWithConstraintsScope,
-                        dominantListOfColor: MutableMap<String, List<Color>>, title: String,
+fun PlayBarSwipeActions(songIcon: String, currentFraction: Float, constraints: BoxWithConstraintsScope, title: String,
                         musicServiceConnection: MusicServiceConnection, onSkipNextPressed: () -> Unit,
                         painterLoaded: (Painter) -> Unit) {
     Row(

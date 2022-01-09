@@ -24,9 +24,8 @@ fun PlayerBarSheetContent(
     currentFraction: Float,
     onSkipNextPressed: () -> Unit,
     musicServiceConnection: MusicServiceConnection,
-    onCollapsedClicked: () -> Unit,
-    dominantListOfColor: MutableMap<String, List<Color>>
-) {
+    dominantColor: Int,
+    onCollapsedClicked: () -> Unit) {
     val songIcon =
         musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
     val title =
@@ -66,7 +65,7 @@ fun PlayerBarSheetContent(
             painterLoaded = { painter ->
                 mutablePainter.value = painter
             },
-        dominantListOfColor = dominantListOfColor
+            dominantColor = dominantColor
         )
     }
 

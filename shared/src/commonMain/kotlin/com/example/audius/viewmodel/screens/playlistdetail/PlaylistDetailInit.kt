@@ -18,7 +18,7 @@ data class PlaylistDetailParams(
 
 fun Navigation.initPlaylistDetail(params: PlaylistDetailParams) = ScreenInitSettings(
     title = "PlaylistEnum" + params.playlistIcon,
-    initState = { PlaylistDetailState(isLoading = true, painter = params.painter) },
+    initState = { PlaylistDetailState(isLoading = true) },
     callOnInit = {
         val currentPlaylist =
             dataRepository.getPlaylist(index = 20, params.playlistEnum, params.playlistId)

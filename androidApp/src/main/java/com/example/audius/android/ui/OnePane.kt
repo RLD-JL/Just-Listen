@@ -4,6 +4,7 @@ import android.media.session.PlaybackState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.SaveableStateHolder
@@ -39,7 +40,7 @@ fun Navigation.OnePane(
         bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     )
 
-    val dominantListOfColor = remember { mutableMapOf<String, List<Color>>() }
+    val dominantColorMutable = remember { mutableStateOf(12312312) }
 
     val coroutineScope = rememberCoroutineScope()
     Scaffold(
@@ -61,7 +62,7 @@ fun Navigation.OnePane(
                                     currentFraction = scaffoldState.fraction,
                                     onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
                                     musicServiceConnection = musicServiceConnection,
-                                    dominantListOfColor =dominantListOfColor
+                            dominantColor =  dominantColorMutable.value
                                 )
                     }, content = {
                         Column(
@@ -69,7 +70,7 @@ fun Navigation.OnePane(
                                 Modifier.padding(bottom = bottomBarPadding)
                         ) {
                             saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
-                                ScreenPicker(currentScreenIdentifier, musicServiceConnection, dominantListOfColor = dominantListOfColor)
+                                ScreenPicker(currentScreenIdentifier, musicServiceConnection, dominantColor = { dominantColorMutable.value = it})
                             }
                         }
                     }, sheetPeekHeight = if (shouldHavePlayBar) {
