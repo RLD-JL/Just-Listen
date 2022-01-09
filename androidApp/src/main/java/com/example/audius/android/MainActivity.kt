@@ -12,7 +12,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
-import coil.imageLoader
 import com.example.audius.android.ui.MainComposable
 import com.example.audius.android.ui.theme.utils.AppThemeState
 import com.example.audius.android.ui.theme.AudiusTheme
