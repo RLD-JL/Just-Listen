@@ -23,7 +23,14 @@ import android.support.v4.media.MediaBrowserCompat
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.example.audius.android.exoplayer.MusicServiceConnection
@@ -35,6 +42,7 @@ import com.example.audius.datalayer.models.UserModel
 import com.example.audius.viewmodel.interfaces.Item
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailState
+import kotlin.math.roundToInt
 
 @Composable
 fun PlaylistDetailScreen(
@@ -58,19 +66,41 @@ fun PlaylistDetailScreen(
                 .data(playlistDetailState.playlistIcon).build()
         )
 
+
+        val toolbarHeight = 350.dp
+        val toolbarHeightPx = with(LocalDensity.current) { toolbarHeight.roundToPx().toFloat() }
+// our offset to collapse toolbar
+        val toolbarOffsetHeightPx =
+
+            remember { mutableStateOf(0f) }
+
+        val nestedScrollConnection = remember {
+            object : NestedScrollConnection {
+                override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                    // try to consume before LazyColumn to collapse toolbar if needed, hence pre-scroll
+                    val delta = available.y
+                    val newOffset = toolbarOffsetHeightPx.value + delta
+                    if(newOffset<0)
+                    toolbarOffsetHeightPx.value = newOffset
+                    // here's the catch: let's pretend we consumed 0 in any case, since we want
+                    // LazyColumn to scroll anyway for good UX
+                    // We're basically watching scroll without taking it
+                    return Offset.Zero
+                }
+            }
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .nestedScroll(nestedScrollConnection)
         ) {
-            BoxTopSection(
-                scrollState = scrollState,
-                playlistDetailState = playlistDetailState,
-                playlistPainter = painter
-            )
-            TopSectionOverlay(scrollState = scrollState)
+
             BottomScrollableContent(
+                playlistDetailState = playlistDetailState,
+                scrollState = toolbarOffsetHeightPx,
+                nestedScrollConnection = nestedScrollConnection,
                 playlist = playlistDetailState.songPlaylist,
-                scrollState = scrollState,
                 onShuffleClicked = {
                     playMusic(
                         musicServiceConnection,
@@ -81,9 +111,10 @@ fun PlaylistDetailScreen(
                 },
                 onSongClicked = onSongPressed,
                 onFavoritePressed = onFavoritePressed,
-                dominantColor = dominantColor
+                dominantColor = dominantColor,
+                painter = painter
             )
-            AnimatedToolBar(playlistDetailState, scrollState, onBackButtonPressed)
+            AnimatedToolBar(playlistDetailState, toolbarOffsetHeightPx, onBackButtonPressed)
         }
     }
 }
@@ -91,7 +122,7 @@ fun PlaylistDetailScreen(
 @Composable
 fun AnimatedToolBar(
     playlistDetailState: PlaylistDetailState,
-    scrollState: ScrollState,
+    scrollState: MutableState<Float>,
     onBackButtonPressed: (Boolean) -> Unit
 ) {
     Row(
@@ -100,7 +131,7 @@ fun AnimatedToolBar(
         modifier = Modifier
             .fillMaxWidth()
             .horizontalGradientBackground(
-                if (Dp(scrollState.value.toFloat()) < 1080.dp)
+                if (Dp(-scrollState.value) < 1080.dp)
                     listOf(
                         Color.Transparent,
                         Color.Transparent
@@ -119,7 +150,7 @@ fun AnimatedToolBar(
             color = MaterialTheme.colors.onSurface,
             modifier = Modifier
                 .padding(16.dp)
-                .alpha(((scrollState.value + 0.001f) / 1000).coerceIn(0f, 1f))
+                .alpha(((-scrollState.value + 0.010f) / 1000).coerceIn(0f, 1f))
         )
         Icon(
             imageVector = Icons.Default.Search, tint = MaterialTheme.colors.onSurface,
@@ -130,32 +161,26 @@ fun AnimatedToolBar(
 
 @Composable
 fun BottomScrollableContent(
+    playlistDetailState: PlaylistDetailState,
+    scrollState: MutableState<Float>,
     playlist: List<PlaylistItem>,
-    scrollState: ScrollState,
     onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
     onShuffleClicked: () -> Unit,
+    nestedScrollConnection: NestedScrollConnection,
     onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit,
-    dominantColor: (Int) -> Unit
+    dominantColor: (Int) -> Unit,
+    painter: ImagePainter
 ) {
-    Column(modifier = Modifier.verticalScroll(scrollState)) {
-        Spacer(modifier = Modifier.height(480.dp))
-        Column(
-            modifier = Modifier.horizontalGradientBackground(
-                listOf(
-                    MaterialTheme.colors.background,
-                    MaterialTheme.colors.background
-                )
-            )
-        ) {
             SongListScrollingSection(
+                painter = painter,
+                playlistDetailState = playlistDetailState,
+                scrollState = scrollState,
                 playlist = playlist,
                 onSongClicked = onSongClicked,
                 onShuffleClicked = onShuffleClicked,
                 onFavoritePressed = onFavoritePressed,
                 dominantColor = dominantColor
             )
-        }
-    }
 }
 
 fun playMusicFromId(

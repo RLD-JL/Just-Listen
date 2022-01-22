@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.typography
@@ -13,29 +15,46 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.ImagePainter
 import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.datalayer.models.UserModel
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
+import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailState
 
 @Composable
 fun SongListScrollingSection(
+    playlistDetailState: PlaylistDetailState,
+    scrollState: MutableState<Float>,
     playlist: List<PlaylistItem>,
     onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
     onShuffleClicked: () -> Unit,
     dominantColor: (Int) -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
+    onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit,
+    painter: ImagePainter
 ) {
-    ShuffleButton(onShuffleClicked)
-    DownloadedRow()
-    playlist.forEach { playlistItem ->
-        SongListItem(
-            playlistItem = playlistItem,
-            onSongClicked = onSongClicked,
-            onFavoritePressed = onFavoritePressed,
-            dominantColor = dominantColor
-        )
-    }
+    LazyColumn(Modifier.padding(top = 25.dp)) {
+        item {
+            BoxTopSection(
+                scrollState = scrollState,
+                playlistDetailState = playlistDetailState,
+                playlistPainter = painter
+            )
 
+        }
+        item {
+            ShuffleButton(onShuffleClicked)
+            DownloadedRow()
+        }
+        itemsIndexed(playlist) {index,playlistItem ->
+
+            SongListItem(
+                playlistItem = playlistItem,
+                onSongClicked = onSongClicked,
+                onFavoritePressed = onFavoritePressed,
+                dominantColor = dominantColor
+            )
+        }
+    }
 }
 
 @Composable

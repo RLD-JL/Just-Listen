@@ -9,6 +9,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
@@ -19,17 +20,13 @@ import androidx.compose.ui.unit.sp
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailState
 
 @Composable
-fun BoxTopSection(scrollState: ScrollState, playlistDetailState: PlaylistDetailState, playlistPainter: Painter) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Spacer(
-            modifier = Modifier
-                .height(100.dp)
-                .fillMaxWidth()
-        )
+fun BoxTopSection(scrollState: MutableState<Float>, playlistDetailState: PlaylistDetailState, playlistPainter: Painter) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+
         //animate as scroll value increase but not fast so divide by random number 50
         val dynamicValue =
-            if (250.dp - Dp(scrollState.value / 50f) < 10.dp) 10.dp //prevent going 0 cause crash
-            else 250.dp - Dp(scrollState.value / 20f)
+            if (250.dp - Dp(-scrollState.value / 50f) < 10.dp) 10.dp //prevent going 0 cause crash
+            else 250.dp - Dp(-scrollState.value / 20f)
         val animateImageSize = animateDpAsState(dynamicValue).value
         Image(
             painter = playlistPainter,
@@ -65,9 +62,9 @@ fun BoxTopSection(scrollState: ScrollState, playlistDetailState: PlaylistDetailS
 }
 
 @Composable
-fun TopSectionOverlay(scrollState: ScrollState) {
+fun TopSectionOverlay(scrollState: MutableState<Float>) {
     //slowly increase alpha till it reaches 1
-    val dynamicAlpha = ((scrollState.value + 0.00f) / 1000).coerceIn(0f, 1f)
+    val dynamicAlpha = ((-scrollState.value + 0.00f) / 1000).coerceIn(0f, 1f)
     Box(
         modifier = Modifier
             .fillMaxWidth()
