@@ -9,7 +9,7 @@ import com.example.audius.viewmodel.screens.playlist.PlayListEnum
 import com.example.audius.viewmodel.screens.playlist.PlayListEnum.*
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 
-suspend fun Repository.getPlaylist(index: Int, playListEnum: PlayListEnum, playlistId: String= ""): List<PlaylistItem> {
+suspend fun Repository.getPlaylist(index: Int, playListEnum: PlayListEnum, playlistId: String= "DOPRl"): List<PlaylistItem> {
     return when (playListEnum) {
 
         TOP_PLAYLIST -> webservices.fetchPlaylist(index, TOP_PLAYLIST)?.data?.map { playlistModel ->
