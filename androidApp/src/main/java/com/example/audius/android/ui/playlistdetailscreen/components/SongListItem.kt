@@ -25,18 +25,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.palette.graphics.Palette
+import coil.annotation.ExperimentalCoilApi
 import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
+import coil.request.SuccessResult
+import com.example.audius.android.R
 import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.datalayer.models.UserModel
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 
+@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun SongListItem(
     playlistItem: PlaylistItem, onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
@@ -64,10 +69,8 @@ fun SongListItem(
                 .data(playlistItem.songIconList.songImageURL150px).allowHardware(false).build()
         )
 
-
-
         (painter.state as? ImagePainter.State.Success)?.let { successState ->
-        LaunchedEffect(Unit) {
+        LaunchedEffect(painter) {
             val drawable = successState.result.drawable
             Palette.Builder(drawable.toBitmap()).generate { palette ->
                 palette?.dominantSwatch?.let {
@@ -79,7 +82,7 @@ fun SongListItem(
         }
 
         Image(
-            painter = painter,
+            painter = painter ,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier

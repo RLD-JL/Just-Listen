@@ -51,9 +51,7 @@ fun SearchScreen(
     onPlaylistPressed: (String, String, String, String) -> Unit,
     searchScreenState: SearchScreenState,
     onPreviousSearchedPressed: (String) -> Unit,
-    updateSearch: (String) -> Unit,
-    imageLoader: ImageLoader
-) {
+    updateSearch: (String) -> Unit) {
     val requester = FocusRequester()
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState(0)
@@ -88,9 +86,7 @@ fun SearchScreen(
                     ShowSearchResults(
                         searchScreenState.searchResultTracks,
                         searchScreenState.searchResultPlaylist, onSongPressed = onSongPressed,
-                        onPlaylistPressed = onPlaylistPressed,
-                        imageLoader = imageLoader
-                    )
+                        onPlaylistPressed = onPlaylistPressed)
                 }
             }
         }
@@ -207,14 +203,12 @@ fun ShowSearchResults(
     searchResultTracks: List<TrackItem>,
     searchResultPlaylist: List<PlaylistItem>,
     onSongPressed: (String, String, String, SongIconList) -> Unit,
-    onPlaylistPressed: (String, String, String, String) -> Unit,
-    imageLoader: ImageLoader
-) {
+    onPlaylistPressed: (String, String, String, String) -> Unit) {
     Column(Modifier.fillMaxSize()) {
         Header(text = "Top Find")
         SearchGridTracks(list = searchResultTracks, onSongPressed)
         Header(text = "Playlist", modifier = Modifier.padding(top = 10.dp))
-        PlaylistResult(playlist = searchResultPlaylist, onPlaylistPressed, imageLoader = imageLoader)
+        PlaylistResult(playlist = searchResultPlaylist, onPlaylistPressed)
     }
 }
 
@@ -230,17 +224,13 @@ fun SearchGridTracks(list: List<Item>, onSongPressed: (String, String, String, S
 @Composable
 fun PlaylistResult(
     playlist: List<PlaylistItem>,
-    onPlaylistPressed: (String, String, String, String) -> Unit,
-    imageLoader: ImageLoader
-) {
+    onPlaylistPressed: (String, String, String, String) -> Unit) {
     LazyRow{
         itemsIndexed(items = playlist) {  _, playlistItem ->
             PlaylistRowItem(
                 playlistItem = playlistItem,
                 onPlaylistClicked = onPlaylistPressed,
-                painterLoaded = {},
-                imageLoader = imageLoader
-                )
+                painterLoaded = {})
         }
     }
 }

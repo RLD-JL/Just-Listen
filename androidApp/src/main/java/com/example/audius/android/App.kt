@@ -22,9 +22,6 @@ class AudiusApp : Application() {
     @Inject
     lateinit var musicServiceConnection: MusicServiceConnection
 
-    @Inject
-    lateinit var imageLoader: ImageLoader
-
     override fun onCreate() {
         super.onCreate()
         model = AudiusViewModel.Factory.getAndroidInstance(context = this)

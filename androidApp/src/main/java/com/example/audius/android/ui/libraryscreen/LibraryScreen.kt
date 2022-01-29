@@ -25,9 +25,7 @@ import com.example.audius.viewmodel.screens.library.LibraryState
 fun LibraryScreen(
     musicServiceConnection: MusicServiceConnection,
     libraryState: LibraryState,
-    onPlaylistPressed: (String, String, String, String) -> Unit,
-    imageLoader: ImageLoader
-) {
+    onPlaylistPressed: (String, String, String, String) -> Unit) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column() {
             Header(text = "Last Played")
@@ -36,7 +34,7 @@ fun LibraryScreen(
 
                 }
             },
-            imageLoader=imageLoader)
+            )
             FavoritePlaylist(libraryState, onPlaylistPressed)
         }
     }
@@ -46,7 +44,6 @@ fun LibraryScreen(
 fun RowListOfRecentActivity(
     libraryState: LibraryState,
     onPlaylistClicked: (String, String, String, String) -> Unit,
-    imageLoader: ImageLoader
 ) {
 
     LazyRow {
@@ -57,7 +54,6 @@ fun RowListOfRecentActivity(
                 painterLoaded = { yolo ->
 
                 },
-                imageLoader = imageLoader
             )
         }
     }

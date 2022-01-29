@@ -12,8 +12,8 @@ import com.example.audius.viewmodel.AudiusViewModel
 
 @ExperimentalMaterialApi
 @Composable
-fun MainComposable(model: AudiusViewModel, musicServiceConnection: MusicServiceConnection, imageLoader: ImageLoader) {
+fun MainComposable(model: AudiusViewModel, musicServiceConnection: MusicServiceConnection) {
     val appState by model.stateFlow.collectAsState()
     val audiusNav = appState.getNavigation(model = model)
-    audiusNav.Router(musicServiceConnection, imageLoader = imageLoader)
+    audiusNav.Router(musicServiceConnection)
 }

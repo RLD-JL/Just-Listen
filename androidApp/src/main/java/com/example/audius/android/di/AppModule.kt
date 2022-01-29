@@ -26,14 +26,4 @@ object AppModule {
     @Provides
     fun provideMusicSource(
     ) = MusicSource()
-
-    @Singleton
-    @Provides
-    fun providesImageLoader(
-        @ApplicationContext context: Context
-    ) = ImageLoader.Builder(context)
-        .availableMemoryPercentage(0.25)
-        .crossfade(true)
-        .build()
-
 }

@@ -34,8 +34,7 @@ fun PlaylistScreen(
     playlistState: PlaylistState,
     onPlaylistClicked: (String, String, String, String) -> Unit,
     onSearchClicked: () -> Unit,
-    painterLoaded: (Painter) -> Unit,
-    imageLoader: ImageLoader,
+    painterLoaded: (Painter) -> Unit
 ) {
     if (playlistState.isLoading) {
         LoadingScreen()
@@ -47,7 +46,6 @@ fun PlaylistScreen(
                 playlistState = playlistState,
                 onPlaylistClicked = onPlaylistClicked,
                 painterLoaded = painterLoaded,
-                imageLoader = imageLoader
             )
             AnimatedToolBar(onSearchClicked)
         }
@@ -68,7 +66,7 @@ fun AnimatedToolBar(
             )
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-       Header(text = "Good evening")
+        Header(text = "Good evening")
         Icon(
             modifier = Modifier.clickable(onClick = onSearchClicked),
             imageVector = Icons.Default.Search, tint = MaterialTheme.colors.onSurface,
@@ -83,8 +81,7 @@ fun ScrollableContent(
     scrollState: ScrollState,
     playlistState: PlaylistState,
     onPlaylistClicked: (String, String, String, String) -> Unit,
-    painterLoaded: (Painter) -> Unit,
-    imageLoader: ImageLoader
+    painterLoaded: (Painter) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -96,8 +93,7 @@ fun ScrollableContent(
         ListOfCollections(
             playlistState = playlistState, lasItemReached = lasItemReached,
             onPlaylistClicked = onPlaylistClicked,
-            painterLoaded = painterLoaded,
-            imageLoader=  imageLoader
+            painterLoaded = painterLoaded
         )
         Spacer(modifier = Modifier.height(100.dp))
     }
@@ -116,8 +112,7 @@ fun Header(text: String, modifier: Modifier = Modifier) {
 fun ListOfCollections(
     playlistState: PlaylistState, lasItemReached: (Int, PlayListEnum) -> Unit,
     onPlaylistClicked: (String, String, String, String) -> Unit,
-    painterLoaded: (Painter) -> Unit,
-    imageLoader: ImageLoader
+    painterLoaded: (Painter) -> Unit
 ) {
     val list = remember {
         mutableListOf("Top Playlist", "Remix", "Yolo")
@@ -130,25 +125,19 @@ fun ListOfCollections(
                 lasItemReached = lasItemReached,
                 PlayListEnum.TOP_PLAYLIST,
                 onPlaylistClicked,
-                painterLoaded,
-                imageLoader = imageLoader
-            )
+                painterLoaded)
             1 -> PlaylistRow(
                 playlist = playlistState.remixPlaylist,
                 lasItemReached = lasItemReached,
                 PlayListEnum.REMIX,
                 onPlaylistClicked,
-                painterLoaded,
-                imageLoader = imageLoader
-            )
+                painterLoaded)
             2 -> PlaylistRow(
                 playlist = playlistState.remixPlaylist,
                 lasItemReached = lasItemReached,
                 PlayListEnum.REMIX,
                 onPlaylistClicked,
-                painterLoaded,
-                imageLoader = imageLoader
-            )
+                painterLoaded)
         }
     }
 }
@@ -159,7 +148,6 @@ fun PlaylistRow(
     playlistEnum: PlayListEnum,
     onPlaylistClicked: (String, String, String, String) -> Unit,
     painterLoaded: (Painter) -> Unit,
-    imageLoader: ImageLoader
 ) {
     LazyRow {
         itemsIndexed(items = playlist) { index, playlistItem ->
@@ -170,9 +158,7 @@ fun PlaylistRow(
             PlaylistRowItem(
                 playlistItem = playlistItem,
                 onPlaylistClicked = onPlaylistClicked,
-                painterLoaded = painterLoaded,
-                imageLoader = imageLoader
-                )
+                painterLoaded = painterLoaded)
         }
     }
 }

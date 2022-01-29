@@ -36,8 +36,7 @@ import com.example.audius.viewmodel.screens.search.updateSearch
 fun Navigation.ScreenPicker(
     screenIdentifier: ScreenIdentifier,
     musicServiceConnection: MusicServiceConnection,
-    dominantColor: (Int) -> Unit,
-    imageLoader: ImageLoader,
+    dominantColor: (Int) -> Unit
 ) {
     val isPlayerReady: MutableState<Boolean> = remember {
         mutableStateOf(false)
@@ -61,12 +60,10 @@ fun Navigation.ScreenPicker(
                         )
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)
-                },
-                imageLoader = imageLoader
+                }
             )
         Playlist ->
             PlaylistScreen(
-                imageLoader= imageLoader,
                 lasItemReached = { lastIndex, playListEnum ->
                     when (playListEnum) {
                         TOP_PLAYLIST -> events.fetchPlaylist(lastIndex, TOP_PLAYLIST)
@@ -121,7 +118,6 @@ fun Navigation.ScreenPicker(
             }
         )
         Search -> SearchScreen(
-            imageLoader = imageLoader,
             onBackPressed = {
                 exitScreen()
             },

@@ -31,7 +31,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun PlaylistRowItem(
-    imageLoader: ImageLoader,
     playlistItem: PlaylistItem,
     onPlaylistClicked: (String, String, String, String) -> Unit,
     mutablePainter: MutableState<ImagePainter?>? = null,
@@ -50,10 +49,9 @@ fun PlaylistRowItem(
 
 
         val request = ImageRequest.Builder(context = LocalContext.current)
-                .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
                 .data(playlistItem.songIconList.songImageURL480px).build()
 
-        val painter = rememberImagePainter(request = request, imageLoader = imageLoader)
+        val painter = rememberImagePainter(request = request)
 
 
 

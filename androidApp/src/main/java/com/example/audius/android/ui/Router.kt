@@ -12,11 +12,10 @@ import com.example.audius.android.exoplayer.MusicServiceConnection
 @ExperimentalCoilApi
 @ExperimentalMaterialApi
 @Composable
-fun Navigation.Router(musicServiceConnection: MusicServiceConnection,
-                      imageLoader: ImageLoader) {
+fun Navigation.Router(musicServiceConnection: MusicServiceConnection) {
     val screenUIisStateHolder = rememberSaveableStateHolder()
 
-    OnePane(screenUIisStateHolder, musicServiceConnection, imageLoader = imageLoader)
+    OnePane(screenUIisStateHolder, musicServiceConnection)
 
     screenStatesToRemove.forEach {
         screenUIisStateHolder.removeState(it.URI)

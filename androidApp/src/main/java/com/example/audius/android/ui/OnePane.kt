@@ -28,9 +28,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun Navigation.OnePane(
     saveableStateHolder: SaveableStateHolder,
-    musicServiceConnection: MusicServiceConnection,
-    imageLoader: ImageLoader
-) {
+    musicServiceConnection: MusicServiceConnection)
+{
     val shouldHavePlayBar =
         musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
                 || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PAUSED
@@ -73,7 +72,6 @@ fun Navigation.OnePane(
                         ) {
                             saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
                                 ScreenPicker(currentScreenIdentifier, musicServiceConnection,
-                                    imageLoader = imageLoader,
                                     dominantColor = { dominantColorMutable.value = it})
                             }
                         }

@@ -25,13 +25,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val model = (application as AudiusApp).model
         val musicServiceConnection = (application as AudiusApp).musicServiceConnection
-        val imageLoader = (application as AudiusApp).imageLoader
 
         setContent {
             AudiusTheme(darkTheme = true, colorPallet = ColorPallet.DARK ) {
                 window.statusBarColor = MaterialTheme.colors.background.toArgb()
                 window.navigationBarColor = MaterialTheme.colors.primaryVariant.toArgb()
-                MainComposable(model, musicServiceConnection, imageLoader = imageLoader)
+                MainComposable(model, musicServiceConnection)
             }
         }
     }
