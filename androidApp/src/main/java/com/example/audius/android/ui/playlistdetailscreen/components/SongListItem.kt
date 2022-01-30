@@ -51,29 +51,10 @@ fun SongListItem(
     dominantColor: (Int) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
 ) {
-    val animatedModifier = when (0) {
-        0 -> {
-            val animatedProgress = remember { Animatable(initialValue = 0f) }
-            LaunchedEffect(Unit) {
-                animatedProgress.animateTo(
-                    targetValue = 1f,
-                    animationSpec = tween(300)
-                )
-            }
-            Modifier
-                .padding(8.dp)
-                .alpha(animatedProgress.value)
-        }
-        else -> {
-            Modifier
-                .padding(8.dp)
-        }
-    }
-
 
     val dominantColorMutable = remember { mutableStateOf(-123123123) }
     Row(
-        modifier = animatedModifier
+        modifier = Modifier.padding(8.dp)
             .clickable(
                 onClick = {
                     dominantColor(dominantColorMutable.value)

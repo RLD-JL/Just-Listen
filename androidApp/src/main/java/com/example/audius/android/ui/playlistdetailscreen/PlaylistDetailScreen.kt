@@ -58,21 +58,14 @@ fun PlaylistDetailScreen(
         val isPlayerReady: MutableState<Boolean> = remember {
             mutableStateOf(false)
         }
-        val scrollState = rememberScrollState(0)
 
-        val painter =  rememberImagePainter(
+        val painter = rememberImagePainter(
             request = ImageRequest.Builder(context = LocalContext.current)
                 .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
                 .data(playlistDetailState.playlistIcon).build()
         )
 
-
-        val toolbarHeight = 350.dp
-        val toolbarHeightPx = with(LocalDensity.current) { toolbarHeight.roundToPx().toFloat() }
-// our offset to collapse toolbar
-        val toolbarOffsetHeightPx =
-
-            remember { mutableStateOf(0f) }
+        val toolbarOffsetHeightPx = remember { mutableStateOf(0f) }
 
         val nestedScrollConnection = remember {
             object : NestedScrollConnection {
@@ -80,8 +73,8 @@ fun PlaylistDetailScreen(
                     // try to consume before LazyColumn to collapse toolbar if needed, hence pre-scroll
                     val delta = available.y
                     val newOffset = toolbarOffsetHeightPx.value + delta
-                    if(newOffset<0)
-                    toolbarOffsetHeightPx.value = newOffset
+                    if (newOffset < 0)
+                        toolbarOffsetHeightPx.value = newOffset
                     // here's the catch: let's pretend we consumed 0 in any case, since we want
                     // LazyColumn to scroll anyway for good UX
                     // We're basically watching scroll without taking it
@@ -171,16 +164,16 @@ fun BottomScrollableContent(
     dominantColor: (Int) -> Unit,
     painter: ImagePainter
 ) {
-            SongListScrollingSection(
-                painter = painter,
-                playlistDetailState = playlistDetailState,
-                scrollState = scrollState,
-                playlist = playlist,
-                onSongClicked = onSongClicked,
-                onShuffleClicked = onShuffleClicked,
-                onFavoritePressed = onFavoritePressed,
-                dominantColor = dominantColor
-            )
+    SongListScrollingSection(
+        painter = painter,
+        playlistDetailState = playlistDetailState,
+        scrollState = scrollState,
+        playlist = playlist,
+        onSongClicked = onSongClicked,
+        onShuffleClicked = onShuffleClicked,
+        onFavoritePressed = onFavoritePressed,
+        dominantColor = dominantColor
+    )
 }
 
 fun playMusicFromId(
