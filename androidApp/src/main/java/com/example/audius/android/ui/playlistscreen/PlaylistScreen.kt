@@ -7,12 +7,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -155,16 +154,24 @@ fun PlaylistRow(
     onPlaylistClicked: (String, String, String, String) -> Unit,
     painterLoaded: (Painter) -> Unit,
 ) {
-    LazyRow {
+    val fetchMore = remember { mutableStateOf(false)}
+    LazyRow(verticalAlignment =  Alignment.CenterVertically) {
         itemsIndexed(items = playlist) { index, playlistItem ->
 
-            if (index == playlist.size - 3)
+            if (index == playlist.size - 3) {
                 lasItemReached(index + 20, playlistEnum)
+                fetchMore.value = true
+            }
 
             PlaylistRowItem(
                 playlistItem = playlistItem,
                 onPlaylistClicked = onPlaylistClicked,
                 painterLoaded = painterLoaded)
+        }
+        if (fetchMore.value) {
+           item{
+               CircularProgressIndicator()
+           }
         }
     }
 }
