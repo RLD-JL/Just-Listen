@@ -8,6 +8,7 @@ import com.example.audius.datalayer.webservices.apis.playlistcalls.fetchPlaylist
 import com.example.audius.viewmodel.screens.playlist.PlayListEnum
 import com.example.audius.viewmodel.screens.playlist.PlayListEnum.*
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
+import io.ktor.util.date.*
 
 suspend fun Repository.getPlaylist(index: Int, playListEnum: PlayListEnum, playlistId: String= "DOPRl"): List<PlaylistItem> {
     return when (playListEnum) {
@@ -20,13 +21,10 @@ suspend fun Repository.getPlaylist(index: Int, playListEnum: PlayListEnum, playl
             PlaylistItem(_data = playlistModel)
         } ?: emptyList()
 
-        CURRENT_PLAYLIST -> webservices.fetchPlaylist(index, CURRENT_PLAYLIST, playlistId)?.apply {
-            if(error==null) {
-                localDb.setPlaylistDetail(data)
-            }}?.data?.map { playlistModel ->
+        CURRENT_PLAYLIST -> { webservices.fetchPlaylist(index, CURRENT_PLAYLIST, playlistId)?.data?.map { playlistModel ->
             PlaylistItem(_data = playlistModel)
+        } ?: emptyList()}
 
-        } ?: emptyList()
         HOT -> {
         localDb.getPlaylistDetail().map {
                 elem->PlaylistItem(_data = elem)

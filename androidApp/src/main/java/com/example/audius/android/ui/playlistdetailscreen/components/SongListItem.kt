@@ -1,6 +1,8 @@
 package com.example.audius.android.ui.playlistdetailscreen.components
 
 import android.graphics.drawable.ColorDrawable
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -21,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
@@ -48,10 +51,29 @@ fun SongListItem(
     dominantColor: (Int) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit
 ) {
+    val animatedModifier = when (0) {
+        0 -> {
+            val animatedProgress = remember { Animatable(initialValue = 0f) }
+            LaunchedEffect(Unit) {
+                animatedProgress.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(300)
+                )
+            }
+            Modifier
+                .padding(8.dp)
+                .alpha(animatedProgress.value)
+        }
+        else -> {
+            Modifier
+                .padding(8.dp)
+        }
+    }
+
+
     val dominantColorMutable = remember { mutableStateOf(-123123123) }
     Row(
-        modifier = Modifier
-            .padding(8.dp)
+        modifier = animatedModifier
             .clickable(
                 onClick = {
                     dominantColor(dominantColorMutable.value)
@@ -70,19 +92,19 @@ fun SongListItem(
         )
 
         (painter.state as? ImagePainter.State.Success)?.let { successState ->
-        LaunchedEffect(painter) {
-            val drawable = successState.result.drawable
-            Palette.Builder(drawable.toBitmap()).generate { palette ->
-                palette?.dominantSwatch?.let {
-                    dominantColorMutable.value = it.rgb
+            LaunchedEffect(painter) {
+                val drawable = successState.result.drawable
+                Palette.Builder(drawable.toBitmap()).generate { palette ->
+                    palette?.dominantSwatch?.let {
+                        dominantColorMutable.value = it.rgb
+                    }
                 }
             }
-        }
 
         }
 
         Image(
-            painter = painter ,
+            painter = painter,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
