@@ -89,7 +89,8 @@ fun Navigation.ScreenPicker(
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)
                 },
-                onSearchClicked = { navigate(Search) }
+                onSearchClicked = { navigate(Search) },
+                refreshScreen = {events.refreshScreen()}
             )
 
         PlaylistDetail -> PlaylistDetailScreen(

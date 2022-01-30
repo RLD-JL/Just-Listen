@@ -27,6 +27,8 @@ import com.example.audius.android.ui.theme.typography
 import com.example.audius.viewmodel.screens.playlist.PlayListEnum
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import com.example.audius.viewmodel.screens.playlist.PlaylistState
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 @Composable
 fun PlaylistScreen(
@@ -34,12 +36,15 @@ fun PlaylistScreen(
     playlistState: PlaylistState,
     onPlaylistClicked: (String, String, String, String) -> Unit,
     onSearchClicked: () -> Unit,
-    painterLoaded: (Painter) -> Unit
+    painterLoaded: (Painter) -> Unit,
+    refreshScreen: () ->Unit
 ) {
     if (playlistState.isLoading) {
         LoadingScreen()
     } else {
         val scrollState = rememberScrollState(0)
+        val swipeRefreshState = rememberSwipeRefreshState(false)
+        SwipeRefresh(state = swipeRefreshState, onRefresh = refreshScreen) {
         Box(modifier = Modifier.fillMaxSize()) {
             ScrollableContent(
                 lasItemReached = lasItemReached, scrollState = scrollState,
@@ -49,6 +54,7 @@ fun PlaylistScreen(
             )
             AnimatedToolBar(onSearchClicked)
         }
+    }
     }
 }
 
