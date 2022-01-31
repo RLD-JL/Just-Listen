@@ -7,10 +7,11 @@ import myLocal.db.LocalDb
 
 fun LocalDb.saveSongToFavorites(
     id: String, title: String, user: UserModel, songImgList: SongIconList,
-    playlistName: String
+    playlistName: String,
+    isFavorite: Boolean
 ) {
     libraryQueries.transaction {
-        libraryQueries.upsertLibraryFavorite(id, title, user, songImgList, playlistName)
+        libraryQueries.upsertLibraryFavorite(id, title, user, songImgList, playlistName, favoriteSong = isFavorite)
     }
 }
 
@@ -20,6 +21,9 @@ fun LocalDb.getFavoritePlaylist(): List<PlayListModel> {
     }).executeAsList()
 }
 
+fun LocalDb.getFavoritePlaylistWithId(id: String): String? {
+    return libraryQueries.getFavoritePlaylistWithId(id).executeAsOneOrNull()
+}
 fun LocalDb.saveSongRecentSongs(
     id: String, title: String, user: UserModel, songImgList: SongIconList,
     playlistName: String

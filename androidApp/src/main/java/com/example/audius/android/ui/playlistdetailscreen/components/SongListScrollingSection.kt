@@ -29,7 +29,7 @@ fun SongListScrollingSection(
     onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
     onShuffleClicked: () -> Unit,
     dominantColor: (Int) -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit,
+    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     painter: ImagePainter
 ) {
     LazyColumn(Modifier.padding(top = 25.dp)) {

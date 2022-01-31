@@ -1,7 +1,6 @@
 package com.example.audius.android.ui.playlistdetailscreen
 
 import android.graphics.drawable.ColorDrawable
-import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -15,9 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.audius.android.ui.playlistdetailscreen.components.BoxTopSection
 import com.example.audius.android.ui.playlistdetailscreen.components.SongListScrollingSection
-import com.example.audius.android.ui.playlistdetailscreen.components.TopSectionOverlay
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
 import android.support.v4.media.MediaBrowserCompat
 import androidx.compose.material.IconButton
@@ -28,28 +25,24 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
 import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.utils.Constants
-import com.example.audius.android.mapper.PlaylistDetailMapper
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
 import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.datalayer.models.UserModel
 import com.example.audius.viewmodel.interfaces.Item
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailState
-import kotlin.math.roundToInt
 
 @Composable
 fun PlaylistDetailScreen(
     playlistDetailState: PlaylistDetailState, onBackButtonPressed: (Boolean) -> Unit,
     musicServiceConnection: MusicServiceConnection,
     onSongPressed: (String, String, UserModel, SongIconList) -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit,
+    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     dominantColor: (Int) -> Unit
 ) {
     if (playlistDetailState.isLoading) {
@@ -160,7 +153,7 @@ fun BottomScrollableContent(
     onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
     onShuffleClicked: () -> Unit,
     nestedScrollConnection: NestedScrollConnection,
-    onFavoritePressed: (String, String, UserModel, SongIconList) -> Unit,
+    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     dominantColor: (Int) -> Unit,
     painter: ImagePainter
 ) {

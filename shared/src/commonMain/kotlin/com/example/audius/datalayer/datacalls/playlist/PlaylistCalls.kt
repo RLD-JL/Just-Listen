@@ -2,13 +2,12 @@ package com.example.audius.datalayer.datacalls.playlist
 
 import com.example.audius.datalayer.Repository
 import com.example.audius.datalayer.localdb.libraryscreen.getFavoritePlaylist
+import com.example.audius.datalayer.localdb.libraryscreen.getFavoritePlaylistWithId
 import com.example.audius.datalayer.localdb.playlistdetail.getPlaylistDetail
-import com.example.audius.datalayer.localdb.playlistdetail.setPlaylistDetail
 import com.example.audius.datalayer.webservices.apis.playlistcalls.fetchPlaylist
 import com.example.audius.viewmodel.screens.playlist.PlayListEnum
 import com.example.audius.viewmodel.screens.playlist.PlayListEnum.*
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
-import io.ktor.util.date.*
 
 suspend fun Repository.getPlaylist(index: Int, playListEnum: PlayListEnum, playlistId: String= "DOPRl"): List<PlaylistItem> {
     return when (playListEnum) {
@@ -22,7 +21,9 @@ suspend fun Repository.getPlaylist(index: Int, playListEnum: PlayListEnum, playl
         } ?: emptyList()
 
         CURRENT_PLAYLIST -> { webservices.fetchPlaylist(index, CURRENT_PLAYLIST, playlistId)?.data?.map { playlistModel ->
-            PlaylistItem(_data = playlistModel)
+            val hasFavorite = localDb.getFavoritePlaylistWithId(playlistModel.id)
+            val isFavorite = !hasFavorite.isNullOrEmpty()
+            PlaylistItem(_data = playlistModel, isFavorite)
         } ?: emptyList()}
 
         HOT -> {
@@ -31,7 +32,9 @@ suspend fun Repository.getPlaylist(index: Int, playListEnum: PlayListEnum, playl
         }.toList() }
         FAVORITE -> {
             localDb.getFavoritePlaylist().map {playlistModel ->
-                PlaylistItem(playlistModel)
+                val hasFavorite = localDb.getFavoritePlaylistWithId(playlistModel.id)
+                val isFavorite = !hasFavorite.isNullOrEmpty()
+                PlaylistItem(playlistModel, isFavorite)
             }.toList()
         }
     }

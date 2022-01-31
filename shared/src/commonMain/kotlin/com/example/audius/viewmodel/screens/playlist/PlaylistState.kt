@@ -16,6 +16,7 @@ data class PlaylistState(
 
 data class PlaylistItem(
     val _data: PlayListModel,
+    override var isFavorite: Boolean = false
 ) : Item{
     override val user = _data.user.username
     override val title = _data.title

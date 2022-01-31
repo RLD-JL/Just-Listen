@@ -14,12 +14,15 @@ CREATE TABLE Library  (
 getFavoritePlaylist:
 SELECT * FROM Library WHERE favoriteSong = 1;
 
+getFavoritePlaylistWithId:
+SELECT id FROM Library WHERE id = :id AND favoriteSong = 1;
+
 getRecentPlayed:
 SELECT * FROM Library WHERE recentPlayed = 1;
 
 upsertLibraryFavorite {
     INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName, favoriteSong, recentPlayed)
-    VALUES(:id, :title, :user,  :songImgList, :playlistName,1,
+    VALUES(:id, :title, :user,  :songImgList, :playlistName,:favoriteSong,
     (SELECT recentPlayed FROM Library WHERE id = :id));
 }
 

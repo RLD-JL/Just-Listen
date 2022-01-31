@@ -5,9 +5,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import coil.ImageLoader
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
 import com.example.audius.android.exoplayer.MusicServiceConnection
@@ -99,8 +97,8 @@ fun Navigation.ScreenPicker(
                 if (onBackButtonPressed) exitScreen()
             },
             musicServiceConnection = musicServiceConnection,
-            onFavoritePressed = { id, title, userModel, songIconList ->
-                events.saveSongToFavorites(id, title, userModel, songIconList)
+            onFavoritePressed = { id, title, userModel, songIconList, isFavorite ->
+                events.saveSongToFavorites(id, title, userModel, songIconList, isFavorite = isFavorite)
             },
             dominantColor = {color -> events.saveDominantColor(color)
                     dominantColor(color)},

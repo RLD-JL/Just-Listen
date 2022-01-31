@@ -7,5 +7,6 @@ interface Item {
     val title : String
     val playlistTitle : String
     val id : String
+    var isFavorite: Boolean
     val songIconList : SongIconList
 }

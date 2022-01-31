@@ -15,7 +15,7 @@ data class SearchScreenState(
 ) : ScreenState
 
 
-data class TrackItem(val _data: PlayListModel) : Item {
+data class TrackItem(val _data: PlayListModel, override var isFavorite: Boolean = false) : Item {
     override val user = _data.user.username
     override val title = _data.title
     override val playlistTitle = _data.playlistTitle

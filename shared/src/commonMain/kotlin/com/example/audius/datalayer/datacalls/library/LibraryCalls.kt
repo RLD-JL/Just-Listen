@@ -10,8 +10,8 @@ import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.datalayer.models.UserModel
 
 fun Repository.saveSongToFavorites(id: String, title : String, user: UserModel, songImgList: SongIconList,
-                                   playlistName: String) {
-    localDb.saveSongToFavorites(id, title, user, songImgList, playlistName)
+                                   playlistName: String, isFavorite: Boolean) {
+    localDb.saveSongToFavorites(id, title, user, songImgList, playlistName, isFavorite = isFavorite)
 }
 
 fun Repository.saveSongToRecent(id: String, title : String, user: UserModel, songImgList: SongIconList,
