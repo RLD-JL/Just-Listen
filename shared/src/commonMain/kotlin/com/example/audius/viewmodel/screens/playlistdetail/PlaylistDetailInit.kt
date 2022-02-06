@@ -12,9 +12,8 @@ data class PlaylistDetailParams(
     val playlistIcon: String,
     val playlistTitle: String,
     val playlistCreatedBy: String,
-    val playlistEnum: PlayListEnum,
-    val painter: Any
-) : ScreenParams
+    val playlistEnum: PlayListEnum
+    ) : ScreenParams
 
 fun Navigation.initPlaylistDetail(params: PlaylistDetailParams) = ScreenInitSettings(
     title = "PlaylistEnum" + params.playlistIcon,

@@ -229,8 +229,7 @@ fun PlaylistResult(
         itemsIndexed(items = playlist) {  _, playlistItem ->
             PlaylistRowItem(
                 playlistItem = playlistItem,
-                onPlaylistClicked = onPlaylistPressed,
-                painterLoaded = {})
+                onPlaylistClicked = onPlaylistPressed)
         }
     }
 }

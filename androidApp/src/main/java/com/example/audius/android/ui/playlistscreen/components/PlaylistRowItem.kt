@@ -22,9 +22,7 @@ import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 @Composable
 fun PlaylistRowItem(
     playlistItem: PlaylistItem,
-    onPlaylistClicked: (String, String, String, String) -> Unit,
-    painterLoaded: (Painter) -> Unit
-) {
+    onPlaylistClicked: (String, String, String, String) -> Unit) {
     Column(
         modifier =
         Modifier
@@ -46,7 +44,6 @@ fun PlaylistRowItem(
                 .height(160.dp)
                 .clickable(
                     onClick = {
-                        painterLoaded(painter)
                         onPlaylistClicked(
                             playlistItem.id,
                             playlistItem.songIconList.songImageURL480px,

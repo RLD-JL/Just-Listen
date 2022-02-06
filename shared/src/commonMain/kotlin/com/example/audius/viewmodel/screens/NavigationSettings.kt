@@ -19,6 +19,5 @@ enum class Level1Navigation(val screenIdentifier: ScreenIdentifier, val remember
     Library( ScreenIdentifier.get(Screen.Library, LibraryParams("")), true),
     Playlist( ScreenIdentifier.get(Screen.Playlist, PlaylistParams("")), true),
     PlaylistDetail( ScreenIdentifier.get(Screen.PlaylistDetail, PlaylistDetailParams("","", "", "",
-        PlayListEnum.CURRENT_PLAYLIST,
-    "")), true)
+        PlayListEnum.CURRENT_PLAYLIST)), true)
 }

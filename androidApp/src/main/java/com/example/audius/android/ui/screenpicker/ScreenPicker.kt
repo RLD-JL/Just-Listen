@@ -40,8 +40,6 @@ fun Navigation.ScreenPicker(
         mutableStateOf(false)
     }
 
-    val mutablePainter = remember { mutableStateOf<Painter?>(null) }
-
     when (screenIdentifier.screen) {
 
         Library ->
@@ -53,8 +51,7 @@ fun Navigation.ScreenPicker(
                         PlaylistDetail,
                         PlaylistDetailParams(
                             playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
-                            FAVORITE,
-                            painter = PlaylistDetailMapper(mutablePainter.value)
+                            FAVORITE
                         )
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)
@@ -72,7 +69,6 @@ fun Navigation.ScreenPicker(
                     }
                 },
                 playlistState = stateProvider.get(screenIdentifier = screenIdentifier),
-                painterLoaded = {painter-> mutablePainter.value = painter},
                 onPlaylistClicked = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
                     navigate(
                         PlaylistDetail,
@@ -81,9 +77,7 @@ fun Navigation.ScreenPicker(
                             playlistIcon,
                             playlistTitle,
                             playlistCreatedBy,
-                            CURRENT_PLAYLIST,
-                            painter = PlaylistDetailMapper(mutablePainter.value)
-                        )
+                            CURRENT_PLAYLIST)
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)
                 },
@@ -142,9 +136,7 @@ fun Navigation.ScreenPicker(
                     PlaylistDetail,
                     PlaylistDetailParams(
                         playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
-                        CURRENT_PLAYLIST,
-                        painter = PlaylistDetailMapper(mutablePainter.value)
-                    )
+                        CURRENT_PLAYLIST)
                 )
                 events.playMusicFromPlaylist(playlistId = playlistId)
             },

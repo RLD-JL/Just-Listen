@@ -51,9 +51,6 @@ fun RowListOfRecentActivity(
             PlaylistRowItem(
                 playlistItem = playlistItem,
                 onPlaylistClicked = onPlaylistClicked,
-                painterLoaded = { yolo ->
-
-                },
             )
         }
     }
