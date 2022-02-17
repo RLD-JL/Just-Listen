@@ -3,17 +3,18 @@ package com.example.audius.android.exoplayer
 import android.app.PendingIntent
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
 import com.example.audius.android.R
 import com.example.audius.android.exoplayer.utils.Constants.NOTIFICATION_CHANNEL_ID
 import com.example.audius.android.exoplayer.utils.Constants.NOTIFICATION_ID
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
+import kotlinx.coroutines.*
 
 class MusicNotificationManager(
     private val context: Context,
@@ -23,6 +24,9 @@ class MusicNotificationManager(
 ) {
 
     private val notificationManager: PlayerNotificationManager
+
+    private val serviceJob = SupervisorJob()
+    private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
     init {
         val mediaController = MediaControllerCompat(context, sessionToken)
@@ -52,6 +56,11 @@ class MusicNotificationManager(
     private inner class DescriptionAdapter(
         private val mediaController: MediaControllerCompat
     ) : PlayerNotificationManager.MediaDescriptionAdapter {
+
+        var currentIconUri: Uri? = null
+        var currentBitmap: Bitmap? = null
+
+
         override fun getCurrentContentTitle(player: Player): CharSequence {
             newSongCallback()
             return mediaController.metadata.description.title.toString()
@@ -69,18 +78,39 @@ class MusicNotificationManager(
             player: Player,
             callback: PlayerNotificationManager.BitmapCallback
         ): Bitmap? {
-            Glide.with(context).asBitmap()
-                .load(mediaController.metadata.description.iconUri)
-                .into(object : CustomTarget<Bitmap>() {
-                    override fun onResourceReady(
-                        resource: Bitmap,
-                        transition: Transition<in Bitmap>?
-                    ) {
-                        callback.onBitmap(resource)
+            val iconUri = mediaController.metadata.description.iconUri
+            return if (currentIconUri != iconUri || currentBitmap == null) {
+
+                // Cache the bitmap for the current song so that successive calls to
+                // `getCurrentLargeIcon` don't cause the bitmap to be recreated.
+                currentIconUri = iconUri
+                serviceScope.launch {
+                    currentBitmap = iconUri?.let {
+                        resolveUriAsBitmap(it)
                     }
-                    override fun onLoadCleared(placeholder: Drawable?) = Unit
-                })
-            return null
+                    currentBitmap?.let { callback.onBitmap(it) }
+                }
+                null
+            } else {
+                currentBitmap
+            }
+        }
+
+        private suspend fun resolveUriAsBitmap(uri: Uri): Bitmap? {
+            return withContext(Dispatchers.IO) {
+                // Block on downloading artwork.
+                Glide.with(context).applyDefaultRequestOptions(glideOptions)
+                    .asBitmap()
+                    .load(uri)
+                    .submit(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
+                    .get()
+            }
         }
     }
 }
+
+const val NOTIFICATION_LARGE_ICON_SIZE = 144 // px
+
+private val glideOptions = RequestOptions()
+    .fallback(R.drawable.ic_add_to_playlist_background)
+    .diskCacheStrategy(DiskCacheStrategy.DATA)
