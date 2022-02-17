@@ -18,10 +18,12 @@ package com.example.audius.android.exoplayer.library.extension
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import androidx.core.net.toUri
+import com.google.android.exoplayer2.MediaMetadata
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
@@ -276,6 +278,35 @@ fun List<MediaMetadataCompat>.toMediaSource(
     }
     return concatenatingMediaSource
 }
+
+fun MediaMetadataCompat.toMediaItem(): com.google.android.exoplayer2.MediaItem {
+    return with(com.google.android.exoplayer2.MediaItem.Builder()) {
+        setMediaId(mediaUri.toString())
+        setUri(mediaUri)
+        setMimeType(MimeTypes.AUDIO_MPEG)
+        setMediaMetadata(toMediaItemMetadata())
+    }.build()
+}
+
+fun MediaMetadataCompat.toMediaItemMetadata(): MediaMetadata {
+    return with(MediaMetadata.Builder()) {
+        setTitle(title)
+        setDisplayTitle(displayTitle)
+        setAlbumArtist(artist)
+        setAlbumTitle(album)
+        setComposer(composer)
+        setTrackNumber(trackNumber.toInt())
+        setTotalTrackCount(trackCount.toInt())
+        setDiscNumber(discNumber.toInt())
+        setWriter(writer)
+        setGenre(genre)
+        setArtworkUri(albumArtUri)
+        val extras = Bundle()
+        extras.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
+        setExtras(extras)
+    }.build()
+}
+
 
 /**
  * Custom property that holds whether an item is [MediaItem.FLAG_BROWSABLE] or

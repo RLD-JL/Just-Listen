@@ -4,16 +4,17 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.MediaMetadataCompat.*
+import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_URI
 import androidx.core.net.toUri
+import androidx.core.os.bundleOf
 import com.example.audius.android.exoplayer.State.*
+import com.example.audius.android.exoplayer.library.extension.*
 import com.example.audius.datalayer.utils.Constants.BASEURL
 import com.example.audius.viewmodel.interfaces.Item
-import com.example.audius.viewmodel.screens.playlist.*
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.DataSource
 
 class MusicSource {
 
@@ -27,22 +28,28 @@ class MusicSource {
         state = STATE_INITIALIZING
 
         songs = playlist.map { song ->
-            Builder()
-                .putString(METADATA_KEY_ARTIST, song.title)
-                .putString(METADATA_KEY_MEDIA_ID, song.id)
-                .putString(METADATA_KEY_TITLE, song.title)
-                .putString(METADATA_KEY_DISPLAY_TITLE, song.title)
-                .putString(METADATA_KEY_DISPLAY_ICON_URI, song.songIconList.songImageURL1000px)
-                .putString(METADATA_KEY_MEDIA_URI, setSongUrl(song.id))
-                .putString(METADATA_KEY_ALBUM_ART_URI, song.songIconList.songImageURL1000px)
-                .putString(METADATA_KEY_DISPLAY_SUBTITLE, song.title)
-                .putString(METADATA_KEY_DISPLAY_DESCRIPTION, song.title)
-                .putString(METADATA_KEY_ALBUM, "playlistName").build()
+            MediaMetadataCompat.Builder().from(song).build()
         }
+
         state = STATE_INITIALIZED
     }
 
-    fun asMediaSource(dataSourceFactory: DefaultDataSourceFactory): ConcatenatingMediaSource {
+    private fun MediaMetadataCompat.Builder.from(song: Item): MediaMetadataCompat.Builder {
+        artist = song.title
+        id = song.id
+        title = song.title
+        displayIconUri = song.songIconList.songImageURL480px
+        mediaUri = setSongUrl(song.id)
+        albumArtUri = song.songIconList.songImageURL480px
+        displaySubtitle = song.title
+        displayDescription = song.title
+        genre = "true"
+        duration = 120
+
+        return this
+    }
+
+    fun asMediaSource(dataSourceFactory: DataSource.Factory): ConcatenatingMediaSource {
         val concatenatingMediaSource = ConcatenatingMediaSource()
         songs.forEach { song ->
             val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
@@ -59,6 +66,7 @@ class MusicSource {
             .setSubtitle(song.description.subtitle)
             .setMediaId(song.description.mediaId)
             .setIconUri(song.description.iconUri)
+            .setExtras(bundleOf(Pair("key1","true")))
             .build()
         MediaBrowserCompat.MediaItem(desc, FLAG_PLAYABLE)
     }.toMutableList()

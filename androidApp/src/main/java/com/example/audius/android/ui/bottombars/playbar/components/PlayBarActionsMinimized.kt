@@ -6,15 +6,18 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.audius.android.R
 import com.example.audius.android.exoplayer.MusicServiceConnection
+import com.example.audius.android.exoplayer.library.extension.genre
 import com.example.audius.android.ui.bottombars.playbar.IsLoading
 import com.example.audius.android.ui.theme.typography
 
@@ -37,13 +40,26 @@ fun PlayBarActionsMinimized(
                     .weight(0.7f),
                 maxLines = 3
             )
-            Icon(
-                imageVector = Icons.Default.FavoriteBorder,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .size(25.dp),
-                contentDescription = null
-            )
+
+            if (musicServiceConnection.currentPlayingSong.value?.genre == "true")
+            {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    tint = Color.Red,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .size(25.dp),
+                    contentDescription = null
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.FavoriteBorder,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .size(25.dp),
+                    contentDescription = null
+                )
+            }
             if (musicServiceConnection.playbackState.value?.state != PlaybackState.STATE_PLAYING &&
                 musicServiceConnection.playbackState.value?.state != PlaybackState.STATE_BUFFERING
             ) {

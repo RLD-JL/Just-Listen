@@ -30,6 +30,8 @@ class MusicServiceConnection @Inject constructor(
 
     val sliderClicked: MutableState<Boolean> = mutableStateOf(false)
 
+    val isFavorite: MutableState<Boolean> = mutableStateOf(false)
+
     val currentPlayingSong: MutableState<MediaMetadataCompat?> = mutableStateOf(MediaMetadataCompat.fromMediaMetadata(null))
 
     lateinit var mediaController: MediaControllerCompat

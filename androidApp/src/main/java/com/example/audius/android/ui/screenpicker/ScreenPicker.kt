@@ -93,6 +93,7 @@ fun Navigation.ScreenPicker(
             musicServiceConnection = musicServiceConnection,
             onFavoritePressed = { id, title, userModel, songIconList, isFavorite ->
                 events.saveSongToFavorites(id, title, userModel, songIconList, isFavorite = isFavorite)
+                musicServiceConnection.isFavorite.value = isFavorite
             },
             dominantColor = {color -> events.saveDominantColor(color)
                     dominantColor(color)},

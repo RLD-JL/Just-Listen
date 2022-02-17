@@ -11,13 +11,13 @@ import androidx.media.MediaBrowserServiceCompat
 import com.example.audius.android.exoplayer.callbacks.MusicPlaybackPreparer
 import com.example.audius.android.exoplayer.callbacks.MusicPlayerEventListener
 import com.example.audius.android.exoplayer.callbacks.MusicPlayerNotificationListener
+import com.example.audius.android.exoplayer.library.extension.toMediaItem
 import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
 import com.example.audius.android.exoplayer.utils.Constants.NETWORK_ERROR
+import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import javax.inject.Inject
@@ -28,7 +28,7 @@ private const val SERVICE_TAG = "MusicService"
 class MusicService : MediaBrowserServiceCompat() {
 
     @Inject
-    lateinit var exoPlayer: SimpleExoPlayer
+    lateinit var exoPlayer: ExoPlayer
 
     lateinit var musicNotificationManager: MusicNotificationManager
 
@@ -42,9 +42,6 @@ class MusicService : MediaBrowserServiceCompat() {
 
     @Inject
     lateinit var musicSource: MusicSource
-
-    @Inject
-    lateinit var dataSourceFactory: DefaultDataSourceFactory
 
     private var curPlayingSong: MediaMetadataCompat? = null
 
@@ -89,7 +86,7 @@ class MusicService : MediaBrowserServiceCompat() {
         mediaSessionConnector.setQueueNavigator(MusicQueueNavigator())
         mediaSessionConnector.setPlayer(exoPlayer)
 
-        musicPlayerEventListener = MusicPlayerEventListener(this)
+        musicPlayerEventListener = MusicPlayerEventListener(this, musicNotificationManager, exoPlayer)
         exoPlayer.addListener(musicPlayerEventListener)
     }
 
@@ -105,12 +102,11 @@ class MusicService : MediaBrowserServiceCompat() {
         playNow: Boolean
     ) {
         val currentSongIndex = if (curPlayingSong == null) 0 else songs.indexOf(itemToPlay)
-        exoPlayer.setMediaSource(musicSource.asMediaSource(dataSourceFactory = dataSourceFactory))
-        exoPlayer.prepare()
-        exoPlayer.seekTo(currentSongIndex, 0L)
         exoPlayer.playWhenReady = playNow
-        musicNotificationManager.showNotification(exoPlayer)
-
+        exoPlayer.stop()
+        exoPlayer.setMediaItems(songs.map {
+            it.toMediaItem()}, currentSongIndex, 0L)
+        exoPlayer.prepare()
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {

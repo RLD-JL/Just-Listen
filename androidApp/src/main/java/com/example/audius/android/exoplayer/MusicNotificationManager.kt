@@ -3,13 +3,9 @@ package com.example.audius.android.exoplayer
 import android.app.PendingIntent
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
-import androidx.compose.ui.res.stringResource
-import coil.ImageLoader
-import coil.request.ImageRequest
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -47,6 +43,10 @@ class MusicNotificationManager(
 
     fun showNotification(player: Player) {
         notificationManager.setPlayer(player)
+    }
+
+    fun hideNotification() {
+        notificationManager.setPlayer(null)
     }
 
     private inner class DescriptionAdapter(
