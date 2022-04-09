@@ -1,37 +1,36 @@
 package com.example.audius.android.exoplayer
 
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_URI
-import androidx.core.net.toUri
-import androidx.core.os.bundleOf
 import com.example.audius.android.exoplayer.State.*
 import com.example.audius.android.exoplayer.library.extension.*
 import com.example.audius.datalayer.utils.Constants.BASEURL
 import com.example.audius.viewmodel.interfaces.Item
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.source.ConcatenatingMediaSource
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DataSource
 
 class MusicSource {
 
     private val onReadyListener = mutableListOf<(Boolean) -> Unit>()
 
-    var songs = emptyList<MediaMetadataCompat>()
+    var songs: List<MediaMetadataCompat> = emptyList()
 
     var playlist: List<Item> = emptyList()
 
     fun fetchMediaData() {
         state = STATE_INITIALIZING
 
-        songs = playlist.map { song ->
-            MediaMetadataCompat.Builder().from(song).build()
-        }
+        songs = updateCatalog(playlist)
 
         state = STATE_INITIALIZED
+    }
+
+    private fun updateCatalog(playlist: List<Item>): List<MediaMetadataCompat> {
+        val mediaMetadataCompat = playlist.map { song ->
+            MediaMetadataCompat.Builder().from(song).build()
+        }.toList()
+        mediaMetadataCompat.forEach {
+            it.description.extras?.putAll(it.bundle)
+        }
+        return mediaMetadataCompat
     }
 
     private fun MediaMetadataCompat.Builder.from(song: Item): MediaMetadataCompat.Builder {
@@ -43,23 +42,13 @@ class MusicSource {
         albumArtUri = song.songIconList.songImageURL480px
         displaySubtitle = song.title
         displayDescription = song.title
-        genre = "true"
+        genre = song.isFavorite.toString()
         duration = 120
+
+        downloadStatus = MediaDescriptionCompat.STATUS_NOT_DOWNLOADED
 
         return this
     }
-
-    fun asMediaItems() = songs.map { song ->
-        val desc = MediaDescriptionCompat.Builder()
-            .setMediaUri(song.getString(METADATA_KEY_MEDIA_URI).toUri())
-            .setTitle(song.description.title)
-            .setSubtitle(song.description.subtitle)
-            .setMediaId(song.description.mediaId)
-            .setIconUri(song.description.iconUri)
-            .setExtras(bundleOf(Pair("key1","true")))
-            .build()
-        MediaBrowserCompat.MediaItem(desc, FLAG_PLAYABLE)
-    }.toMutableList()
 
     private var state: State = STATE_CREATED
         set(value) {

@@ -6,13 +6,12 @@ import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.example.audius.android.exoplayer.utils.Constants.NETWORK_ERROR
 import com.example.audius.viewmodel.interfaces.Item
-import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import kotlinx.coroutines.*
 import javax.inject.Inject
 
@@ -90,7 +89,6 @@ class MusicServiceConnection @Inject constructor(
         override fun onConnected() {
             mediaController = MediaControllerCompat(context, mediaBrowser.sessionToken).apply {
                 registerCallback(MediaControllerCallback())
-                Toast.makeText(context, "Browser Connected", Toast.LENGTH_SHORT).show()
             }
             isConnected.value = true
         }
@@ -117,6 +115,9 @@ class MusicServiceConnection @Inject constructor(
             when(event) {
                 NETWORK_ERROR -> networkError.value = true
             }
+        }
+
+        override fun onQueueChanged(queue: MutableList<MediaSessionCompat.QueueItem>?) {
         }
 
         override fun onSessionDestroyed() {

@@ -27,7 +27,7 @@ class MusicPlaybackPreparer(
     }
 
     override fun onPrepare(playWhenReady: Boolean) {
-        TODO("Not yet implemented")
+        musicSource.songs[0].description.mediaId?.let { onPrepareFromMediaId(it, playWhenReady, musicSource.songs[0].bundle) }
     }
 
     override fun onPrepareFromMediaId(mediaId: String, playWhenReady: Boolean, extras: Bundle?) {

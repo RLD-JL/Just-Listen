@@ -38,6 +38,8 @@ class MusicService : MediaBrowserServiceCompat() {
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var mediaSessionConnector: MediaSessionConnector
 
+    private var currentPlaylistItems: List<MediaMetadataCompat> = emptyList()
+
     var isForegroundService = false
 
     @Inject
@@ -83,16 +85,21 @@ class MusicService : MediaBrowserServiceCompat() {
 
         mediaSessionConnector = MediaSessionConnector(mediaSession)
         mediaSessionConnector.setPlaybackPreparer(musicPlaybackPreparer)
-        mediaSessionConnector.setQueueNavigator(MusicQueueNavigator())
+        mediaSessionConnector.setQueueNavigator(MusicQueueNavigator(mediaSession))
         mediaSessionConnector.setPlayer(exoPlayer)
+
+        musicNotificationManager.showNotification(exoPlayer)
 
         musicPlayerEventListener = MusicPlayerEventListener(this, musicNotificationManager, exoPlayer)
         exoPlayer.addListener(musicPlayerEventListener)
     }
 
-    private inner class MusicQueueNavigator : TimelineQueueNavigator(mediaSession) {
+    private inner class MusicQueueNavigator(mediaSessionCompat: MediaSessionCompat) : TimelineQueueNavigator(mediaSessionCompat) {
         override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat {
-            return musicSource.songs[windowIndex].description
+            if (windowIndex < currentPlaylistItems.size) {
+                return currentPlaylistItems[windowIndex].description
+            }
+            return MediaDescriptionCompat.Builder().build()
         }
     }
 
@@ -102,6 +109,8 @@ class MusicService : MediaBrowserServiceCompat() {
         playNow: Boolean
     ) {
         val currentSongIndex = if (curPlayingSong == null) 0 else songs.indexOf(itemToPlay)
+        currentPlaylistItems = songs
+
         exoPlayer.playWhenReady = playNow
         exoPlayer.stop()
         exoPlayer.setMediaItems(songs.map {
@@ -115,7 +124,6 @@ class MusicService : MediaBrowserServiceCompat() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         mediaSession.run {
             isActive = false
             release()
@@ -129,37 +137,26 @@ class MusicService : MediaBrowserServiceCompat() {
         clientPackageName: String,
         clientUid: Int,
         rootHints: Bundle?
-    ): BrowserRoot? {
+    ): BrowserRoot {
         return BrowserRoot("/", null)
     }
 
     override fun onLoadChildren(
         parentId: String,
-        result: Result<MutableList<MediaBrowserCompat.MediaItem>>
+        result: Result<List<MediaBrowserCompat.MediaItem>>
     ) {
         when (parentId) {
             MEDIA_ROOT_ID -> {
-                val resultsSent = musicSource.whenReady { isInitialized ->
-                    if (isInitialized) {
-                        result.sendResult(musicSource.asMediaItems())
-                        if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
-                            preparePlayer(musicSource.songs, musicSource.songs[0], false)
-                            isPlayerInitialized = true
-
-                        }
-                    } else {
-                        mediaSession.sendSessionEvent(NETWORK_ERROR, null)
-                        result.sendResult(null)
-                    }
-                }
-                if (!resultsSent) {
-                    result.detach()
-                }
             }
             else -> {
                 val resultsSent = musicSource.whenReady { isInitialized ->
                     if (isInitialized) {
-                        result.sendResult(musicSource.asMediaItems())
+                        val item = musicSource.songs.map { item ->
+                            MediaBrowserCompat.MediaItem(item.description,
+                                MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
+                            )
+                        }
+                        result.sendResult(item)
                         if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
                             preparePlayer(musicSource.songs, musicSource.songs[0], true)
                             isPlayerInitialized = true

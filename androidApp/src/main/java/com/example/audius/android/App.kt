@@ -2,13 +2,9 @@ package com.example.audius.android
 
 import android.app.Application
 import android.support.v4.media.MediaBrowserCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.OnLifecycleEvent
-import androidx.lifecycle.ProcessLifecycleOwner
-import coil.ImageLoader
+import androidx.lifecycle.*
 import com.example.audius.android.exoplayer.MusicServiceConnection
-import com.example.audius.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
+import com.example.audius.android.exoplayer.utils.Constants.CLICKED_PLAYLIST
 import com.example.audius.shared.viewmodel.getAndroidInstance
 import com.example.audius.viewmodel.AudiusViewModel
 import dagger.hilt.android.HiltAndroidApp
@@ -35,25 +31,31 @@ class AudiusApp : Application() {
 class AppLifecycleObserver(
     private val model: AudiusViewModel,
     private val musicServiceConnection: MusicServiceConnection
-) : LifecycleObserver {
+) : LifecycleEventObserver {
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_START)
-    fun onEnterForeground() {
-        if (model.stateFlow.value.recompositionIndex > 0) { // not calling at app startup
-            model.navigation.onReEnterForeground()
+    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+        when (event) {
+            Lifecycle.Event.ON_START -> {
+                if (model.stateFlow.value.recompositionIndex > 0) { // not calling at app startup
+                    musicServiceConnection.subscribe(
+                        CLICKED_PLAYLIST,
+                        object : MediaBrowserCompat.SubscriptionCallback() {
+                            override fun onChildrenLoaded(
+                                parentId: String,
+                                children: List<MediaBrowserCompat.MediaItem>
+                            ) {
+                            }
+                        }
+                    )
+                    model.navigation.onReEnterForeground()
+                }
+            }
+            Lifecycle.Event.ON_STOP -> model.navigation.onEnterBackground()
+            Lifecycle.Event.ON_DESTROY -> musicServiceConnection.unsubscribe(
+                CLICKED_PLAYLIST,
+                object : MediaBrowserCompat.SubscriptionCallback() {})
+            else -> {}
         }
-    }
-
-    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-    fun onEnterBackground() {
-        model.navigation.onEnterBackground()
-    }
-
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    fun onDestroyed() {
-        musicServiceConnection.unsubscribe(
-            MEDIA_ROOT_ID,
-            object : MediaBrowserCompat.SubscriptionCallback() {})
     }
 
 }

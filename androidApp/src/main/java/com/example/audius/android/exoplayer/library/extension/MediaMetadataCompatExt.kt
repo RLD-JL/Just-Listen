@@ -256,28 +256,6 @@ inline var MediaMetadataCompat.Builder.flag: Int
         putLong(METADATA_KEY_UAMP_FLAGS, value.toLong())
     }
 
-/**
- * Extension method for building an [ExtractorMediaSource] from a [MediaMetadataCompat] object.
- *
- * For convenience, place the [MediaDescriptionCompat] into the tag so it can be retrieved later.
- */
-fun MediaMetadataCompat.toMediaSource(dataSourceFactory: DataSource.Factory) =
-    ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaUri)
-
-/**
- * Extension method for building a [ConcatenatingMediaSource] given a [List]
- * of [MediaMetadataCompat] objects.
- */
-fun List<MediaMetadataCompat>.toMediaSource(
-    dataSourceFactory: DataSource.Factory
-): ConcatenatingMediaSource {
-
-    val concatenatingMediaSource = ConcatenatingMediaSource()
-    forEach {
-        concatenatingMediaSource.addMediaSource(it.toMediaSource(dataSourceFactory))
-    }
-    return concatenatingMediaSource
-}
 
 fun MediaMetadataCompat.toMediaItem(): com.google.android.exoplayer2.MediaItem {
     return with(com.google.android.exoplayer2.MediaItem.Builder()) {
@@ -303,6 +281,7 @@ fun MediaMetadataCompat.toMediaItemMetadata(): MediaMetadata {
         setArtworkUri(albumArtUri)
         val extras = Bundle()
         extras.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
+        extras.putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
         setExtras(extras)
     }.build()
 }
