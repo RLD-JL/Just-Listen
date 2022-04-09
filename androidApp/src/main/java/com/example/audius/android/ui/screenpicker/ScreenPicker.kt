@@ -5,11 +5,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.graphics.painter.Painter
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
 import com.example.audius.android.exoplayer.MusicServiceConnection
-import com.example.audius.android.mapper.PlaylistDetailMapper
 import com.example.audius.android.ui.playlistscreen.PlaylistScreen
 import com.example.audius.android.ui.libraryscreen.LibraryScreen
 import com.example.audius.viewmodel.screens.playlist.*
@@ -77,12 +75,13 @@ fun Navigation.ScreenPicker(
                             playlistIcon,
                             playlistTitle,
                             playlistCreatedBy,
-                            CURRENT_PLAYLIST)
+                            CURRENT_PLAYLIST
+                        )
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)
                 },
                 onSearchClicked = { navigate(Search) },
-                refreshScreen = {events.refreshScreen()}
+                refreshScreen = { events.refreshScreen() }
             )
 
         PlaylistDetail -> PlaylistDetailScreen(
@@ -92,11 +91,19 @@ fun Navigation.ScreenPicker(
             },
             musicServiceConnection = musicServiceConnection,
             onFavoritePressed = { id, title, userModel, songIconList, isFavorite ->
-                events.saveSongToFavorites(id, title, userModel, songIconList, isFavorite = isFavorite)
-                musicServiceConnection.isFavorite.value = isFavorite
+                events.saveSongToFavorites(
+                    id,
+                    title,
+                    userModel,
+                    songIconList,
+                    isFavorite = isFavorite
+                )
+                updateFavorite(isFavorite, musicServiceConnection)
             },
-            dominantColor = {color -> events.saveDominantColor(color)
-                    dominantColor(color)},
+            dominantColor = { color ->
+                events.saveDominantColor(color)
+                dominantColor(color)
+            },
             onSongPressed = { songId, title, userModel, songIconList ->
 
                 playMusicFromId(
@@ -137,7 +144,8 @@ fun Navigation.ScreenPicker(
                     PlaylistDetail,
                     PlaylistDetailParams(
                         playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
-                        CURRENT_PLAYLIST)
+                        CURRENT_PLAYLIST
+                    )
                 )
                 events.playMusicFromPlaylist(playlistId = playlistId)
             },
@@ -145,4 +153,10 @@ fun Navigation.ScreenPicker(
             updateSearch = { searchText -> events.updateSearch(searchText) }
         )
     }
+}
+
+fun updateFavorite(isFavorite: Boolean, musicServiceConnection: MusicServiceConnection) {
+    musicServiceConnection.isFavorite.value = isFavorite
+    musicServiceConnection.currentPlayingSong.value?.bundle?.putString("android.media.metadata.IS_FAVORITE", "$isFavorite")
+
 }

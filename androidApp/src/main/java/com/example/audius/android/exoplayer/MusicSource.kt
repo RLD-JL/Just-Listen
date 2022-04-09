@@ -42,7 +42,7 @@ class MusicSource {
         albumArtUri = song.songIconList.songImageURL480px
         displaySubtitle = song.title
         displayDescription = song.title
-        genre = song.isFavorite.toString()
+        isFavorite = song.isFavorite.toString()
         duration = 120
 
         downloadStatus = MediaDescriptionCompat.STATUS_NOT_DOWNLOADED

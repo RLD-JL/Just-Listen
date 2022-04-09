@@ -20,13 +20,10 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat.MediaItem
-import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import androidx.core.net.toUri
+import com.example.audius.android.exoplayer.utils.METADATA_KEY_IS_FAVORITE
 import com.google.android.exoplayer2.MediaMetadata
-import com.google.android.exoplayer2.source.ConcatenatingMediaSource
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.util.MimeTypes
 
 /**
@@ -67,6 +64,10 @@ inline val MediaMetadataCompat.year: String?
 
 inline val MediaMetadataCompat.genre: String?
     get() = getString(MediaMetadataCompat.METADATA_KEY_GENRE)
+
+inline val MediaMetadataCompat.isFavorite: String?
+    get() = getString(METADATA_KEY_IS_FAVORITE)
+
 
 inline val MediaMetadataCompat.trackNumber
     get() = getLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER)
@@ -175,6 +176,13 @@ inline var MediaMetadataCompat.Builder.genre: String?
         putString(MediaMetadataCompat.METADATA_KEY_GENRE, value)
     }
 
+inline var MediaMetadataCompat.Builder.isFavorite: String?
+    @Deprecated(NO_GET, level = DeprecationLevel.ERROR)
+    get() = throw IllegalAccessException("Cannot get from MediaMetadataCompat.Builder")
+    set(value) {
+        putString("android.media.metadata.IS_FAVORITE", value)
+    }
+
 inline var MediaMetadataCompat.Builder.mediaUri: String?
     @Deprecated(NO_GET, level = DeprecationLevel.ERROR)
     get() = throw IllegalAccessException("Cannot get from MediaMetadataCompat.Builder")
@@ -277,11 +285,12 @@ fun MediaMetadataCompat.toMediaItemMetadata(): MediaMetadata {
         setTotalTrackCount(trackCount.toInt())
         setDiscNumber(discNumber.toInt())
         setWriter(writer)
-        setGenre(genre)
+   //     setGenre(genre)
         setArtworkUri(albumArtUri)
         val extras = Bundle()
         extras.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
         extras.putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
+        extras.putString(METADATA_KEY_IS_FAVORITE, isFavorite)
         setExtras(extras)
     }.build()
 }

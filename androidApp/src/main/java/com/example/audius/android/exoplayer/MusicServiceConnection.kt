@@ -10,6 +10,7 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import com.example.audius.android.exoplayer.library.extension.isFavorite
 import com.example.audius.android.exoplayer.utils.Constants.NETWORK_ERROR
 import com.example.audius.viewmodel.interfaces.Item
 import kotlinx.coroutines.*
@@ -17,25 +18,28 @@ import javax.inject.Inject
 
 class MusicServiceConnection @Inject constructor(
     val musicSource: MusicSource,
-    context: Context) {
+    context: Context
+) {
 
     val isConnected: MutableState<Boolean> = mutableStateOf(false)
+
+    val isFavorite: MutableState<Boolean> = mutableStateOf(false)
 
     val networkError: MutableState<Boolean> = mutableStateOf(false)
 
     val songDuration: MutableState<Long> = mutableStateOf(0)
 
-    val playbackState: MutableState<PlaybackStateCompat?> = mutableStateOf(PlaybackStateCompat.fromPlaybackState(null))
+    val playbackState: MutableState<PlaybackStateCompat?> =
+        mutableStateOf(PlaybackStateCompat.fromPlaybackState(null))
 
     val sliderClicked: MutableState<Boolean> = mutableStateOf(false)
 
-    val isFavorite: MutableState<Boolean> = mutableStateOf(false)
-
-    val currentPlayingSong: MutableState<MediaMetadataCompat?> = mutableStateOf(MediaMetadataCompat.fromMediaMetadata(null))
+    val currentPlayingSong: MutableState<MediaMetadataCompat?> =
+        mutableStateOf(MediaMetadataCompat.fromMediaMetadata(null))
 
     lateinit var mediaController: MediaControllerCompat
 
-    private val  mediaBrowserConnectionCallback = MediaBrowserConnectionCallback(context = context)
+    private val mediaBrowserConnectionCallback = MediaBrowserConnectionCallback(context = context)
 
     private val mediaBrowser = MediaBrowserCompat(
         context,
@@ -62,17 +66,17 @@ class MusicServiceConnection @Inject constructor(
         val serviceScope = CoroutineScope(Dispatchers.IO)
 
         serviceScope.launch {
-                while (!sliderClicked.value) {
-                    ensureActive()
-                    val pos = playbackState.value?.currentPlaybackPosition
-                    if (songDuration.value != pos) {
-                        pos?.let {
-                            songDuration.value = it
-                        }
+            while (!sliderClicked.value) {
+                ensureActive()
+                val pos = playbackState.value?.currentPlaybackPosition
+                if (songDuration.value != pos) {
+                    pos?.let {
+                        songDuration.value = it
                     }
-                    delay(1000L)
                 }
-          }
+                delay(1000L)
+            }
+        }
     }
 
     fun subscribe(parentId: String, callback: MediaBrowserCompat.SubscriptionCallback) {
@@ -108,11 +112,12 @@ class MusicServiceConnection @Inject constructor(
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+            isFavorite.value = currentPlayingSong.value?.isFavorite.toBoolean()
             currentPlayingSong.value = metadata
         }
 
         override fun onSessionEvent(event: String?, extras: Bundle?) {
-            when(event) {
+            when (event) {
                 NETWORK_ERROR -> networkError.value = true
             }
         }
@@ -123,6 +128,5 @@ class MusicServiceConnection @Inject constructor(
         override fun onSessionDestroyed() {
             mediaBrowserConnectionCallback.onConnectionSuspended()
         }
-
     }
 }

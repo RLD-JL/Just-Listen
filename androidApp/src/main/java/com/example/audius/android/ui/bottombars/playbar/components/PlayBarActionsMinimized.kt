@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.audius.android.R
 import com.example.audius.android.exoplayer.MusicServiceConnection
-import com.example.audius.android.exoplayer.library.extension.genre
 import com.example.audius.android.ui.bottombars.playbar.IsLoading
 import com.example.audius.android.ui.theme.typography
 
@@ -41,7 +40,7 @@ fun PlayBarActionsMinimized(
                 maxLines = 3
             )
 
-            if (musicServiceConnection.currentPlayingSong.value?.genre == "true")
+            if (musicServiceConnection.isFavorite.value)
             {
                 Icon(
                     imageVector = Icons.Default.Favorite,

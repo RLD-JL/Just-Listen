@@ -1,5 +1,6 @@
 package com.example.audius.android.exoplayer.utils
 
+
 object Constants {
 
     const val NOTIFICATION_ID = 1
@@ -10,6 +11,6 @@ object Constants {
     const val CLICKED_PLAYLIST = "clicked_playlist"
 
     const val NETWORK_ERROR = "Network Error"
-
-    const val METADATA_KEY_IS_FAVORITE = "android.media.metadata.IS_FAVORITE"
 }
+val METADATA_KEY_IS_FAVORITE: String
+    get() = "android.media.metadata.IS_FAVORITE"
