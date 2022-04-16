@@ -39,8 +39,8 @@ fun PlayBarActionsMinimized(
                     .weight(0.7f),
                 maxLines = 3
             )
-
-            if (musicServiceConnection.isFavorite.value)
+            val songId = musicServiceConnection.currentPlayingSong.value?.description?.mediaId
+            if (musicServiceConnection.isFavorite[songId] == true)
             {
                 Icon(
                     imageVector = Icons.Default.Favorite,

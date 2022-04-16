@@ -23,7 +23,7 @@ class MusicServiceConnection @Inject constructor(
 
     val isConnected: MutableState<Boolean> = mutableStateOf(false)
 
-    val isFavorite: MutableState<Boolean> = mutableStateOf(false)
+    val isFavorite: MutableMap<String, Boolean> = mutableMapOf()
 
     val networkError: MutableState<Boolean> = mutableStateOf(false)
 
@@ -60,6 +60,10 @@ class MusicServiceConnection @Inject constructor(
     fun updatePlaylist(list: List<Item>) {
         musicSource.playlist = list
         musicSource.fetchMediaData()
+    }
+
+    fun updateFavorite(songId: String, isFavorite: Boolean) {
+        musicSource.playlist.first { it.id == songId }.isFavorite = isFavorite
     }
 
     fun updateSong() {
@@ -112,8 +116,11 @@ class MusicServiceConnection @Inject constructor(
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            isFavorite.value = currentPlayingSong.value?.isFavorite.toBoolean()
             currentPlayingSong.value = metadata
+
+            currentPlayingSong.value?.description?.mediaId?.let {
+                isFavorite.put(it,  isFavorite[it] ?: currentPlayingSong.value?.isFavorite.toBoolean())
+            }
         }
 
         override fun onSessionEvent(event: String?, extras: Bundle?) {

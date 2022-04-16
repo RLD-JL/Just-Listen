@@ -98,7 +98,7 @@ fun Navigation.ScreenPicker(
                     songIconList,
                     isFavorite = isFavorite
                 )
-                updateFavorite(isFavorite, musicServiceConnection)
+                updateFavorite(isFavorite, musicServiceConnection, id)
             },
             dominantColor = { color ->
                 events.saveDominantColor(color)
@@ -155,8 +155,10 @@ fun Navigation.ScreenPicker(
     }
 }
 
-fun updateFavorite(isFavorite: Boolean, musicServiceConnection: MusicServiceConnection) {
-    musicServiceConnection.isFavorite.value = isFavorite
-    musicServiceConnection.currentPlayingSong.value?.bundle?.putString("android.media.metadata.IS_FAVORITE", "$isFavorite")
-
+fun updateFavorite(
+    isFavorite: Boolean,
+    musicServiceConnection: MusicServiceConnection,
+    songId: String
+) {
+    musicServiceConnection.isFavorite[songId] = isFavorite
 }
