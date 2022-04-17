@@ -3,7 +3,6 @@ package com.example.audius.android.ui.bottombars.playbar
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,8 +17,8 @@ import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.bottombars.playbar.components.PlayBarActionsMaximized
 import com.example.audius.android.ui.bottombars.playbar.components.PlayBarSwipeActions
 import com.example.audius.android.ui.bottombars.playbar.components.PlayBarTopSection
+import com.example.audius.android.ui.extensions.noRippleClickable
 import com.example.audius.android.ui.theme.modifiers.verticalGradientBackground
-import com.example.audius.android.ui.utils.*
 import com.example.audius.datalayer.models.SongIconList
 import com.example.audius.datalayer.models.UserModel
 import kotlinx.coroutines.InternalCoroutinesApi
@@ -35,13 +34,16 @@ fun PlayerBottomBar(
     onSkipNextPressed: () -> Unit,
     onCollapsedClicked: () -> Unit,
     onMoreClicked: () -> Unit,
+    onBackgroundClicked: () -> Unit,
     painterLoaded: (Painter) -> Unit,
     dominantColor: Int,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit
 ) {
     val list = listOf(Color(dominantColor), Color(dominantColor).copy(alpha = 0.6f))
     BoxWithConstraints(
-        modifier = Modifier.verticalGradientBackground(list)
+        modifier = Modifier
+            .verticalGradientBackground(list)
+            .noRippleClickable { onBackgroundClicked() }
     ) {
         val constraints = this@BoxWithConstraints
         Column(Modifier.fillMaxSize()) {
@@ -67,7 +69,7 @@ fun PlayerBottomBar(
                 musicServiceConnection,
                 title,
                 onSkipNextPressed,
-                constraints.maxWidth.value,
+                constraints.maxWidth.value
             )
         }
     }

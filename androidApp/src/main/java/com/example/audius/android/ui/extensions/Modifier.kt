@@ -25,9 +25,9 @@ import com.example.audius.android.ui.utils.lerp
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-inline fun Modifier.noRippleClickable(
+ fun Modifier.noRippleClickable(
     enabled: Boolean = true,
-    noinline onClick: () -> Unit
+     onClick: () -> Unit
 ): Modifier = composed {
     clickable(
         enabled = enabled,
@@ -59,7 +59,6 @@ internal fun Modifier.minimumTouchTargetSize(): Modifier = composed {
  * an accessible touch target.
  */
 @Suppress("EXPERIMENTAL_ANNOTATION_ON_WRONG_TARGET")
-@get:ExperimentalMaterialApi
 @ExperimentalMaterialApi
 val LocalMinimumTouchTargetEnforcement: ProvidableCompositionLocal<Boolean> =
     staticCompositionLocalOf { true }
