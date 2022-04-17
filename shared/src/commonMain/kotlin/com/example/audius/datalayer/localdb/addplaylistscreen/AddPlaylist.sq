@@ -1,0 +1,11 @@
+CREATE TABLE AddPlaylist  (
+       playlistName TEXT NOT NULL PRIMARY KEY,
+       playlistDescription TEXT NOT NULL);
+
+getFavoritePlaylist:
+SELECT * FROM AddPlaylist;
+
+upsertAddPlaylist {
+    INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription)
+    VALUES(:playlistName, :playlistDescription);
+}

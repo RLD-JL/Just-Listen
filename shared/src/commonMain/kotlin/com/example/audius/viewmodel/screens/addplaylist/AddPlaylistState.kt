@@ -1,9 +1,9 @@
 package com.example.audius.viewmodel.screens.addplaylist
 
 import com.example.audius.ScreenState
-import com.example.audius.viewmodel.screens.playlist.PlaylistItem
+import com.example.audius.datalayer.localdb.addplaylistscreen.AddPlaylist
 
 data class AddPlaylistState(
     val isLoading: Boolean = false,
-    val playlistsCreated: List<PlaylistItem> = emptyList()
+    val playlistsCreated: List<AddPlaylist> = emptyList()
 ): ScreenState
