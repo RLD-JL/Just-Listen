@@ -1,8 +1,9 @@
 CREATE TABLE AddPlaylist  (
        playlistName TEXT NOT NULL PRIMARY KEY,
-       playlistDescription TEXT NOT NULL);
+       playlistDescription TEXT
+);
 
-getFavoritePlaylist:
+getAddPlaylist:
 SELECT * FROM AddPlaylist;
 
 upsertAddPlaylist {

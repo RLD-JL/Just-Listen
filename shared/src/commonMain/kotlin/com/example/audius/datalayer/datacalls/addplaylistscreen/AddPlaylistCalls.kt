@@ -5,7 +5,7 @@ import com.example.audius.datalayer.localdb.addplaylistscreen.AddPlaylist
 import com.example.audius.datalayer.localdb.addplaylistscreen.getAddPlaylist
 import com.example.audius.datalayer.localdb.addplaylistscreen.savePlaylist
 
-fun Repository.savePlaylist(playlistName: String, playlistDescription: String) {
+fun Repository.savePlaylist(playlistName: String, playlistDescription: String?) {
     localDb.savePlaylist(playlistName, playlistDescription)
 }
 
