@@ -8,6 +8,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import com.example.audius.Navigation
 import com.example.audius.ScreenIdentifier
 import com.example.audius.android.exoplayer.MusicServiceConnection
+import com.example.audius.android.ui.addplaylistscreen.AddPlaylistScreen
 import com.example.audius.android.ui.playlistscreen.PlaylistScreen
 import com.example.audius.android.ui.libraryscreen.LibraryScreen
 import com.example.audius.viewmodel.screens.playlist.*
@@ -154,7 +155,7 @@ fun Navigation.ScreenPicker(
             onPreviousSearchedPressed = { searchText -> events.updateSearch(searchText) },
             updateSearch = { searchText -> events.updateSearch(searchText) }
         )
-        AddPlaylist -> TODO()
+        AddPlaylist -> AddPlaylistScreen(addPlaylistState = stateProvider.get(screenIdentifier))
     }
 }
 

@@ -17,6 +17,6 @@ enum class Screen (
     Library("library", 1, {initLibrary(it.params())}),
     Playlist("playlist", 1, {initPlaylist(it.params())}),
     PlaylistDetail("playlistDetail", 1, {initPlaylistDetail(it.params())}),
-    AddPlaylist("playlist", 1, {initAddPlaylist(it.params())}),
+    AddPlaylist("addPlaylist", 1, {initAddPlaylist(it.params())}),
     Search("screen", 1, {initSearch()})
 }
