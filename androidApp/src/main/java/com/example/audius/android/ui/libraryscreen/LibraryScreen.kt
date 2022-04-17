@@ -5,14 +5,21 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.ImageLoader
+import com.example.audius.android.R
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.exoplayer.isPlayEnabled
 import com.example.audius.android.exoplayer.isPlaying
@@ -25,16 +32,21 @@ import com.example.audius.viewmodel.screens.library.LibraryState
 fun LibraryScreen(
     musicServiceConnection: MusicServiceConnection,
     libraryState: LibraryState,
-    onPlaylistPressed: (String, String, String, String) -> Unit) {
+    onPlaylistPressed: (String, String, String, String) -> Unit
+) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column() {
             Header(text = "Last Played")
-            RowListOfRecentActivity(libraryState, onPlaylistClicked = { _, _, _, _ ->
-                {
+            RowListOfRecentActivity(
+                libraryState,
+                onPlaylistClicked = { _, _, _, _ ->
+                    {
 
-                }
-            },
+                    }
+                },
             )
+            Divider(thickness = 1.dp)
+            PlaylistView()
             FavoritePlaylist(libraryState, onPlaylistPressed)
         }
     }
@@ -56,6 +68,23 @@ fun RowListOfRecentActivity(
     }
 }
 
+@Composable
+fun PlaylistView() {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 15.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(painter = painterResource(id = R.drawable.ic_playlist), contentDescription = null)
+        Text(
+            modifier = Modifier.padding(start = 5.dp),
+            text = "Playlists",
+            fontWeight = FontWeight.ExtraBold,
+            fontSize = 20.sp
+        )
+    }
+}
 
 @Composable
 fun FavoritePlaylist(
@@ -70,7 +99,7 @@ fun FavoritePlaylist(
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(top = 30.dp)
+            .padding(top = 15.dp)
             .clickable(
                 onClick = {
                     onPlaylistPressed(
@@ -80,10 +109,16 @@ fun FavoritePlaylist(
                         "You"
                     )
                 }
-            )
+            ),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(imageVector = Icons.Default.FavoriteBorder, contentDescription = null)
-        Text(text = "Favorite Playlist")
+        Text(
+            modifier = Modifier.padding(start = 5.dp),
+            text = "Favorite Playlist",
+            fontWeight = FontWeight.ExtraBold,
+            fontSize = 20.sp
+        )
     }
 }
 
