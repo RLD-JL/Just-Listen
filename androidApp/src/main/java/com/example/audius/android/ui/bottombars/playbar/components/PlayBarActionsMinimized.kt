@@ -19,12 +19,15 @@ import com.example.audius.android.R
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.bottombars.playbar.IsLoading
 import com.example.audius.android.ui.theme.typography
+import com.example.audius.datalayer.models.SongIconList
+import com.example.audius.datalayer.models.UserModel
 
 @Composable
 fun PlayBarActionsMinimized(
     currentFraction: Float, musicServiceConnection: MusicServiceConnection,
-    title: String, onSkipNextPressed: () -> Unit
-) {
+    title: String, onSkipNextPressed: () -> Unit,
+    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
+    ) {
     Row(
         Modifier
             .graphicsLayer(alpha = 1f - currentFraction * 2)
@@ -39,7 +42,7 @@ fun PlayBarActionsMinimized(
                     .weight(0.7f),
                 maxLines = 3
             )
-            val songId = musicServiceConnection.currentPlayingSong.value?.description?.mediaId
+            val songId = musicServiceConnection.currentPlayingSong.value?.description?.mediaId ?: ""
             if (musicServiceConnection.isFavorite[songId] == true)
             {
                 Icon(
@@ -47,7 +50,13 @@ fun PlayBarActionsMinimized(
                     tint = Color.Red,
                     modifier = Modifier
                         .padding(8.dp)
-                        .size(25.dp),
+                        .size(25.dp).clickable {
+                            onFavoritePressed(
+                                songId, title,
+                                UserModel(), SongIconList(),
+                                !musicServiceConnection.isFavorite[songId]!!
+                            )
+                        },
                     contentDescription = null
                 )
             } else {
@@ -55,7 +64,13 @@ fun PlayBarActionsMinimized(
                     imageVector = Icons.Default.FavoriteBorder,
                     modifier = Modifier
                         .padding(8.dp)
-                        .size(25.dp),
+                        .size(25.dp).clickable {
+                            onFavoritePressed(
+                                songId, title,
+                                UserModel(), SongIconList(),
+                                !musicServiceConnection.isFavorite[songId]!!
+                            )
+                        },
                     contentDescription = null
                 )
             }

@@ -160,5 +160,6 @@ fun updateFavorite(
     musicServiceConnection: MusicServiceConnection,
     songId: String
 ) {
+    musicServiceConnection.updateFavorite(songId, isFavorite)
     musicServiceConnection.isFavorite[songId] = isFavorite
 }

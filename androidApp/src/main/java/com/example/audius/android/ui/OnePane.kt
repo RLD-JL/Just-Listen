@@ -19,7 +19,9 @@ import com.example.audius.android.ui.bottombars.Level1BottomBar
 import com.example.audius.android.ui.bottombars.playbar.PlayerBarSheetContent
 import com.example.audius.android.ui.extensions.fraction
 import com.example.audius.android.ui.screenpicker.ScreenPicker
+import com.example.audius.android.ui.screenpicker.updateFavorite
 import com.example.audius.android.ui.utils.lerp
+import com.example.audius.viewmodel.screens.library.saveSongToFavorites
 import com.example.audius.viewmodel.screens.library.saveSongToRecent
 import kotlinx.coroutines.launch
 
@@ -28,8 +30,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun Navigation.OnePane(
     saveableStateHolder: SaveableStateHolder,
-    musicServiceConnection: MusicServiceConnection)
-{
+    musicServiceConnection: MusicServiceConnection
+) {
     val shouldHavePlayBar =
         musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
                 || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PAUSED
@@ -47,37 +49,49 @@ fun Navigation.OnePane(
     Scaffold(
         bottomBar = {
             if (currentScreenIdentifier.screen.navigationLevel == 1) {
-                Level1BottomBar(currentScreenIdentifier,
-                    Modifier.offset(y = lerp(0f, 65f, scaffoldState.fraction).dp))
+                Level1BottomBar(
+                    currentScreenIdentifier,
+                    Modifier.offset(y = lerp(0f, 65f, scaffoldState.fraction).dp)
+                )
             }
         },
         content = {
             val bottomBarPadding = it.calculateBottomPadding()
-                BottomSheetScaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    scaffoldState = scaffoldState,
-                    sheetContent = {
-                        PlayerBarSheetContent(
-                                    onCollapsedClicked = {coroutineScope.launch {scaffoldState.bottomSheetState.collapse()}},
-                                    bottomPadding = bottomBarPadding,
-                                    currentFraction = scaffoldState.fraction,
-                                    onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
-                                    musicServiceConnection = musicServiceConnection,
-                            dominantColor =  dominantColorMutable.value
-                                )
-                    }, content = {
-                        Column(
-                            modifier = if (shouldHavePlayBar) Modifier.padding(bottom = bottomBarPadding + 55.dp) else
-                                Modifier.padding(bottom = bottomBarPadding)
-                        ) {
-                            saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
-                                ScreenPicker(currentScreenIdentifier, musicServiceConnection,
-                                    dominantColor = { dominantColorMutable.value = it})
-                            }
+            BottomSheetScaffold(
+                modifier = Modifier.fillMaxSize(),
+                scaffoldState = scaffoldState,
+                sheetContent = {
+                    PlayerBarSheetContent(
+                        onCollapsedClicked = { coroutineScope.launch { scaffoldState.bottomSheetState.collapse() } },
+                        bottomPadding = bottomBarPadding,
+                        currentFraction = scaffoldState.fraction,
+                        onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
+                        musicServiceConnection = musicServiceConnection,
+                        dominantColor = dominantColorMutable.value,
+                        onFavoritePressed = { id, title, userModel, songIconList, isFavorite ->
+                            events.saveSongToFavorites(
+                                id,
+                                title,
+                                userModel,
+                                songIconList,
+                                isFavorite = isFavorite
+                            )
+                            updateFavorite(isFavorite, musicServiceConnection, id)
                         }
-                    }, sheetPeekHeight = if (shouldHavePlayBar) {
-                        bottomBarPadding + 65.dp
-                    } else bottomBarPadding - 50.dp
-                )
+                    )
+                }, content = {
+                    Column(
+                        modifier = if (shouldHavePlayBar) Modifier.padding(bottom = bottomBarPadding + 55.dp) else
+                            Modifier.padding(bottom = bottomBarPadding)
+                    ) {
+                        saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
+                            ScreenPicker(currentScreenIdentifier, musicServiceConnection,
+                                dominantColor = { dominantColorMutable.value = it })
+                        }
+                    }
+                }, sheetPeekHeight = if (shouldHavePlayBar) {
+                    bottomBarPadding + 65.dp
+                } else bottomBarPadding - 50.dp
+            )
         })
 }

@@ -12,6 +12,8 @@ import androidx.compose.ui.unit.dp
 import coil.annotation.ExperimentalCoilApi
 import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.bottombars.playbar.components.more.PlayBarMoreAction
+import com.example.audius.datalayer.models.SongIconList
+import com.example.audius.datalayer.models.UserModel
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.launch
 
@@ -25,7 +27,9 @@ fun PlayerBarSheetContent(
     onSkipNextPressed: () -> Unit,
     musicServiceConnection: MusicServiceConnection,
     dominantColor: Int,
-    onCollapsedClicked: () -> Unit) {
+    onCollapsedClicked: () -> Unit,
+    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit
+) {
     val songIcon =
         musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
     val title =
@@ -65,7 +69,8 @@ fun PlayerBarSheetContent(
             painterLoaded = { painter ->
                 mutablePainter.value = painter
             },
-            dominantColor = dominantColor
+            dominantColor = dominantColor,
+            onFavoritePressed = onFavoritePressed
         )
     }
 

@@ -19,11 +19,16 @@ import com.example.audius.android.exoplayer.MusicServiceConnection
 import com.example.audius.android.ui.utils.heightSize
 import com.example.audius.android.ui.utils.offsetX
 import com.example.audius.android.ui.utils.widthSize
+import com.example.audius.datalayer.models.SongIconList
+import com.example.audius.datalayer.models.UserModel
 
 @Composable
-fun PlayBarSwipeActions(songIcon: String, currentFraction: Float, constraints: BoxWithConstraintsScope, title: String,
-                        musicServiceConnection: MusicServiceConnection, onSkipNextPressed: () -> Unit,
-                        painterLoaded: (Painter) -> Unit) {
+fun PlayBarSwipeActions(
+    songIcon: String, currentFraction: Float, constraints: BoxWithConstraintsScope, title: String,
+    musicServiceConnection: MusicServiceConnection, onSkipNextPressed: () -> Unit,
+    painterLoaded: (Painter) -> Unit,
+    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -42,7 +47,7 @@ fun PlayBarSwipeActions(songIcon: String, currentFraction: Float, constraints: B
 
 
         (painter.state as? ImagePainter.State.Success)?.let { successState ->
-                painterLoaded(successState.painter)
+            painterLoaded(successState.painter)
         }
         Image(
             painter = painter,
@@ -59,7 +64,8 @@ fun PlayBarSwipeActions(songIcon: String, currentFraction: Float, constraints: B
             currentFraction,
             musicServiceConnection,
             title,
-            onSkipNextPressed
+            onSkipNextPressed,
+            onFavoritePressed
         )
     }
 }

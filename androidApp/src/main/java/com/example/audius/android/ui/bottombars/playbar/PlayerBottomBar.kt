@@ -20,6 +20,8 @@ import com.example.audius.android.ui.bottombars.playbar.components.PlayBarSwipeA
 import com.example.audius.android.ui.bottombars.playbar.components.PlayBarTopSection
 import com.example.audius.android.ui.theme.modifiers.verticalGradientBackground
 import com.example.audius.android.ui.utils.*
+import com.example.audius.datalayer.models.SongIconList
+import com.example.audius.datalayer.models.UserModel
 import kotlinx.coroutines.InternalCoroutinesApi
 
 @InternalCoroutinesApi
@@ -34,11 +36,12 @@ fun PlayerBottomBar(
     onCollapsedClicked: () -> Unit,
     onMoreClicked: () -> Unit,
     painterLoaded: (Painter) -> Unit,
-    dominantColor: Int
+    dominantColor: Int,
+    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit
 ) {
     val list = listOf(Color(dominantColor), Color(dominantColor).copy(alpha = 0.6f))
     BoxWithConstraints(
-        modifier =  Modifier.verticalGradientBackground(list)
+        modifier = Modifier.verticalGradientBackground(list)
     ) {
         val constraints = this@BoxWithConstraints
         Column(Modifier.fillMaxSize()) {
@@ -47,7 +50,7 @@ fun PlayerBottomBar(
 
             PlayBarSwipeActions(
                 songIcon, currentFraction, constraints,
-                title, musicServiceConnection, onSkipNextPressed, painterLoaded
+                title, musicServiceConnection, onSkipNextPressed, painterLoaded, onFavoritePressed
             )
             LinearProgressIndicator(
                 progress = musicServiceConnection.songDuration.value / curSongDuration.toFloat(),
@@ -69,7 +72,6 @@ fun PlayerBottomBar(
         }
     }
 }
-
 
 
 @Composable
