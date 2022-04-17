@@ -57,6 +57,12 @@ class MusicServiceConnection @Inject constructor(
     val transportControls: MediaControllerCompat.TransportControls
         get() = mediaController.transportControls
 
+    val shuffleMode: Int
+        get() = mediaController.shuffleMode
+
+    val repeatMode: Int
+        get() = mediaController.repeatMode
+
     fun updatePlaylist(list: List<Item>) {
         musicSource.playlist = list
         musicSource.fetchMediaData()
@@ -119,7 +125,10 @@ class MusicServiceConnection @Inject constructor(
             currentPlayingSong.value = metadata
 
             currentPlayingSong.value?.description?.mediaId?.let {
-                isFavorite.put(it,  isFavorite[it] ?: currentPlayingSong.value?.isFavorite.toBoolean())
+                isFavorite.put(
+                    it,
+                    isFavorite[it] ?: currentPlayingSong.value?.isFavorite.toBoolean()
+                )
             }
         }
 

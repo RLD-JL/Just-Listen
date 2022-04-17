@@ -1,6 +1,8 @@
 package com.example.audius.android.ui.bottombars.playbar.components
 
 import android.media.session.PlaybackState
+import android.support.v4.media.session.PlaybackStateCompat
+import android.support.v4.media.session.PlaybackStateCompat.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.DragInteraction
@@ -72,34 +74,61 @@ fun PlayBarActionsMaximized(
             Modifier
                 .fillMaxSize()
                 .padding(bottom = bottomPadding + 5.dp),
-                verticalArrangement = Arrangement.Bottom ) {
-            Text(modifier = Modifier.align(Alignment.CenterHorizontally),text = title, textAlign = TextAlign.Center)
-                ModifiedSlider(
-                    interactionSource = interactionSource,
-                    modifier = Modifier
-                        .offset(x = offsetX(currentFraction, maxWidth).dp)
-                        .width(widthSize(currentFraction, maxWidth).dp),
-                    value = sliderPosition, onValueChange = {
-                        musicServiceConnection.sliderClicked.value = true
-                        musicServiceConnection.songDuration.value =
-                            (it * MusicService.curSongDuration).toLong()
-                    })
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Text(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                text = title,
+                textAlign = TextAlign.Center
+            )
+            ModifiedSlider(
+                interactionSource = interactionSource,
+                modifier = Modifier
+                    .offset(x = offsetX(currentFraction, maxWidth).dp)
+                    .width(widthSize(currentFraction, maxWidth).dp),
+                value = sliderPosition, onValueChange = {
+                    musicServiceConnection.sliderClicked.value = true
+                    musicServiceConnection.songDuration.value =
+                        (it * MusicService.curSongDuration).toLong()
+                })
 
             Row(
                 Modifier.height(IntrinsicSize.Max)
             ) {
-
+                if (musicServiceConnection.shuffleMode == SHUFFLE_MODE_NONE) {
+                    Icon(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .weight(0.2f)
+                            .clickable {
+                                musicServiceConnection.transportControls.setShuffleMode(
+                                    SHUFFLE_MODE_ALL
+                                )
+                            },
+                        painter = painterResource(id = R.drawable.exo_styled_controls_shuffle_off),
+                        contentDescription = null,
+                    )
+                } else {
+                    Icon(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .weight(0.2f)
+                            .clickable {
+                                musicServiceConnection.transportControls.setShuffleMode(
+                                    SHUFFLE_MODE_NONE
+                                )
+                            },
+                        painter = painterResource(id = R.drawable.exo_styled_controls_shuffle_on),
+                        contentDescription = null,
+                    )
+                }
                 Icon(
                     modifier = Modifier
                         .size(40.dp)
-                        .weight(0.2f),
-                    painter = painterResource(id = R.drawable.exo_styled_controls_shuffle_on),
-                    contentDescription = null,
-                )
-                Icon(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .weight(0.2f),
+                        .weight(0.2f)
+                        .clickable {
+                            musicServiceConnection.transportControls.skipToPrevious()
+                        },
                     painter = painterResource(id = R.drawable.exo_ic_skip_previous),
                     contentDescription = null,
                 )
@@ -145,13 +174,45 @@ fun PlayBarActionsMaximized(
                         .weight(0.2f),
                     contentDescription = null,
                 )
-                Icon(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .weight(0.2f),
-                    painter = painterResource(id = R.drawable.exo_controls_repeat_all),
-                    contentDescription = null,
-                )
+                when (musicServiceConnection.repeatMode) {
+                    REPEAT_MODE_NONE -> Icon(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .weight(0.2f)
+                            .clickable {
+                                musicServiceConnection.transportControls.setRepeatMode(
+                                    REPEAT_MODE_ONE
+                                )
+                            },
+                        painter = painterResource(id = R.drawable.exo_controls_repeat_off),
+                        contentDescription = null,
+                    )
+                    REPEAT_MODE_ONE -> Icon(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .weight(0.2f)
+                            .clickable {
+                                musicServiceConnection.transportControls.setRepeatMode(
+                                    REPEAT_MODE_ALL
+                                )
+                            },
+                        painter = painterResource(id = R.drawable.exo_controls_repeat_one),
+                        contentDescription = null,
+                    )
+                    REPEAT_MODE_ALL -> Icon(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .weight(0.2f)
+                            .clickable {
+                                musicServiceConnection.transportControls.setRepeatMode(
+                                    REPEAT_MODE_NONE
+                                )
+                            },
+                        painter = painterResource(id = R.drawable.exo_controls_repeat_all),
+                        contentDescription = null,
+                    )
+                }
+
             }
         }
     }
