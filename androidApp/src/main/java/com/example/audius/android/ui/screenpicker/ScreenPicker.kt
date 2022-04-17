@@ -17,6 +17,7 @@ import com.example.audius.android.ui.playlistdetailscreen.playMusicFromId
 import com.example.audius.android.ui.searchscreen.SearchScreen
 import com.example.audius.datalayer.models.UserModel
 import com.example.audius.viewmodel.screens.Screen.*
+import com.example.audius.viewmodel.screens.addplaylist.AddPlaylistParams
 import com.example.audius.viewmodel.screens.library.saveSongToFavorites
 import com.example.audius.viewmodel.screens.library.saveSongToRecent
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailParams
@@ -53,7 +54,8 @@ fun Navigation.ScreenPicker(
                         )
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)
-                }
+                },
+                onPlayListViewClicked = { navigate(AddPlaylist, AddPlaylistParams("")) }
             )
         Playlist ->
             PlaylistScreen(
@@ -152,6 +154,7 @@ fun Navigation.ScreenPicker(
             onPreviousSearchedPressed = { searchText -> events.updateSearch(searchText) },
             updateSearch = { searchText -> events.updateSearch(searchText) }
         )
+        AddPlaylist -> TODO()
     }
 }
 

@@ -1,6 +1,5 @@
 package com.example.audius.android.ui.libraryscreen
 
-import android.support.v4.media.MediaMetadataCompat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -15,15 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.ImageLoader
 import com.example.audius.android.R
 import com.example.audius.android.exoplayer.MusicServiceConnection
-import com.example.audius.android.exoplayer.isPlayEnabled
-import com.example.audius.android.exoplayer.isPlaying
-import com.example.audius.android.exoplayer.isPrepared
 import com.example.audius.android.ui.playlistscreen.Header
 import com.example.audius.android.ui.playlistscreen.components.PlaylistRowItem
 import com.example.audius.viewmodel.screens.library.LibraryState
@@ -32,7 +26,8 @@ import com.example.audius.viewmodel.screens.library.LibraryState
 fun LibraryScreen(
     musicServiceConnection: MusicServiceConnection,
     libraryState: LibraryState,
-    onPlaylistPressed: (String, String, String, String) -> Unit
+    onPlaylistPressed: (String, String, String, String) -> Unit,
+    onPlayListViewClicked: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column() {
@@ -46,7 +41,7 @@ fun LibraryScreen(
                 },
             )
             Divider(thickness = 1.dp)
-            PlaylistView()
+            PlaylistView(onPlayListViewClicked)
             FavoritePlaylist(libraryState, onPlaylistPressed)
         }
     }
@@ -69,11 +64,11 @@ fun RowListOfRecentActivity(
 }
 
 @Composable
-fun PlaylistView() {
+fun PlaylistView(onPlayListViewClicked: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(top = 15.dp),
+            .padding(top = 15.dp).clickable(onClick = onPlayListViewClicked),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(painter = painterResource(id = R.drawable.ic_playlist), contentDescription = null)
@@ -119,28 +114,5 @@ fun FavoritePlaylist(
             fontWeight = FontWeight.ExtraBold,
             fontSize = 20.sp
         )
-    }
-}
-
-
-fun skipToNext(musicServiceConnection: MusicServiceConnection) {
-    musicServiceConnection.transportControls.skipToNext()
-}
-
-
-fun play(musicServiceConnection: MusicServiceConnection, mediaId: String) {
-    val isPrepared = musicServiceConnection.playbackState.value?.isPrepared ?: false
-    if (isPrepared && mediaId ==
-        musicServiceConnection.currentPlayingSong.value?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)
-    ) {
-        musicServiceConnection.playbackState.value?.let { playbackState ->
-            when {
-                playbackState.isPlaying -> musicServiceConnection.transportControls.pause()
-                playbackState.isPlayEnabled -> musicServiceConnection.transportControls.play()
-                else -> Unit
-            }
-        }
-    } else {
-        musicServiceConnection.transportControls.playFromMediaId(mediaId, null)
     }
 }
