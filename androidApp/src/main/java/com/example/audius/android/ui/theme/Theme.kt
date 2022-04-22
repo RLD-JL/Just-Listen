@@ -6,6 +6,8 @@ import androidx.compose.material.MaterialTheme.shapes
 import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
@@ -126,7 +128,7 @@ private val DarkColorPalette = darkColors(
 )
 
 
-private val LightColorPalette = darkColors(
+private val LightColorPalette = lightColors(
     primary = Color.Black,
     primaryVariant = primaryGray,
     secondary = Color.DarkGray,
@@ -142,6 +144,18 @@ private val LightColorPalette = darkColors(
 enum class ColorPallet {
     PURPLE, GREEN, ORANGE, BLUE, DARK
 }
+
+private val DarkColorPaletteScheme = darkColorScheme(
+    primary = Color.White,
+    secondary = secondDark,
+    background = Color.Gray,
+    surface = Color.Black,
+    onPrimary = Color.Black,
+    onSecondary = Color.White,
+    onBackground = Color.White,
+    onSurface = Color.White,
+    error = Color.Red
+)
 
 @Composable
 fun AudiusTheme(
@@ -163,4 +177,11 @@ fun AudiusTheme(
         shapes = shapes,
         content = content
     )
+    /* TODO() CONVERT TO MATERIAL3 THEME
+    androidx.compose.material3.MaterialTheme(
+        colorScheme = DarkColorPaletteScheme,
+        content = content
+    )
+
+     */
 }
