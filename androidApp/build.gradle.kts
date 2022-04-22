@@ -21,7 +21,6 @@ dependencies {
     debugImplementation ("androidx.compose.ui:ui-tooling:1.1.1")
     implementation ("androidx.compose.ui:ui-tooling-preview:1.1.1")
     implementation("androidx.compose.material:material:1.2.0-alpha08")
-    implementation("androidx.compose.material3:material3:1.0.0-alpha09")
 
     implementation ("com.google.android.exoplayer:exoplayer:2.17.1")
     implementation ("com.google.android.exoplayer:extension-mediasession:2.17.1")
