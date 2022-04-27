@@ -4,10 +4,12 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.MaterialTheme.shapes
 import androidx.compose.material.MaterialTheme.typography
+import androidx.compose.material.ProvideTextStyle
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 
 
 private val DarkGreenColorPalette = darkColors(
@@ -162,7 +164,12 @@ fun AudiusTheme(
         colors = colors,
         typography = com.example.audius.android.ui.theme.typography,
         shapes = shapes,
-        content = content
+        content = {
+            ProvideTextStyle(
+                value = TextStyle(color = Color.White),
+                content = content
+            )
+        }
     )
     /* TODO() CONVERT TO MATERIAL3 THEME
     androidx.compose.material3.MaterialTheme(
