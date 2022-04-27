@@ -24,16 +24,17 @@ fun Events.searchFor(searchInfo: String) = screenCoroutine {
             tracksList = async { dataRepository.searchForTracks(searchInfo) }
             playList = async { dataRepository.searchForPlaylist(searchInfo) }
         }
+        val trackListResult = tracksList.await()
+        val playlistResult = playList.await()
         searchState.copy(
-            searchResultTracks = tracksList.await(), isLoading = false, searchFor = searchInfo,
-            searchResultPlaylist = playList.await()
+            searchResultTracks = trackListResult, isLoading = false, searchFor = searchInfo,
+            searchResultPlaylist = playlistResult
         )
     }
 }
 
 fun Events.updateSearch(searchInfo: String) = screenCoroutine {
     stateManager.updateScreen(SearchScreenState::class) {
-        println("update screen=$searchInfo")
         it.copy(searchFor = searchInfo)
     }
 }

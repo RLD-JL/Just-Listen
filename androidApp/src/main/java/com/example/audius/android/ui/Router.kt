@@ -4,7 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
-import coil.ImageLoader
+import androidx.compose.ui.util.fastForEach
 import coil.annotation.ExperimentalCoilApi
 import com.example.audius.Navigation
 import com.example.audius.android.exoplayer.MusicServiceConnection
@@ -17,7 +17,7 @@ fun Navigation.Router(musicServiceConnection: MusicServiceConnection) {
 
     OnePane(screenUIisStateHolder, musicServiceConnection)
 
-    screenStatesToRemove.forEach {
+    screenStatesToRemove.fastForEach {
         screenUIisStateHolder.removeState(it.URI)
     }
 

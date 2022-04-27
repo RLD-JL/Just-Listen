@@ -4,6 +4,7 @@ import com.example.audius.datalayer.Repository
 import com.example.audius.viewmodel.AudiusViewModel
 import com.example.audius.viewmodel.screens.ScreenInitSettings
 import com.example.audius.viewmodel.screens.navigationSettings
+import com.example.audius.viewmodel.screens.search.SearchScreenState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.reflect.KClass

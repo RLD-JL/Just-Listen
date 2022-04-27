@@ -28,7 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import coil.ImageLoader
+import androidx.compose.ui.util.fastForEach
 import com.example.audius.android.R
 import com.example.audius.android.ui.extensions.noRippleClickable
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
@@ -40,7 +40,7 @@ import com.example.audius.viewmodel.interfaces.Item
 import com.example.audius.viewmodel.screens.playlist.PlaylistItem
 import com.example.audius.viewmodel.screens.search.SearchScreenState
 import com.example.audius.viewmodel.screens.search.TrackItem
-import com.guru.composecookbook.verticalgrid.VerticalGrid
+import com.example.audius.android.ui.test.VerticalGrid
 
 @ExperimentalComposeUiApi
 @Composable
@@ -172,7 +172,7 @@ fun AnimatedToolBar(
 
 @Composable
 fun ShowPreviousSearches(listOfSearches: List<String>, onPreviousSearchedPressed: (String) ->Unit) {
-    listOfSearches.forEach { itemSearched ->
+    listOfSearches.fastForEach { itemSearched ->
         ItemRowSearch(itemSearched, onPreviousSearchedPressed)
     }
 }
@@ -215,7 +215,7 @@ fun ShowSearchResults(
 @Composable
 fun SearchGridTracks(list: List<Item>, onSongPressed: (String, String, String, SongIconList) -> Unit) {
     VerticalGrid {
-        list.forEach { item ->
+        list.fastForEach { item ->
             TrackGridItem(item, onSongPressed)
         }
     }

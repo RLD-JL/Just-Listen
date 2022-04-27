@@ -15,10 +15,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import coil.ImageLoader
+import androidx.compose.ui.util.fastForEachIndexed
 import com.example.audius.android.ui.loadingscreen.LoadingScreen
 import com.example.audius.android.ui.playlistscreen.components.PlaylistRowItem
 import com.example.audius.android.ui.theme.modifiers.horizontalGradientBackground
@@ -114,7 +113,7 @@ fun ListOfCollections(
     val list = remember {
         mutableListOf("Top Playlist", "Remix", "Yolo")
     }
-    list.forEachIndexed { index, item ->
+    list.fastForEachIndexed { index, item ->
         Header(text = item)
         when (index) {
             0 -> PlaylistRow(

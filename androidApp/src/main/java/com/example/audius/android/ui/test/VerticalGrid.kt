@@ -1,8 +1,9 @@
-package com.guru.composecookbook.verticalgrid
+package com.example.audius.android.ui.test
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.util.fastForEachIndexed
 
 
 /**
@@ -31,7 +32,7 @@ fun VerticalGrid(
         val placeables = measurables.map { it.measure(itemConstraints) }
         // Track each columns height so we can calculate the overall height
         val columnHeights = Array(columns) { 0 }
-        placeables.forEachIndexed { index, placeable ->
+        placeables.fastForEachIndexed { index, placeable ->
             val column = index % columns
             columnHeights[column] += placeable.height
         }
@@ -43,7 +44,7 @@ fun VerticalGrid(
         ) {
             // Track the Y co-ord per column we have placed up to
             val columnY = Array(columns) { 0 }
-            placeables.forEachIndexed { index, placeable ->
+            placeables.fastForEachIndexed { index, placeable ->
                 val column = index % columns
                 placeable.place(
                     x = column * itemWidth,
