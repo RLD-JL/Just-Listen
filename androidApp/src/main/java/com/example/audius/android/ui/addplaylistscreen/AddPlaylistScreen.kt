@@ -37,13 +37,13 @@ fun AddPlaylistRow(openDialog: MutableState<Boolean>) {
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .height(50.dp)
             .clickable(onClick = { openDialog.value = true })
     ) {
         Icon(
             painterResource(id = R.drawable.ic_add_to_playlist_foreground),
             tint = MaterialTheme.colors.onSurface,
             contentDescription = null,
+            modifier = Modifier.height(75.dp)
         )
         Text("New Playlist", modifier = Modifier.fillMaxWidth())
     }
@@ -55,14 +55,15 @@ fun PlaylistViewItem(playlist: AddPlaylist) {
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .height(50.dp).padding(10.dp)
-            .clickable(onClick = {  })
+            .clickable(onClick = { })
     ) {
         Icon(
-            painterResource(id = R.drawable.ic_playlist),
+            painterResource(id = R.drawable.ic_playlist_icon),
             tint = MaterialTheme.colors.onSurface,
             contentDescription = null,
+            modifier = Modifier.height(75.dp)
         )
+        Spacer(modifier = Modifier.width(10.dp))
         Text(playlist.playlistName, modifier = Modifier.fillMaxWidth())
     }
 }
