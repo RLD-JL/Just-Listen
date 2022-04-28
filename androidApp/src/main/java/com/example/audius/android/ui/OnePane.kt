@@ -23,9 +23,7 @@ import com.example.audius.android.ui.screenpicker.updateFavorite
 import com.example.audius.android.ui.utils.lerp
 import com.example.audius.viewmodel.screens.addplaylist.addPlaylist
 import com.example.audius.viewmodel.screens.addplaylist.getPlaylist
-import com.example.audius.viewmodel.screens.addplaylist.updatePlaylist
 import com.example.audius.viewmodel.screens.library.saveSongToFavorites
-import com.example.audius.viewmodel.screens.library.saveSongToRecent
 import kotlinx.coroutines.launch
 
 @ExperimentalCoilApi
