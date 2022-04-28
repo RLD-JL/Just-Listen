@@ -21,6 +21,7 @@ import com.example.audius.android.ui.extensions.fraction
 import com.example.audius.android.ui.screenpicker.ScreenPicker
 import com.example.audius.android.ui.screenpicker.updateFavorite
 import com.example.audius.android.ui.utils.lerp
+import com.example.audius.viewmodel.screens.addplaylist.getPlaylist
 import com.example.audius.viewmodel.screens.library.saveSongToFavorites
 import com.example.audius.viewmodel.screens.library.saveSongToRecent
 import kotlinx.coroutines.launch
@@ -77,7 +78,8 @@ fun Navigation.OnePane(
                                 isFavorite = isFavorite
                             )
                             updateFavorite(isFavorite, musicServiceConnection, id)
-                        }
+                        },
+                        addPlaylistList = events.getPlaylist()
                     )
                 }, content = {
                     Column(

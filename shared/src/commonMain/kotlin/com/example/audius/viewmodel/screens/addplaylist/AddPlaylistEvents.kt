@@ -2,8 +2,8 @@ package com.example.audius.viewmodel.screens.addplaylist
 
 import com.example.audius.datalayer.datacalls.addplaylistscreen.getAddPlaylist
 import com.example.audius.datalayer.datacalls.addplaylistscreen.savePlaylist
+import com.example.audius.datalayer.localdb.addplaylistscreen.AddPlaylist
 import com.example.audius.viewmodel.Events
-import com.example.audius.viewmodel.screens.search.SearchScreenState
 
 fun Events.addPlaylist(
     playlistName: String,
@@ -16,4 +16,8 @@ fun Events.updatePlaylist() = screenCoroutine {
         it.copy(playlistsCreated = playlist)
 
     }
+}
+
+fun Events.getPlaylist(): List<AddPlaylist> {
+    return dataRepository.getAddPlaylist()
 }

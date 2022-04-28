@@ -16,13 +16,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.audius.android.R
+import com.example.audius.android.ui.bottombars.sheetcontent.BottomSheetScreen
 
 @Composable
-fun PlayBarMoreAction(title: String, painter: MutableState<Painter?>) {
-    Column(Modifier.fillMaxWidth().fillMaxHeight(0.75f)) {
+fun PlayBarMoreAction(
+    title: String,
+    painter: MutableState<Painter?>,
+    addToPlaylistClicked: () -> Unit
+) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.75f)
+    ) {
         TopSection(title, painter)
         Divider(color = MaterialTheme.colors.primary, thickness = 0.5.dp)
-        MoreOptions()
+        MoreOptions(addToPlaylistClicked)
     }
 }
 
@@ -44,18 +53,19 @@ fun TopSection(title: String, painter: MutableState<Painter?>) {
 
         Text(
             text = title,
-            textAlign = TextAlign.Center)
+            textAlign = TextAlign.Center
+        )
     }
 }
 
 @Composable
-fun MoreOptions() {
+fun MoreOptions(addToPlaylistClicked: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
             .size(40.dp)
             .padding(5.dp)
-            .clickable { },
+            .clickable { addToPlaylistClicked() },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
