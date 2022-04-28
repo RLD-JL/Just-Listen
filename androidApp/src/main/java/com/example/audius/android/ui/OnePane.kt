@@ -9,9 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import coil.ImageLoader
 import coil.annotation.ExperimentalCoilApi
 import com.example.audius.Navigation
 import com.example.audius.android.exoplayer.MusicServiceConnection
@@ -46,7 +44,7 @@ fun Navigation.OnePane(
 
     val dominantColorMutable = remember { mutableStateOf(12312312) }
 
-    val addPlaylistList = remember { mutableStateOf(events.getPlaylist())}
+    val addPlaylistList = remember { mutableStateOf(events.getPlaylist()) }
 
     val coroutineScope = rememberCoroutineScope()
     Scaffold(
@@ -82,10 +80,13 @@ fun Navigation.OnePane(
                             updateFavorite(isFavorite, musicServiceConnection, id)
                         },
                         addPlaylistList = addPlaylistList.value,
-                        onAddPlaylistClicked = {playlistName, playlistDescription ->
+                        onAddPlaylistClicked = { playlistName, playlistDescription ->
                             events.addPlaylist(playlistName, playlistDescription)
                             addPlaylistList.value = events.getPlaylist()
-                           }
+                        },
+                        getLatestPlaylist = {
+                            addPlaylistList.value = events.getPlaylist()
+                        }
                     )
                 }, content = {
                     Column(

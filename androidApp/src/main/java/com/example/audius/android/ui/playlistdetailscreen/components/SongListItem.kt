@@ -10,7 +10,6 @@ import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -133,13 +132,6 @@ fun SongListItem(
                         }
                 )
             }
-
-        Icon(
-            imageVector = Icons.Default.MoreVert,
-            contentDescription = null,
-            tint = Color.LightGray,
-            modifier = Modifier.padding(4.dp)
-        )
     }
 }
 

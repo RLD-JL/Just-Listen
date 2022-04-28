@@ -29,7 +29,8 @@ fun PlayerBarSheetContent(
     onCollapsedClicked: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     addPlaylistList: List<AddPlaylist>,
-    onAddPlaylistClicked: (String, String?) -> Unit
+    onAddPlaylistClicked: (String, String?) -> Unit,
+    getLatestPlaylist: () -> Unit
 ) {
     val songIcon =
         musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
@@ -75,11 +76,12 @@ fun PlayerBarSheetContent(
                     mutablePainter,
                     openSheet,
                     addPlaylistList,
-                    onAddPlaylistClicked
+                    onAddPlaylistClicked,
+                    getLatestPlaylist
                 )
             }
         },
-        sheetPeekHeight = 1.dp
+        sheetPeekHeight = (-1).dp
     ) {
         PlayerBottomBar(
             onCollapsedClicked = onCollapsedClicked,
@@ -113,15 +115,18 @@ fun SheetLayout(
     mutablePainter: MutableState<Painter?>,
     openSheet: (BottomSheetScreen) -> Unit,
     addPlaylistList: List<AddPlaylist>,
-    onAddPlaylistClicked: (String, String?) -> Unit
+    onAddPlaylistClicked: (String, String?) -> Unit,
+    getLatestPlaylist: () -> Unit
 ) {
     when (currentScreen) {
-        BottomSheetScreen.AddPlaylist -> AddPlaylistOption(
+        BottomSheetScreen.AddPlaylist -> {AddPlaylistOption(
             title,
             mutablePainter,
             addPlaylistList,
             onAddPlaylistClicked
         )
+            getLatestPlaylist()
+        }
         BottomSheetScreen.More -> PlayBarMoreAction(
             title,
             mutablePainter,
