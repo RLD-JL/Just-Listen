@@ -20,6 +20,7 @@ import com.example.audius.datalayer.models.UserModel
 import com.example.audius.viewmodel.screens.Screen.*
 import com.example.audius.viewmodel.screens.addplaylist.AddPlaylistParams
 import com.example.audius.viewmodel.screens.addplaylist.addPlaylist
+import com.example.audius.viewmodel.screens.addplaylist.updatePlaylist
 import com.example.audius.viewmodel.screens.library.saveSongToFavorites
 import com.example.audius.viewmodel.screens.library.saveSongToRecent
 import com.example.audius.viewmodel.screens.playlistdetail.PlaylistDetailParams
@@ -158,7 +159,9 @@ fun Navigation.ScreenPicker(
         )
         AddPlaylist -> AddPlaylistScreen(addPlaylistState = stateProvider.get(screenIdentifier),
         onAddPlaylistClicked = {playlistName, playlistDescription ->
-        events.addPlaylist(playlistName, playlistDescription)})
+        events.addPlaylist(playlistName, playlistDescription)
+        events.updatePlaylist()}
+        )
     }
 }
 
