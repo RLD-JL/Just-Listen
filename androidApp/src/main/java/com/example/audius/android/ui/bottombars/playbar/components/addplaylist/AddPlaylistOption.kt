@@ -22,7 +22,6 @@ fun AddPlaylistOption(
     Column(
         Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.75f)
     ) {
         TopSection(title, painter)
         Divider(color = MaterialTheme.colors.primary, thickness = 0.5.dp)

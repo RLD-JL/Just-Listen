@@ -45,17 +45,11 @@ fun PlayerBarSheetContent(
 
     var currentBottomSheet: BottomSheetScreen? by remember { mutableStateOf(null) }
 
-    if (scaffoldState.bottomSheetState.isCollapsed)
-        currentBottomSheet = null
-
-    // to set the current sheet to null when the bottom sheet closes
-    if (scaffoldState.bottomSheetState.isCollapsed)
-        currentBottomSheet = null
-
-
     val closeSheet: () -> Unit = {
         coroutines.launch {
-            scaffoldState.bottomSheetState.collapse()
+            if (scaffoldState.bottomSheetState.isExpanded) {
+                scaffoldState.bottomSheetState.collapse()
+            }
         }
     }
 
@@ -66,6 +60,8 @@ fun PlayerBarSheetContent(
         }
     }
 
+    if (scaffoldState.bottomSheetState.isCollapsed)
+        currentBottomSheet = null
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -74,7 +70,7 @@ fun PlayerBarSheetContent(
                 SheetLayout(currentSheet, closeSheet, title, mutablePainter, openSheet, addPlaylistList)
             }
         },
-        sheetPeekHeight = 0.dp
+        sheetPeekHeight = 1.dp
     ) {
         PlayerBottomBar(
             onCollapsedClicked = onCollapsedClicked,
@@ -87,7 +83,9 @@ fun PlayerBarSheetContent(
                 openSheet(BottomSheetScreen.More)
             },
             onBackgroundClicked = {
-                closeSheet()
+                if (scaffoldState.bottomSheetState.isExpanded) {
+                    closeSheet()
+                }
             },
             painterLoaded = { painter ->
                 mutablePainter.value = painter
