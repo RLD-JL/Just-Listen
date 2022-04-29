@@ -1,6 +1,7 @@
 package com.example.audius.android.ui
 
 import android.media.session.PlaybackState
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -9,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.annotation.ExperimentalCoilApi
 import com.example.audius.Navigation
@@ -43,6 +45,8 @@ fun Navigation.OnePane(
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     )
+
+    var context = LocalContext.current
 
     val dominantColorMutable = remember { mutableStateOf(12312312) }
 
@@ -97,6 +101,7 @@ fun Navigation.OnePane(
                                 playlistDescription,
                                 list
                             )
+                            Toast.makeText(context, "The song was added to $playlistTitle", Toast.LENGTH_SHORT).show()
                         }
                     )
                 }, content = {
