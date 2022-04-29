@@ -1,7 +1,6 @@
 package com.example.audius.android.ui.playlistdetailscreen.components
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,20 +58,4 @@ fun BoxTopSection(scrollState: MutableState<Float>, playlistDetailState: Playlis
             modifier = Modifier.padding(4.dp)
         )
     }
-}
-
-@Composable
-fun TopSectionOverlay(scrollState: MutableState<Float>) {
-    //slowly increase alpha till it reaches 1
-    val dynamicAlpha = ((-scrollState.value + 0.00f) / 1000).coerceIn(0f, 1f)
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(400.dp)
-            .background(
-                MaterialTheme.colors.surface.copy(
-                    alpha = animateFloatAsState(dynamicAlpha).value
-                )
-            )
-    )
 }
