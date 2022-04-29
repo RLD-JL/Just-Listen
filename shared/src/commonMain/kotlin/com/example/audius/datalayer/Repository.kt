@@ -47,27 +47,8 @@ class Repository(
         }
     }
 
-    private val playlistAdapter = object : ColumnAdapter<List<String>, String> {
-        override fun decode(databaseValue: String): List<String> {
-            return if (databaseValue.isEmpty())
-                emptyList()
-            else {
-                val mutableList = mutableListOf<String>()
-
-                databaseValue.split(",").forEach {
-                    mutableList.add(it)
-                }
-                return mutableList
-            }
-        }
-
-        override fun encode(value: List<String>): String {
-            return value.joinToString(",")
-        }
-    }
-
     private val adapter = PlaylistDetail.Adapter(listOfStringsAdapter, listOfStringsAdapter2)
-    private val libraryAdapter = Library.Adapter(listOfStringsAdapter2, listOfStringsAdapter, playlistAdapter)
+    private val libraryAdapter = Library.Adapter(listOfStringsAdapter2, listOfStringsAdapter)
     internal val webservices by lazy { ApiClient() }
     internal val localDb by lazy { LocalDb(sqlDriver, libraryAdapter, adapter) }
 

@@ -16,7 +16,7 @@ fun LocalDb.saveSongToFavorites(
 }
 
 fun LocalDb.getFavoritePlaylist(): List<PlayListModel> {
-    return libraryQueries.getFavoritePlaylist(mapper = { id, title, user, songImgList, _, _, _, _ ->
+    return libraryQueries.getFavoritePlaylist(mapper = { id, title, user, songImgList, _, _, _ ->
         PlayListModel(id = id, playlistTitle = title, title = title, user = user, songImgList = songImgList)
     }).executeAsList()
 }
@@ -34,7 +34,7 @@ fun LocalDb.saveSongRecentSongs(
 }
 
 fun LocalDb.getRecentPlayed(): List<PlayListModel> {
-    return libraryQueries.getRecentPlayed(mapper = { id, title, user, songImgList, _, _, _, _ ->
+    return libraryQueries.getRecentPlayed(mapper = { id, title, user, songImgList, _, _, _ ->
         PlayListModel(id = id, playlistTitle = title, title = title, user = user, songImgList = songImgList)
     }).executeAsList()
 }
