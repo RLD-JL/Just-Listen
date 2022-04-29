@@ -26,6 +26,7 @@ fun AddPlaylistScreen(
     val openDialog = remember { mutableStateOf(false) }
     LazyColumn(Modifier.fillMaxWidth()) {
         item { AddPlaylistRow(openDialog) }
+        item { Divider(Modifier.fillMaxWidth())}
         item { AddPlaylistDialog(openDialog, onAddPlaylistClicked) }
         itemsIndexed(addPlaylistState.playlistsCreated) { index, playlist ->
             PlaylistViewItem(playlist, clickedToAddSongToPlaylist)
