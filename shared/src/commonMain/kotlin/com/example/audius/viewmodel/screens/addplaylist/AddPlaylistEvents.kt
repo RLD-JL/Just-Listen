@@ -26,6 +26,5 @@ fun Events.getPlaylist(): List<AddPlaylist> {
 fun Events.updatePlaylistSongs(
     playlistName: String,
     playlistDescription: String?,
-    playlistId: Long,
-    songList: String
-) = dataRepository.updatePlaylistSongs(playlistName,playlistDescription,playlistId, songList)
+    songList: List<String>
+) = dataRepository.updatePlaylistSongs(playlistName,playlistDescription, songList)

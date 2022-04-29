@@ -1,8 +1,7 @@
 import kotlin.collections.List;
 
 CREATE TABLE AddPlaylist  (
-       id INTEGER PRIMARY KEY AUTOINCREMENT,
-       playlistName TEXT NOT NULL ,
+       playlistName TEXT NOT NULL PRIMARY KEY ,
        playlistDescription TEXT,
        songsList TEXT AS List<String>
 );
@@ -17,6 +16,5 @@ upsertAddPlaylist {
 
 upserAddPlaylistWithSongs {
     INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription, songsList)
-    VALUES (:playlistName, :playlistDescription,
-    ((SELECT songsList FROM AddPlaylist WHERE id = :id) || ", " || :songsList));
+    VALUES (:playlistName, :playlistDescription,:songsList);
 }

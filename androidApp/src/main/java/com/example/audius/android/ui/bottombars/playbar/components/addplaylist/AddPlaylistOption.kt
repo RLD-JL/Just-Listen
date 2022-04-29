@@ -21,7 +21,8 @@ fun AddPlaylistOption(
     title: String,
     painter: MutableState<Painter?>,
     addPlaylistList: List<AddPlaylist>,
-    onAddPlaylistClicked: (String, String?) -> Unit
+    onAddPlaylistClicked: (String, String?) -> Unit,
+    clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit
 ) {
     val openDialog = remember { mutableStateOf(false) }
 
@@ -33,7 +34,7 @@ fun AddPlaylistOption(
         }
 
         itemsIndexed(items = addPlaylistList) { index, playlist ->
-            PlaylistViewItem(playlist)
+            PlaylistViewItem(playlist, clickedToAddSongToPlaylist)
         }
 
         item {

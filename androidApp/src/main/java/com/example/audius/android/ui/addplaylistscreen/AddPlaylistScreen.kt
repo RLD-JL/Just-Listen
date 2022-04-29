@@ -20,14 +20,15 @@ import com.example.audius.viewmodel.screens.addplaylist.AddPlaylistState
 @Composable
 fun AddPlaylistScreen(
     addPlaylistState: AddPlaylistState,
-    onAddPlaylistClicked: (String, String?) -> Unit
+    onAddPlaylistClicked: (String, String?) -> Unit,
+    clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit
 ) {
     val openDialog = remember { mutableStateOf(false) }
     LazyColumn(Modifier.fillMaxWidth()) {
-        item { AddPlaylistRow(openDialog)}
+        item { AddPlaylistRow(openDialog) }
         item { AddPlaylistDialog(openDialog, onAddPlaylistClicked) }
         itemsIndexed(addPlaylistState.playlistsCreated) { index, playlist ->
-            PlaylistViewItem(playlist)
+            PlaylistViewItem(playlist, clickedToAddSongToPlaylist)
         }
     }
 }
@@ -51,12 +52,21 @@ fun AddPlaylistRow(openDialog: MutableState<Boolean>) {
 }
 
 @Composable
-fun PlaylistViewItem(playlist: AddPlaylist) {
+fun PlaylistViewItem(
+    playlist: AddPlaylist,
+    clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit
+) {
     Row(
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .clickable(onClick = { })
+            .clickable(onClick = {
+                clickedToAddSongToPlaylist(
+                    playlist.playlistName,
+                    playlist.playlistDescription,
+                    playlist.songsList ?: emptyList()
+                )
+            })
     ) {
         Icon(
             painterResource(id = R.drawable.ic_playlist_icon),
@@ -70,7 +80,10 @@ fun PlaylistViewItem(playlist: AddPlaylist) {
 }
 
 @Composable
-fun AddPlaylistDialog(openDialog: MutableState<Boolean>, onAddPlaylistClicked: (String, String?) -> Unit) {
+fun AddPlaylistDialog(
+    openDialog: MutableState<Boolean>,
+    onAddPlaylistClicked: (String, String?) -> Unit
+) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf<String?>("") }
     if (openDialog.value) {
@@ -113,7 +126,7 @@ fun AddPlaylistDialog(openDialog: MutableState<Boolean>, onAddPlaylistClicked: (
                             openDialog.value = false
                             onAddPlaylistClicked(title, description)
                         },
-                        colors =  ButtonDefaults.outlinedButtonColors(contentColor = Color.Gray)
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Gray)
                     ) {
                         Text("Add")
                     }

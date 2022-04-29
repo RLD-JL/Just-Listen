@@ -11,6 +11,6 @@ fun Repository.getAddPlaylist(): List<AddPlaylist> {
     return localDb.getAddPlaylist()
 }
 
-fun Repository.updatePlaylistSongs(playlistName: String, playlistDescription: String?, playlistId: Long, songList: String) {
-    localDb.updatePlaylistSongs(playlistName, playlistDescription, playlistId, songList)
+fun Repository.updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>) {
+    localDb.updatePlaylistSongs(playlistName, playlistDescription, songList)
 }

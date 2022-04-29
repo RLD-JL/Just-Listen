@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import coil.annotation.ExperimentalCoilApi
 import com.example.audius.Navigation
 import com.example.audius.android.exoplayer.MusicServiceConnection
+import com.example.audius.android.exoplayer.library.extension.id
 import com.example.audius.android.ui.bottombars.Level1BottomBar
 import com.example.audius.android.ui.bottombars.playbar.PlayerBarSheetContent
 import com.example.audius.android.ui.extensions.fraction
@@ -21,6 +22,7 @@ import com.example.audius.android.ui.screenpicker.updateFavorite
 import com.example.audius.android.ui.utils.lerp
 import com.example.audius.viewmodel.screens.addplaylist.addPlaylist
 import com.example.audius.viewmodel.screens.addplaylist.getPlaylist
+import com.example.audius.viewmodel.screens.addplaylist.updatePlaylistSongs
 import com.example.audius.viewmodel.screens.library.saveSongToFavorites
 import kotlinx.coroutines.launch
 
@@ -86,6 +88,15 @@ fun Navigation.OnePane(
                         },
                         getLatestPlaylist = {
                             addPlaylistList.value = events.getPlaylist()
+                        },
+                        clickedToAddSongToPlaylist = { playlistTitle, playlistDescription, songList ->
+                            val list = songList.toMutableList()
+                            list.add(musicServiceConnection.currentPlayingSong.value?.id ?: "")
+                            events.updatePlaylistSongs(
+                                playlistTitle,
+                                playlistDescription,
+                                list
+                            )
                         }
                     )
                 }, content = {

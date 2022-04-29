@@ -11,14 +11,12 @@ fun LocalDb.savePlaylist(
 }
 
 fun LocalDb.updatePlaylistSongs(
-    playlistName: String, playlistDescription: String?, playlistId: Long,songList: String
+    playlistName: String, playlistDescription: String?,songList: List<String>
 ) {
     addPlaylistQueries.transaction {
         addPlaylistQueries.upserAddPlaylistWithSongs(
             playlistName,
-            playlistDescription,
-            id = playlistId,
-            songsList = songList
+            playlistDescription, songList
         )
     }
 }
