@@ -20,6 +20,9 @@ SELECT id FROM Library WHERE id = :id AND favoriteSong = 1;
 getRecentPlayed:
 SELECT * FROM Library WHERE recentPlayed = 1;
 
+getCustomPlaylistSongs:
+SELECT * FROM Library WHERE id IN :songsList;
+
 upsertLibraryFavorite {
     INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName, favoriteSong, recentPlayed)
     VALUES(:id, :title, :user,  :songImgList, :playlistName,:favoriteSong,

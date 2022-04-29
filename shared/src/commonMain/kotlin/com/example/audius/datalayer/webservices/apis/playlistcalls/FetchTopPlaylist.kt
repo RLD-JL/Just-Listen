@@ -13,6 +13,7 @@ suspend fun ApiClient.fetchPlaylist(index: Int, playListEnum: PlayListEnum, play
        CURRENT_PLAYLIST -> getResponse("/playlists/${playlistId}/tracks?app_name=EXAMPLEAPP ")
        HOT -> TODO()
        FAVORITE -> TODO()
+       CREATED_BY_USER -> TODO()
    }
 }
 

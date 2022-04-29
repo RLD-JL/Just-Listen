@@ -12,15 +12,21 @@ data class PlaylistDetailParams(
     val playlistIcon: String,
     val playlistTitle: String,
     val playlistCreatedBy: String,
-    val playlistEnum: PlayListEnum
-    ) : ScreenParams
+    val playlistEnum: PlayListEnum,
+    val songsList: List<String> = emptyList()
+) : ScreenParams
 
 fun Navigation.initPlaylistDetail(params: PlaylistDetailParams) = ScreenInitSettings(
     title = "PlaylistEnum" + params.playlistIcon,
     initState = { PlaylistDetailState(isLoading = true) },
     callOnInit = {
         val currentPlaylist =
-            dataRepository.getPlaylist(index = 20, params.playlistEnum, params.playlistId)
+            dataRepository.getPlaylist(
+                index = 20,
+                params.playlistEnum,
+                params.playlistId,
+                params.songsList
+            )
         stateManager.updateScreen(PlaylistDetailState::class) {
             it.copy(
                 isLoading = false,
