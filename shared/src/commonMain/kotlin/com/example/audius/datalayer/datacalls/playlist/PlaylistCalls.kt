@@ -37,6 +37,13 @@ suspend fun Repository.getPlaylist(index: Int, playListEnum: PlayListEnum, playl
                 PlaylistItem(playlistModel, isFavorite)
             }.toList()
         }
+        CREATED_BY_USER -> {
+            localDb.getFavoritePlaylist().map {playlistModel ->
+                val hasFavorite = localDb.getFavoritePlaylistWithId(playlistModel.id)
+                val isFavorite = !hasFavorite.isNullOrEmpty()
+                PlaylistItem(playlistModel, isFavorite)
+            }.toList()
+        }
     }
 }
 

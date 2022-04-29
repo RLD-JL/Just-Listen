@@ -5,5 +5,6 @@ enum class PlayListEnum {
     TOP_PLAYLIST,
     HOT,
     CURRENT_PLAYLIST,
-    FAVORITE
+    FAVORITE,
+    CREATED_BY_USER
 }

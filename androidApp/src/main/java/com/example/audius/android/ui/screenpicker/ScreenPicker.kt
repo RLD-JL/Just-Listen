@@ -69,6 +69,7 @@ fun Navigation.ScreenPicker(
                         HOT -> TODO()
                         CURRENT_PLAYLIST -> TODO()
                         FAVORITE -> TODO()
+                        CREATED_BY_USER -> TODO()
                     }
                 },
                 playlistState = stateProvider.get(screenIdentifier = screenIdentifier),
@@ -162,7 +163,19 @@ fun Navigation.ScreenPicker(
                 events.addPlaylist(playlistName, playlistDescription)
                 events.updatePlaylist()
             },
-            clickedToAddSongToPlaylist = { _, _, _ -> }
+            clickedToAddSongToPlaylist = { playlistTitle, _,songsList ->
+                val playlistId = ""
+                val playlistIcon = ""
+                val playlistCreatedBy = ""
+                navigate(
+                    PlaylistDetail,
+                    PlaylistDetailParams(
+                        playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
+                        FAVORITE
+                    )
+                )
+                events.playMusicFromPlaylist(playlistId = playlistId)
+            }
         )
     }
 }
