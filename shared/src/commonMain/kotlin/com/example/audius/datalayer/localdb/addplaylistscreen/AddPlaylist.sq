@@ -1,6 +1,10 @@
+import kotlin.collections.List;
+
 CREATE TABLE AddPlaylist  (
-       playlistName TEXT NOT NULL PRIMARY KEY,
-       playlistDescription TEXT
+       id INTEGER PRIMARY KEY AUTOINCREMENT,
+       playlistName TEXT NOT NULL ,
+       playlistDescription TEXT,
+       songsList TEXT AS List<String>
 );
 
 getAddPlaylist:

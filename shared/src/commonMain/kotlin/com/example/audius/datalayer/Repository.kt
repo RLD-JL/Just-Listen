@@ -1,5 +1,6 @@
 package com.example.audius.datalayer
 
+import com.example.audius.datalayer.localdb.addplaylistscreen.AddPlaylist
 import com.example.audius.datalayer.localdb.libraryscreen.Library
 import com.example.audius.datalayer.localdb.playlistdetail.PlaylistDetail
 import com.example.audius.datalayer.models.SongIconList
@@ -47,10 +48,31 @@ class Repository(
         }
     }
 
+
+    private val playlistAdapter = object : ColumnAdapter<List<String>, String> {
+        override fun decode(databaseValue: String): List<String> {
+            return if (databaseValue.isEmpty())
+                emptyList()
+            else {
+                val mutableList = mutableListOf<String>()
+
+                databaseValue.split(",").forEach {
+                    mutableList.add(it)
+                }
+                return mutableList
+            }
+        }
+
+        override fun encode(value: List<String>): String {
+            return value.joinToString(",")
+        }
+    }
+
     private val adapter = PlaylistDetail.Adapter(listOfStringsAdapter, listOfStringsAdapter2)
     private val libraryAdapter = Library.Adapter(listOfStringsAdapter2, listOfStringsAdapter)
+    private val addPlaylistAdapter = AddPlaylist.Adapter(playlistAdapter)
     internal val webservices by lazy { ApiClient() }
-    internal val localDb by lazy { LocalDb(sqlDriver, libraryAdapter, adapter) }
+    internal val localDb by lazy { LocalDb(sqlDriver, addPlaylistAdapter, libraryAdapter, adapter) }
 
     // we run each repository function on a Dispatchers.Default coroutine
     // we pass useDefaultDispatcher=false just for the TestRepository instance
