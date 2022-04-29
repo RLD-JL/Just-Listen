@@ -14,3 +14,9 @@ upsertAddPlaylist {
     INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription)
     VALUES(:playlistName, :playlistDescription);
 }
+
+upserAddPlaylistWithSongs {
+    INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription, songsList)
+    VALUES (:playlistName, :playlistDescription,
+    ((SELECT songsList FROM AddPlaylist WHERE id = :id) || ", " || :songsList));
+}

@@ -1,9 +1,7 @@
 package com.example.audius.datalayer.datacalls.addplaylistscreen
 
 import com.example.audius.datalayer.Repository
-import com.example.audius.datalayer.localdb.addplaylistscreen.AddPlaylist
-import com.example.audius.datalayer.localdb.addplaylistscreen.getAddPlaylist
-import com.example.audius.datalayer.localdb.addplaylistscreen.savePlaylist
+import com.example.audius.datalayer.localdb.addplaylistscreen.*
 
 fun Repository.savePlaylist(playlistName: String, playlistDescription: String?) {
     localDb.savePlaylist(playlistName, playlistDescription)
@@ -11,4 +9,8 @@ fun Repository.savePlaylist(playlistName: String, playlistDescription: String?) 
 
 fun Repository.getAddPlaylist(): List<AddPlaylist> {
     return localDb.getAddPlaylist()
+}
+
+fun Repository.updatePlaylistSongs(playlistName: String, playlistDescription: String?, playlistId: Long, songList: String) {
+    localDb.updatePlaylistSongs(playlistName, playlistDescription, playlistId, songList)
 }

@@ -2,6 +2,7 @@ package com.example.audius.viewmodel.screens.addplaylist
 
 import com.example.audius.datalayer.datacalls.addplaylistscreen.getAddPlaylist
 import com.example.audius.datalayer.datacalls.addplaylistscreen.savePlaylist
+import com.example.audius.datalayer.datacalls.addplaylistscreen.updatePlaylistSongs
 import com.example.audius.datalayer.localdb.addplaylistscreen.AddPlaylist
 import com.example.audius.viewmodel.Events
 
@@ -21,3 +22,10 @@ fun Events.updatePlaylist() = screenCoroutine {
 fun Events.getPlaylist(): List<AddPlaylist> {
     return dataRepository.getAddPlaylist()
 }
+
+fun Events.updatePlaylistSongs(
+    playlistName: String,
+    playlistDescription: String?,
+    playlistId: Long,
+    songList: String
+) = dataRepository.updatePlaylistSongs(playlistName,playlistDescription,playlistId, songList)

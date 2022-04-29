@@ -10,6 +10,19 @@ fun LocalDb.savePlaylist(
     }
 }
 
-fun LocalDb.getAddPlaylist() : List<AddPlaylist> {
-   return addPlaylistQueries.getAddPlaylist().executeAsList()
+fun LocalDb.updatePlaylistSongs(
+    playlistName: String, playlistDescription: String?, playlistId: Long,songList: String
+) {
+    addPlaylistQueries.transaction {
+        addPlaylistQueries.upserAddPlaylistWithSongs(
+            playlistName,
+            playlistDescription,
+            id = playlistId,
+            songsList = songList
+        )
+    }
+}
+
+fun LocalDb.getAddPlaylist(): List<AddPlaylist> {
+    return addPlaylistQueries.getAddPlaylist().executeAsList()
 }
