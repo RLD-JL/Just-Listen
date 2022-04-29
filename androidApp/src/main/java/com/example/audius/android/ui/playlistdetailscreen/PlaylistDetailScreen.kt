@@ -85,7 +85,6 @@ fun PlaylistDetailScreen(
             BottomScrollableContent(
                 playlistDetailState = playlistDetailState,
                 scrollState = toolbarOffsetHeightPx,
-                nestedScrollConnection = nestedScrollConnection,
                 playlist = playlistDetailState.songPlaylist,
                 onShuffleClicked = {
                     playMusic(
@@ -152,7 +151,6 @@ fun BottomScrollableContent(
     playlist: List<PlaylistItem>,
     onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
     onShuffleClicked: () -> Unit,
-    nestedScrollConnection: NestedScrollConnection,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     dominantColor: (Int) -> Unit,
     painter: ImagePainter
