@@ -166,7 +166,7 @@ fun Navigation.ScreenPicker(
             clickedToAddSongToPlaylist = { playlistTitle, _,songsList ->
                 val playlistId = ""
                 val playlistIcon = ""
-                val playlistCreatedBy = ""
+                val playlistCreatedBy = "ME"
                 navigate(
                     PlaylistDetail,
                     PlaylistDetailParams(

@@ -27,10 +27,15 @@ fun Navigation.initPlaylistDetail(params: PlaylistDetailParams) = ScreenInitSett
                 params.playlistId,
                 params.songsList
             )
+
+        val playlistIcon =
+            if (params.playlistEnum == PlayListEnum.CREATED_BY_USER && currentPlaylist.isNotEmpty())
+                currentPlaylist[0].songIconList.songImageURL480px else params.playlistIcon
+
         stateManager.updateScreen(PlaylistDetailState::class) {
             it.copy(
                 isLoading = false,
-                playlistIcon = params.playlistIcon,
+                playlistIcon = playlistIcon,
                 playListCreatedBy = params.playlistCreatedBy,
                 playlistName = params.playlistTitle,
                 songPlaylist = currentPlaylist
