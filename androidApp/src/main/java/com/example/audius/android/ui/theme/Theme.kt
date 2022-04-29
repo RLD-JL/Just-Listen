@@ -147,7 +147,7 @@ enum class ColorPallet {
 
 
 @Composable
-fun AudiusTheme(
+fun JustListenTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     colorPallet: ColorPallet = ColorPallet.DARK,
     content: @Composable () -> Unit,

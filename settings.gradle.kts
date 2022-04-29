@@ -7,6 +7,6 @@ pluginManagement {
     }
 }
 
-rootProject.name = "Audius"
+rootProject.name = "Just Listen"
 include(":androidApp")
 include(":shared")

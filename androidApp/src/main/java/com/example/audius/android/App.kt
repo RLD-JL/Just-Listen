@@ -11,7 +11,7 @@ import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
 @HiltAndroidApp
-class AudiusApp : Application() {
+class JustListenApp : Application() {
 
     lateinit var model: AudiusViewModel
 
