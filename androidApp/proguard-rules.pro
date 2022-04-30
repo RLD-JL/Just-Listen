@@ -1,5 +1,5 @@
-#-keep class com.example.justlisten.datalayer.models.*
-#-keep class com.example.justlisten.datalayer.webservices.apis.playlistcalls.*
+#-keep class com.rld.justlisten.datalayer.models.*
+#-keep class com.rld.justlisten.datalayer.webservices.apis.playlistcalls.*
 
 # Keep `INSTANCE.serializer()` of serializable objects.
 #-if @kotlinx.serialization.Serializable class ** {
@@ -13,11 +13,11 @@
 
 #-keepattributes Annotation, InnerClasses
 #-dontnote kotlinx.serialization.SerializationKt
-#-keep,includedescriptorclasses class com.example.justlisten.datalayer.$$serializer {  } # <-- change package name to your app's
-#-keepclassmembers class com.example.justlisten.datalayer. { # <-- change package name to your app's
+#-keep,includedescriptorclasses class com.rld.justlisten.datalayer.$$serializer {  } # <-- change package name to your app's
+#-keepclassmembers class com.rld.justlisten.datalayer. { # <-- change package name to your app's
 #*** Companion;
 #}
-#-keepclasseswithmembers class com.example.justlisten.datalayer.* { # <-- change package name to your app's
+#-keepclasseswithmembers class com.rld.justlisten.datalayer.* { # <-- change package name to your app's
 #kotlinx.serialization.KSerializer serializer(...);
 #}
 

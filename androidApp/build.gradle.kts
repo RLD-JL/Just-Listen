@@ -51,7 +51,7 @@ kapt {
 android {
     compileSdk = 31
     defaultConfig {
-        applicationId = "com.example.justlisten.android"
+        applicationId = "com.rld.justlisten.android"
         minSdk = 21
         targetSdk = 30
         versionCode = 1
