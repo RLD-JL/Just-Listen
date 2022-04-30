@@ -36,6 +36,7 @@ dependencies {
     annotationProcessor ("com.github.bumptech.glide:compiler:4.12.0")
 
     implementation ("com.google.accompanist:accompanist-swiperefresh:0.24.1-alpha")
+    implementation("androidx.core:core-splashscreen:1.0.0-beta02")
 
 
 
