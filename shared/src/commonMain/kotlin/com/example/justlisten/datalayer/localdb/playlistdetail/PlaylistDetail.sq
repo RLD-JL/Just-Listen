@@ -1,0 +1,19 @@
+import com.example.justlisten.datalayer.models.SongIconList;
+import com.example.justlisten.datalayer.models.UserModel;
+
+CREATE TABLE PlaylistDetail  (
+   id TEXT NOT NULL PRIMARY KEY,
+   title TEXT NOT NULL,
+   playlistName TEXT NOT NULL,
+   songImgList TEXT AS SongIconList NOT NULL,
+   user TEXT AS UserModel NOT NULL
+);
+
+getPlaylistDetail:
+SELECT * FROM PlaylistDetail;
+
+upsertPlaylistDetail {
+    INSERT OR REPLACE INTO PlaylistDetail(id, title, user, songImgList, playlistName)
+    VALUES(:id, :title, :user,  :songImgList, :playlistName);
+}
+

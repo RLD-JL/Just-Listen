@@ -41,7 +41,7 @@ dependencies {
 
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:${rootProject.extra["compose_version"]}")
     debugImplementation("androidx.compose.ui:ui-tooling:${rootProject.extra["compose_version"]}")
-    debugImplementation ("com.squareup.leakcanary:leakcanary-android:2.7")
+  //  debugImplementation ("com.squareup.leakcanary:leakcanary-android:2.7")
 }
 
 kapt {
@@ -51,7 +51,7 @@ kapt {
 android {
     compileSdk = 31
     defaultConfig {
-        applicationId = "com.example.audius.android"
+        applicationId = "com.example.justlisten.android"
         minSdk = 21
         targetSdk = 30
         versionCode = 1
@@ -64,6 +64,13 @@ android {
         getByName("release") {
             isMinifyEnabled = false
             isShrinkResources = false
+        }
+        getByName("debug") {
+            isMinifyEnabled = false
+            isShrinkResources = false
+            proguardFiles(
+            "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
