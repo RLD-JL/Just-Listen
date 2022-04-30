@@ -19,12 +19,6 @@ class ApiClient {
                 useAlternativeNames = true
             })
         }
-
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.ALL
-        }
-
     }
 
 
