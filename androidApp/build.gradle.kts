@@ -62,15 +62,13 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles("proguard-rules.pro")
         }
         getByName("debug") {
             isMinifyEnabled = false
             isShrinkResources = false
-            proguardFiles(
-            "proguard-rules.pro"
-            )
         }
     }
     compileOptions {
