@@ -65,5 +65,5 @@ fun LocalDb.getRecentPlayed(): List<PlayListModel> {
             user = user,
             songImgList = songImgList
         )
-    }).executeAsList()
+    }).executeAsList().asReversed()
 }
