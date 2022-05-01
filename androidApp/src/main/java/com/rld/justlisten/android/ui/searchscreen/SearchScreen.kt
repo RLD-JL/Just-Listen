@@ -14,8 +14,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -55,6 +55,7 @@ fun SearchScreen(
     val requester = FocusRequester()
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState(0)
+    var searchFor by rememberSaveable { mutableStateOf("") }
 
     Box(
         Modifier
@@ -72,7 +73,10 @@ fun SearchScreen(
                 requester,
                 onSearchPressed,
                 searchScreenState,
-                updateSearch = updateSearch
+                updateSearch = { updateSearch ->
+                    searchFor = updateSearch.trimStart { it == '0' }
+                },
+                searchFor
             )
             when {
                 searchScreenState.isLoading -> {
@@ -80,7 +84,9 @@ fun SearchScreen(
                 }
                 searchScreenState.searchResultTracks.isEmpty() -> {
                     ShowPreviousSearches(searchScreenState.listOfSearches,
-                        onPreviousSearchedPressed = onPreviousSearchedPressed)
+                        onPreviousSearchedPressed = { searched ->
+                            searchFor = searched
+                        })
                 }
                 else -> {
                     ShowSearchResults(
@@ -100,9 +106,10 @@ fun AnimatedToolBar(
     requester: FocusRequester,
     onSearchPressed: (String) -> Unit,
     searchedFor: SearchScreenState,
-    updateSearch: (String) -> Unit
+    updateSearch: (String) -> Unit,
+    searchFor: String
 ) {
-    val searchFor = searchedFor.searchFor
+
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Row(
@@ -121,7 +128,9 @@ fun AnimatedToolBar(
             .weight(0.6f)
             .focusRequester(requester),
             value = searchFor,
+            maxLines = 1,
             onValueChange = { newInput ->
+                if (newInput.length <= 15)
                 updateSearch(newInput)
             },
             label = {
@@ -183,7 +192,7 @@ fun ItemRowSearch(itemSearched: String, onPreviousSearchedPressed: (String) -> U
         Modifier
             .fillMaxWidth()
             .padding(top = 10.dp)
-            .clickable(onClick = {onPreviousSearchedPressed(itemSearched)})
+            .clickable(onClick = { onPreviousSearchedPressed(itemSearched) })
     ) {
         Icon(imageVector = Icons.Default.Search, contentDescription = null)
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

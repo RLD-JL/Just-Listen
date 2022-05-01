@@ -26,7 +26,7 @@ fun AddPlaylistScreen(
     val openDialog = remember { mutableStateOf(false) }
     LazyColumn(Modifier.fillMaxWidth()) {
         item { AddPlaylistRow(openDialog) }
-        item { Divider(color = MaterialTheme.colors.primary, thickness = 0.5.dp)}
+        item { Divider(color = MaterialTheme.colors.primary, thickness = 0.5.dp) }
         item { AddPlaylistDialog(openDialog, onAddPlaylistClicked) }
         itemsIndexed(addPlaylistState.playlistsCreated) { index, playlist ->
             PlaylistViewItem(playlist, clickedToAddSongToPlaylist)
@@ -104,14 +104,22 @@ fun AddPlaylistDialog(
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                     TextField(
+                        maxLines = 1,
                         value = title,
-                        onValueChange = { title = it },
+                        onValueChange = {
+                            if (it.length <= 15)
+                                title = it
+                        },
                         label = { Text(text = "Title") },
                     )
                     TextField(
+                        maxLines = 2,
                         modifier = Modifier.padding(top = 5.dp),
                         value = description.toString(),
-                        onValueChange = { description = it },
+                        onValueChange = {
+                            if (it.length <= 144)
+                                description = it
+                        },
                         label = { Text(text = "Description") }
                     )
                 }
