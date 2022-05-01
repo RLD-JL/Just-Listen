@@ -80,13 +80,13 @@ fun PlayerBottomBar(
 fun IsLoading(isLoading: Boolean, modifier: Modifier) {
     if (isLoading) {
         Box(
-            modifier = modifier.size(46.dp),
+            modifier = modifier.size(48.dp),
             contentAlignment = Alignment.Center,
         ) {
             CircularProgressIndicator()
             Icon(
                 painter = painterResource(id = R.drawable.exo_icon_pause),
-                modifier = modifier.size(30.dp),
+                modifier = modifier.size(35.dp),
                 contentDescription = null
             )
         }

@@ -50,7 +50,7 @@ fun PlayBarActionsMinimized(
                     tint = Color.Red,
                     modifier = Modifier
                         .padding(8.dp)
-                        .size(25.dp).clickable {
+                        .size(30.dp).clickable {
                             onFavoritePressed(
                                 songId, title,
                                 UserModel(), SongIconList(),
@@ -64,7 +64,7 @@ fun PlayBarActionsMinimized(
                     imageVector = Icons.Default.FavoriteBorder,
                     modifier = Modifier
                         .padding(8.dp)
-                        .size(25.dp).clickable {
+                        .size(30.dp).clickable {
                             onFavoritePressed(
                                 songId, title,
                                 UserModel(), SongIconList(),
@@ -84,7 +84,7 @@ fun PlayBarActionsMinimized(
                         .clickable(
                             onClick = { musicServiceConnection.transportControls.play() }
                         )
-                        .size(30.dp),
+                        .size(35.dp),
                     contentDescription = null
                 )
             }
@@ -100,7 +100,7 @@ fun PlayBarActionsMinimized(
                         .clickable(
                             onClick = { musicServiceConnection.transportControls.pause() }
                         )
-                        .size(30.dp),
+                        .size(35.dp),
                     contentDescription = null
                 )
             }
@@ -109,7 +109,7 @@ fun PlayBarActionsMinimized(
                 modifier = Modifier
                     .padding(8.dp)
                     .clickable(onClick = onSkipNextPressed)
-                    .size(30.dp),
+                    .size(35.dp),
                 contentDescription = null,
             )
         }
