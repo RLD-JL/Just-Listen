@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
         val model = (application as JustListenApp).model
         val musicServiceConnection = (application as JustListenApp).musicServiceConnection
         installSplashScreen().apply {
-            
+
         }
         setContent {
             JustListenTheme(darkTheme = true, colorPallet = ColorPallet.DARK ) {
