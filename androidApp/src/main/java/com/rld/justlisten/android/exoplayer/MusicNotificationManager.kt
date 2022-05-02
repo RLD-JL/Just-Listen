@@ -39,7 +39,7 @@ class MusicNotificationManager(
             .setSmallIconResourceId(R.drawable.exo_notification_small_icon)
             .setMediaDescriptionAdapter(DescriptionAdapter(mediaController))
             .setChannelNameResourceId(R.string.channel_name)
-            .setChannelDescriptionResourceId(R.string.channel_name)
+            .setChannelDescriptionResourceId(R.string.channel_description)
             .build().apply {
                 setMediaSessionToken(sessionToken)
             }
