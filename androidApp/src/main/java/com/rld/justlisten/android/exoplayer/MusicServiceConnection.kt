@@ -69,6 +69,7 @@ class MusicServiceConnection @Inject constructor(
     }
 
     fun updateFavorite(songId: String, isFavorite: Boolean) {
+        if (musicSource.playlist.any { it.id == songId })
         musicSource.playlist.first { it.id == songId }.isFavorite = isFavorite
     }
 

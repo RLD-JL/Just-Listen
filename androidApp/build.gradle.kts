@@ -42,7 +42,7 @@ dependencies {
 
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:${rootProject.extra["compose_version"]}")
     debugImplementation("androidx.compose.ui:ui-tooling:${rootProject.extra["compose_version"]}")
-  //  debugImplementation ("com.squareup.leakcanary:leakcanary-android:2.7")
+    debugImplementation ("com.squareup.leakcanary:leakcanary-android:2.7")
 }
 
 kapt {
@@ -55,8 +55,8 @@ android {
         applicationId = "com.rld.justlisten.android"
         minSdk = 21
         targetSdk = 30
-        versionCode = 2
-        versionName = "0.1.4"
+        versionCode = 3
+        versionName = "0.1.6"
         vectorDrawables {
             useSupportLibrary = true
         }
