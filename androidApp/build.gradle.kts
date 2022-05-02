@@ -55,7 +55,7 @@ android {
         applicationId = "com.rld.justlisten.android"
         minSdk = 21
         targetSdk = 30
-        versionCode = 3
+        versionCode = 4
         versionName = "0.1.6"
         vectorDrawables {
             useSupportLibrary = true
