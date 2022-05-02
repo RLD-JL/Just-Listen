@@ -12,3 +12,14 @@ fun Events.saveSettingsInfo(hasNavigationFundOn: Boolean, isDarkThemeOn: Boolean
 fun Events.getSettingsInfo(): SettingsInfo {
     return dataRepository.getSettingsInfo()
 }
+
+fun Events.updateScreen() = screenCoroutine {
+    val settingsInfo = dataRepository.getSettingsInfo()
+    stateManager.updateScreen(SettingsState::class) {
+        it.copy(
+            hasFundNavigationOn = settingsInfo.hasNavigationFundOn,
+            isDarkThemeOn = settingsInfo.isDarkThemeOn
+        )
+
+    }
+}

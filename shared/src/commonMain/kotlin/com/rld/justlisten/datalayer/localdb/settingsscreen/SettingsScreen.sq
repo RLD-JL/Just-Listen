@@ -1,13 +1,15 @@
 CREATE TABLE SettingsInfo (
-     hasNavigationFundOn INTEGER AS Boolean DEFAULT 0 PRIMARY KEY,
-     isDarkThemeOn  INTEGER  AS Boolean DEFAULT 1 NOT NULL
+     id INTEGER PRIMARY KEY DEFAULT 1,
+     hasNavigationFundOn INTEGER AS Boolean NOT NULL,
+     isDarkThemeOn  INTEGER  AS Boolean  NOT NULL
 );
 
+INSERT INTO SettingsInfo(hasNavigationFundOn, isDarkThemeOn) VALUES (1, 1);
 
 getSettingsInfo:
 SELECT * FROM SettingsInfo;
 
 upsertSettingsInfo {
-    INSERT OR REPLACE INTO SettingsInfo(hasNavigationFundOn, isDarkThemeOn)
-    VALUES(:hasNavigationFundOn, :isDarkThemeOn);
+    REPLACE INTO SettingsInfo(id, hasNavigationFundOn, isDarkThemeOn)
+    VALUES(1, :hasNavigationFundOn, :isDarkThemeOn) ;
 }

@@ -16,6 +16,7 @@ import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum.*
 import com.rld.justlisten.android.ui.playlistdetailscreen.PlaylistDetailScreen
 import com.rld.justlisten.android.ui.playlistdetailscreen.playMusicFromId
 import com.rld.justlisten.android.ui.searchscreen.SearchScreen
+import com.rld.justlisten.android.ui.settingsscreen.SettingsScreen
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.Screen.*
 import com.rld.justlisten.viewmodel.screens.addplaylist.AddPlaylistParams
@@ -30,6 +31,8 @@ import com.rld.justlisten.viewmodel.screens.search.SearchScreenState
 import com.rld.justlisten.viewmodel.screens.search.saveSearchInfo
 import com.rld.justlisten.viewmodel.screens.search.searchFor
 import com.rld.justlisten.viewmodel.screens.search.updateSearch
+import com.rld.justlisten.viewmodel.screens.settings.saveSettingsInfo
+import com.rld.justlisten.viewmodel.screens.settings.updateScreen
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -163,7 +166,7 @@ fun Navigation.ScreenPicker(
                 events.addPlaylist(playlistName, playlistDescription)
                 events.updatePlaylist()
             },
-            clickedToAddSongToPlaylist = { playlistTitle, _,songsList ->
+            clickedToAddSongToPlaylist = { playlistTitle, _, songsList ->
                 val playlistId = ""
                 val playlistIcon = ""
                 val playlistCreatedBy = "ME"
@@ -177,6 +180,15 @@ fun Navigation.ScreenPicker(
                 events.playMusicFromPlaylist(playlistId = playlistId)
             }
         )
+        Fund -> TODO()
+        Settings -> SettingsScreen(settings = stateProvider.get(screenIdentifier),
+            updateSettings = { settingsState ->
+                events.saveSettingsInfo(
+                    settingsState.hasFundNavigationOn,
+                    settingsState.isDarkThemeOn
+                )
+                events.updateScreen()
+            })
     }
 }
 
