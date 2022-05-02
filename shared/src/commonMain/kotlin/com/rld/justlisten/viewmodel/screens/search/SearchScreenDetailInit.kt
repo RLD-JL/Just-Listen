@@ -6,7 +6,7 @@ import com.rld.justlisten.datalayer.datacalls.search.getSearchList
 import com.rld.justlisten.viewmodel.screens.ScreenInitSettings
 import kotlinx.serialization.Serializable
 
-fun com.rld.justlisten.Navigation.initSearch() = ScreenInitSettings(
+fun Navigation.initSearch() = ScreenInitSettings(
     title = "Search",
     initState = { SearchScreenState(isLoading = true) },
     callOnInit = {

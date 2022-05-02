@@ -7,6 +7,7 @@ import com.rld.justlisten.viewmodel.screens.library.initLibrary
 import com.rld.justlisten.viewmodel.screens.playlist.initPlaylist
 import com.rld.justlisten.viewmodel.screens.playlistdetail.initPlaylistDetail
 import com.rld.justlisten.viewmodel.screens.search.initSearch
+import com.rld.justlisten.viewmodel.screens.settings.initSettings
 
 enum class Screen (
     val asString: String,
@@ -18,5 +19,7 @@ enum class Screen (
     Playlist("playlist", 1, {initPlaylist(it.params())}),
     PlaylistDetail("playlistDetail", 1, {initPlaylistDetail(it.params())}),
     AddPlaylist("addPlaylist", 1, {initAddPlaylist(it.params())}),
-    Search("screen", 1, {initSearch()})
+    Search("screen", 1, {initSearch()}),
+    Fund("fund", 1, {initSearch()}),
+    Settings("settings", 1, {initSettings()})
 }

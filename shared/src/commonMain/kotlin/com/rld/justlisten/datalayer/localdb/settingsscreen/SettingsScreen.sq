@@ -1,0 +1,13 @@
+CREATE TABLE SettingsInfo (
+     hasNavigationFundOn INTEGER AS Boolean DEFAULT 0 PRIMARY KEY,
+     isDarkThemeOn  INTEGER  AS Boolean DEFAULT 1 NOT NULL
+);
+
+
+getSettingsInfo:
+SELECT * FROM SettingsInfo;
+
+upsertSettingsInfo {
+    INSERT OR REPLACE INTO SettingsInfo(hasNavigationFundOn, isDarkThemeOn)
+    VALUES(:hasNavigationFundOn, :isDarkThemeOn);
+}

@@ -15,9 +15,12 @@ object navigationSettings {
 
 // LEVEL 1 NAVIGATION OF THE APP
 
-enum class Level1Navigation(val screenIdentifier: ScreenIdentifier, val rememberVerticalStack: Boolean = true) {
-    Library( ScreenIdentifier.get(Screen.Library, LibraryParams("")), true),
-    Playlist( ScreenIdentifier.get(Screen.Playlist, PlaylistParams("")), true),
-    PlaylistDetail( ScreenIdentifier.get(Screen.PlaylistDetail, PlaylistDetailParams("","", "", "",
-        PlayListEnum.CURRENT_PLAYLIST)), true)
+enum class Level1Navigation(
+    val screenIdentifier: ScreenIdentifier,
+    val rememberVerticalStack: Boolean = true
+) {
+    Library(ScreenIdentifier.get(Screen.Library, LibraryParams("")), true),
+    Playlist(ScreenIdentifier.get(Screen.Playlist, PlaylistParams("")), true),
+    Fund(ScreenIdentifier.get(Screen.Fund, null), true),
+    Settings(ScreenIdentifier.get(Screen.Settings, null), true)
 }
