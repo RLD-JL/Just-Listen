@@ -16,7 +16,8 @@ import com.rld.justlisten.viewmodel.screens.Level1Navigation
 @Composable
 fun Navigation.Level1BottomBar(
     selectedTab: ScreenIdentifier,
-    modifier: Modifier
+    modifier: Modifier,
+    hasNavigationFundOn: Boolean
 ) {
     BottomNavigation(
         modifier = modifier,
@@ -38,12 +39,14 @@ fun Navigation.Level1BottomBar(
                 selected = selectedTab.URI == Level1Navigation.Library.screenIdentifier.URI,
                 onClick = { navigateByLevel1Menu(Level1Navigation.Library) }
             )
-            BottomNavigationItem(
-                icon = { Icon(Icons.Default.Home, "Fund") },
-                label = { Text("Fund", fontSize = 10.sp) },
-                selected = selectedTab.URI == Level1Navigation.Playlist.screenIdentifier.URI,
-                onClick = { navigateByLevel1Menu(Level1Navigation.Playlist) }
-            )
+            if (hasNavigationFundOn) {
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Default.Home, "Fund") },
+                    label = { Text("Fund", fontSize = 10.sp) },
+                    selected = selectedTab.URI == Level1Navigation.Playlist.screenIdentifier.URI,
+                    onClick = { navigateByLevel1Menu(Level1Navigation.Playlist) }
+                )
+            }
             BottomNavigationItem(
                 icon = { Icon(imageVector = Icons.Default.Settings, "Settings") },
                 label = { Text("Settings", fontSize = 10.sp) },

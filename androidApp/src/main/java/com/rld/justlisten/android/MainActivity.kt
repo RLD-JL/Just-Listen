@@ -31,7 +31,8 @@ class MainActivity : ComponentActivity() {
                 window.navigationBarColor = MaterialTheme.colors.primaryVariant.toArgb()
                 MainComposable(model, musicServiceConnection, settingsUpdated = {
                     settingsInfo.value = model.repository.getSettingsInfo()
-                })
+                },
+                    hasNavigationFundOn = settingsInfo.value.hasNavigationFundOn)
             }
         }
     }

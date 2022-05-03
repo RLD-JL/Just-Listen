@@ -12,9 +12,10 @@ import com.rld.justlisten.viewmodel.JustListenViewModel
 fun MainComposable(
     model: JustListenViewModel,
     musicServiceConnection: MusicServiceConnection,
-    settingsUpdated: () -> Unit
+    settingsUpdated: () -> Unit,
+    hasNavigationFundOn: Boolean
 ) {
     val appState by model.stateFlow.collectAsState()
     val justlistenNav = appState.getNavigation(model = model)
-    justlistenNav.Router(musicServiceConnection, settingsUpdated = settingsUpdated)
+    justlistenNav.Router(musicServiceConnection, settingsUpdated = settingsUpdated, hasNavigationFundOn)
 }

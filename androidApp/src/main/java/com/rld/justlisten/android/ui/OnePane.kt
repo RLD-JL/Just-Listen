@@ -33,7 +33,8 @@ import kotlinx.coroutines.launch
 fun com.rld.justlisten.Navigation.OnePane(
     saveableStateHolder: SaveableStateHolder,
     musicServiceConnection: MusicServiceConnection,
-    settingsUpdated: () -> Unit
+    settingsUpdated: () -> Unit,
+    hasNavigationFundOn: Boolean
 ) {
     val shouldHavePlayBar =
         musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
@@ -58,7 +59,8 @@ fun com.rld.justlisten.Navigation.OnePane(
             if (currentScreenIdentifier.screen.navigationLevel == 1) {
                 Level1BottomBar(
                     currentScreenIdentifier,
-                    Modifier.offset(y = lerp(0f, 65f, scaffoldState.fraction).dp)
+                    Modifier.offset(y = lerp(0f, 65f, scaffoldState.fraction).dp),
+                    hasNavigationFundOn
                 )
             }
         },
