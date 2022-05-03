@@ -12,10 +12,10 @@ import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 @ExperimentalCoilApi
 @ExperimentalMaterialApi
 @Composable
-fun Navigation.Router(musicServiceConnection: MusicServiceConnection) {
+fun Navigation.Router(musicServiceConnection: MusicServiceConnection, settingsUpdated: () -> Unit) {
     val screenUIisStateHolder = rememberSaveableStateHolder()
 
-    OnePane(screenUIisStateHolder, musicServiceConnection)
+    OnePane(screenUIisStateHolder, musicServiceConnection, settingsUpdated = settingsUpdated)
 
     screenStatesToRemove.fastForEach {
         screenUIisStateHolder.removeState(it.URI)

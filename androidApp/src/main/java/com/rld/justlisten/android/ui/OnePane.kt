@@ -32,7 +32,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun com.rld.justlisten.Navigation.OnePane(
     saveableStateHolder: SaveableStateHolder,
-    musicServiceConnection: MusicServiceConnection
+    musicServiceConnection: MusicServiceConnection,
+    settingsUpdated: () -> Unit
 ) {
     val shouldHavePlayBar =
         musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
@@ -100,7 +101,11 @@ fun com.rld.justlisten.Navigation.OnePane(
                                 playlistDescription,
                                 list
                             )
-                            Toast.makeText(context, "The song was added to $playlistTitle", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "The song was added to $playlistTitle",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     )
                 }, content = {
@@ -109,8 +114,11 @@ fun com.rld.justlisten.Navigation.OnePane(
                             Modifier.padding(bottom = bottomBarPadding)
                     ) {
                         saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
-                            ScreenPicker(currentScreenIdentifier, musicServiceConnection,
-                                dominantColor = { dominantColorMutable.value = it })
+                            ScreenPicker(currentScreenIdentifier,
+                                musicServiceConnection,
+                                dominantColor = { dominantColorMutable.value = it },
+                                settingsUpdated = settingsUpdated
+                            )
                         }
                     }
                 }, sheetPeekHeight = if (shouldHavePlayBar) {

@@ -9,8 +9,12 @@ import com.rld.justlisten.viewmodel.JustListenViewModel
 
 @ExperimentalMaterialApi
 @Composable
-fun MainComposable(model: JustListenViewModel, musicServiceConnection: MusicServiceConnection) {
+fun MainComposable(
+    model: JustListenViewModel,
+    musicServiceConnection: MusicServiceConnection,
+    settingsUpdated: () -> Unit
+) {
     val appState by model.stateFlow.collectAsState()
     val justlistenNav = appState.getNavigation(model = model)
-    justlistenNav.Router(musicServiceConnection)
+    justlistenNav.Router(musicServiceConnection, settingsUpdated = settingsUpdated)
 }

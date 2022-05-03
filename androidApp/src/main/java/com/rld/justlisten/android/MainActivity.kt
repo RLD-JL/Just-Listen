@@ -5,11 +5,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.rld.justlisten.android.ui.MainComposable
 import com.rld.justlisten.android.ui.theme.JustListenTheme
 import com.rld.justlisten.android.ui.theme.ColorPallet
+import com.rld.justlisten.datalayer.datacalls.settings.getSettingsInfo
 
 
 class MainActivity : ComponentActivity() {
@@ -22,11 +24,14 @@ class MainActivity : ComponentActivity() {
         installSplashScreen().apply {
 
         }
+        val settingsInfo = mutableStateOf(model.repository.getSettingsInfo())
         setContent {
-            JustListenTheme(darkTheme = true, colorPallet = ColorPallet.DARK ) {
+            JustListenTheme(darkTheme = settingsInfo.value.isDarkThemeOn, colorPallet = ColorPallet.DARK) {
                 window.statusBarColor = MaterialTheme.colors.background.toArgb()
                 window.navigationBarColor = MaterialTheme.colors.primaryVariant.toArgb()
-                MainComposable(model, musicServiceConnection)
+                MainComposable(model, musicServiceConnection, settingsUpdated = {
+                    settingsInfo.value = model.repository.getSettingsInfo()
+                })
             }
         }
     }

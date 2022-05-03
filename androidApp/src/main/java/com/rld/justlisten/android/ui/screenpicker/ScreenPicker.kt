@@ -39,7 +39,8 @@ import com.rld.justlisten.viewmodel.screens.settings.updateScreen
 fun Navigation.ScreenPicker(
     screenIdentifier: ScreenIdentifier,
     musicServiceConnection: MusicServiceConnection,
-    dominantColor: (Int) -> Unit
+    dominantColor: (Int) -> Unit,
+    settingsUpdated: () -> Unit
 ) {
     val isPlayerReady: MutableState<Boolean> = remember {
         mutableStateOf(false)
@@ -188,6 +189,7 @@ fun Navigation.ScreenPicker(
                     settingsState.isDarkThemeOn
                 )
                 events.updateScreen()
+                settingsUpdated()
             })
     }
 }

@@ -1,5 +1,6 @@
 package com.rld.justlisten.android.ui.theme
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.MaterialTheme.shapes
