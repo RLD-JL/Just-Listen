@@ -30,6 +30,18 @@ val primaryDark = Color(0xFF010101)
 val secondDark = Color(0xFF272323)
 val primaryGray = Color(0xFF1D1D1D)
 
+// Dark Palette
+val primaryDark000 = Color(0xFF000000)
+val primaryDarkVariant = Color(0xFF000000)
+val secondaryDark = Color(0xFF212121)
+val secondaryDarkVariant = Color(0xFF212121)
+
+// Light Palette
+val primaryLightDark000 = Color(0xFF2c2c2c)
+val primaryLightDarkVariant = Color(0xFF2c2c2c)
+val backgroundLightDarkVariant = Color(0xFF414141)
+val secondaryLightDark = Color(0xFF484848)
+val secondaryLightDarkVariant = Color(0xFF484848)
 
 val orange = Color(0xFFF56040)
 val yellow = Color(0xFFFCAF45)

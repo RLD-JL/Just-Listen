@@ -1,6 +1,5 @@
 package com.rld.justlisten.android.ui.theme
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.MaterialTheme.shapes
@@ -127,6 +126,36 @@ private val DarkColorPalette = darkColors(
     error = Color.Red
 )
 
+private val DarkColorPalettev2 = darkColors(
+    primary = primaryDark000,
+    primaryVariant = primaryDarkVariant,
+    secondary = secondaryDark,
+    secondaryVariant = secondaryDarkVariant,
+    background = Color(0xFF121212),
+    surface = Color(0xFF121212),
+    error = Color(0xFFCF6679),
+    onPrimary = Color.Black,
+    onSecondary = Color.Black,
+    onBackground = Color.White,
+    onSurface = Color.White,
+    onError = Color.Black
+)
+
+private val LightDarkColorPalettev2 = darkColors(
+    primary = primaryLightDark000,
+    onPrimary = Color.White,
+    primaryVariant = primaryLightDarkVariant,
+    secondary = secondaryLightDark,
+    onSecondary = Color.Black,
+    secondaryVariant = secondaryLightDarkVariant,
+    background = backgroundLightDarkVariant,
+    onBackground = Color.White,
+    surface = Color(0xFF121212),
+    onSurface = Color.White,
+    error = Color.Red,
+    onError = Color.White
+)
+
 
 private val LightColorPalette = lightColors(
     primary = Color.Black,
@@ -134,7 +163,7 @@ private val LightColorPalette = lightColors(
     secondary = Color.DarkGray,
     background = Color.White,
     surface = Color.White,
-    onPrimary = Color.White,
+    onPrimary = Color.Blue,
     onSecondary = Color.Black,
     onBackground = Color.Black,
     onSurface = Color.Black,
@@ -157,7 +186,7 @@ fun JustListenTheme(
         ColorPallet.PURPLE -> if (darkTheme) DarkPurpleColorPalette else LightPurpleColorPalette
         ColorPallet.ORANGE -> if (darkTheme) DarkOrangeColorPalette else LightOrangeColorPalette
         ColorPallet.BLUE -> if (darkTheme) DarkBlueColorPalette else LightBlueColorPalette
-        ColorPallet.DARK -> if (darkTheme) DarkColorPalette else LightColorPalette
+        ColorPallet.DARK -> if (darkTheme) DarkColorPalette else LightDarkColorPalettev2
     }
 
     MaterialTheme(
