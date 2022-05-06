@@ -8,7 +8,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -22,7 +21,7 @@ import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 @Composable
 fun PlaylistRowItem(
     playlistItem: PlaylistItem,
-    onPlaylistClicked: (String, String, String, String) -> Unit) {
+    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit) {
     Column(
         modifier =
         Modifier
@@ -48,7 +47,8 @@ fun PlaylistRowItem(
                             playlistItem.id,
                             playlistItem.songIconList.songImageURL480px,
                             playlistItem.user,
-                            playlistItem.playlistTitle
+                            playlistItem.playlistTitle,
+                            playlistItem.isFavorite
                         )
                     }
                 ),

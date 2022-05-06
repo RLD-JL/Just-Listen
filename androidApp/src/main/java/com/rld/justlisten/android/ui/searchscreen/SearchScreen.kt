@@ -48,7 +48,7 @@ fun SearchScreen(
     onBackPressed: (Boolean) -> Unit,
     onSearchPressed: (String) -> Unit,
     onSongPressed: (String, String, String, SongIconList) -> Unit,
-    onPlaylistPressed: (String, String, String, String) -> Unit,
+    onPlaylistPressed: (String, String, String, String, Boolean) -> Unit,
     searchScreenState: SearchScreenState,
     onPreviousSearchedPressed: (String) -> Unit,
     updateSearch: (String) -> Unit) {
@@ -208,7 +208,7 @@ fun ShowSearchResults(
     searchResultTracks: List<TrackItem>,
     searchResultPlaylist: List<PlaylistItem>,
     onSongPressed: (String, String, String, SongIconList) -> Unit,
-    onPlaylistPressed: (String, String, String, String) -> Unit) {
+    onPlaylistPressed: (String, String, String, String, Boolean) -> Unit) {
     Column(Modifier.fillMaxSize()) {
         Header(text = "Top Find")
         SearchGridTracks(list = searchResultTracks, onSongPressed)
@@ -229,7 +229,7 @@ fun SearchGridTracks(list: List<Item>, onSongPressed: (String, String, String, S
 @Composable
 fun PlaylistResult(
     playlist: List<PlaylistItem>,
-    onPlaylistPressed: (String, String, String, String) -> Unit) {
+    onPlaylistPressed: (String, String, String, String, Boolean) -> Unit) {
     LazyRow{
         itemsIndexed(items = playlist) {  _, playlistItem ->
             PlaylistRowItem(

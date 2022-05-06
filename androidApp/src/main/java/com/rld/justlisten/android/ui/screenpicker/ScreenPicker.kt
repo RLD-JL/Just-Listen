@@ -77,7 +77,7 @@ fun Navigation.ScreenPicker(
                     }
                 },
                 playlistState = stateProvider.get(screenIdentifier = screenIdentifier),
-                onPlaylistClicked = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
+                onPlaylistClicked = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy, _ ->
                     navigate(
                         PlaylistDetail,
                         PlaylistDetailParams(
@@ -149,7 +149,7 @@ fun Navigation.ScreenPicker(
 
                 events.saveSongToRecent(songId, title, UserModel(user), songIcon)
             },
-            onPlaylistPressed = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
+            onPlaylistPressed = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy, _ ->
                 navigate(
                     PlaylistDetail,
                     PlaylistDetailParams(

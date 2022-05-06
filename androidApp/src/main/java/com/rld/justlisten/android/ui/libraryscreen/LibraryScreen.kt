@@ -18,9 +18,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rld.justlisten.android.R
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
+import com.rld.justlisten.android.ui.playlistdetailscreen.playMusicFromId
 import com.rld.justlisten.android.ui.playlistscreen.Header
 import com.rld.justlisten.android.ui.playlistscreen.components.PlaylistRowItem
+import com.rld.justlisten.datalayer.models.PlayListModel
+import com.rld.justlisten.datalayer.models.SongIconList
+import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.library.LibraryState
+import com.rld.justlisten.viewmodel.screens.search.TrackItem
 
 @Composable
 fun LibraryScreen(
@@ -30,13 +35,22 @@ fun LibraryScreen(
     onPlayListViewClicked: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-        Column() {
+        Column {
             Header(text = "Last Played")
             RowListOfRecentActivity(
                 libraryState,
-                onPlaylistClicked = { _, _, _, _ ->
-                    {
-
+                onPlaylistClicked = { id, songIcon, user, playlistTitle, isFavorite ->
+                    run {
+                        val playlistModel = PlayListModel(
+                            id,
+                            playlistTitle,
+                            playlistTitle,
+                            SongIconList(songIcon, songIcon, songIcon),
+                            UserModel(user),
+                            false
+                        )
+                        val item = TrackItem(playlistModel, isFavorite)
+                        playMusicFromId(musicServiceConnection, listOf(item), id, false)
                     }
                 },
             )
@@ -50,7 +64,7 @@ fun LibraryScreen(
 @Composable
 fun RowListOfRecentActivity(
     libraryState: LibraryState,
-    onPlaylistClicked: (String, String, String, String) -> Unit,
+    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
 ) {
 
     LazyRow {
@@ -68,7 +82,8 @@ fun PlaylistView(onPlayListViewClicked: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(top = 15.dp).clickable(onClick = onPlayListViewClicked),
+            .padding(top = 15.dp)
+            .clickable(onClick = onPlayListViewClicked),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(painter = painterResource(id = R.drawable.ic_playlist), contentDescription = null)

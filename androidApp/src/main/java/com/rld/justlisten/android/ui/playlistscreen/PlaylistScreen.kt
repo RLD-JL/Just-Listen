@@ -32,7 +32,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 fun PlaylistScreen(
     lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistState: PlaylistState,
-    onPlaylistClicked: (String, String, String, String) -> Unit,
+    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
     onSearchClicked: () -> Unit,
     refreshScreen: () ->Unit
 ) {
@@ -82,7 +82,7 @@ fun ScrollableContent(
     lasItemReached: (Int, PlayListEnum) -> Unit,
     scrollState: ScrollState,
     playlistState: PlaylistState,
-    onPlaylistClicked: (String, String, String, String) -> Unit) {
+    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit) {
     Column(
         modifier = Modifier
             .padding(8.dp)
@@ -109,7 +109,7 @@ fun Header(text: String, modifier: Modifier = Modifier) {
 @Composable
 fun ListOfCollections(
     playlistState: PlaylistState, lasItemReached: (Int, PlayListEnum) -> Unit,
-    onPlaylistClicked: (String, String, String, String) -> Unit) {
+    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit) {
     val list = remember {
         mutableListOf("Top Playlist", "Remix", "Yolo")
     }
@@ -142,7 +142,7 @@ fun ListOfCollections(
 fun PlaylistRow(
     playlist: List<PlaylistItem>, lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistEnum: PlayListEnum,
-    onPlaylistClicked: (String, String, String, String) -> Unit, ) {
+    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit, ) {
     val fetchMore = remember { mutableStateOf(false)}
     LazyRow(verticalAlignment =  Alignment.CenterVertically) {
         itemsIndexed(items = playlist) { index, playlistItem ->

@@ -57,13 +57,14 @@ fun LocalDb.saveSongRecentSongs(
 }
 
 fun LocalDb.getRecentPlayed(): List<PlayListModel> {
-    return libraryQueries.getRecentPlayed(mapper = { id, title, user, songImgList, _, _, _ ->
+    return libraryQueries.getRecentPlayed(mapper = { id, title, user, songImgList, _, _, isFavorite->
         PlayListModel(
             id = id,
             playlistTitle = title,
             title = title,
             user = user,
-            songImgList = songImgList
+            songImgList = songImgList,
+            isFavorite = isFavorite ?: false
         )
     }).executeAsList().asReversed()
 }
