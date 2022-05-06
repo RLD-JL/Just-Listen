@@ -137,9 +137,9 @@ fun PlayBarActionsMaximized(
                 ) {
                     OutlinedButton(
                         shape = CircleShape,
-                        border = BorderStroke(1.dp, Color.Green),
+                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface),
                         contentPadding = PaddingValues(0.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Green),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colors.onSurface),
                         modifier = Modifier
                             .size(40.dp)
                             .weight(0.2f),
@@ -152,9 +152,9 @@ fun PlayBarActionsMaximized(
                 } else {
                     OutlinedButton(
                         shape = CircleShape,
-                        border = BorderStroke(1.dp, Color.Green),
+                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface),
                         contentPadding = PaddingValues(0.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Green),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colors.onSurface),
                         modifier = Modifier
                             .size(40.dp)
                             .weight(0.2f),

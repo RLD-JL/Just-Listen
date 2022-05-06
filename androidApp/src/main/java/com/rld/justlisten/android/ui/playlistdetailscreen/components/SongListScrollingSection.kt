@@ -82,7 +82,7 @@ fun DownloadedRow() {
 fun ShuffleButton(onShuffleClicked: () -> Unit) {
     Button(
         onClick = { onShuffleClicked() },
-        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green),
+        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.surface),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 12.dp, horizontal = 100.dp)
