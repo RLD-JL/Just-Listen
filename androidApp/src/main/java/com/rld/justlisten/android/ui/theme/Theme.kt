@@ -3,12 +3,10 @@ package com.rld.justlisten.android.ui.theme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.MaterialTheme.shapes
-import androidx.compose.material.ProvideTextStyle
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 
 private val DarkGreenColorPalette = darkColors(
     primary = greenPrimary,
@@ -145,22 +143,22 @@ private val LightDarkColorPalette = darkColors(
 )
 
 enum class ColorPallet {
-    PURPLE, GREEN, ORANGE, BLUE, DARK
+    Purple, Green, Orange, Blue, Dark
 }
 
 
 @Composable
 fun JustListenTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    colorPallet: ColorPallet = ColorPallet.DARK,
+    colorPallet: ColorPallet = ColorPallet.Dark,
     content: @Composable () -> Unit,
 ) {
     val colors = when (colorPallet) {
-        ColorPallet.GREEN -> if (darkTheme) DarkGreenColorPalette else LightGreenColorPalette
-        ColorPallet.PURPLE -> if (darkTheme) DarkPurpleColorPalette else LightPurpleColorPalette
-        ColorPallet.ORANGE -> if (darkTheme) DarkOrangeColorPalette else LightOrangeColorPalette
-        ColorPallet.BLUE -> if (darkTheme) DarkBlueColorPalette else LightBlueColorPalette
-        ColorPallet.DARK -> if (darkTheme) DarkColorPalette else LightDarkColorPalette
+        ColorPallet.Green -> if (darkTheme) DarkGreenColorPalette else LightGreenColorPalette
+        ColorPallet.Purple -> if (darkTheme) DarkPurpleColorPalette else LightPurpleColorPalette
+        ColorPallet.Orange -> if (darkTheme) DarkOrangeColorPalette else LightOrangeColorPalette
+        ColorPallet.Blue -> if (darkTheme) DarkBlueColorPalette else LightBlueColorPalette
+        ColorPallet.Dark -> if (darkTheme) DarkColorPalette else LightDarkColorPalette
     }
 
     MaterialTheme(

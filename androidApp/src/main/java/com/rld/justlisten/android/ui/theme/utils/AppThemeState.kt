@@ -4,5 +4,5 @@ import com.rld.justlisten.android.ui.theme.ColorPallet
 
 data class AppThemeState(
     var darkTheme: Boolean = false,
-    var pallet: ColorPallet = ColorPallet.GREEN
+    var pallet: ColorPallet = ColorPallet.Green
 )
