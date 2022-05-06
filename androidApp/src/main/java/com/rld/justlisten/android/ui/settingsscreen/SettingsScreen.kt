@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import com.rld.justlisten.android.ui.theme.ColorPallet
+import com.rld.justlisten.android.ui.utils.getColorPallet
 import com.rld.justlisten.viewmodel.screens.settings.SettingsState
 
 @Composable
@@ -38,7 +39,8 @@ fun SettingsScreen(
                         updateSettings(
                             SettingsState(
                                 isDarkThemeOn = !settings.isDarkThemeOn,
-                                hasFundNavigationOn = settings.hasFundNavigationOn
+                                hasFundNavigationOn = settings.hasFundNavigationOn,
+                                palletColor = settings.palletColor
                             )
                         )
                     }
@@ -62,7 +64,8 @@ fun SettingsScreen(
                         updateSettings(
                             SettingsState(
                                 hasFundNavigationOn = !settings.hasFundNavigationOn,
-                                isDarkThemeOn = settings.isDarkThemeOn
+                                isDarkThemeOn = settings.isDarkThemeOn,
+                                palletColor = settings.palletColor
                             )
                         )
                     }
@@ -76,18 +79,43 @@ fun SettingsScreen(
                 ColorPallet.Orange,
                 ColorPallet.Blue
             )
-            val (selectedOption, onOptionSelected) = remember { mutableStateOf(palletOptions[0]) }
+
+            val (selectedOption, onOptionSelected) = remember {
+                mutableStateOf(palletOptions.first {
+                    it == getColorPallet(
+                        settings.palletColor
+                    )
+                })
+            }
             palletOptions.fastForEach { pallet ->
                 Row(
                     Modifier
                         .fillMaxWidth()
                         .selectable(selected = (pallet == selectedOption),
-                            onClick = { onOptionSelected(pallet) }),
+                            onClick = {
+                                onOptionSelected(pallet)
+                                updateSettings(
+                                    SettingsState(
+                                        isDarkThemeOn = settings.isDarkThemeOn,
+                                        hasFundNavigationOn = settings.hasFundNavigationOn,
+                                        palletColor = pallet.name
+                                    )
+                                )
+                            }),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(
                         selected = (pallet == selectedOption),
-                        onClick = { onOptionSelected(pallet) })
+                        onClick = {
+                            onOptionSelected(pallet)
+                            updateSettings(
+                                SettingsState(
+                                    isDarkThemeOn = settings.isDarkThemeOn,
+                                    hasFundNavigationOn = settings.hasFundNavigationOn,
+                                    palletColor = pallet.name
+                                )
+                            )
+                        })
                     Text(pallet.name, modifier = Modifier.padding(start = 8.dp))
                 }
             }

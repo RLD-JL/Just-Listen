@@ -13,7 +13,8 @@ fun Navigation.initSettings() = ScreenInitSettings(
             it.copy(
                 isLoading = false,
                 hasFundNavigationOn = settingsInfo.hasNavigationFundOn,
-                isDarkThemeOn = settingsInfo.isDarkThemeOn
+                isDarkThemeOn = settingsInfo.isDarkThemeOn,
+                palletColor = settingsInfo.palletColor
             )
         }
     },

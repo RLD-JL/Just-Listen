@@ -11,6 +11,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.rld.justlisten.android.ui.MainComposable
 import com.rld.justlisten.android.ui.theme.JustListenTheme
 import com.rld.justlisten.android.ui.theme.ColorPallet
+import com.rld.justlisten.android.ui.utils.getColorPallet
 import com.rld.justlisten.datalayer.datacalls.settings.getSettingsInfo
 
 
@@ -26,13 +27,18 @@ class MainActivity : ComponentActivity() {
         }
         val settingsInfo = mutableStateOf(model.repository.getSettingsInfo())
         setContent {
-            JustListenTheme(darkTheme = settingsInfo.value.isDarkThemeOn, colorPallet = ColorPallet.Dark) {
+            JustListenTheme(
+                darkTheme = settingsInfo.value.isDarkThemeOn,
+                colorPallet = getColorPallet(settingsInfo.value.palletColor)
+            ) {
                 window.statusBarColor = MaterialTheme.colors.background.toArgb()
                 window.navigationBarColor = MaterialTheme.colors.background.toArgb()
-                MainComposable(model, musicServiceConnection, settingsUpdated = {
-                    settingsInfo.value = model.repository.getSettingsInfo()
-                },
-                    hasNavigationFundOn = settingsInfo.value.hasNavigationFundOn)
+                MainComposable(
+                    model, musicServiceConnection, settingsUpdated = {
+                        settingsInfo.value = model.repository.getSettingsInfo()
+                    },
+                    hasNavigationFundOn = settingsInfo.value.hasNavigationFundOn
+                )
             }
         }
     }

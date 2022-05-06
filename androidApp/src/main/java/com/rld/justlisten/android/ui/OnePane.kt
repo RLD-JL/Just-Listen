@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.annotation.ExperimentalCoilApi
+import com.rld.justlisten.Navigation
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 import com.rld.justlisten.android.exoplayer.library.extension.id
 import com.rld.justlisten.android.ui.bottombars.Level1BottomBar
@@ -30,7 +31,7 @@ import kotlinx.coroutines.launch
 @ExperimentalCoilApi
 @ExperimentalMaterialApi
 @Composable
-fun com.rld.justlisten.Navigation.OnePane(
+fun Navigation.OnePane(
     saveableStateHolder: SaveableStateHolder,
     musicServiceConnection: MusicServiceConnection,
     settingsUpdated: () -> Unit,

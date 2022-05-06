@@ -186,7 +186,8 @@ fun Navigation.ScreenPicker(
             updateSettings = { settingsState ->
                 events.saveSettingsInfo(
                     settingsState.hasFundNavigationOn,
-                    settingsState.isDarkThemeOn
+                    settingsState.isDarkThemeOn,
+                    settingsState.palletColor
                 )
                 events.updateScreen()
                 settingsUpdated()
