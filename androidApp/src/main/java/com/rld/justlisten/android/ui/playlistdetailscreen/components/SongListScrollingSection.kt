@@ -45,7 +45,7 @@ fun SongListScrollingSection(
             ShuffleButton(onShuffleClicked)
             DownloadedRow()
         }
-        itemsIndexed(playlist) {index,playlistItem ->
+        itemsIndexed(playlist) { index, playlistItem ->
 
             SongListItem(
                 playlistItem = playlistItem,
@@ -67,15 +67,11 @@ fun DownloadedRow() {
     ) {
         Text(
             text = "Download",
-            style = typography.h6.copy(fontSize = 14.sp),
-            color = MaterialTheme.colors.onSurface
+            style = typography.h6.copy(fontSize = 14.sp)
         )
         var switched by remember { mutableStateOf(true) }
         Switch(
             checked = switched,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = MaterialTheme.colors.primary
-            ),
             modifier = Modifier.padding(8.dp),
             onCheckedChange = { switched = it }
         )
@@ -95,7 +91,6 @@ fun ShuffleButton(onShuffleClicked: () -> Unit) {
         Text(
             text = "SHUFFLE PLAY",
             style = typography.h6.copy(fontSize = 14.sp),
-            color = MaterialTheme.colors.onSurface,
             modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
         )
     }

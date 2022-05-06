@@ -26,14 +26,10 @@ fun SettingsScreen(
             ) {
                 Text(
                     text = "Dark Theme",
-                    style = MaterialTheme.typography.h6.copy(fontSize = 14.sp),
-                    color = MaterialTheme.colors.onSurface
+                    style = MaterialTheme.typography.h6.copy(fontSize = 14.sp)
                 )
                 Switch(
                     checked = settings.isDarkThemeOn,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colors.primary
-                    ),
                     modifier = Modifier.padding(8.dp),
                     onCheckedChange = {
                         updateSettings(
@@ -53,14 +49,10 @@ fun SettingsScreen(
             ) {
                 Text(
                     text = "Has Bottom Fund Navigation",
-                    style = MaterialTheme.typography.h6.copy(fontSize = 14.sp),
-                    color = MaterialTheme.colors.onSurface
+                    style = MaterialTheme.typography.h6.copy(fontSize = 14.sp)
                 )
                 Switch(
                     checked = settings.hasFundNavigationOn,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colors.primary
-                    ),
                     modifier = Modifier.padding(8.dp),
                     onCheckedChange = {
                         updateSettings(

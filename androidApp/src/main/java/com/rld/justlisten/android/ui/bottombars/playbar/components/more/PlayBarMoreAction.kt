@@ -1,6 +1,7 @@
 package com.rld.justlisten.android.ui.bottombars.playbar.components.more
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
@@ -28,9 +29,10 @@ fun PlayBarMoreAction(
         Modifier
             .fillMaxWidth()
             .fillMaxHeight(0.75f)
+            .background(MaterialTheme.colors.background)
     ) {
         TopSection(title, painter)
-        Divider(color = MaterialTheme.colors.primary, thickness = 0.5.dp)
+        Divider(thickness = 0.5.dp)
         MoreOptions(addToPlaylistClicked)
     }
 }

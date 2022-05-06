@@ -71,7 +71,7 @@ fun AnimatedToolBar(
         Header(text = "Good evening")
         Icon(
             modifier = Modifier.clickable(onClick = onSearchClicked),
-            imageVector = Icons.Default.Search, tint = MaterialTheme.colors.onSurface,
+            imageVector = Icons.Default.Search,
             contentDescription = null
         )
     }

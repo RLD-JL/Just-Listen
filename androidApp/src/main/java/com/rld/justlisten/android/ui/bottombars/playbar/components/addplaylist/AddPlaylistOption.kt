@@ -1,5 +1,6 @@
 package com.rld.justlisten.android.ui.bottombars.playbar.components.addplaylist
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.MaterialTheme
@@ -8,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
 import com.rld.justlisten.android.ui.addplaylistscreen.AddPlaylistDialog
@@ -26,17 +28,14 @@ fun AddPlaylistOption(
 ) {
     val openDialog = remember { mutableStateOf(false) }
 
-    LazyColumn {
-
+    LazyColumn(Modifier.background(MaterialTheme.colors.background)) {
         item {
             TopSection(title, painter)
-            Divider(color = MaterialTheme.colors.primary, thickness = 0.5.dp)
+            Divider(thickness = 0.5.dp)
         }
-
         itemsIndexed(items = addPlaylistList) { index, playlist ->
             PlaylistViewItem(playlist, clickedToAddSongToPlaylist)
         }
-
         item {
             AddPlaylistRow(openDialog)
             AddPlaylistDialog(openDialog, onAddPlaylistClicked)

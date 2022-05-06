@@ -58,7 +58,7 @@ fun SongListItem(
     ) {
         val painter = rememberImagePainter(
             request = ImageRequest.Builder(context = LocalContext.current)
-                .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
+                .placeholder(ColorDrawable(MaterialTheme.colors.secondaryVariant.toArgb()))
                 .data(playlistItem.songIconList.songImageURL150px).allowHardware(false).build()
         )
 
@@ -90,7 +90,6 @@ fun SongListItem(
             Text(
                 text = playlistItem.playlistTitle,
                 style = typography.h6.copy(fontSize = 16.sp),
-                color = MaterialTheme.colors.onSurface
             )
             Text(
                 text = "${playlistItem.title} by ${playlistItem.user}",

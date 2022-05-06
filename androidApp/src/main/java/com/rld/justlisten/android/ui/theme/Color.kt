@@ -6,6 +6,11 @@ val green200 = Color(0xffa5d6a7)
 val green500 = Color(0xff4caf50)
 val green700 = Color(0xff388e3c)
 
+val greenPrimary = Color(0xff388E67)
+val greenPrimaryVariant = Color(0xff388E3C)
+val secondaryPrimary = Color(0xff50CDD7)
+val secondaryPrimaryVariant = Color(0xff0FBAC9)
+
 val blue500 = Color(0xFF3F51B5)
 val blue200 = Color(0xFF9FA8DA)
 val blue700 = Color(0xFF303F9F)
@@ -31,17 +36,17 @@ val secondDark = Color(0xFF272323)
 val primaryGray = Color(0xFF1D1D1D)
 
 // Dark Palette
-val primaryDark000 = Color(0xFF000000)
-val primaryDarkVariant = Color(0xFF000000)
-val secondaryDark = Color(0xFF212121)
-val secondaryDarkVariant = Color(0xFF212121)
+val primaryDark000 = Color(0xFFECE8E8)
+val primaryDarkVariant = Color(0xFFECE8E8)
+val secondaryDark = Color(0xFFcccccc)
+val secondaryDarkVariant = Color(0xFFADADAD)
 
 // Light Palette
-val primaryLightDark000 = Color(0xFF2c2c2c)
-val primaryLightDarkVariant = Color(0xFF2c2c2c)
+val primaryLightDark000 = Color(0xFF111111)
+val primaryLightDarkVariant = Color(0xFF000000)
 val backgroundLightDarkVariant = Color(0xFF414141)
-val secondaryLightDark = Color(0xFF484848)
-val secondaryLightDarkVariant = Color(0xFF484848)
+val secondaryLightDark = Color(0xFF3A3A3A)
+val secondaryLightDarkVariant = Color(0xFF363636)
 
 val orange = Color(0xFFF56040)
 val yellow = Color(0xFFFCAF45)

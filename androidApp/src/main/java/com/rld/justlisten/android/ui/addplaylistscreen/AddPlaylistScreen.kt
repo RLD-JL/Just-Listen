@@ -37,7 +37,7 @@ fun AddPlaylistScreen(
     val openDialog = remember { mutableStateOf(false) }
     LazyColumn(Modifier.fillMaxWidth()) {
         item { AddPlaylistRow(openDialog) }
-        item { Divider(color = MaterialTheme.colors.primary, thickness = 0.5.dp) }
+        item { Divider(thickness = 0.5.dp) }
         item { AddPlaylistDialog(openDialog, onAddPlaylistClicked) }
         itemsIndexed(addPlaylistState.playlistsCreated) { index, playlist ->
             PlaylistViewItem(playlist, clickedToAddSongToPlaylist)
@@ -55,7 +55,6 @@ fun AddPlaylistRow(openDialog: MutableState<Boolean>) {
     ) {
         Icon(
             painterResource(id = R.drawable.ic_add_to_playlist_foreground),
-            tint = MaterialTheme.colors.onSurface,
             contentDescription = null,
             modifier = Modifier.height(75.dp)
         )
@@ -82,7 +81,6 @@ fun PlaylistViewItem(
     ) {
         Icon(
             painterResource(id = R.drawable.ic_playlist_icon),
-            tint = MaterialTheme.colors.onSurface,
             contentDescription = null,
             modifier = Modifier.height(75.dp)
         )
@@ -104,7 +102,6 @@ fun AddPlaylistDialog(
     var description by remember { mutableStateOf<String?>("") }
     if (openDialog.value) {
         AlertDialog(
-            backgroundColor = MaterialTheme.colors.primaryVariant,
             onDismissRequest = {
                 openDialog.value = false
             },
@@ -115,7 +112,6 @@ fun AddPlaylistDialog(
                         text = "Add New Playlist",
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 20.sp,
-                        color = MaterialTheme.colors.onBackground
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                     TextField(
@@ -179,8 +175,7 @@ fun AddPlaylistDialog(
                             onAddPlaylistClicked(title, description)
                             description = ""
                             title = ""
-                        },
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Gray)
+                        }
                     ) {
                         Text("Add")
                     }

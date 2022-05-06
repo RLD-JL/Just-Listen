@@ -120,7 +120,7 @@ fun AnimatedToolBar(
     ) {
         IconButton(modifier = Modifier.weight(0.2f), onClick = { onBackPressed(true) }) {
             Icon(
-                imageVector = Icons.Default.ArrowBack, tint = MaterialTheme.colors.onSurface,
+                imageVector = Icons.Default.ArrowBack,
                 contentDescription = null,
             )
         }
@@ -152,9 +152,6 @@ fun AnimatedToolBar(
                     keyboardController?.hide()
                 }
             ),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                backgroundColor = MaterialTheme.colors.background
-            )
         )
         IconButton(modifier = Modifier
             .weight(0.2f)
@@ -166,7 +163,7 @@ fun AnimatedToolBar(
                 keyboardController?.show()
             }) {
             Icon(
-                imageVector = Icons.Default.Close, tint = MaterialTheme.colors.onSurface,
+                imageVector = Icons.Default.Close,
                 contentDescription = null
             )
         }
@@ -198,7 +195,6 @@ fun ItemRowSearch(itemSearched: String, onPreviousSearchedPressed: (String) -> U
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(modifier = Modifier.padding(start = 5.dp), text = itemSearched)
             Icon(
-                tint = MaterialTheme.colors.primary,
                 painter = painterResource(id = R.drawable.ic_baseline_north_west_24),
                 contentDescription = null
             )

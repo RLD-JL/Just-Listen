@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.rld.justlisten.android.ui.MainComposable
@@ -28,7 +29,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             JustListenTheme(darkTheme = settingsInfo.value.isDarkThemeOn, colorPallet = ColorPallet.DARK) {
                 window.statusBarColor = MaterialTheme.colors.background.toArgb()
-                window.navigationBarColor = MaterialTheme.colors.primaryVariant.toArgb()
+                window.navigationBarColor = MaterialTheme.colors.background.toArgb()
                 MainComposable(model, musicServiceConnection, settingsUpdated = {
                     settingsInfo.value = model.repository.getSettingsInfo()
                 },

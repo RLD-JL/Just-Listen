@@ -38,11 +38,9 @@ fun BoxTopSection(scrollState: MutableState<Float>, playlistDetailState: Playlis
             text = playlistDetailState.playlistName,
             style = typography.h5.copy(fontWeight = FontWeight.ExtraBold),
             modifier = Modifier.padding(8.dp),
-            color = MaterialTheme.colors.onSurface
         )
         Text(
             text = "FOLLOWING",
-            color = MaterialTheme.colors.onSurface,
             style = typography.h6.copy(fontSize = 12.sp),
             modifier = Modifier
                 .padding(4.dp)

@@ -10,18 +10,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 
-
 private val DarkGreenColorPalette = darkColors(
-    primary = green200,
-    primaryVariant = green700,
-    secondary = teal200,
-    background = Color.Black,
-    surface = Color.Black,
+    primary = greenPrimary,
     onPrimary = Color.Black,
+    primaryVariant = greenPrimaryVariant,
+    secondary = secondaryPrimary,
     onSecondary = Color.White,
+    secondaryVariant = secondaryPrimaryVariant,
+    background = Color.Black,
     onBackground = Color.White,
+    surface = Color.Black,
     onSurface = Color.White,
     error = Color.Red,
+    onError = Color.Black
 )
 
 private val DarkPurpleColorPalette = darkColors(
@@ -114,26 +115,13 @@ private val LightOrangeColorPalette = lightColors(
 
 
 private val DarkColorPalette = darkColors(
-    primary = Color.White,
-    primaryVariant = primaryGray,
-    secondary = secondDark,
-    background = Color.Black,
-    surface = Color.Black,
-    onPrimary = Color.Black,
-    onSecondary = Color.White,
-    onBackground = Color.White,
-    onSurface = Color.White,
-    error = Color.Red
-)
-
-private val DarkColorPalettev2 = darkColors(
     primary = primaryDark000,
     primaryVariant = primaryDarkVariant,
     secondary = secondaryDark,
     secondaryVariant = secondaryDarkVariant,
-    background = Color(0xFF121212),
-    surface = Color(0xFF121212),
-    error = Color(0xFFCF6679),
+    background = Color.Black,
+    surface = Color.Black,
+    error = Color.Red,
     onPrimary = Color.Black,
     onSecondary = Color.Black,
     onBackground = Color.White,
@@ -141,33 +129,19 @@ private val DarkColorPalettev2 = darkColors(
     onError = Color.Black
 )
 
-private val LightDarkColorPalettev2 = darkColors(
+private val LightDarkColorPalette = darkColors(
     primary = primaryLightDark000,
-    onPrimary = Color.White,
     primaryVariant = primaryLightDarkVariant,
     secondary = secondaryLightDark,
-    onSecondary = Color.Black,
     secondaryVariant = secondaryLightDarkVariant,
-    background = backgroundLightDarkVariant,
-    onBackground = Color.White,
-    surface = Color(0xFF121212),
-    onSurface = Color.White,
+    background = Color.LightGray,
+    surface = Color.Black,
     error = Color.Red,
-    onError = Color.White
-)
-
-
-private val LightColorPalette = lightColors(
-    primary = Color.Black,
-    primaryVariant = primaryGray,
-    secondary = Color.DarkGray,
-    background = Color.White,
-    surface = Color.White,
-    onPrimary = Color.Blue,
-    onSecondary = Color.Black,
+    onPrimary = Color.White,
+    onSecondary = Color.White,
     onBackground = Color.Black,
     onSurface = Color.Black,
-    error = Color.Red
+    onError = Color.White
 )
 
 enum class ColorPallet {
@@ -186,19 +160,14 @@ fun JustListenTheme(
         ColorPallet.PURPLE -> if (darkTheme) DarkPurpleColorPalette else LightPurpleColorPalette
         ColorPallet.ORANGE -> if (darkTheme) DarkOrangeColorPalette else LightOrangeColorPalette
         ColorPallet.BLUE -> if (darkTheme) DarkBlueColorPalette else LightBlueColorPalette
-        ColorPallet.DARK -> if (darkTheme) DarkColorPalette else LightDarkColorPalettev2
+        ColorPallet.DARK -> if (darkTheme) DarkColorPalette else LightDarkColorPalette
     }
 
     MaterialTheme(
         colors = colors,
         typography = typography,
         shapes = shapes,
-        content = {
-            ProvideTextStyle(
-                value = TextStyle(color = Color.White),
-                content = content
-            )
-        }
+        content = content
     )
     /* TODO() CONVERT TO MATERIAL3 THEME
     androidx.compose.material3.MaterialTheme(

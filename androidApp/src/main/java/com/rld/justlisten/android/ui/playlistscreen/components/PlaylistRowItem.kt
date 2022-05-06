@@ -33,7 +33,7 @@ fun PlaylistRowItem(
                 })
     ) {
         val request = ImageRequest.Builder(context = LocalContext.current)
-            .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
+            .placeholder(ColorDrawable(MaterialTheme.colors.secondaryVariant.toArgb()))
             .data(playlistItem.songIconList.songImageURL480px).build()
 
         val painter = rememberImagePainter(request = request)

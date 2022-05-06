@@ -54,7 +54,7 @@ fun PlaylistDetailScreen(
 
         val painter = rememberImagePainter(
             request = ImageRequest.Builder(context = LocalContext.current)
-                .placeholder(ColorDrawable(MaterialTheme.colors.secondary.toArgb()))
+                .placeholder(ColorDrawable(MaterialTheme.colors.secondaryVariant.toArgb()))
                 .data(playlistDetailState.playlistIcon).build()
         )
 
@@ -126,18 +126,17 @@ fun AnimatedToolBar(
     ) {
         IconButton(onClick = { onBackButtonPressed(true) }) {
             Icon(
-                imageVector = Icons.Default.ArrowBack, tint = MaterialTheme.colors.onSurface,
+                imageVector = Icons.Default.ArrowBack,
                 contentDescription = null,
             )
         }
         Text(
             text = playlistDetailState.playlistName,
-            color = MaterialTheme.colors.onSurface,
             modifier = Modifier
                 .alpha(((-scrollState.value + 0.010f) / 1000).coerceIn(0f, 1f))
         )
         Icon(
-            imageVector = Icons.Default.Search, tint = MaterialTheme.colors.onSurface,
+            imageVector = Icons.Default.Search,
             contentDescription = null,
             modifier = Modifier.alpha(0f)
         )
