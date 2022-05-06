@@ -12,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
@@ -37,7 +36,7 @@ fun AddPlaylistScreen(
     val openDialog = remember { mutableStateOf(false) }
     LazyColumn(Modifier.fillMaxWidth()) {
         item { AddPlaylistRow(openDialog) }
-        item { Divider(thickness = 0.5.dp) }
+        item { Divider(thickness = 2.dp) }
         item { AddPlaylistDialog(openDialog, onAddPlaylistClicked) }
         itemsIndexed(addPlaylistState.playlistsCreated) { index, playlist ->
             PlaylistViewItem(playlist, clickedToAddSongToPlaylist)
