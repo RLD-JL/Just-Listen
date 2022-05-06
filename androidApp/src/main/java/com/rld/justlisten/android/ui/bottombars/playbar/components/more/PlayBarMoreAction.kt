@@ -32,7 +32,7 @@ fun PlayBarMoreAction(
             .background(MaterialTheme.colors.background)
     ) {
         TopSection(title, painter)
-        Divider(thickness = 0.5.dp)
+        Divider(thickness = 2.dp)
         MoreOptions(addToPlaylistClicked)
     }
 }

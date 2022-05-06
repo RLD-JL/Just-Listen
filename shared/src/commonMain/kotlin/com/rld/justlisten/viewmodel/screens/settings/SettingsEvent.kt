@@ -18,7 +18,8 @@ fun Events.updateScreen() = screenCoroutine {
     stateManager.updateScreen(SettingsState::class) {
         it.copy(
             hasFundNavigationOn = settingsInfo.hasNavigationFundOn,
-            isDarkThemeOn = settingsInfo.isDarkThemeOn
+            isDarkThemeOn = settingsInfo.isDarkThemeOn,
+            palletColor = settingsInfo.palletColor
         )
 
     }

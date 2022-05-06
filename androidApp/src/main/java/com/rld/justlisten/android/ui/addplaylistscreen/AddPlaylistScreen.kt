@@ -102,7 +102,6 @@ fun AddPlaylistDialog(
     var description by remember { mutableStateOf<String?>("") }
     if (openDialog.value) {
         AlertDialog(
-            backgroundColor = MaterialTheme.colors.background,
             onDismissRequest = {
                 openDialog.value = false
             },

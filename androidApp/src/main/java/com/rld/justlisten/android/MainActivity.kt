@@ -31,8 +31,10 @@ class MainActivity : ComponentActivity() {
                 darkTheme = settingsInfo.value.isDarkThemeOn,
                 colorPallet = getColorPallet(settingsInfo.value.palletColor)
             ) {
-                window.statusBarColor = MaterialTheme.colors.background.toArgb()
-                window.navigationBarColor = MaterialTheme.colors.background.toArgb()
+                window.statusBarColor = if (getColorPallet(settingsInfo.value.palletColor) == ColorPallet.Dark) MaterialTheme.colors.background.toArgb()
+                else MaterialTheme.colors.primary.toArgb()
+                window.navigationBarColor =  if (getColorPallet(settingsInfo.value.palletColor) == ColorPallet.Dark)
+                    MaterialTheme.colors.background.toArgb() else MaterialTheme.colors.primary.toArgb()
                 MainComposable(
                     model, musicServiceConnection, settingsUpdated = {
                         settingsInfo.value = model.repository.getSettingsInfo()

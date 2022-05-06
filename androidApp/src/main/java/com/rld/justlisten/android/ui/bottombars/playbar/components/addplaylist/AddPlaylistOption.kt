@@ -31,7 +31,7 @@ fun AddPlaylistOption(
     LazyColumn(Modifier.background(MaterialTheme.colors.background)) {
         item {
             TopSection(title, painter)
-            Divider(thickness = 0.5.dp)
+            Divider(thickness = 2.dp)
         }
         itemsIndexed(items = addPlaylistList) { index, playlist ->
             PlaylistViewItem(playlist, clickedToAddSongToPlaylist)

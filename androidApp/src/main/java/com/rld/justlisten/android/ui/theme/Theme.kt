@@ -10,56 +10,94 @@ import androidx.compose.ui.graphics.Color
 
 private val DarkGreenColorPalette = darkColors(
     primary = greenPrimary,
-    onPrimary = Color.Black,
     primaryVariant = greenPrimaryVariant,
-    secondary = secondaryPrimary,
-    onSecondary = Color.White,
-    secondaryVariant = secondaryPrimaryVariant,
+    secondary = greenSecondaryPrimary,
+    secondaryVariant = greenSecondaryPrimaryVariant,
     background = Color.Black,
+    surface = Color.DarkGray,
+    error = Color.Red,
+    onPrimary = Color.Black,
+    onSecondary = greenPrimary,
     onBackground = Color.White,
-    surface = Color.Black,
+    onSurface = greenPrimary,
+    onError = Color.Black
+)
+
+private val DarkPurpleColorPalette = darkColors(
+    primary = purple,
+    primaryVariant = purpleLight,
+    secondary = secondaryPurple,
+    secondaryVariant = secondaryPurpleLight,
+    background = Color.Black,
+    surface = Color.LightGray,
+    onPrimary = Color.Black,
+    onSecondary = purple,
+    onBackground = Color.White,
+    onSurface = purple,
+    error = Color.Red,
+    onError = Color.Black
+)
+
+
+private val LightPurpleColorPalette = lightColors(
+    primary = purple,
+    primaryVariant = purpleDark,
+    secondary = secondaryPurple,
+    secondaryVariant = secondaryPurpleDark,
+    background = Color.White,
+    surface = Color.White,
+    onPrimary = Color.White,
+    onSecondary = Color.Black,
+    onBackground = Color.Black,
+    onSurface = Color.Black,
+    error = Color.Red,
+    onError = Color.Black
+)
+
+
+private val DarkBlueColorPalette = darkColors(
+    primary = blueCustom,
+    primaryVariant = blueCustomLight,
+    secondary = secondaryBlue,
+    secondaryVariant = secondaryBlueLight,
+    background = Color.Black,
+    surface = Color.LightGray,
+    onPrimary = Color.Black,
+    onSecondary = blueCustom,
+    onBackground = Color.White,
+    onSurface = blueCustom,
+    error = Color.Red,
+    onError = Color.Black
+)
+
+private val DarkOrangeColorPalette = darkColors(
+    primary = orange200,
+    primaryVariant = orangeLight,
+    secondary = secondaryOrange,
+    secondaryVariant = secondaryOrangeLight,
+    background = Color.Black,
+    surface = Color.DarkGray,
+    onPrimary = Color.Black,
+    onSecondary = orange200,
+    onBackground = Color.White,
     onSurface = Color.White,
     error = Color.Red,
     onError = Color.Black
 )
 
-private val DarkPurpleColorPalette = darkColors(
-    primary = purple200,
-    primaryVariant = purple700,
-    secondary = teal200,
-    background = Color.Black,
-    surface = Color.Black,
-    onPrimary = Color.Black,
-    onSecondary = Color.White,
-    onBackground = Color.White,
-    onSurface = Color.White,
-    error = Color.Red,
-)
-
-private val DarkBlueColorPalette = darkColors(
-    primary = blue200,
-    primaryVariant = blue700,
-    secondary = teal200,
-    background = Color.Black,
-    surface = Color.Black,
-    onPrimary = Color.Black,
-    onSecondary = Color.White,
-    onBackground = Color.White,
-    onSurface = Color.White,
-    error = Color.Red,
-)
-
-private val DarkOrangeColorPalette = darkColors(
+private val LightOrangeColorPalette = lightColors(
     primary = orange200,
-    primaryVariant = orange700,
-    secondary = teal200,
-    background = Color.Black,
-    surface = Color.Black,
-    onPrimary = Color.Black,
-    onSecondary = Color.White,
-    onBackground = Color.White,
-    onSurface = Color.White,
-    error = Color.Red,
+    primaryVariant = orangeDark,
+    secondary = secondaryOrange,
+    secondaryVariant = secondaryOrangeDark,
+    background = Color.White,
+    surface = Color.LightGray,
+    onPrimary = Color.White,
+    onSecondary = Color.Black,
+    onBackground = Color.Black,
+    onSurface = Color.Black,
+    onError = Color.Blue,
+    error = Color.Red
 )
 
 // Light pallets
@@ -75,41 +113,6 @@ private val LightGreenColorPalette = lightColors(
     onSurface = Color.Black
 )
 
-private val LightPurpleColorPalette = lightColors(
-    primary = purple,
-    primaryVariant = purple700,
-    secondary = teal200,
-    background = Color.White,
-    surface = Color.White,
-    onPrimary = Color.White,
-    onSecondary = Color.Black,
-    onBackground = Color.Black,
-    onSurface = Color.Black
-)
-
-private val LightBlueColorPalette = lightColors(
-    primary = blue500,
-    primaryVariant = blue700,
-    secondary = teal200,
-    background = Color.White,
-    surface = Color.White,
-    onPrimary = Color.White,
-    onSecondary = Color.Black,
-    onBackground = Color.Black,
-    onSurface = Color.Black
-)
-
-private val LightOrangeColorPalette = lightColors(
-    primary = orange500,
-    primaryVariant = orange700,
-    secondary = teal200,
-    background = Color.White,
-    surface = Color.White,
-    onPrimary = Color.White,
-    onSecondary = Color.Black,
-    onBackground = Color.Black,
-    onSurface = Color.Black
-)
 
 
 private val DarkColorPalette = darkColors(
@@ -118,7 +121,7 @@ private val DarkColorPalette = darkColors(
     secondary = secondaryDark,
     secondaryVariant = secondaryDarkVariant,
     background = Color.Black,
-    surface = secondaryPrimaryVariant,
+    surface = Color.DarkGray,
     error = Color.Red,
     onPrimary = Color.Black,
     onSecondary = Color.Black,
@@ -133,13 +136,28 @@ private val LightDarkColorPalette = darkColors(
     secondary = secondaryLightDark,
     secondaryVariant = secondaryLightDarkVariant,
     background = Color.LightGray,
-    surface = Color.Black,
+    surface = Color.White,
     error = Color.Red,
     onPrimary = Color.White,
     onSecondary = Color.White,
     onBackground = Color.Black,
     onSurface = Color.Black,
     onError = Color.White
+)
+
+private val LightBlueColorPalette = lightColors(
+    primary = blueCustom,
+    primaryVariant = blueCustomDark,
+    secondary = secondaryBlue,
+    secondaryVariant = secondaryBlueDark,
+    background = Color.White,
+    surface = Color.LightGray,
+    onPrimary = Color.White,
+    onSecondary = Color.Black,
+    onBackground = Color.Black,
+    onSurface = Color.Black,
+    error = Color.Red,
+    onError = Color.Black
 )
 
 enum class ColorPallet {
