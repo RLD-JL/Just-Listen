@@ -66,8 +66,9 @@ fun PlaylistDetailScreen(
                     // try to consume before LazyColumn to collapse toolbar if needed, hence pre-scroll
                     val delta = available.y
                     val newOffset = toolbarOffsetHeightPx.value + delta
-                    if (newOffset < 0)
+                    if (newOffset < 0 && playlistDetailState.songPlaylist.size >= 5) {
                         toolbarOffsetHeightPx.value = newOffset
+                    }
                     // here's the catch: let's pretend we consumed 0 in any case, since we want
                     // LazyColumn to scroll anyway for good UX
                     // We're basically watching scroll without taking it
