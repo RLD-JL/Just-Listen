@@ -67,16 +67,7 @@ fun Navigation.ScreenPicker(
             )
         Playlist ->
             PlaylistScreen(
-                lasItemReached = { lastIndex, playListEnum ->
-                    when (playListEnum) {
-                        TOP_PLAYLIST -> events.fetchPlaylist(lastIndex, TOP_PLAYLIST)
-                        REMIX -> events.fetchPlaylist(lastIndex, REMIX)
-                        HOT -> TODO()
-                        CURRENT_PLAYLIST -> TODO()
-                        FAVORITE -> TODO()
-                        CREATED_BY_USER -> TODO()
-                    }
-                },
+                events = events,
                 playlistState = stateProvider.get(screenIdentifier = screenIdentifier),
                 onPlaylistClicked = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy, _ ->
                     navigate(

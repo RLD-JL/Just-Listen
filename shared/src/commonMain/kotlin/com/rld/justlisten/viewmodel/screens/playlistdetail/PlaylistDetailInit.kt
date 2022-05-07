@@ -5,7 +5,6 @@ import com.rld.justlisten.ScreenParams
 import com.rld.justlisten.datalayer.datacalls.playlist.getPlaylist
 import com.rld.justlisten.viewmodel.screens.ScreenInitSettings
 import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum
-import kotlinx.serialization.Serializable
 
 data class PlaylistDetailParams(
     val playlistId: String,

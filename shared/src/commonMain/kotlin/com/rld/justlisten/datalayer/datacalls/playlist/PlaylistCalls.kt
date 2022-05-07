@@ -11,14 +11,14 @@ import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum.*
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 
 suspend fun Repository.getPlaylist(index: Int, playListEnum: PlayListEnum, playlistId: String= "DOPRl",
-songsList: List<String> = emptyList()): List<PlaylistItem> {
+songsList: List<String> = emptyList(), queryPlaylist: String = "Rock"): List<PlaylistItem> {
     return when (playListEnum) {
 
         TOP_PLAYLIST -> webservices.fetchPlaylist(index, TOP_PLAYLIST)?.data?.map { playlistModel ->
             PlaylistItem(_data = playlistModel)
         } ?: emptyList()
 
-        REMIX -> webservices.fetchPlaylist(index, REMIX)?.data?.map { playlistModel ->
+        REMIX -> webservices.fetchPlaylist(index, REMIX, queryPlaylist = queryPlaylist)?.data?.map { playlistModel ->
             PlaylistItem(_data = playlistModel)
         } ?: emptyList()
 
@@ -28,10 +28,9 @@ songsList: List<String> = emptyList()): List<PlaylistItem> {
             PlaylistItem(_data = playlistModel, isFavorite)
         } ?: emptyList()}
 
-        HOT -> {
-        localDb.getPlaylistDetail().map {
-                elem->PlaylistItem(_data = elem)
-        }.toList() }
+        HOT ->  webservices.fetchPlaylist(index, HOT, queryPlaylist = queryPlaylist)?.data?.map { playlistModel ->
+            PlaylistItem(_data = playlistModel)
+        } ?: emptyList()
         FAVORITE -> {
             localDb.getFavoritePlaylist().map {playlistModel ->
                 val hasFavorite = localDb.getFavoritePlaylistWithId(playlistModel.id)

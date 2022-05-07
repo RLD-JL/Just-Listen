@@ -8,17 +8,13 @@ import com.rld.justlisten.viewmodel.screens.navigationSettings
 
 class Navigation(val stateManager: StateManager) {
     init {
-        var startScreenIdentifier = navigationSettings.homeScreen.screenIdentifier
+        val startScreenIdentifier = navigationSettings.homeScreen.screenIdentifier
         navigateByScreenIdentifier(startScreenIdentifier)
     }
 
     val stateProvider by lazy { StateProvider(stateManager) }
     val events by lazy { Events(stateManager) }
 
-    fun getTitle(screenIdentifier: com.rld.justlisten.ScreenIdentifier) : String {
-        val screenInitSettings = screenIdentifier.getScreenInitSettings(this)
-        return screenInitSettings.title
-    }
 
     val dataRepository
         get() = stateManager.dataRepository
@@ -40,7 +36,7 @@ class Navigation(val stateManager: StateManager) {
     val level1ScreenIdentifiers : List<ScreenIdentifier>
         get() = stateManager.getLevel1ScreenIdentifiers()
 
-    fun getNavigationLevelsMap(level1ScreenIdentifier: ScreenIdentifier) : Map<Int, ScreenIdentifier>? {
+    private fun getNavigationLevelsMap(level1ScreenIdentifier: ScreenIdentifier) : Map<Int, ScreenIdentifier>? {
         return stateManager.verticalNavigationLevels[level1ScreenIdentifier.URI]
     }
 
@@ -55,7 +51,7 @@ class Navigation(val stateManager: StateManager) {
 
     fun navigate(screen: Screen, params: ScreenParams? = null) {
         navigateByScreenIdentifier(
-            ScreenIdentifier.Factory.get(
+            ScreenIdentifier.get(
                 screen,
                 params
             )
@@ -73,11 +69,9 @@ class Navigation(val stateManager: StateManager) {
         }
     }
 
-    fun navigateByScreenIdentifier(screenIdentifier: ScreenIdentifier) {
+    private fun navigateByScreenIdentifier(screenIdentifier: ScreenIdentifier) {
         val screenInitSettings = screenIdentifier.getScreenInitSettings(this)
         stateManager.addScreen(screenIdentifier, screenInitSettings)
-        if (navigationSettings.saveLastLevel1Screen && screenIdentifier.screen.navigationLevel == 1) {
-        }
     }
 
     fun exitScreen(screenIdentifier: ScreenIdentifier? = null, triggerRecomposition: Boolean = true) {

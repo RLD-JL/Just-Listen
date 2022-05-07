@@ -27,14 +27,17 @@ import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistState
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.rld.justlisten.datalayer.utils.Constants.list
+import com.rld.justlisten.viewmodel.Events
+import com.rld.justlisten.viewmodel.screens.playlist.fetchPlaylist
 
 @Composable
 fun PlaylistScreen(
-    lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistState: PlaylistState,
     onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
     onSearchClicked: () -> Unit,
-    refreshScreen: () ->Unit
+    refreshScreen: () -> Unit,
+    events: Events
 ) {
     if (playlistState.isLoading) {
         LoadingScreen()
@@ -42,15 +45,36 @@ fun PlaylistScreen(
         val scrollState = rememberScrollState(0)
         val swipeRefreshState = rememberSwipeRefreshState(false)
         SwipeRefresh(state = swipeRefreshState, onRefresh = refreshScreen) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            ScrollableContent(
-                lasItemReached = lasItemReached, scrollState = scrollState,
-                playlistState = playlistState,
-                onPlaylistClicked = onPlaylistClicked,
-            )
-            AnimatedToolBar(onSearchClicked)
+            Box(modifier = Modifier.fillMaxSize()) {
+                ScrollableContent(
+                    lasItemReached = { lastIndex, playListEnum ->
+                        when (playListEnum) {
+                            PlayListEnum.TOP_PLAYLIST -> events.fetchPlaylist(
+                                lastIndex,
+                                PlayListEnum.TOP_PLAYLIST
+                            )
+                            PlayListEnum.REMIX -> events.fetchPlaylist(
+                                lastIndex,
+                                PlayListEnum.REMIX,
+                                list[playlistState.queryIndex]
+                            )
+                            PlayListEnum.HOT -> events.fetchPlaylist(
+                                lastIndex,
+                                PlayListEnum.HOT,
+                                list[playlistState.queryIndex2]
+                            )
+                            PlayListEnum.CURRENT_PLAYLIST -> TODO()
+                            PlayListEnum.FAVORITE -> TODO()
+                            PlayListEnum.CREATED_BY_USER -> TODO()
+                        }
+                    },
+                    scrollState = scrollState,
+                    playlistState = playlistState,
+                    onPlaylistClicked = onPlaylistClicked,
+                )
+                AnimatedToolBar(onSearchClicked)
+            }
         }
-    }
     }
 }
 
@@ -82,7 +106,8 @@ fun ScrollableContent(
     lasItemReached: (Int, PlayListEnum) -> Unit,
     scrollState: ScrollState,
     playlistState: PlaylistState,
-    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit) {
+    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit
+) {
     Column(
         modifier = Modifier
             .padding(8.dp)
@@ -92,7 +117,8 @@ fun ScrollableContent(
         //HomeGridSection()
         ListOfCollections(
             playlistState = playlistState, lasItemReached = lasItemReached,
-            onPlaylistClicked = onPlaylistClicked)
+            onPlaylistClicked = onPlaylistClicked
+        )
         Spacer(modifier = Modifier.height(100.dp))
     }
 }
@@ -109,9 +135,10 @@ fun Header(text: String, modifier: Modifier = Modifier) {
 @Composable
 fun ListOfCollections(
     playlistState: PlaylistState, lasItemReached: (Int, PlayListEnum) -> Unit,
-    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit) {
+    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit
+) {
     val list = remember {
-        mutableListOf("Top Playlist", "Remix", "Yolo")
+        mutableListOf("Top Playlist", list[playlistState.queryIndex], list[playlistState.queryIndex2])
     }
     list.fastForEachIndexed { index, item ->
         Header(text = item)
@@ -121,19 +148,19 @@ fun ListOfCollections(
                 lasItemReached = lasItemReached,
                 PlayListEnum.TOP_PLAYLIST,
                 onPlaylistClicked
-                )
+            )
             1 -> PlaylistRow(
                 playlist = playlistState.remixPlaylist,
                 lasItemReached = lasItemReached,
                 PlayListEnum.REMIX,
                 onPlaylistClicked
-                )
+            )
             2 -> PlaylistRow(
-                playlist = playlistState.remixPlaylist,
+                playlist = playlistState.hotPlaylist,
                 lasItemReached = lasItemReached,
-                PlayListEnum.REMIX,
+                PlayListEnum.HOT,
                 onPlaylistClicked
-                )
+            )
         }
     }
 }
@@ -142,9 +169,10 @@ fun ListOfCollections(
 fun PlaylistRow(
     playlist: List<PlaylistItem>, lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistEnum: PlayListEnum,
-    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit, ) {
-    val fetchMore = remember { mutableStateOf(false)}
-    LazyRow(verticalAlignment =  Alignment.CenterVertically) {
+    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
+) {
+    val fetchMore = remember { mutableStateOf(false) }
+    LazyRow(verticalAlignment = Alignment.CenterVertically) {
         itemsIndexed(items = playlist) { index, playlistItem ->
 
             if (index == playlist.size - 3) {
@@ -154,12 +182,13 @@ fun PlaylistRow(
 
             PlaylistRowItem(
                 playlistItem = playlistItem,
-                onPlaylistClicked = onPlaylistClicked)
+                onPlaylistClicked = onPlaylistClicked
+            )
         }
         if (fetchMore.value) {
-           item{
-               CircularProgressIndicator()
-           }
+            item {
+                CircularProgressIndicator()
+            }
         }
     }
 }

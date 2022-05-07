@@ -16,8 +16,12 @@ class ApiClient {
         install(JsonFeature) {
             serializer = KotlinxSerializer(Json {
                 ignoreUnknownKeys = true
-                useAlternativeNames = true
+
             })
+            install(Logging) {
+                logger = Logger.DEFAULT
+                level = LogLevel.ALL
+            }
         }
     }
 
@@ -29,7 +33,7 @@ class ApiClient {
             // so the http call doesn't happen on the main thread, even if the coroutine has been launched on Dispatchers.Main
             return client.get<T>(url)
         } catch (e: Exception) {
-            println("Something went wrong" + e.cause + " message= " + e.message)
+            println("Something went wrong: $url" + e.cause + " message= " + e.message)
         }
         return null
     }

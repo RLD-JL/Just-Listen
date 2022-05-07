@@ -11,7 +11,10 @@ data class PlaylistState(
     var playlistIcon: String= "",
     val playlistItems: List<PlaylistItem> = emptyList(),
     val remixPlaylist: List<PlaylistItem> = emptyList(),
-    val currentPlaylist: List<PlaylistItem> = emptyList()
+    val hotPlaylist: List<PlaylistItem> = emptyList(),
+    val currentPlaylist: List<PlaylistItem> = emptyList(),
+    val queryIndex: Int = 0,
+    val queryIndex2: Int = 0
 ): ScreenState
 
 data class PlaylistItem(
