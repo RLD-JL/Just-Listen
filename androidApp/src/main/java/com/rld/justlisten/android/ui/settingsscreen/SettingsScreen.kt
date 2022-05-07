@@ -39,7 +39,7 @@ fun SettingsScreen(
                         updateSettings(
                             SettingsState(
                                 isDarkThemeOn = !settings.isDarkThemeOn,
-                                hasFundNavigationOn = settings.hasFundNavigationOn,
+                                hasDonationNavigationOn = settings.hasDonationNavigationOn,
                                 palletColor = settings.palletColor
                             )
                         )
@@ -54,16 +54,16 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Has Bottom Fund Navigation",
+                    text = "Has Bottom Donation Navigation",
                     style = MaterialTheme.typography.h6.copy(fontSize = 14.sp)
                 )
                 Switch(
-                    checked = settings.hasFundNavigationOn,
+                    checked = settings.hasDonationNavigationOn,
                     modifier = Modifier.padding(8.dp),
                     onCheckedChange = {
                         updateSettings(
                             SettingsState(
-                                hasFundNavigationOn = !settings.hasFundNavigationOn,
+                                hasDonationNavigationOn = !settings.hasDonationNavigationOn,
                                 isDarkThemeOn = settings.isDarkThemeOn,
                                 palletColor = settings.palletColor
                             )
@@ -97,7 +97,7 @@ fun SettingsScreen(
                                 updateSettings(
                                     SettingsState(
                                         isDarkThemeOn = settings.isDarkThemeOn,
-                                        hasFundNavigationOn = settings.hasFundNavigationOn,
+                                        hasDonationNavigationOn = settings.hasDonationNavigationOn,
                                         palletColor = pallet.name
                                     )
                                 )
@@ -111,7 +111,7 @@ fun SettingsScreen(
                             updateSettings(
                                 SettingsState(
                                     isDarkThemeOn = settings.isDarkThemeOn,
-                                    hasFundNavigationOn = settings.hasFundNavigationOn,
+                                    hasDonationNavigationOn = settings.hasDonationNavigationOn,
                                     palletColor = pallet.name
                                 )
                             )

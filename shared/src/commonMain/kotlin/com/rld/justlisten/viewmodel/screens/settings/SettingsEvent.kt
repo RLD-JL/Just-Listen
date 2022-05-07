@@ -17,7 +17,7 @@ fun Events.updateScreen() = screenCoroutine {
     val settingsInfo = dataRepository.getSettingsInfo()
     stateManager.updateScreen(SettingsState::class) {
         it.copy(
-            hasFundNavigationOn = settingsInfo.hasNavigationFundOn,
+            hasDonationNavigationOn = settingsInfo.hasNavigationDonationOn,
             isDarkThemeOn = settingsInfo.isDarkThemeOn,
             palletColor = settingsInfo.palletColor
         )

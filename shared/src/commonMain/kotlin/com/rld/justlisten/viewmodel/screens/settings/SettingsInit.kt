@@ -12,7 +12,7 @@ fun Navigation.initSettings() = ScreenInitSettings(
         stateManager.updateScreen(SettingsState::class) {
             it.copy(
                 isLoading = false,
-                hasFundNavigationOn = settingsInfo.hasNavigationFundOn,
+                hasDonationNavigationOn = settingsInfo.hasNavigationDonationOn,
                 isDarkThemeOn = settingsInfo.isDarkThemeOn,
                 palletColor = settingsInfo.palletColor
             )

@@ -20,6 +20,6 @@ enum class Screen (
     PlaylistDetail("playlistDetail", 1, {initPlaylistDetail(it.params())}),
     AddPlaylist("addPlaylist", 1, {initAddPlaylist(it.params())}),
     Search("screen", 1, {initSearch()}),
-    Fund("fund", 1, {initSearch()}),
+    Donation("donation", 1, {initSearch()}),
     Settings("settings", 1, {initSettings()})
 }

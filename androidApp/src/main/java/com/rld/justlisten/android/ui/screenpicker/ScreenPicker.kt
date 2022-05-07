@@ -9,6 +9,7 @@ import com.rld.justlisten.Navigation
 import com.rld.justlisten.ScreenIdentifier
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 import com.rld.justlisten.android.ui.addplaylistscreen.AddPlaylistScreen
+import com.rld.justlisten.android.ui.donationscreen.DonationScreen
 import com.rld.justlisten.android.ui.playlistscreen.PlaylistScreen
 import com.rld.justlisten.android.ui.libraryscreen.LibraryScreen
 import com.rld.justlisten.viewmodel.screens.playlist.*
@@ -181,11 +182,11 @@ fun Navigation.ScreenPicker(
                 events.playMusicFromPlaylist(playlistId = playlistId)
             }
         )
-        Fund -> TODO()
+        Donation -> DonationScreen()
         Settings -> SettingsScreen(settings = stateProvider.get(screenIdentifier),
             updateSettings = { settingsState ->
                 events.saveSettingsInfo(
-                    settingsState.hasFundNavigationOn,
+                    settingsState.hasDonationNavigationOn,
                     settingsState.isDarkThemeOn,
                     settingsState.palletColor
                 )

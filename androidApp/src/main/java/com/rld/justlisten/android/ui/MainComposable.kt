@@ -13,9 +13,9 @@ fun MainComposable(
     model: JustListenViewModel,
     musicServiceConnection: MusicServiceConnection,
     settingsUpdated: () -> Unit,
-    hasNavigationFundOn: Boolean
+    hasNavigationDonationOn: Boolean
 ) {
     val appState by model.stateFlow.collectAsState()
     val justlistenNav = appState.getNavigation(model = model)
-    justlistenNav.Router(musicServiceConnection, settingsUpdated = settingsUpdated, hasNavigationFundOn)
+    justlistenNav.Router(musicServiceConnection, settingsUpdated = settingsUpdated, hasNavigationDonationOn)
 }

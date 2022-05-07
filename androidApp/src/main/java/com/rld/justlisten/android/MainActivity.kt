@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
                     model, musicServiceConnection, settingsUpdated = {
                         settingsInfo.value = model.repository.getSettingsInfo()
                     },
-                    hasNavigationFundOn = settingsInfo.value.hasNavigationFundOn
+                    hasNavigationDonationOn = settingsInfo.value.hasNavigationDonationOn
                 )
             }
         }

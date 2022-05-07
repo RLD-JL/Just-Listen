@@ -1,11 +1,7 @@
 package com.rld.justlisten.android.ui.bottombars
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -14,22 +10,19 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rld.justlisten.Navigation
 import com.rld.justlisten.ScreenIdentifier
 import com.rld.justlisten.android.R
-import com.rld.justlisten.android.ui.theme.Shapes
 import com.rld.justlisten.viewmodel.screens.Level1Navigation
 
 @Composable
 fun Navigation.Level1BottomBar(
     selectedTab: ScreenIdentifier,
     modifier: Modifier,
-    hasNavigationFundOn: Boolean
+    hasNavigationDonationOn: Boolean
 ) {
     BottomNavigation(
         backgroundColor = MaterialTheme.colors.background,
@@ -37,7 +30,7 @@ fun Navigation.Level1BottomBar(
         content = {
             val homeSelected = selectedTab.URI == Level1Navigation.Playlist.screenIdentifier.URI
             val librarySelected = selectedTab.URI == Level1Navigation.Library.screenIdentifier.URI
-            val fundSelected = selectedTab.URI == Level1Navigation.Fund.screenIdentifier.URI
+            val donateSelected = selectedTab.URI == Level1Navigation.Donation.screenIdentifier.URI
             val settingsSelected = selectedTab.URI == Level1Navigation.Settings.screenIdentifier.URI
             BottomNavigationItem(
                 icon = { if (homeSelected) Icon(Icons.Filled.Home, "Playlist") else
@@ -59,12 +52,13 @@ fun Navigation.Level1BottomBar(
                 selectedContentColor = MaterialTheme.colors.primaryVariant,
                 unselectedContentColor = MaterialTheme.colors.onBackground
             )
-            if (hasNavigationFundOn) {
+            if (hasNavigationDonationOn) {
                 BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Home, "Fund") },
-                    label = { Text("Fund", fontSize = 10.sp) },
-                    selected = selectedTab.URI == Level1Navigation.Playlist.screenIdentifier.URI,
-                    onClick = { navigateByLevel1Menu(Level1Navigation.Playlist) },
+                    icon = { if (donateSelected)Icon(painter = painterResource(id = R.drawable.ic_baseline_monetization_on_24), "Donate")
+                           else Icon(painter = painterResource(id = R.drawable.ic_outline_monetization_on_24), "Donate")},
+                    label = { Text("Donate", fontSize = 10.sp) },
+                    selected = selectedTab.URI == Level1Navigation.Donation.screenIdentifier.URI,
+                    onClick = { navigateByLevel1Menu(Level1Navigation.Donation) },
                     selectedContentColor = MaterialTheme.colors.primaryVariant,
                     unselectedContentColor = MaterialTheme.colors.onBackground
                 )
