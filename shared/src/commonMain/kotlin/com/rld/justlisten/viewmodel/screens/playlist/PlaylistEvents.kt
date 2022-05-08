@@ -13,26 +13,43 @@ fun Events.fetchPlaylist(index: Int, playlistEnum: PlayListEnum, queryPlaylist: 
     screenCoroutine {
         stateManager.updateScreen(PlaylistState::class) {
             when (playlistEnum) {
-                TOP_PLAYLIST -> it.copy(
-                    playlistItems = dataRepository.getPlaylist(
+                TOP_PLAYLIST -> {
+                    val playlist = dataRepository.getPlaylist(
                         index,
                         playlistEnum
                     )
-                )
-                REMIX -> it.copy(
-                    remixPlaylist = dataRepository.getPlaylist(
+                    if (playlist.size == it.playlistItems.size) {
+                        it.copy(lastFetchPlaylist = true)
+                    } else {
+                        it.copy(
+                            playlistItems = playlist
+                        )
+                    }
+                }
+                REMIX -> {
+                    val remixPlaylist = dataRepository.getPlaylist(
                         index,
                         playlistEnum,
                         queryPlaylist = queryPlaylist
                     )
-                )
-                HOT -> it.copy(
-                    hotPlaylist = dataRepository.getPlaylist(
+                    if (remixPlaylist.size == it.remixPlaylist.size) {
+                        it.copy(lastFetchRemix = true)
+                    } else {
+                        it.copy(remixPlaylist = remixPlaylist)
+                    }
+                }
+                HOT -> {
+                    val hotPlaylist = dataRepository.getPlaylist(
                         index,
                         playlistEnum,
                         queryPlaylist = queryPlaylist
                     )
-                )
+                    if (hotPlaylist.size == it.hotPlaylist.size) {
+                        it.copy(lastFetchHot = true)
+                    } else {
+                        it.copy(hotPlaylist = hotPlaylist)
+                    }
+                }
                 CURRENT_PLAYLIST -> TODO()
                 CREATED_BY_USER -> TODO()
                 FAVORITE -> it.copy(currentPlaylist = dataRepository.getPlaylist(0, playlistEnum))
@@ -55,7 +72,7 @@ fun Events.refreshScreen() = screenCoroutine {
         var queryIndex = Random.nextInt(0, list.size)
         val queryIndex2 = Random.nextInt(0, list.size)
         if (queryIndex == queryIndex2) {
-            if (queryIndex>0)
+            if (queryIndex > 0)
                 queryIndex -= 1
             else queryIndex += 1
         }
@@ -80,7 +97,7 @@ fun Events.refreshScreen() = screenCoroutine {
             remixPlaylist = remix.await().shuffled(),
             isLoading = false,
             queryIndex = queryIndex,
-            queryIndex2 =queryIndex2,
+            queryIndex2 = queryIndex2,
             playlistItems = playlist.await().shuffled(),
             hotPlaylist = hot.await().shuffled()
         )

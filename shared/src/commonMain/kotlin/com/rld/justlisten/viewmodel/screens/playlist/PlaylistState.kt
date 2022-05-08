@@ -10,8 +10,11 @@ data class PlaylistState(
     val playListCreatedBy: String ="",
     var playlistIcon: String= "",
     val playlistItems: List<PlaylistItem> = emptyList(),
+    val lastFetchPlaylist: Boolean = false,
     val remixPlaylist: List<PlaylistItem> = emptyList(),
+    val lastFetchRemix: Boolean = false,
     val hotPlaylist: List<PlaylistItem> = emptyList(),
+    val lastFetchHot: Boolean = false,
     val currentPlaylist: List<PlaylistItem> = emptyList(),
     val queryIndex: Int = 0,
     val queryIndex2: Int = 0

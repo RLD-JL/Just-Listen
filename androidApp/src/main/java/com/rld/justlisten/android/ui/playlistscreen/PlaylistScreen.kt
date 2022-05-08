@@ -147,19 +147,25 @@ fun ListOfCollections(
                 playlist = playlistState.playlistItems,
                 lasItemReached = lasItemReached,
                 PlayListEnum.TOP_PLAYLIST,
-                onPlaylistClicked
+                onPlaylistClicked,
+                playlistState.lastFetchPlaylist,
+                "Top Playlist"
             )
             1 -> PlaylistRow(
                 playlist = playlistState.remixPlaylist,
                 lasItemReached = lasItemReached,
                 PlayListEnum.REMIX,
-                onPlaylistClicked
+                onPlaylistClicked,
+                playlistState.lastFetchRemix,
+                list[1]
             )
             2 -> PlaylistRow(
                 playlist = playlistState.hotPlaylist,
                 lasItemReached = lasItemReached,
                 PlayListEnum.HOT,
-                onPlaylistClicked
+                onPlaylistClicked,
+                playlistState.lastFetchHot,
+                list[2]
             )
         }
     }
@@ -170,14 +176,19 @@ fun PlaylistRow(
     playlist: List<PlaylistItem>, lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistEnum: PlayListEnum,
     onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
+    lastIndexReached: Boolean = false, title: String
 ) {
     val fetchMore = remember { mutableStateOf(false) }
     LazyRow(verticalAlignment = Alignment.CenterVertically) {
         itemsIndexed(items = playlist) { index, playlistItem ->
 
-            if (index == playlist.size - 3) {
+            if (index == playlist.size - 3 && !lastIndexReached) {
                 lasItemReached(index + 20, playlistEnum)
                 fetchMore.value = true
+            }
+
+            if (lastIndexReached) {
+                fetchMore.value = false
             }
 
             PlaylistRowItem(
