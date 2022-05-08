@@ -1,54 +1,101 @@
 package com.rld.justlisten.android.ui.donationscreen
 
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
-import androidx.compose.material.TextField
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.rld.justlisten.android.R
 
 @Composable
 fun DonationScreen() {
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
 
-    Column(Modifier.fillMaxSize()) {
+    Column(
+        Modifier
+            .fillMaxSize()
+    ) {
         Text(
-            "If you would like to support the app and get more features for it, please donate to" +
-                    "the following addresses", color = MaterialTheme.colors.primary
+            "If you like the app and would like more features and bug fixes, " +
+                    "please consider supporting me",
+            modifier = Modifier.padding(20.dp)
         )
-        Text("Bitcoin", modifier = Modifier.clickable(
-            onClick = {
-                clipboardManager.setText(AnnotatedString(("BTC address")))
-                Toast.makeText(context, "Copied", Toast.LENGTH_SHORT)
-                    .show()
-            }
-        ))
+        Divider(thickness = 2.dp, modifier = Modifier.fillMaxWidth())
 
-        TextButton(
-            border = BorderStroke(1.dp, MaterialTheme.colors.primary),
-            onClick = {
-            clipboardManager.setText(AnnotatedString(("BTC address")))
-            Toast.makeText(context, "Copied", Toast.LENGTH_SHORT)
-                .show()
-        }) {
-            Text("yolooo")
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(10.dp)
+        ) {
+            TextField(
+                "bc1qcsuapkvhpy3tlfrmmxhmf2cru9f2ar8cs4605w", modifier = Modifier.clickable(
+                    onClick = {
+                        clipboardManager.setText(AnnotatedString(("bc1qcsuapkvhpy3tlfrmmxhmf2cru9f2ar8cs4605w")))
+                        Toast.makeText(context, "Copied BTC Address", Toast.LENGTH_SHORT)
+                            .show()
+                    }),
+                onValueChange = {},
+                enabled = false,
+                label = { Text(text = "BTC Address") },
+                shape = CircleShape,
+                colors = TextFieldDefaults.textFieldColors(unfocusedIndicatorColor = Color.Transparent)
+            )
         }
-        Text("Ethereum")
-        BasicText(text = "Ethereum address")
-        Text("Audius")
-        BasicText(text = "Audius address")
-        Text("Solana")
-        BasicText(text = "Solana address")
+
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(10.dp)
+        ) {
+            TextField(
+                "0x3A9b38ba07D4E9263c5595C2DbF1dD13a43b577C", modifier = Modifier.clickable(
+                    onClick = {
+                        clipboardManager.setText(AnnotatedString(("0x3A9b38ba07D4E9263c5595C2DbF1dD13a43b577C")))
+                        Toast.makeText(context, "Copied ETH Address", Toast.LENGTH_SHORT)
+                            .show()
+                    }),
+                onValueChange = {},
+                enabled = false,
+                label = { Text(text = "ETH Address") },
+                shape = CircleShape,
+                colors = TextFieldDefaults.textFieldColors(unfocusedIndicatorColor = Color.Transparent)
+            )
+        }
+
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(10.dp)
+        ) {
+            TextField(
+                "GjfvqY9ophJZ7r475Wka5GH8HafDj5kFirE86g1jpDYe", modifier = Modifier.clickable(
+                    onClick = {
+                        clipboardManager.setText(AnnotatedString(("GjfvqY9ophJZ7r475Wka5GH8HafDj5kFirE86g1jpDYe")))
+                        Toast.makeText(context, "Copied SOL Address", Toast.LENGTH_SHORT)
+                            .show()
+                    }),
+                onValueChange = {},
+                enabled = false,
+                label = { Text(text = "SOL Address") },
+                shape = CircleShape,
+                colors = TextFieldDefaults.textFieldColors(unfocusedIndicatorColor = Color.Transparent)
+            )
+        }
     }
 }
