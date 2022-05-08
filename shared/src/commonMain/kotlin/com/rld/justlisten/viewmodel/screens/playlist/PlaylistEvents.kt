@@ -52,26 +52,35 @@ fun Events.refreshScreen() = screenCoroutine {
         val playlist: Deferred<List<PlaylistItem>>
         val remix: Deferred<List<PlaylistItem>>
         val hot: Deferred<List<PlaylistItem>>
+        var queryIndex = Random.nextInt(0, list.size)
+        val queryIndex2 = Random.nextInt(0, list.size)
+        if (queryIndex == queryIndex2) {
+            if (queryIndex>0)
+                queryIndex -= 1
+            else queryIndex += 1
+        }
         coroutineScope {
             playlist = async { dataRepository.getPlaylist(index = 20, TOP_PLAYLIST) }
             remix = async {
                 dataRepository.getPlaylist(
                     index = 20,
                     REMIX,
-                    queryPlaylist = list[Random.nextInt(0, list.size)]
+                    queryPlaylist = list[queryIndex]
                 )
             }
             hot = async {
                 dataRepository.getPlaylist(
                     index = 20,
                     HOT,
-                    queryPlaylist = list[Random.nextInt(0, list.size)]
+                    queryPlaylist = list[queryIndex2]
                 )
             }
         }
         it.copy(
             remixPlaylist = remix.await().shuffled(),
             isLoading = false,
+            queryIndex = queryIndex,
+            queryIndex2 =queryIndex2,
             playlistItems = playlist.await().shuffled(),
             hotPlaylist = hot.await().shuffled()
         )
