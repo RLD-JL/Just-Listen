@@ -8,7 +8,7 @@ plugins {
 
 dependencies {
     implementation(project(":shared"))
-    implementation("com.google.android.material:material:1.5.0")
+    implementation("com.google.android.material:material:1.6.0")
     implementation("androidx.appcompat:appcompat:1.4.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
@@ -55,8 +55,8 @@ android {
         applicationId = "com.rld.justlisten.android"
         minSdk = 21
         targetSdk = 30
-        versionCode = 6
-        versionName = "0.1.8"
+        versionCode = 7
+        versionName = "0.1.9"
         vectorDrawables {
             useSupportLibrary = true
         }
