@@ -34,7 +34,7 @@ fun LibraryScreen(
     onPlaylistPressed: (String, String, String, String) -> Unit,
     onPlayListViewClicked: () -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().padding(5.dp)) {
         Column {
             Header(text = "Last Played")
             RowListOfRecentActivity(
@@ -56,6 +56,7 @@ fun LibraryScreen(
             )
             Divider(thickness = 1.dp)
             PlaylistView(onPlayListViewClicked)
+            Spacer(modifier = Modifier.height(10.dp))
             FavoritePlaylist(libraryState, onPlaylistPressed)
         }
     }
