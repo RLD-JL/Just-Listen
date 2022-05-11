@@ -29,7 +29,7 @@ dependencies {
 
 
     implementation("androidx.lifecycle:lifecycle-process:2.4.1")
-    implementation("io.coil-kt:coil-compose:1.4.0")
+    implementation("io.coil-kt:coil-compose:2.0.0")
     implementation("com.google.dagger:hilt-android:2.38.1")
     kapt("com.google.dagger:hilt-android-compiler:2.38.1")
     implementation ("com.github.bumptech.glide:glide:4.12.0")

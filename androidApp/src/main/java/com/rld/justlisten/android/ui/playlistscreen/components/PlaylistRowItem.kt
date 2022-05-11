@@ -13,7 +13,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.rld.justlisten.android.ui.theme.typography
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
@@ -35,7 +35,7 @@ fun PlaylistRowItem(
             .placeholder(ColorDrawable(MaterialTheme.colors.secondaryVariant.toArgb()))
             .data(playlistItem.songIconList.songImageURL480px).build()
 
-        val painter = rememberImagePainter(request = request)
+        val painter = rememberAsyncImagePainter(model = request)
         Image(
             painter = painter,
             modifier = Modifier

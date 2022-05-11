@@ -27,8 +27,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.palette.graphics.Palette
 import coil.annotation.ExperimentalCoilApi
-import coil.compose.ImagePainter
-import coil.compose.rememberImagePainter
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
@@ -56,13 +56,13 @@ fun SongListItem(
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val painter = rememberImagePainter(
-            request = ImageRequest.Builder(context = LocalContext.current)
+        val painter = rememberAsyncImagePainter(
+            model = ImageRequest.Builder(context = LocalContext.current)
                 .placeholder(ColorDrawable(MaterialTheme.colors.secondaryVariant.toArgb()))
                 .data(playlistItem.songIconList.songImageURL150px).allowHardware(false).build()
         )
 
-        (painter.state as? ImagePainter.State.Success)?.let { successState ->
+        (painter.state as? AsyncImagePainter.State.Success)?.let { successState ->
             LaunchedEffect(painter) {
                 val drawable = successState.result.drawable
                 Palette.Builder(drawable.toBitmap()).generate { palette ->

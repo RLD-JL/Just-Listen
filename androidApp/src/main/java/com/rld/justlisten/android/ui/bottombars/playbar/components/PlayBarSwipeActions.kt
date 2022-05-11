@@ -3,19 +3,16 @@ package com.rld.justlisten.android.ui.bottombars.playbar.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
-import androidx.palette.graphics.Palette
 import coil.annotation.ExperimentalCoilApi
-import coil.compose.ImagePainter
-import coil.compose.rememberImagePainter
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import coil.size.Size
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 import com.rld.justlisten.android.ui.utils.heightSize
 import com.rld.justlisten.android.ui.utils.offsetX
@@ -35,20 +32,15 @@ fun PlayBarSwipeActions(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        val painter = rememberImagePainter(
-            request = ImageRequest.Builder(context = LocalContext.current)
-                .data(songIcon).allowHardware(false).build(),
-            onExecute = { previous, current ->
-                (widthSize(
-                    currentFraction,
-                    constraints.maxWidth.value
-                ) >= constraints.maxWidth.value * 0.85f) || previous?.request?.data != current.request.data
-            }
+        val painter = rememberAsyncImagePainter(
+            model = ImageRequest.Builder(context = LocalContext.current)
+                .data(songIcon).allowHardware(false).size(Size.ORIGINAL).build(),
+
         )
 
 
 
-        (painter.state as? ImagePainter.State.Success)?.let { successState ->
+        (painter.state as? AsyncImagePainter.State.Success)?.let { successState ->
             painterLoaded(successState.painter)
         }
         Image(
