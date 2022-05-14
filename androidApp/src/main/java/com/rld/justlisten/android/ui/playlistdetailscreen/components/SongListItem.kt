@@ -11,10 +11,8 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,22 +22,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.drawable.toBitmap
-import androidx.palette.graphics.Palette
 import coil.annotation.ExperimentalCoilApi
-import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import coil.request.SuccessResult
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun SongListItem(
-    playlistItem: PlaylistItem, onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
+    playlistItem: PlaylistItem, onSongClicked: (String) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit
 ) {
     Row(
@@ -47,11 +40,7 @@ fun SongListItem(
             .padding(8.dp)
             .clickable(
                 onClick = {
-
-                    onSongClicked(
-                        playlistItem.id, playlistItem.title,
-                        UserModel(playlistItem.user), playlistItem.songIconList
-                    )
+                    onSongClicked(playlistItem.id)
                 }
             ),
         verticalAlignment = Alignment.CenterVertically,
@@ -87,9 +76,8 @@ fun SongListItem(
             )
         }
 
-        if (playlistItem.isFavorite) {
-            Icon(
-                imageVector = Icons.Filled.Favorite,
+        var isFavorite by rememberSaveable { mutableStateOf(playlistItem.isFavorite) }
+            Icon(imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                 contentDescription = null,
                 tint = Color.Red,
                 modifier = Modifier
@@ -99,28 +87,11 @@ fun SongListItem(
                         onFavoritePressed(
                             playlistItem.id, playlistItem.title,
                             UserModel(playlistItem.user), playlistItem.songIconList,
-                            !playlistItem.isFavorite
+                            !isFavorite
                         )
-                        playlistItem.isFavorite = !playlistItem.isFavorite
+                        isFavorite = !isFavorite
                     }
             )
-        } else {
-            Icon(
-                imageVector = Icons.Outlined.FavoriteBorder,
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(4.dp)
-                    .size(20.dp)
-                    .clickable {
-                        onFavoritePressed(
-                            playlistItem.id, playlistItem.title,
-                            UserModel(playlistItem.user), playlistItem.songIconList,
-                            !playlistItem.isFavorite
-                        )
-                        playlistItem.isFavorite = !playlistItem.isFavorite
-                    }
-            )
-        }
     }
 }
 

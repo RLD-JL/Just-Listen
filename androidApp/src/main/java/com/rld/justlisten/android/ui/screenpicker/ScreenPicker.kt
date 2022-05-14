@@ -31,7 +31,6 @@ import com.rld.justlisten.viewmodel.screens.library.saveSongToFavorites
 import com.rld.justlisten.viewmodel.screens.library.saveSongToRecent
 import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailParams
 import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailState
-import com.rld.justlisten.viewmodel.screens.playlistdetail.saveDominantColor
 import com.rld.justlisten.viewmodel.screens.search.SearchScreenState
 import com.rld.justlisten.viewmodel.screens.search.saveSearchInfo
 import com.rld.justlisten.viewmodel.screens.search.searchFor
@@ -115,7 +114,7 @@ fun Navigation.ScreenPicker(
                 )
                 updateFavorite(isFavorite, musicServiceConnection, id)
             },
-            onSongPressed = { songId, title, userModel, songIconList ->
+            onSongPressed = { songId ->
 
                 playMusicFromId(
                     musicServiceConnection,
@@ -123,10 +122,7 @@ fun Navigation.ScreenPicker(
                     songId,
                     isPlayerReady.value,
                 )
-
                 isPlayerReady.value = true
-
-              //  events.saveSongToRecent(songId, title, userModel, songIconList)
             }
         )
         Search -> SearchScreen(

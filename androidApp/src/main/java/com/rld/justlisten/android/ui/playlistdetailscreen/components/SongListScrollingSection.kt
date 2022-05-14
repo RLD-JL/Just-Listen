@@ -25,7 +25,7 @@ fun SongListScrollingSection(
     playlistDetailState: PlaylistDetailState,
     scrollState: MutableState<Float>,
     playlist: List<PlaylistItem>,
-    onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
+    onSongClicked: (String) -> Unit,
     onShuffleClicked: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     painter: AsyncImagePainter

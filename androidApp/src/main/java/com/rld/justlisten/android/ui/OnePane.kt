@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.SaveableStateHolder
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -52,9 +52,9 @@ fun Navigation.OnePane(
 
     val context = LocalContext.current
 
-    val dominantColorMutable = remember { mutableMapOf("null" to 12312312) }
+    val dominantColorMutable = rememberSaveable { mutableMapOf("null" to 12312312) }
 
-    val addPlaylistList = remember { mutableStateOf(events.getPlaylist()) }
+    val addPlaylistList = rememberSaveable { mutableStateOf(events.getPlaylist()) }
 
     val coroutineScope = rememberCoroutineScope()
     Scaffold(

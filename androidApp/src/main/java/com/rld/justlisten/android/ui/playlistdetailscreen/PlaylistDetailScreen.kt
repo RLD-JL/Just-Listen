@@ -41,7 +41,7 @@ import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailState
 fun PlaylistDetailScreen(
     playlistDetailState: PlaylistDetailState, onBackButtonPressed: (Boolean) -> Unit,
     musicServiceConnection: MusicServiceConnection,
-    onSongPressed: (String, String, UserModel, SongIconList) -> Unit,
+    onSongPressed: (String) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
 ) {
     if (playlistDetailState.isLoading) {
@@ -147,7 +147,7 @@ fun BottomScrollableContent(
     playlistDetailState: PlaylistDetailState,
     scrollState: MutableState<Float>,
     playlist: List<PlaylistItem>,
-    onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
+    onSongClicked: (String) -> Unit,
     onShuffleClicked: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     painter: AsyncImagePainter
