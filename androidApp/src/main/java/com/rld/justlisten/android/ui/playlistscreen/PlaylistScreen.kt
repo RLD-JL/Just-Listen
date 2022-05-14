@@ -30,6 +30,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.rld.justlisten.datalayer.utils.Constants.list
 import com.rld.justlisten.viewmodel.Events
 import com.rld.justlisten.viewmodel.screens.playlist.fetchPlaylist
+import java.util.*
 
 @Composable
 fun PlaylistScreen(
@@ -92,7 +93,17 @@ fun AnimatedToolBar(
             )
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        Header(text = "Good evening")
+
+        val rightNow = Calendar.getInstance()
+
+        val text = when(rightNow.get(Calendar.HOUR_OF_DAY)) {
+            in 0..5 -> "Chilling"
+            in 5..11 -> "Good Morning"
+            in 12..17 -> "Hey there"
+            in 17..23 -> "Good Evening"
+            else -> "Hello"
+        }
+        Header(text = text)
         Icon(
             modifier = Modifier.clickable(onClick = onSearchClicked),
             imageVector = Icons.Default.Search,
