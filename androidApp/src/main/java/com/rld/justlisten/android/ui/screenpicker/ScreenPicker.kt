@@ -8,6 +8,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import com.rld.justlisten.Navigation
 import com.rld.justlisten.ScreenIdentifier
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
+import com.rld.justlisten.android.exoplayer.library.extension.displayIconUri
+import com.rld.justlisten.android.exoplayer.library.extension.id
+import com.rld.justlisten.android.exoplayer.library.extension.title
 import com.rld.justlisten.android.ui.addplaylistscreen.AddPlaylistScreen
 import com.rld.justlisten.android.ui.donationscreen.DonationScreen
 import com.rld.justlisten.android.ui.playlistscreen.PlaylistScreen
@@ -18,6 +21,7 @@ import com.rld.justlisten.android.ui.playlistdetailscreen.PlaylistDetailScreen
 import com.rld.justlisten.android.ui.playlistdetailscreen.playMusicFromId
 import com.rld.justlisten.android.ui.searchscreen.SearchScreen
 import com.rld.justlisten.android.ui.settingsscreen.SettingsScreen
+import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.Screen.*
 import com.rld.justlisten.viewmodel.screens.addplaylist.AddPlaylistParams
@@ -45,6 +49,16 @@ fun Navigation.ScreenPicker(
 ) {
     val isPlayerReady: MutableState<Boolean> = remember {
         mutableStateOf(false)
+    }
+
+    val id = remember {musicServiceConnection.currentPlayingSong.value?.id}
+    if (id != musicServiceConnection.currentPlayingSong.value?.id) {
+        val title = musicServiceConnection.currentPlayingSong.value?.title ?: "title"
+        val newId = musicServiceConnection.currentPlayingSong.value?.id ?: "id"
+        val user = UserModel("asd")
+        val songIcon = musicServiceConnection.currentPlayingSong.value?.displayIconUri.toString()
+        val icon = SongIconList(songImageURL150px = songIcon, songImageURL480px = songIcon, songImageURL1000px = songIcon.replace("480", "1000"))
+        events.saveSongToRecent(newId, title, user,icon)
     }
 
     when (screenIdentifier.screen) {
@@ -117,7 +131,7 @@ fun Navigation.ScreenPicker(
 
                 isPlayerReady.value = true
 
-                events.saveSongToRecent(songId, title, userModel, songIconList)
+              //  events.saveSongToRecent(songId, title, userModel, songIconList)
             }
         )
         Search -> SearchScreen(
