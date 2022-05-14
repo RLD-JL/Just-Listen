@@ -110,7 +110,9 @@ private val LightGreenColorPalette = lightColors(
     onPrimary = Color.White,
     onSecondary = Color.Black,
     onBackground = Color.Black,
-    onSurface = Color.Black
+    onSurface = Color.Black,
+    onError = Color.Green,
+    error = Color.Red
 )
 
 
@@ -160,8 +162,38 @@ private val LightBlueColorPalette = lightColors(
     onError = Color.Black
 )
 
+private val DarkPinkColorPalette = darkColors(
+    primary = pink,
+    primaryVariant = pinkLight,
+    secondary = secondaryPink,
+    secondaryVariant = secondaryPinkLight,
+    background = Color.Black,
+    surface = Color.DarkGray,
+    onPrimary = Color.Black,
+    onSecondary = pink,
+    onBackground = Color.White,
+    onSurface = Color.White,
+    error = Color.Red,
+    onError = Color.Black
+)
+
+private val LightPinkColorPalette = lightColors(
+    primary = pink,
+    primaryVariant = pinkDark,
+    secondary = secondaryPink,
+    secondaryVariant = secondaryPinkDark,
+    background = Color.White,
+    surface = Color.LightGray,
+    onPrimary = Color.White,
+    onSecondary = Color.Black,
+    onBackground = Color.Black,
+    onSurface = Color.Black,
+    onError = Color.Blue,
+    error = Color.Red
+)
+
 enum class ColorPallet {
-    Purple, Green, Orange, Blue, Dark
+    Purple, Green, Orange, Blue, Dark, Pink
 }
 
 
@@ -177,6 +209,7 @@ fun JustListenTheme(
         ColorPallet.Orange -> if (darkTheme) DarkOrangeColorPalette else LightOrangeColorPalette
         ColorPallet.Blue -> if (darkTheme) DarkBlueColorPalette else LightBlueColorPalette
         ColorPallet.Dark -> if (darkTheme) DarkColorPalette else LightDarkColorPalette
+        ColorPallet.Pink -> if (darkTheme) DarkPinkColorPalette else LightPinkColorPalette
     }
 
     MaterialTheme(

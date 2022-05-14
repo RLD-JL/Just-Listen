@@ -9,6 +9,7 @@ fun getColorPallet(pallet: String): ColorPallet {
         "Purple" -> ColorPallet.Purple
         "Blue" -> ColorPallet.Blue
         "Orange" -> ColorPallet.Orange
+        "Pink" -> ColorPallet.Pink
         else -> ColorPallet.Dark
     }
 }

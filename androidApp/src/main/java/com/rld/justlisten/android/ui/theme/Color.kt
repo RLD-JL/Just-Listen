@@ -35,6 +35,14 @@ val secondaryOrange = Color(0xFFeffe22)
 val secondaryOrangeDark = Color(0xFFb8cb00)
 val secondaryOrangeLight = Color(0xFFffff64)
 
+val pink = Color(0xFFff98a9)
+val pinkLight = Color(0xFFffcada)
+val pinkDark = Color(0xFFca687a)
+
+val secondaryPink = Color(0xFFff98dd)
+val secondaryPinkLight = Color(0xFFffcaff)
+val secondaryPinkDark = Color(0xFFca68ab)
+
 
 val teal200 = Color(0xff80deea)
 val twitterColor = Color(0xFF1DA1F2)

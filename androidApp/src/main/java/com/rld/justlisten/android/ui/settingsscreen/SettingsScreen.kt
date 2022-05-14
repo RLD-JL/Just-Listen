@@ -29,7 +29,7 @@ fun SettingsScreen(
 
             ) {
                 Text(
-                    text = "Dark Theme",
+                    text = "Night Mode",
                     style = MaterialTheme.typography.h6.copy(fontSize = 14.sp)
                 )
                 Switch(
@@ -75,6 +75,7 @@ fun SettingsScreen(
             val palletOptions = listOf(
                 ColorPallet.Dark,
                 ColorPallet.Green,
+                ColorPallet.Pink,
                 ColorPallet.Purple,
                 ColorPallet.Orange,
                 ColorPallet.Blue
