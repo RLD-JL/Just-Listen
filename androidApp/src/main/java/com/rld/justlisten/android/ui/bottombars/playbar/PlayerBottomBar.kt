@@ -42,9 +42,9 @@ fun PlayerBottomBar(
 ) {
     val list = listOf(Color(dominantColor), Color(dominantColor).copy(alpha = 0.6f))
     BoxWithConstraints(
-        modifier = Modifier
+        modifier = if (currentFraction > 0.001) Modifier
             .verticalGradientBackground(list)
-            .noRippleClickable { onBackgroundClicked() }
+            .noRippleClickable { onBackgroundClicked() } else Modifier.noRippleClickable { onBackgroundClicked() }
     ) {
         val constraints = this@BoxWithConstraints
         Column(Modifier.fillMaxSize()) {
