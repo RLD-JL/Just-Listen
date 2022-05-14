@@ -25,8 +25,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import coil.compose.ImagePainter
-import coil.compose.rememberImagePainter
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 import com.rld.justlisten.android.exoplayer.utils.Constants
@@ -52,8 +52,8 @@ fun PlaylistDetailScreen(
             mutableStateOf(false)
         }
 
-        val painter = rememberImagePainter(
-            request = ImageRequest.Builder(context = LocalContext.current)
+        val painter = rememberAsyncImagePainter(
+            model = ImageRequest.Builder(context = LocalContext.current)
                 .placeholder(ColorDrawable(MaterialTheme.colors.secondaryVariant.toArgb()))
                 .data(playlistDetailState.playlistIcon).build()
         )
@@ -153,7 +153,7 @@ fun BottomScrollableContent(
     onShuffleClicked: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     dominantColor: (Int) -> Unit,
-    painter: ImagePainter
+    painter: AsyncImagePainter
 ) {
     SongListScrollingSection(
         painter = painter,

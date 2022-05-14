@@ -12,10 +12,9 @@ import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.ImagePainter
+import coil.compose.AsyncImagePainter
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
@@ -30,7 +29,7 @@ fun SongListScrollingSection(
     onShuffleClicked: () -> Unit,
     dominantColor: (Int) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    painter: ImagePainter
+    painter: AsyncImagePainter
 ) {
     LazyColumn(Modifier.padding(top = 25.dp)) {
         item {
