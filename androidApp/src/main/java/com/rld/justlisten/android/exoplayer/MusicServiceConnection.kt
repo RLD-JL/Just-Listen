@@ -68,10 +68,6 @@ class MusicServiceConnection @Inject constructor(
         musicSource.fetchMediaData()
     }
 
-    fun updateFavorite(songId: String, isFavorite: Boolean) {
-        if (musicSource.playlist.any { it.id == songId })
-        musicSource.playlist.first { it.id == songId }.isFavorite = isFavorite
-    }
 
     fun updateSong() {
         val serviceScope = CoroutineScope(Dispatchers.IO)

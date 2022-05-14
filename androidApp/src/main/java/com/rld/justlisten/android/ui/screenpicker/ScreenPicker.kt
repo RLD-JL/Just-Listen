@@ -197,8 +197,5 @@ fun updateFavorite(
     musicServiceConnection: MusicServiceConnection,
     songId: String
 ) {
-    if (musicServiceConnection.currentPlayingSong.value?.id == songId) {
-        musicServiceConnection.updateFavorite(songId, isFavorite)
-    }
     musicServiceConnection.isFavorite[songId] = isFavorite
 }
