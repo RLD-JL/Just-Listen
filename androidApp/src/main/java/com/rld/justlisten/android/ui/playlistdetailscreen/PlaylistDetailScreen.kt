@@ -43,7 +43,6 @@ fun PlaylistDetailScreen(
     musicServiceConnection: MusicServiceConnection,
     onSongPressed: (String, String, UserModel, SongIconList) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    dominantColor: (Int) -> Unit
 ) {
     if (playlistDetailState.isLoading) {
         LoadingScreen()
@@ -97,7 +96,6 @@ fun PlaylistDetailScreen(
                 },
                 onSongClicked = onSongPressed,
                 onFavoritePressed = onFavoritePressed,
-                dominantColor = dominantColor,
                 painter = painter
             )
             AnimatedToolBar(playlistDetailState, toolbarOffsetHeightPx, onBackButtonPressed)
@@ -152,7 +150,6 @@ fun BottomScrollableContent(
     onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
     onShuffleClicked: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    dominantColor: (Int) -> Unit,
     painter: AsyncImagePainter
 ) {
     SongListScrollingSection(
@@ -163,7 +160,6 @@ fun BottomScrollableContent(
         onSongClicked = onSongClicked,
         onShuffleClicked = onShuffleClicked,
         onFavoritePressed = onFavoritePressed,
-        dominantColor = dominantColor
     )
 }
 

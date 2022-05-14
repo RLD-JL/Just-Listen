@@ -44,7 +44,6 @@ import com.rld.justlisten.viewmodel.screens.settings.updateScreen
 fun Navigation.ScreenPicker(
     screenIdentifier: ScreenIdentifier,
     musicServiceConnection: MusicServiceConnection,
-    dominantColor: (Int) -> Unit,
     settingsUpdated: () -> Unit
 ) {
     val isPlayerReady: MutableState<Boolean> = remember {
@@ -115,10 +114,6 @@ fun Navigation.ScreenPicker(
                     isFavorite = isFavorite
                 )
                 updateFavorite(isFavorite, musicServiceConnection, id)
-            },
-            dominantColor = { color ->
-                events.saveDominantColor(color)
-                dominantColor(color)
             },
             onSongPressed = { songId, title, userModel, songIconList ->
 

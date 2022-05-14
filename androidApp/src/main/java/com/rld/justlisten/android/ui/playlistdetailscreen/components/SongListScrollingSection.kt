@@ -27,7 +27,6 @@ fun SongListScrollingSection(
     playlist: List<PlaylistItem>,
     onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
     onShuffleClicked: () -> Unit,
-    dominantColor: (Int) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     painter: AsyncImagePainter
 ) {
@@ -50,7 +49,6 @@ fun SongListScrollingSection(
                 playlistItem = playlistItem,
                 onSongClicked = onSongClicked,
                 onFavoritePressed = onFavoritePressed,
-                dominantColor = dominantColor
             )
         }
     }

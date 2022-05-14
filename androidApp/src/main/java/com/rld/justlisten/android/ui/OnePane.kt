@@ -48,9 +48,11 @@ fun Navigation.OnePane(
         bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     )
 
+    val id = musicServiceConnection.currentPlayingSong.value?.id.toString()
+
     val context = LocalContext.current
 
-    val dominantColorMutable = remember { mutableStateOf(12312312) }
+    val dominantColorMutable = remember { mutableMapOf("null" to 12312312) }
 
     val addPlaylistList = remember { mutableStateOf(events.getPlaylist()) }
 
@@ -77,7 +79,7 @@ fun Navigation.OnePane(
                         currentFraction = scaffoldState.fraction,
                         onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
                         musicServiceConnection = musicServiceConnection,
-                        dominantColor = dominantColorMutable.value,
+                        dominantColor = dominantColorMutable[id] ?: 12312312,
                         onFavoritePressed = { id, title, userModel, songIconList, isFavorite ->
                             events.saveSongToFavorites(
                                 id,
@@ -109,6 +111,9 @@ fun Navigation.OnePane(
                                 "The song was added to $playlistTitle",
                                 Toast.LENGTH_SHORT
                             ).show()
+                        },
+                        newDominantColor = {songId, color ->
+                            dominantColorMutable[songId] = color
                         }
                     )
                 }, content = {
@@ -119,7 +124,6 @@ fun Navigation.OnePane(
                         saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
                             ScreenPicker(currentScreenIdentifier,
                                 musicServiceConnection,
-                                dominantColor = { dominantColorMutable.value = it },
                                 settingsUpdated = settingsUpdated
                             )
                         }

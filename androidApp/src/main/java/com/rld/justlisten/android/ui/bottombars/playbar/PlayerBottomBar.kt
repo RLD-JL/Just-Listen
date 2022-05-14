@@ -37,7 +37,8 @@ fun PlayerBottomBar(
     onBackgroundClicked: () -> Unit,
     painterLoaded: (Painter) -> Unit,
     dominantColor: Int,
-    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit
+    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
+    newDominantColor: (String, Int) -> Unit
 ) {
     val list = listOf(Color(dominantColor), Color(dominantColor).copy(alpha = 0.6f))
     BoxWithConstraints(
@@ -52,7 +53,8 @@ fun PlayerBottomBar(
 
             PlayBarSwipeActions(
                 songIcon, currentFraction, constraints,
-                title, musicServiceConnection, onSkipNextPressed, painterLoaded, onFavoritePressed
+                title, musicServiceConnection, onSkipNextPressed, painterLoaded, onFavoritePressed,
+                newDominantColor = newDominantColor
             )
             LinearProgressIndicator(
                 progress = musicServiceConnection.songDuration.value / curSongDuration.toFloat(),

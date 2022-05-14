@@ -30,24 +30,24 @@ import coil.annotation.ExperimentalCoilApi
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun SongListItem(
     playlistItem: PlaylistItem, onSongClicked: (String, String, UserModel, SongIconList) -> Unit,
-    dominantColor: (Int) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit
 ) {
-
-    val dominantColorMutable = remember { mutableStateOf(-123123123) }
     Row(
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier
+            .padding(8.dp)
             .clickable(
                 onClick = {
-                    dominantColor(dominantColorMutable.value)
+
                     onSongClicked(
                         playlistItem.id, playlistItem.title,
                         UserModel(playlistItem.user), playlistItem.songIconList
@@ -61,18 +61,6 @@ fun SongListItem(
                 .placeholder(ColorDrawable(MaterialTheme.colors.secondaryVariant.toArgb()))
                 .data(playlistItem.songIconList.songImageURL150px).allowHardware(false).build()
         )
-
-        (painter.state as? AsyncImagePainter.State.Success)?.let { successState ->
-            LaunchedEffect(painter) {
-                val drawable = successState.result.drawable
-                Palette.Builder(drawable.toBitmap()).generate { palette ->
-                    palette?.dominantSwatch?.let {
-                        dominantColorMutable.value = it.rgb
-                    }
-                }
-            }
-
-        }
 
         Image(
             painter = painter,
@@ -99,38 +87,40 @@ fun SongListItem(
             )
         }
 
-            if (playlistItem.isFavorite) {
-                Icon(
-                    imageVector = Icons.Filled.Favorite,
-                    contentDescription = null,
-                    tint = Color.Red,
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .size(20.dp).clickable {
-                            onFavoritePressed(
-                                playlistItem.id, playlistItem.title,
-                                UserModel(playlistItem.user), playlistItem.songIconList,
-                                !playlistItem.isFavorite
-                            )
-                            playlistItem.isFavorite =!playlistItem.isFavorite
-                        }
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Outlined.FavoriteBorder,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .size(20.dp).clickable {
-                            onFavoritePressed(
-                                playlistItem.id, playlistItem.title,
-                                UserModel(playlistItem.user), playlistItem.songIconList,
-                                !playlistItem.isFavorite
-                            )
-                            playlistItem.isFavorite =!playlistItem.isFavorite
-                        }
-                )
-            }
+        if (playlistItem.isFavorite) {
+            Icon(
+                imageVector = Icons.Filled.Favorite,
+                contentDescription = null,
+                tint = Color.Red,
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(20.dp)
+                    .clickable {
+                        onFavoritePressed(
+                            playlistItem.id, playlistItem.title,
+                            UserModel(playlistItem.user), playlistItem.songIconList,
+                            !playlistItem.isFavorite
+                        )
+                        playlistItem.isFavorite = !playlistItem.isFavorite
+                    }
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Outlined.FavoriteBorder,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(20.dp)
+                    .clickable {
+                        onFavoritePressed(
+                            playlistItem.id, playlistItem.title,
+                            UserModel(playlistItem.user), playlistItem.songIconList,
+                            !playlistItem.isFavorite
+                        )
+                        playlistItem.isFavorite = !playlistItem.isFavorite
+                    }
+            )
+        }
     }
 }
 
