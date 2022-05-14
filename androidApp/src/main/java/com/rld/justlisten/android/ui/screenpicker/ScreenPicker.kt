@@ -51,8 +51,8 @@ fun Navigation.ScreenPicker(
         mutableStateOf(false)
     }
 
-    val id = remember {musicServiceConnection.currentPlayingSong.value?.id}
-    if (id != musicServiceConnection.currentPlayingSong.value?.id) {
+    val currentId = remember {musicServiceConnection.currentPlayingSong.value?.id}
+    if (currentId != musicServiceConnection.currentPlayingSong.value?.id) {
         val title = musicServiceConnection.currentPlayingSong.value?.title ?: "title"
         val newId = musicServiceConnection.currentPlayingSong.value?.id ?: "id"
         val user = UserModel("asd")
@@ -206,6 +206,8 @@ fun updateFavorite(
     musicServiceConnection: MusicServiceConnection,
     songId: String
 ) {
-    musicServiceConnection.updateFavorite(songId, isFavorite)
+    if (musicServiceConnection.currentPlayingSong.value?.id == songId) {
+        musicServiceConnection.updateFavorite(songId, isFavorite)
+    }
     musicServiceConnection.isFavorite[songId] = isFavorite
 }
