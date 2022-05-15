@@ -19,15 +19,15 @@ getFavoritePlaylistWithId:
 SELECT id FROM Library WHERE id = :id AND favoriteSong = 1;
 
 getRecentPlayed:
-SELECT * FROM Library WHERE recentPlayed = 1 LIMIT  :numberOfSongs;
+SELECT * FROM Library WHERE recentPlayed = 1 ORDER BY recentIncrement DESC LIMIT  :numberOfSongs;
 
 getCustomPlaylistSongs:
 SELECT * FROM Library WHERE id IN :songsList;
 
 upsertLibraryFavorite {
-    INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName, favoriteSong, recentPlayed)
+    INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName, favoriteSong, recentPlayed, recentIncrement)
     VALUES(:id, :title, :user,  :songImgList, :playlistName,:favoriteSong,
-    (SELECT recentPlayed FROM Library WHERE id = :id));
+    (SELECT recentPlayed FROM Library WHERE id = :id), (SELECT recentIncrement FROM Library WHERE id= :id));
 }
 
 upsertLibraryRecent {

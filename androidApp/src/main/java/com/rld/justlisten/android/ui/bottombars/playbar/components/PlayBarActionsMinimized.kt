@@ -27,7 +27,8 @@ fun PlayBarActionsMinimized(
     currentFraction: Float, musicServiceConnection: MusicServiceConnection,
     title: String, onSkipNextPressed: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    ) {
+    songIcon: String
+) {
     Row(
         Modifier
             .graphicsLayer(alpha = 1f - currentFraction * 2)
@@ -43,17 +44,24 @@ fun PlayBarActionsMinimized(
                 maxLines = 3
             )
             val songId = musicServiceConnection.currentPlayingSong.value?.description?.mediaId ?: ""
-            if (musicServiceConnection.isFavorite[songId] == true)
-            {
+            if (musicServiceConnection.isFavorite[songId] == true) {
                 Icon(
                     imageVector = Icons.Default.Favorite,
                     tint = Color.Red,
                     modifier = Modifier
                         .padding(8.dp)
-                        .size(30.dp).clickable {
+                        .size(30.dp)
+                        .clickable {
+                            val newSongIcon = songIcon.replace("480", "1000")
                             onFavoritePressed(
-                                songId, title,
-                                UserModel(), SongIconList(),
+                                songId,
+                                title,
+                                UserModel(),
+                                SongIconList(
+                                    songImageURL150px = songIcon,
+                                    songImageURL480px = songIcon,
+                                    songImageURL1000px = newSongIcon
+                                ),
                                 !musicServiceConnection.isFavorite[songId]!!
                             )
                         },
@@ -64,10 +72,18 @@ fun PlayBarActionsMinimized(
                     imageVector = Icons.Default.FavoriteBorder,
                     modifier = Modifier
                         .padding(8.dp)
-                        .size(30.dp).clickable {
+                        .size(30.dp)
+                        .clickable {
+                            val newSongIcon = songIcon.replace("480", "1000")
                             onFavoritePressed(
-                                songId, title,
-                                UserModel(), SongIconList(),
+                                songId,
+                                title,
+                                UserModel(),
+                                SongIconList(
+                                    songImageURL150px = songIcon,
+                                    songImageURL480px = songIcon,
+                                    songImageURL1000px = newSongIcon
+                                ),
                                 !musicServiceConnection.isFavorite[songId]!!
                             )
                         },

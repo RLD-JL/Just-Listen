@@ -24,7 +24,6 @@ import com.rld.justlisten.android.ui.utils.widthSize
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun PlayBarSwipeActions(
     songIcon: String, currentFraction: Float, constraints: BoxWithConstraintsScope, title: String,
@@ -71,7 +70,8 @@ fun PlayBarSwipeActions(
             musicServiceConnection,
             title,
             onSkipNextPressed,
-            onFavoritePressed
+            onFavoritePressed,
+            songIcon
         )
     }
 }

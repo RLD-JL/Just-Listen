@@ -68,5 +68,5 @@ fun LocalDb.getRecentPlayed(numberOfLines: Long): List<PlayListModel> {
             )
         },
         numberOfSongs = numberOfLines
-    ).executeAsList().asReversed()
+    ).executeAsList()
 }
