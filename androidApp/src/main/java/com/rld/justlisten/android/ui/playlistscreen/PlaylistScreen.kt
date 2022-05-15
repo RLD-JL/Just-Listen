@@ -11,6 +11,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -159,24 +160,21 @@ fun ListOfCollections(
                 lasItemReached = lasItemReached,
                 PlayListEnum.TOP_PLAYLIST,
                 onPlaylistClicked,
-                playlistState.lastFetchPlaylist,
-                "Top Playlist"
+                playlistState.lastFetchPlaylist
             )
             1 -> PlaylistRow(
                 playlist = playlistState.remixPlaylist,
                 lasItemReached = lasItemReached,
                 PlayListEnum.REMIX,
                 onPlaylistClicked,
-                playlistState.lastFetchRemix,
-                list[1]
+                playlistState.lastFetchRemix
             )
             2 -> PlaylistRow(
                 playlist = playlistState.hotPlaylist,
                 lasItemReached = lasItemReached,
                 PlayListEnum.HOT,
                 onPlaylistClicked,
-                playlistState.lastFetchHot,
-                list[2]
+                playlistState.lastFetchHot
             )
         }
     }
@@ -187,15 +185,18 @@ fun PlaylistRow(
     playlist: List<PlaylistItem>, lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistEnum: PlayListEnum,
     onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
-    lastIndexReached: Boolean = false, title: String
+    lastIndexReached: Boolean = false
 ) {
     val fetchMore = remember { mutableStateOf(false) }
     LazyRow(verticalAlignment = Alignment.CenterVertically) {
         itemsIndexed(items = playlist) { index, playlistItem ->
 
-            if (index == playlist.size - 3 && !lastIndexReached) {
-                lasItemReached(index + 20, playlistEnum)
-                fetchMore.value = true
+            if (index == playlist.lastIndex && !lastIndexReached) {
+                LaunchedEffect(key1 = playlist.lastIndex )
+                {
+                    lasItemReached(index + 20, playlistEnum)
+                    fetchMore.value = true
+                }
             }
 
             if (lastIndexReached) {
