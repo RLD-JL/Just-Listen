@@ -80,4 +80,5 @@ android {
         minSdk = 21
         targetSdk = 30
     }
+    namespace = "com.rld.justlisten"
 }
