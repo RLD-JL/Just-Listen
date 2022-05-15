@@ -40,7 +40,6 @@ class ApiClient {
             val url = "${baseUrl}/v1$endpoint"
             try {
                 val firstTime = Clock.System.now().nanosecondsOfSecond
-                println("$url and time = $firstTime")
                 val response = client.get<T>(url)
                 when (response) {
                     is PlayListResponse -> wasSuccessful = response.error.isNullOrEmpty()
