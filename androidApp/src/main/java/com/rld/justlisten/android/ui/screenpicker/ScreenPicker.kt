@@ -24,6 +24,7 @@ import com.rld.justlisten.viewmodel.screens.Screen.*
 import com.rld.justlisten.viewmodel.screens.addplaylist.AddPlaylistParams
 import com.rld.justlisten.viewmodel.screens.addplaylist.addPlaylist
 import com.rld.justlisten.viewmodel.screens.addplaylist.updatePlaylist
+import com.rld.justlisten.viewmodel.screens.library.getLastPlayed
 import com.rld.justlisten.viewmodel.screens.library.saveSongToFavorites
 import com.rld.justlisten.viewmodel.screens.library.saveSongToRecent
 import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailParams
@@ -74,7 +75,10 @@ fun Navigation.ScreenPicker(
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)
                 },
-                onPlayListViewClicked = { navigate(AddPlaylist, AddPlaylistParams("")) }
+                onPlayListViewClicked = { navigate(AddPlaylist, AddPlaylistParams("")) },
+                lasItemReached = { index ->
+                    events.getLastPlayed(index.toLong())
+                },
             )
         Playlist ->
             PlaylistScreen(
