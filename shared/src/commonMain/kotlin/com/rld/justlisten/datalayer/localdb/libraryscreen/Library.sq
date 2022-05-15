@@ -8,7 +8,8 @@ CREATE TABLE Library  (
        songImgList TEXT AS SongIconList NOT NULL,
        playlistName TEXT NOT NULL,
        recentPlayed INTEGER AS Boolean DEFAULT 0,
-       favoriteSong INTEGER AS Boolean DEFAULT 0
+       favoriteSong INTEGER AS Boolean DEFAULT 0,
+       recentIncrement INTEGER
 );
 
 getFavoritePlaylist:
@@ -18,7 +19,7 @@ getFavoritePlaylistWithId:
 SELECT id FROM Library WHERE id = :id AND favoriteSong = 1;
 
 getRecentPlayed:
-SELECT * FROM Library WHERE recentPlayed = 1;
+SELECT * FROM Library WHERE recentPlayed = 1 LIMIT  :numberOfSongs;
 
 getCustomPlaylistSongs:
 SELECT * FROM Library WHERE id IN :songsList;
@@ -30,7 +31,7 @@ upsertLibraryFavorite {
 }
 
 upsertLibraryRecent {
-    INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName, recentPlayed, favoriteSong)
+    INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName, recentPlayed, favoriteSong, recentIncrement)
     VALUES(:id, :title, :user,  :songImgList, :playlistName, 1,
-    (SELECT favoriteSong FROM Library WHERE id= :id));
+    (SELECT favoriteSong FROM Library WHERE id= :id), (SELECT IFNULL(MAX(recentIncrement), 0) +1 FROM Library WHERE recentPlayed = 1));
 }

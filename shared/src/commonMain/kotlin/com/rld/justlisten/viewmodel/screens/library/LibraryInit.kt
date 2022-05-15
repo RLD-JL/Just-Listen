@@ -15,7 +15,7 @@ fun Navigation.initLibrary(params: LibraryParams) = ScreenInitSettings(
     title = "Library" + params.string,
     initState = { LibraryState(isLoading = true) },
     callOnInit = {
-        val recentSongs = dataRepository.getRecentSongs().map { playlistModel ->
+        val recentSongs = dataRepository.getRecentSongs(20).map { playlistModel ->
             PlaylistItem(playlistModel, playlistModel.isFavorite)
         }.toList()
         val favoritePlaylist = dataRepository.getFavoritePlaylist().map { playlistModel ->

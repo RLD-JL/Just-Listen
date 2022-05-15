@@ -23,6 +23,6 @@ fun Repository.getFavoritePlaylist(): List<PlayListModel> {
     return localDb.getFavoritePlaylist()
 }
 
-fun Repository.getRecentSongs(): List<PlayListModel> {
-    return localDb.getRecentPlayed()
+fun Repository.getRecentSongs(numberOfLines: Long): List<PlayListModel> {
+    return localDb.getRecentPlayed(numberOfLines)
 }

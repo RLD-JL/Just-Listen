@@ -1,9 +1,6 @@
 package com.rld.justlisten.android.ui.screenpicker
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import com.rld.justlisten.Navigation
 import com.rld.justlisten.ScreenIdentifier
@@ -51,12 +48,14 @@ fun Navigation.ScreenPicker(
 
     val currentId = remember {musicServiceConnection.currentPlayingSong.value?.id}
     if (currentId != musicServiceConnection.currentPlayingSong.value?.id) {
-        val title = musicServiceConnection.currentPlayingSong.value?.title ?: "title"
-        val newId = musicServiceConnection.currentPlayingSong.value?.id ?: "id"
-        val user = UserModel("asd")
-        val songIcon = musicServiceConnection.currentPlayingSong.value?.displayIconUri.toString()
-        val icon = SongIconList(songImageURL150px = songIcon, songImageURL480px = songIcon, songImageURL1000px = songIcon.replace("480", "1000"))
-        events.saveSongToRecent(newId, title, user,icon)
+        LaunchedEffect(musicServiceConnection.currentPlayingSong.value?.id) {
+            val title = musicServiceConnection.currentPlayingSong.value?.title ?: "title"
+            val newId = musicServiceConnection.currentPlayingSong.value?.id ?: "id"
+            val user = UserModel("asd")
+            val songIcon = musicServiceConnection.currentPlayingSong.value?.displayIconUri.toString()
+            val icon = SongIconList(songImageURL150px = songIcon, songImageURL480px = songIcon, songImageURL1000px = songIcon.replace("480", "1000"))
+            events.saveSongToRecent(newId, title, user,icon)
+        }
     }
 
     when (screenIdentifier.screen) {
@@ -143,8 +142,6 @@ fun Navigation.ScreenPicker(
                     isPlayerReady.value,
                 )
                 isPlayerReady.value = true
-
-                events.saveSongToRecent(songId, title, UserModel(user), songIcon)
             },
             onPlaylistPressed = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy, _ ->
                 navigate(
