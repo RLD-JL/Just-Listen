@@ -33,7 +33,7 @@ fun Navigation.initPlaylist(params: PlaylistParams) = ScreenInitSettings(
         }
         coroutineScope {
             playlist = async { dataRepository.getPlaylist(index = 20, PlayListEnum.TOP_PLAYLIST) }
-            tracks = async { dataRepository.getTracks(limit = 16, "Rock", "month") }
+            tracks = async { dataRepository.getTracks(limit = 16, "Electronic", "week") }
             remix = async { dataRepository.getPlaylist(index = 20, PlayListEnum.REMIX, queryPlaylist = list[queryIndex]) }
             hot = async { dataRepository.getPlaylist(index = 20, PlayListEnum.HOT, queryPlaylist = list[queryIndex2]) }
         }

@@ -18,7 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.rld.justlisten.android.ui.theme.graySurface
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.viewmodel.interfaces.Item
@@ -36,7 +36,7 @@ fun TrackGridItem(item: Item, onSongPressed: (String, String, String, SongIconLi
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = rememberImagePainter(item.songIconList.songImageURL150px),
+                painter = rememberAsyncImagePainter(item.songIconList.songImageURL150px),
                 contentDescription = null,
                 modifier = Modifier.size(55.dp),
                 contentScale = ContentScale.Crop
