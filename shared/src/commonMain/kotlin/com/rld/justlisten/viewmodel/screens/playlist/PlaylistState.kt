@@ -3,6 +3,7 @@ package com.rld.justlisten.viewmodel.screens.playlist
 import com.rld.justlisten.ScreenState
 import com.rld.justlisten.datalayer.models.PlayListModel
 import com.rld.justlisten.viewmodel.interfaces.Item
+import com.rld.justlisten.viewmodel.screens.search.TrackItem
 
 data class PlaylistState(
     val isLoading: Boolean = false,
@@ -16,6 +17,7 @@ data class PlaylistState(
     val hotPlaylist: List<PlaylistItem> = emptyList(),
     val lastFetchHot: Boolean = false,
     val currentPlaylist: List<PlaylistItem> = emptyList(),
+    var tracksList: List<TrackItem> = emptyList(),
     val queryIndex: Int = 0,
     val queryIndex2: Int = 0
 ): ScreenState

@@ -18,6 +18,10 @@ suspend fun ApiClient.fetchPlaylist(index: Int, playListEnum: PlayListEnum, play
    }
 }
 
+suspend fun ApiClient.getTracks(limit: Int, category: String, timeRange: String) : PlayListResponse? {
+    return getResponse("/full/tracks/trending/EJ57D?genre=${category}&limit=${limit}&time=${timeRange}&app_name=ExampleApp")
+}
+
 @Serializable
 data class PlayListResponse(
     @SerialName("data") val data : List<PlayListModel>,

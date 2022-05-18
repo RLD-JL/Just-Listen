@@ -6,9 +6,13 @@ import com.rld.justlisten.datalayer.localdb.libraryscreen.getFavoritePlaylist
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getFavoritePlaylistWithId
 import com.rld.justlisten.datalayer.localdb.playlistdetail.getPlaylistDetail
 import com.rld.justlisten.datalayer.webservices.apis.playlistcalls.fetchPlaylist
+import com.rld.justlisten.datalayer.webservices.apis.playlistcalls.getTracks
+import com.rld.justlisten.datalayer.webservices.apis.searchcalls.searchFor
 import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum
 import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum.*
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
+import com.rld.justlisten.viewmodel.screens.search.SearchEnum
+import com.rld.justlisten.viewmodel.screens.search.TrackItem
 
 suspend fun Repository.getPlaylist(index: Int, playListEnum: PlayListEnum, playlistId: String= "DOPRl",
 songsList: List<String> = emptyList(), queryPlaylist: String = "Rock"): List<PlaylistItem> {
@@ -52,4 +56,10 @@ suspend fun Repository.getCurrentPlaylist(): List<PlaylistItem> = withRepoContex
     localDb.getPlaylistDetail().map {
             elem->PlaylistItem(_data = elem)
     }.toList()
+}
+
+suspend fun Repository.getTracks(limit: Int, category: String, timeRange: String) : List<TrackItem> {
+    return webservices.getTracks(limit, category, timeRange)?.data?.map { playlistModel ->
+        TrackItem(playlistModel)
+    }?.toList() ?: emptyList()
 }

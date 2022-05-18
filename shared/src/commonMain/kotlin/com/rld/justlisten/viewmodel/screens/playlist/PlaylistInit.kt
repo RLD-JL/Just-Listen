@@ -3,8 +3,10 @@ package com.rld.justlisten.viewmodel.screens.playlist
 import com.rld.justlisten.Navigation
 import com.rld.justlisten.ScreenParams
 import com.rld.justlisten.datalayer.datacalls.playlist.getPlaylist
+import com.rld.justlisten.datalayer.datacalls.playlist.getTracks
 import com.rld.justlisten.datalayer.utils.Constants.list
 import com.rld.justlisten.viewmodel.screens.ScreenInitSettings
+import com.rld.justlisten.viewmodel.screens.search.TrackItem
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -21,6 +23,7 @@ fun Navigation.initPlaylist(params: PlaylistParams) = ScreenInitSettings(
         val playlist: Deferred<List<PlaylistItem>>
         val remix: Deferred<List<PlaylistItem>>
         val hot: Deferred<List<PlaylistItem>>
+        val tracks: Deferred<List<TrackItem>>
         var queryIndex = Random.nextInt(0, list.size)
         val queryIndex2 = Random.nextInt(0, list.size)
         if (queryIndex == queryIndex2) {
@@ -30,6 +33,7 @@ fun Navigation.initPlaylist(params: PlaylistParams) = ScreenInitSettings(
         }
         coroutineScope {
             playlist = async { dataRepository.getPlaylist(index = 20, PlayListEnum.TOP_PLAYLIST) }
+            tracks = async { dataRepository.getTracks(limit = 16, "Rock", "month") }
             remix = async { dataRepository.getPlaylist(index = 20, PlayListEnum.REMIX, queryPlaylist = list[queryIndex]) }
             hot = async { dataRepository.getPlaylist(index = 20, PlayListEnum.HOT, queryPlaylist = list[queryIndex2]) }
         }
@@ -40,7 +44,8 @@ fun Navigation.initPlaylist(params: PlaylistParams) = ScreenInitSettings(
                 playlistItems = playlist.await(),
                 hotPlaylist = hot.await(),
                 queryIndex = queryIndex,
-                queryIndex2 = queryIndex2
+                queryIndex2 = queryIndex2,
+                tracksList = tracks.await()
             )
         }
     },

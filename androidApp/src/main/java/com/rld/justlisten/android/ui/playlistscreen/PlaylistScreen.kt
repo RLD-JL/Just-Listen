@@ -10,27 +10,28 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import com.rld.justlisten.android.ui.loadingscreen.LoadingScreen
 import com.rld.justlisten.android.ui.playlistscreen.components.PlaylistRowItem
 import com.rld.justlisten.android.ui.theme.modifiers.horizontalGradientBackground
 import com.rld.justlisten.android.ui.theme.typography
-import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum
-import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
-import com.rld.justlisten.viewmodel.screens.playlist.PlaylistState
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.rld.justlisten.android.ui.extensions.customTabIndicatorOffset
+import com.rld.justlisten.android.ui.searchscreen.SearchGridTracks
+import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.utils.Constants.list
 import com.rld.justlisten.viewmodel.Events
-import com.rld.justlisten.viewmodel.screens.playlist.fetchPlaylist
+import com.rld.justlisten.viewmodel.screens.playlist.*
 import java.util.*
 
 @Composable
@@ -39,6 +40,7 @@ fun PlaylistScreen(
     onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
     onSearchClicked: () -> Unit,
     refreshScreen: () -> Unit,
+    onSongPressed: (String, String, String, SongIconList) -> Unit,
     events: Events
 ) {
     if (playlistState.isLoading) {
@@ -73,8 +75,11 @@ fun PlaylistScreen(
                     scrollState = scrollState,
                     playlistState = playlistState,
                     onPlaylistClicked = onPlaylistClicked,
+                    onSongPressed = onSongPressed
                 )
                 AnimatedToolBar(onSearchClicked)
+
+
             }
         }
     }
@@ -97,7 +102,7 @@ fun AnimatedToolBar(
 
         val rightNow = Calendar.getInstance()
 
-        val text = when(rightNow.get(Calendar.HOUR_OF_DAY)) {
+        val text = when (rightNow.get(Calendar.HOUR_OF_DAY)) {
             in 0..5 -> "Chilling"
             in 5..11 -> "Good Morning"
             in 12..17 -> "Hey there"
@@ -118,7 +123,8 @@ fun ScrollableContent(
     lasItemReached: (Int, PlayListEnum) -> Unit,
     scrollState: ScrollState,
     playlistState: PlaylistState,
-    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit
+    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
+    onSongPressed: (String, String, String, SongIconList) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -126,12 +132,57 @@ fun ScrollableContent(
             .verticalScroll(scrollState)
     ) {
         Spacer(modifier = Modifier.height(50.dp))
-        //HomeGridSection()
         ListOfCollections(
             playlistState = playlistState, lasItemReached = lasItemReached,
             onPlaylistClicked = onPlaylistClicked
         )
-        Spacer(modifier = Modifier.height(100.dp))
+        Spacer(modifier = Modifier.height(25.dp))
+
+
+        val density = LocalDensity.current
+        val tabWidths = remember {
+            val tabWidthStateList = mutableStateListOf<Dp>()
+            repeat(list.size) {
+                tabWidthStateList.add(0.dp)
+            }
+            tabWidthStateList
+        }
+        val list = getTrackCategory()
+
+        var selectedTab by remember { mutableStateOf(0) }
+
+        ScrollableTabRow(
+            selectedTabIndex = selectedTab,
+            backgroundColor = Color.Transparent,
+            modifier = Modifier.padding(8.dp),
+            edgePadding = 0.dp,
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    modifier = Modifier.customTabIndicatorOffset(
+                        currentTabPosition = tabPositions[selectedTab],
+                        tabWidth = tabWidths[selectedTab]
+                    )
+                )
+            }
+        ) {
+            list.fastForEachIndexed { index, item ->
+                Tab(
+                    modifier = Modifier.padding(bottom = 10.dp),
+                    selected = index == selectedTab,
+                    onClick = { selectedTab = index }
+                )
+                {
+                    Text(
+                        item.value,
+                        onTextLayout = { textLayoutResult ->
+                            tabWidths[selectedTab] =
+                                with(density) { textLayoutResult.size.width.toDp() }
+                        }
+                    )
+                }
+            }
+        }
+        SearchGridTracks(list = playlistState.tracksList, onSongPressed = onSongPressed)
     }
 }
 
@@ -150,7 +201,11 @@ fun ListOfCollections(
     onPlaylistClicked: (String, String, String, String, Boolean) -> Unit
 ) {
     val list = remember {
-        mutableListOf("Top Playlist", list[playlistState.queryIndex], list[playlistState.queryIndex2])
+        mutableListOf(
+            "Top Playlist",
+            list[playlistState.queryIndex],
+            list[playlistState.queryIndex2]
+        )
     }
     list.fastForEachIndexed { index, item ->
         Header(text = item)
@@ -192,7 +247,7 @@ fun PlaylistRow(
         itemsIndexed(items = playlist) { index, playlistItem ->
 
             if (index == playlist.lastIndex && !lastIndexReached) {
-                LaunchedEffect(key1 = playlist.lastIndex )
+                LaunchedEffect(key1 = playlist.lastIndex)
                 {
                     lasItemReached(index + 20, playlistEnum)
                     fetchMore.value = true
