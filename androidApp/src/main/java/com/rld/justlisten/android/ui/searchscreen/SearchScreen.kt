@@ -49,9 +49,8 @@ fun SearchScreen(
     onSearchPressed: (String) -> Unit,
     onSongPressed: (String, String, String, SongIconList) -> Unit,
     onPlaylistPressed: (String, String, String, String, Boolean) -> Unit,
-    searchScreenState: SearchScreenState,
-    onPreviousSearchedPressed: (String) -> Unit,
-    updateSearch: (String) -> Unit) {
+    searchScreenState: SearchScreenState)
+{
     val requester = FocusRequester()
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState(0)
@@ -128,9 +127,8 @@ fun AnimatedToolBar(
             .weight(0.6f)
             .focusRequester(requester),
             value = searchFor,
-            maxLines = 1,
+            singleLine = true,
             onValueChange = { newInput ->
-                if (newInput.length <= 15)
                 updateSearch(newInput)
             },
             label = {

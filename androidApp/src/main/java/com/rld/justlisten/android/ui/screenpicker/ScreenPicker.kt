@@ -168,9 +168,7 @@ fun Navigation.ScreenPicker(
                     )
                 )
                 events.playMusicFromPlaylist(playlistId = playlistId)
-            },
-            onPreviousSearchedPressed = { searchText -> events.updateSearch(searchText) },
-            updateSearch = { searchText -> events.updateSearch(searchText) }
+            }
         )
         AddPlaylist -> AddPlaylistScreen(addPlaylistState = stateProvider.get(screenIdentifier),
             onAddPlaylistClicked = { playlistName, playlistDescription ->

@@ -114,6 +114,7 @@ fun AddPlaylistDialog(
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                     TextField(
+                        singleLine = true,
                         modifier = Modifier.onPreviewKeyEvent {
                             if (it.key == Key.Tab) {
                                 focusManager.moveFocus(FocusDirection.Down)
