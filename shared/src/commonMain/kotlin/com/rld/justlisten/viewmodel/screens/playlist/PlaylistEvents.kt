@@ -1,6 +1,7 @@
 package com.rld.justlisten.viewmodel.screens.playlist
 
 import com.rld.justlisten.datalayer.datacalls.playlist.getPlaylist
+import com.rld.justlisten.datalayer.datacalls.playlist.getTracks
 import com.rld.justlisten.datalayer.utils.Constants.list
 import com.rld.justlisten.viewmodel.Events
 import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum.*
@@ -102,6 +103,20 @@ fun Events.refreshScreen() = screenCoroutine {
             hotPlaylist = hot.await().shuffled()
         )
     }
+}
 
+fun Events.getNewTracks(category: TracksCategory, timeRange: TimeRange) = screenCoroutine {
+    stateManager.updateScreen(PlaylistState::class) {
+        it.copy(tracksLoading = true)
+    }
+    stateManager.updateScreen(PlaylistState::class) {
+        val time = when(timeRange) {
+            TimeRange.ALLTIME -> "allTime"
+            TimeRange.MONTH -> TimeRange.MONTH.value.lowercase()
+            TimeRange.WEEK -> TimeRange.WEEK.value.lowercase()
+        }
+        val newTracks = dataRepository.getTracks(16, category.value, time)
+        it.copy(tracksList = newTracks, tracksLoading = false)
+    }
 }
 

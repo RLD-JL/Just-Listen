@@ -17,6 +17,7 @@ data class PlaylistState(
     val hotPlaylist: List<PlaylistItem> = emptyList(),
     val lastFetchHot: Boolean = false,
     val currentPlaylist: List<PlaylistItem> = emptyList(),
+    val tracksLoading: Boolean = false,
     var tracksList: List<TrackItem> = emptyList(),
     val queryIndex: Int = 0,
     val queryIndex2: Int = 0

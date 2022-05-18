@@ -75,7 +75,10 @@ fun PlaylistScreen(
                     scrollState = scrollState,
                     playlistState = playlistState,
                     onPlaylistClicked = onPlaylistClicked,
-                    onSongPressed = onSongPressed
+                    onSongPressed = onSongPressed,
+                    getNewTracks = { category, timeRange ->
+                        events.getNewTracks(category, timeRange)
+                    }
                 )
                 AnimatedToolBar(onSearchClicked)
 
@@ -124,7 +127,8 @@ fun ScrollableContent(
     scrollState: ScrollState,
     playlistState: PlaylistState,
     onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
-    onSongPressed: (String, String, String, SongIconList) -> Unit
+    onSongPressed: (String, String, String, SongIconList) -> Unit,
+    getNewTracks: (TracksCategory, TimeRange) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -140,6 +144,8 @@ fun ScrollableContent(
 
 
         val density = LocalDensity.current
+        val list = getTrackCategory()
+
         val tabWidths = remember {
             val tabWidthStateList = mutableStateListOf<Dp>()
             repeat(list.size) {
@@ -147,9 +153,11 @@ fun ScrollableContent(
             }
             tabWidthStateList
         }
-        val list = getTrackCategory()
+
+        val timeRangeList = getTimeRange()
 
         var selectedTab by remember { mutableStateOf(0) }
+        var selectedTabTimeRange by remember { mutableStateOf(0) }
 
         ScrollableTabRow(
             selectedTabIndex = selectedTab,
@@ -169,7 +177,10 @@ fun ScrollableContent(
                 Tab(
                     modifier = Modifier.padding(bottom = 10.dp),
                     selected = index == selectedTab,
-                    onClick = { selectedTab = index }
+                    onClick = {
+                        selectedTab = index
+                        getNewTracks(item, timeRangeList[selectedTabTimeRange])
+                    }
                 )
                 {
                     Text(
@@ -182,7 +193,52 @@ fun ScrollableContent(
                 }
             }
         }
-        SearchGridTracks(list = playlistState.tracksList, onSongPressed = onSongPressed)
+
+        ScrollableTabRow(selectedTabIndex = selectedTabTimeRange,
+            backgroundColor = Color.Transparent,
+            modifier = Modifier.padding(8.dp),
+            edgePadding = 0.dp,
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    modifier = Modifier.customTabIndicatorOffset(
+                        currentTabPosition = tabPositions[selectedTabTimeRange],
+                        tabWidth = tabWidths[selectedTabTimeRange]
+                    )
+                )
+            }) {
+            timeRangeList.fastForEachIndexed { index, item ->
+                Tab(
+                    modifier = Modifier.padding(bottom = 10.dp),
+                    selected = index == selectedTabTimeRange,
+                    onClick = {
+                        selectedTabTimeRange = index
+                        getNewTracks(list[selectedTab], item)
+                    }
+                )
+                {
+                    Text(
+                        item.value,
+                        onTextLayout = { textLayoutResult ->
+                            tabWidths[selectedTabTimeRange] =
+                                with(density) { textLayoutResult.size.width.toDp() }
+                        }
+                    )
+                }
+            }
+        }
+        Column(
+            modifier = if (playlistState.tracksLoading) Modifier
+                .height(500.dp)
+                .fillMaxWidth() else Modifier,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (playlistState.tracksLoading) {
+                CircularProgressIndicator()
+            } else {
+                SearchGridTracks(list = playlistState.tracksList, onSongPressed = onSongPressed)
+            }
+        }
     }
 }
 
