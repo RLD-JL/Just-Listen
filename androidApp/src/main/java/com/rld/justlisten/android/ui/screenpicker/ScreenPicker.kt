@@ -99,8 +99,17 @@ fun Navigation.ScreenPicker(
                 },
                 onSearchClicked = { navigate(Search) },
                 refreshScreen = { events.refreshScreen() },
-                onSongPressed = {_,_,_,_ ->
-
+                onSongPressed = {songId, title, user, songIcon ->
+                    if (isPlayerReady.value) {
+                        isPlayerReady.value = false
+                    }
+                    playMusicFromId(
+                        musicServiceConnection,
+                        (stateProvider.get(screenIdentifier = screenIdentifier) as PlaylistState).tracksList,
+                        songId,
+                        isPlayerReady.value,
+                    )
+                    isPlayerReady.value = true
                 }
             )
 
