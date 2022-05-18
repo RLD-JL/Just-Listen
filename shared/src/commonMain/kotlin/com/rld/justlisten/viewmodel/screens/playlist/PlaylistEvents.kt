@@ -115,7 +115,8 @@ fun Events.getNewTracks(category: TracksCategory, timeRange: TimeRange) = screen
             TimeRange.MONTH -> TimeRange.MONTH.value.lowercase()
             TimeRange.WEEK -> TimeRange.WEEK.value.lowercase()
         }
-        val newTracks = dataRepository.getTracks(16, category.value, time)
+        val searchCategory = if (category == TracksCategory.RAP) "Hip-Hop/Rap" else category.value
+        val newTracks = dataRepository.getTracks(16, searchCategory, time)
         it.copy(tracksList = newTracks, tracksLoading = false)
     }
 }

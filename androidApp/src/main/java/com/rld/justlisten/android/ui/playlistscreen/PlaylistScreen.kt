@@ -134,7 +134,8 @@ fun ScrollableContent(
         modifier = Modifier
             .padding(8.dp)
             .verticalScroll(scrollState)
-    ) {
+    )
+    {
         Spacer(modifier = Modifier.height(50.dp))
         ListOfCollections(
             playlistState = playlistState, lasItemReached = lasItemReached,
@@ -145,6 +146,7 @@ fun ScrollableContent(
 
         val density = LocalDensity.current
         val list = getTrackCategory()
+        val timeRangeList = getTimeRange()
 
         val tabWidths = remember {
             val tabWidthStateList = mutableStateListOf<Dp>()
@@ -154,7 +156,14 @@ fun ScrollableContent(
             tabWidthStateList
         }
 
-        val timeRangeList = getTimeRange()
+        val tabWidthsTimeRange = remember {
+            val tabWidthStateList = mutableStateListOf<Dp>()
+            repeat(timeRangeList.size) {
+                tabWidthStateList.add(0.dp)
+            }
+            tabWidthStateList
+        }
+
 
         var selectedTab by remember { mutableStateOf(0) }
         var selectedTabTimeRange by remember { mutableStateOf(0) }
@@ -193,39 +202,42 @@ fun ScrollableContent(
                 }
             }
         }
-
-        ScrollableTabRow(selectedTabIndex = selectedTabTimeRange,
-            backgroundColor = Color.Transparent,
-            modifier = Modifier.padding(8.dp),
-            edgePadding = 0.dp,
-            indicator = { tabPositions ->
-                TabRowDefaults.Indicator(
-                    modifier = Modifier.customTabIndicatorOffset(
-                        currentTabPosition = tabPositions[selectedTabTimeRange],
-                        tabWidth = tabWidths[selectedTabTimeRange]
+        Column(
+            Modifier.padding(5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ScrollableTabRow(selectedTabIndex = selectedTabTimeRange,
+                backgroundColor = Color.Transparent,
+                indicator = { tabPositions ->
+                    TabRowDefaults.Indicator(
+                        modifier = Modifier.customTabIndicatorOffset(
+                            currentTabPosition = tabPositions[selectedTabTimeRange],
+                            tabWidth = tabWidthsTimeRange[selectedTabTimeRange]
+                        )
                     )
-                )
-            }) {
-            timeRangeList.fastForEachIndexed { index, item ->
-                Tab(
-                    modifier = Modifier.padding(bottom = 10.dp),
-                    selected = index == selectedTabTimeRange,
-                    onClick = {
-                        selectedTabTimeRange = index
-                        getNewTracks(list[selectedTab], item)
-                    }
-                )
-                {
-                    Text(
-                        item.value,
-                        onTextLayout = { textLayoutResult ->
-                            tabWidths[selectedTabTimeRange] =
-                                with(density) { textLayoutResult.size.width.toDp() }
+                }) {
+                timeRangeList.fastForEachIndexed { index, item ->
+                    Tab(
+                        modifier = Modifier.padding(bottom = 10.dp),
+                        selected = index == selectedTabTimeRange,
+                        onClick = {
+                            selectedTabTimeRange = index
+                            getNewTracks(list[selectedTab], item)
                         }
                     )
+                    {
+                        Text(
+                            item.value,
+                            onTextLayout = { textLayoutResult ->
+                                tabWidthsTimeRange[selectedTabTimeRange] =
+                                    with(density) { textLayoutResult.size.width.toDp() }
+                            }
+                        )
+                    }
                 }
             }
         }
+
         Column(
             modifier = if (playlistState.tracksLoading) Modifier
                 .height(500.dp)
