@@ -40,7 +40,7 @@ import com.rld.justlisten.viewmodel.interfaces.Item
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import com.rld.justlisten.viewmodel.screens.search.SearchScreenState
 import com.rld.justlisten.viewmodel.screens.search.TrackItem
-import com.rld.justlisten.android.ui.test.VerticalGrid
+import com.rld.justlisten.android.ui.searchscreen.components.VerticalGrid
 
 @ExperimentalComposeUiApi
 @Composable
