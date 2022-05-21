@@ -1,6 +1,5 @@
 package com.rld.justlisten.datalayer.webservices
 
-import com.rld.justlisten.datalayer.utils.Constants.BASEURL
 import com.rld.justlisten.datalayer.utils.Constants.bestResponseTime
 import com.rld.justlisten.datalayer.utils.Constants.listOfBaseUrls
 import com.rld.justlisten.datalayer.utils.Constants.usedBasedUrl
@@ -9,14 +8,11 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.*
-import io.ktor.client.features.logging.*
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlin.random.Random
 
 class ApiClient {
-
-    val baseUrl = BASEURL
 
     val client = HttpClient {
         install(JsonFeature) {
@@ -24,10 +20,6 @@ class ApiClient {
                 ignoreUnknownKeys = true
 
             })
-            install(Logging) {
-                logger = Logger.DEFAULT
-                level = LogLevel.ALL
-            }
         }
     }
 
