@@ -32,7 +32,8 @@ fun PlayerBarSheetContent(
     onAddPlaylistClicked: (String, String?) -> Unit,
     getLatestPlaylist: () -> Unit,
     clickedToAddSongToPlaylist: (String, String?,  List<String>) -> Unit,
-    newDominantColor: (String, Int) -> Unit
+    newDominantColor: (String, Int) -> Unit,
+    playBarMinimizedClicked: () -> Unit
 ) {
     val songIcon =
         musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
@@ -104,6 +105,7 @@ fun PlayerBarSheetContent(
             painterLoaded = { painter ->
                 mutablePainter.value = painter
             },
+            playBarMinimizedClicked =  playBarMinimizedClicked,
             dominantColor = dominantColor,
             onFavoritePressed = onFavoritePressed,
             newDominantColor = newDominantColor

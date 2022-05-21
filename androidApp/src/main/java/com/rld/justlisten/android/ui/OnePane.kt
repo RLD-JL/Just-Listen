@@ -114,6 +114,9 @@ fun Navigation.OnePane(
                         },
                         newDominantColor = {songId, color ->
                             dominantColorMutable[songId] = color
+                        },
+                        playBarMinimizedClicked = {
+                            coroutineScope.launch { scaffoldState.bottomSheetState.expand() }
                         }
                     )
                 }, content = {

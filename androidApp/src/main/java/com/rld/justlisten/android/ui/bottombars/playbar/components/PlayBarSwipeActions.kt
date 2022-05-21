@@ -31,6 +31,7 @@ fun PlayBarSwipeActions(
     painterLoaded: (Painter) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     newDominantColor: (String, Int) -> Unit,
+    playBarMinimizedClicked: () -> Unit
     ) {
     Row(
         modifier = Modifier
@@ -71,7 +72,8 @@ fun PlayBarSwipeActions(
             title,
             onSkipNextPressed,
             onFavoritePressed,
-            songIcon
+            songIcon,
+            playBarMinimizedClicked = playBarMinimizedClicked
         )
     }
 }

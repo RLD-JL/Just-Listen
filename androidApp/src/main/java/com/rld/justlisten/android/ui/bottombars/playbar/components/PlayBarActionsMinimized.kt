@@ -27,12 +27,14 @@ fun PlayBarActionsMinimized(
     currentFraction: Float, musicServiceConnection: MusicServiceConnection,
     title: String, onSkipNextPressed: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    songIcon: String
+    songIcon: String,
+    playBarMinimizedClicked: () -> Unit
 ) {
     Row(
         Modifier
             .graphicsLayer(alpha = 1f - currentFraction * 2)
             .height(IntrinsicSize.Max)
+            .clickable(onClick = playBarMinimizedClicked)
     ) {
         if (currentFraction != 1f) {
             Text(
