@@ -36,7 +36,7 @@ class MusicNotificationManager(
             NOTIFICATION_ID,
             NOTIFICATION_CHANNEL_ID,
         ).setNotificationListener(notificationListener)
-            .setSmallIconResourceId(R.drawable.exo_notification_small_icon)
+            .setSmallIconResourceId(R.drawable.ic_notification)
             .setMediaDescriptionAdapter(DescriptionAdapter(mediaController))
             .setChannelNameResourceId(R.string.channel_name)
             .setChannelDescriptionResourceId(R.string.channel_description)
