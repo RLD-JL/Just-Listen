@@ -12,16 +12,16 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.4.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.0-beta01")
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.0-rc01")
     implementation("androidx.activity:activity-compose:1.4.0")
     implementation ("androidx.palette:palette-ktx:1.0.0")
 
-    implementation ("androidx.compose.ui:ui-util:1.2.0-alpha08")
+    implementation ("androidx.compose.ui:ui-util:1.2.0-beta01")
     implementation("androidx.compose.animation:animation:1.1.1")
-    implementation("androidx.compose.ui:ui:1.2.0-alpha08")
+    implementation("androidx.compose.ui:ui:1.2.0-beta01")
     debugImplementation ("androidx.compose.ui:ui-tooling:1.1.1")
     implementation ("androidx.compose.ui:ui-tooling-preview:1.1.1")
-    implementation("androidx.compose.material:material:1.2.0-alpha08")
+    implementation("androidx.compose.material:material:1.2.0-beta01")
 
     implementation ("com.google.android.exoplayer:exoplayer:2.17.1")
     implementation ("com.google.android.exoplayer:extension-mediasession:2.17.1")
@@ -55,8 +55,8 @@ android {
         applicationId = "com.rld.justlisten.android"
         minSdk = 21
         targetSdk = 30
-        versionCode = 10
-        versionName = "0.2.2"
+        versionCode = 11
+        versionName = "0.2.3"
         vectorDrawables {
             useSupportLibrary = true
         }
