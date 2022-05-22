@@ -2,6 +2,9 @@
 
 A music player currently only for android. It is using [Audius](https://audius.org/) public APIs to display and get the playlists/songs.
 
+## Demo
+https://www.youtube.com/watch?v=IAExKH6L5P4
+
 ## Features
 
 - Search songs & playlists on the Audius infrastructure 
