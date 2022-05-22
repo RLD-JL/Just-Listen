@@ -10,18 +10,18 @@ dependencies {
     implementation(project(":shared"))
     implementation("com.google.android.material:material:1.6.0")
     implementation("androidx.appcompat:appcompat:1.4.1")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.3")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.0-rc01")
     implementation("androidx.activity:activity-compose:1.4.0")
     implementation ("androidx.palette:palette-ktx:1.0.0")
 
-    implementation ("androidx.compose.ui:ui-util:1.2.0-beta01")
+    implementation ("androidx.compose.ui:ui-util:1.2.0-beta02")
     implementation("androidx.compose.animation:animation:1.1.1")
-    implementation("androidx.compose.ui:ui:1.2.0-beta01")
+    implementation("androidx.compose.ui:ui:1.2.0-beta02")
     debugImplementation ("androidx.compose.ui:ui-tooling:1.1.1")
     implementation ("androidx.compose.ui:ui-tooling-preview:1.1.1")
-    implementation("androidx.compose.material:material:1.2.0-beta01")
+    implementation("androidx.compose.material:material:1.2.0-beta02")
 
     implementation ("com.google.android.exoplayer:exoplayer:2.17.1")
     implementation ("com.google.android.exoplayer:extension-mediasession:2.17.1")
@@ -36,7 +36,7 @@ dependencies {
     annotationProcessor ("com.github.bumptech.glide:compiler:4.12.0")
 
     implementation ("com.google.accompanist:accompanist-swiperefresh:0.24.1-alpha")
-    implementation("androidx.core:core-splashscreen:1.0.0-beta02")
+    implementation("androidx.core:core-splashscreen:1.0.0-rc01")
 
 
 
@@ -54,7 +54,7 @@ android {
     defaultConfig {
         applicationId = "com.rld.justlisten.android"
         minSdk = 21
-        targetSdk = 30
+        targetSdk = 31
         versionCode = 12
         versionName = "1.0.0"
         vectorDrawables {
