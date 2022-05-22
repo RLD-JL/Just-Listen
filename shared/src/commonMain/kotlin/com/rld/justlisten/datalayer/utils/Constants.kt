@@ -78,4 +78,6 @@ object Constants {
 
     val list = listOf("Electronic", "Rock", "Trending", "Pop", "Classical")
 
+    const val appName = "Just Listen"
+
 }
