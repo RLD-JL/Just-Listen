@@ -5,6 +5,11 @@ A music player currently only for android. It is using [Audius](https://audius.o
 ## Demo
 https://www.youtube.com/watch?v=IAExKH6L5P4
 
+<p align="start">
+  <img src="https://media.giphy.com/media/bQL1BBclhAKQtD9DDp/giphy.gif" />
+  <img src="https://media.giphy.com/media/CRDD9919lB8l1D6HCM/giphy.gif" />
+</p>
+
 ## Features
 
 - Search songs & playlists on the Audius infrastructure 
