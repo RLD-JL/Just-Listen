@@ -2,12 +2,15 @@
 
 A music player currently only for android. It is using [Audius](https://audius.org/) public APIs to display and get the playlists/songs.
 
+Available [here](https://play.google.com/store/apps/details?id=com.rld.justlisten.android)
+
 ## Demo
 https://www.youtube.com/watch?v=IAExKH6L5P4
 
+## GIFs 
 <p align="start">
-  <img src="https://media.giphy.com/media/bQL1BBclhAKQtD9DDp/giphy.gif" />
-  <img src="https://media.giphy.com/media/CRDD9919lB8l1D6HCM/giphy.gif" />
+<img width = "340" height ="600" src="https://user-images.githubusercontent.com/106017010/169871821-10779d18-ebf4-4a4d-92a9-bc4c44dd4b65.GIF" /img>
+<img width = "340" height ="600" src="https://user-images.githubusercontent.com/106017010/169871828-202b61e8-cc0e-405a-95ba-d1a20cd5d0cd.GIF" /img>
 </p>
 
 ## Features
