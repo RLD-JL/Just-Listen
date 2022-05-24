@@ -21,6 +21,12 @@ https://www.youtube.com/watch?v=IAExKH6L5P4
 - Adds songs to favorite
 - No data leaves your phone, other than the calls to get information from Audius APIs
 
+## Technologies 
+- Kotlin Multiplatform Mobile
+- SQLDelight
+- Ktor
+- Jetpack Compose
+
 ## Credits
 - [Audius](https://audius.org/) for providing free APIs to access the content.
 - [D-KMP](https://github.com/dbaroncelli/D-KMP-sample) for the architecture sample on KMM.
