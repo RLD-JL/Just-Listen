@@ -5,9 +5,10 @@ import com.rld.justlisten.datalayer.utils.Constants.listOfBaseUrls
 import com.rld.justlisten.datalayer.utils.Constants.usedBasedUrl
 import com.rld.justlisten.datalayer.webservices.apis.playlistcalls.PlayListResponse
 import io.ktor.client.*
-import io.ktor.client.request.*
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.*
+import io.ktor.client.request.*
+import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlin.random.Random
@@ -44,8 +45,8 @@ class ApiClient {
                     usedBasedUrl["goodBaseUrl"] = if (bestResponseTime["goodBaseUrl"] == responseTime) baseUrl else usedBasedUrl["goodBaseUrl"] ?: baseUrl
                     return  response }
             } catch (e: Exception) {
+                delay(10)
                 numberOfCalls +=1
-                println("Something went wrong: $url" + e.cause + " message= " + e.message)
             }
         }
         return null
