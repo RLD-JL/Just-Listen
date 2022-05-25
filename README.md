@@ -34,6 +34,12 @@ https://www.youtube.com/watch?v=IAExKH6L5P4
 - [UAMP](https://github.com/android/uamp) for media player sample using ExoPlayer.
 - Every other person that motivated me and helped with testing.
 
+## Contibutors
+Contributors are way more than welcomed, especially for iOS development.
+
+## Discord
+If you have any questions you can ask [here](https://discord.gg/vFfUTenp)
+
 ## Support
 If you like the app and would like more features and bug fixes, please consider supporting me.
 
