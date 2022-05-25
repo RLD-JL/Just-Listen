@@ -2,7 +2,7 @@
 
 A music player currently only for android. It is using [Audius](https://audius.org/) public APIs to display and get the playlists/songs.
 
-Available [here](https://play.google.com/store/apps/details?id=com.rld.justlisten.android)
+Available on [google play store](https://play.google.com/store/apps/details?id=com.rld.justlisten.android).
 
 ## Demo
 https://www.youtube.com/watch?v=IAExKH6L5P4
@@ -19,6 +19,8 @@ https://www.youtube.com/watch?v=IAExKH6L5P4
 - Listen to songs & audiobooks in the background for free
 - Create your private playlists
 - Adds songs to favorite
+- Check your recent played
+- Different themes 
 - No data leaves your phone, other than the calls to get information from Audius APIs
 
 ## Technologies 
@@ -37,8 +39,8 @@ https://www.youtube.com/watch?v=IAExKH6L5P4
 ## Contibutors
 Contributors are way more than welcomed, especially for iOS development.
 
-## Discord
-If you have any questions you can ask [here](https://discord.gg/vFfUTenp)
+## Contact
+If you have any questions you can get in touch on [discord](https://discord.gg/vFfUTenp) or via [twitter](https://twitter.com/RldJust).
 
 ## Support
 If you like the app and would like more features and bug fixes, please consider supporting me.
