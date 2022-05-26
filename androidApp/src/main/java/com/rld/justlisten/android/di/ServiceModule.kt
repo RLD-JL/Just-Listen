@@ -67,7 +67,7 @@ object ServiceModule {
         val httpDataSourceFactory: HttpDataSource.Factory =
             DefaultHttpDataSource.Factory()
 
-        val evictor = LeastRecentlyUsedCacheEvictor((100 * 1024 * 1024).toLong())
+        val evictor = LeastRecentlyUsedCacheEvictor((50 * 1024 * 1024).toLong())
         val databaseProvider: DatabaseProvider = StandaloneDatabaseProvider(context)
 
         val simpleCache = SimpleCache(File(context.cacheDir, "media"), evictor, databaseProvider)
