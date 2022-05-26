@@ -23,6 +23,10 @@ https://www.youtube.com/watch?v=IAExKH6L5P4
 - Different themes 
 - No data leaves your phone, other than the calls to get information from Audius APIs
 
+## WARNING ⚠️
+Currently with the available version on google play store there is an issue with a jetpack compose library that is making the app crash. I found a temporary work around. But it will take a while to get it on Google Play Store.
+Before the fix gets available, I suggest not creating your own playlists.
+
 ## Technologies 
 - Kotlin Multiplatform Mobile
 - SQLDelight
