@@ -30,6 +30,11 @@ Currently with the available version on google play store there is an issue with
 
 Before the fix gets available, I suggest not creating your own playlists.
 
+<b>
+The app is high network data consumption, so I would highly suggest using it only on wifi, unless you have a lot of network data.
+One of the reasons for it is the high quality of the songs (320kbps). 
+</b>
+
 ## Technologies 
 - Kotlin Multiplatform Mobile
 - SQLDelight
