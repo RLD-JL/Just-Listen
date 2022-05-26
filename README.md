@@ -21,6 +21,8 @@ https://www.youtube.com/watch?v=IAExKH6L5P4
 - Adds songs to favorite
 - Check your recent played
 - Different themes 
+- Shuffle, repeat one/all songs
+- Notification manager displayed
 - No data leaves your phone, other than the calls to get information from Audius APIs
 
 ## WARNING ⚠️
