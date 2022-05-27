@@ -23,7 +23,7 @@ https://www.youtube.com/watch?v=IAExKH6L5P4
 - Different themes 
 - Shuffle, repeat one/all songs
 - Notification manager displayed
-- No data leaves your phone, other than the calls to get information from Audius APIs
+- No private data leaves your phone
 
 ## WARNING ⚠️
 <b>
