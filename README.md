@@ -26,13 +26,10 @@ https://www.youtube.com/watch?v=IAExKH6L5P4
 - No data leaves your phone, other than the calls to get information from Audius APIs
 
 ## WARNING ⚠️
-Currently with the available version on google play store there is an issue with a jetpack compose library that is making the app crash. I found a temporary work around, but it will take a while to get it on Google Play Store.
-
-Before the fix gets available, I suggest not creating your own playlists.
-
 <b>
 The app is high network data consumption, so I would highly suggest using it only on wifi, unless you have a lot of network data.
-One of the reasons for it is the high quality of the songs (320kbps). 
+One of the reasons for it is the high quality of the songs (320kbps), icons and because I am not doing caching. 
+I am working on fixing this.
 </b>
 
 ## Technologies 
