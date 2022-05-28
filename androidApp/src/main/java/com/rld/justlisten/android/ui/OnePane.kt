@@ -2,7 +2,10 @@ package com.rld.justlisten.android.ui
 
 import android.media.session.PlaybackState
 import android.widget.Toast
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -36,7 +39,9 @@ fun Navigation.OnePane(
     saveableStateHolder: SaveableStateHolder,
     musicServiceConnection: MusicServiceConnection,
     settingsUpdated: () -> Unit,
-    hasNavigationFundOn: Boolean
+    hasNavigationFundOn: Boolean,
+    backgroundColor: Int,
+    updateStatusBarColor: (Int, Boolean) -> Unit
 ) {
     val shouldHavePlayBar =
         musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
@@ -53,7 +58,7 @@ fun Navigation.OnePane(
 
     val context = LocalContext.current
 
-    val dominantColorMutable = rememberSaveable { mutableMapOf("null" to 12312312) }
+    val dominantColorMutable = rememberSaveable { mutableMapOf("null" to backgroundColor) }
 
     val addPlaylistList = remember { mutableStateOf(events.getPlaylist()) }
 
@@ -80,7 +85,7 @@ fun Navigation.OnePane(
                         currentFraction = scaffoldState.fraction,
                         onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
                         musicServiceConnection = musicServiceConnection,
-                        dominantColor = dominantColorMutable[id] ?: 12312312,
+                        dominantColor = dominantColorMutable[id] ?: backgroundColor,
                         onFavoritePressed = { id, title, userModel, songIconList, isFavorite ->
                             events.saveSongToFavorites(
                                 id,
@@ -115,6 +120,7 @@ fun Navigation.OnePane(
                         },
                         newDominantColor = {songId, color ->
                             dominantColorMutable[songId] = color
+                            updateStatusBarColor(color, scaffoldState.bottomSheetState.isExpanded)
                         },
                         playBarMinimizedClicked = {
                             coroutineScope.launch { scaffoldState.bottomSheetState.expand() }

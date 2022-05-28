@@ -1,7 +1,9 @@
 package com.rld.justlisten.android.ui.bottombars.playbar
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Icon
+import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +43,7 @@ fun PlayerBottomBar(
     newDominantColor: (String, Int) -> Unit,
     playBarMinimizedClicked: () -> Unit
 ) {
-    val list = listOf(Color(dominantColor), Color(dominantColor).copy(alpha = 0.6f))
+    val list = listOf(Color(dominantColor), Color(dominantColor).copy(alpha = 0.8f))
     BoxWithConstraints(
         modifier = if (currentFraction > 0.001) Modifier
             .verticalGradientBackground(list)
