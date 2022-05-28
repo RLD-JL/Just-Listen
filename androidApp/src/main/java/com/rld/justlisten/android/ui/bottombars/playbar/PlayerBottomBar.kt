@@ -39,7 +39,7 @@ fun PlayerBottomBar(
     onBackgroundClicked: () -> Unit,
     painterLoaded: (Painter) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    newDominantColor: (String, Int) -> Unit,
+    newDominantColor: (Int) -> Unit,
     playBarMinimizedClicked: () -> Unit
 ) {
     var gradientColor by remember {
@@ -59,9 +59,9 @@ fun PlayerBottomBar(
             PlayBarSwipeActions(
                 songIcon, currentFraction, constraints,
                 title, musicServiceConnection, onSkipNextPressed, painterLoaded, onFavoritePressed,
-                newDominantColor = { key, color ->
+                newDominantColor = { color ->
                     gradientColor = color
-                    newDominantColor(key, color)
+                    newDominantColor(color)
                 },
                 playBarMinimizedClicked = playBarMinimizedClicked
             )

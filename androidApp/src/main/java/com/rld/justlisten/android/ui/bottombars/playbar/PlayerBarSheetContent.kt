@@ -32,7 +32,7 @@ fun PlayerBarSheetContent(
     onAddPlaylistClicked: (String, String?) -> Unit,
     getLatestPlaylist: () -> Unit,
     clickedToAddSongToPlaylist: (String, String?,  List<String>) -> Unit,
-    newDominantColor: (String, Int) -> Unit,
+    newDominantColor: (Int) -> Unit,
     playBarMinimizedClicked: () -> Unit
 ) {
     val songIcon =

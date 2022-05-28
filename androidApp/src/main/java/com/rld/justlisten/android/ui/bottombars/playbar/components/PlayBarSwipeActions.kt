@@ -14,7 +14,6 @@ import coil.compose.SubcomposeAsyncImageContent
 import coil.request.ImageRequest
 import coil.size.Size
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
-import com.rld.justlisten.android.exoplayer.library.extension.id
 import com.rld.justlisten.android.ui.components.AnimatedShimmer
 import com.rld.justlisten.android.ui.utils.heightSize
 import com.rld.justlisten.android.ui.utils.offsetX
@@ -28,15 +27,13 @@ fun PlayBarSwipeActions(
     musicServiceConnection: MusicServiceConnection, onSkipNextPressed: () -> Unit,
     painterLoaded: (Painter) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    newDominantColor: (String, Int) -> Unit,
+    newDominantColor: (Int) -> Unit,
     playBarMinimizedClicked: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        val id = musicServiceConnection.currentPlayingSong.value?.id.toString()
-
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(songIcon)
@@ -56,7 +53,7 @@ fun PlayBarSwipeActions(
                 val drawable = state.result.drawable
                 Palette.Builder(drawable.toBitmap()).generate { palette ->
                     palette?.dominantSwatch?.let { swatch ->
-                        newDominantColor(id, swatch.rgb)
+                        newDominantColor(swatch.rgb)
                     }
                 }
                 SubcomposeAsyncImageContent()

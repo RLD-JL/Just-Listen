@@ -2,10 +2,8 @@ package com.rld.justlisten.android.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.util.fastForEach
 import coil.annotation.ExperimentalCoilApi
 import com.rld.justlisten.Navigation
@@ -20,13 +18,12 @@ fun Navigation.Router(
     updateStatusBarColor: (Int, Boolean) -> Unit
 ) {
     val screenUIisStateHolder = rememberSaveableStateHolder()
-    val backgroundColor = MaterialTheme.colors.background.toArgb()
+
     OnePane(
         screenUIisStateHolder,
         musicServiceConnection,
         settingsUpdated = settingsUpdated,
         hasNavigationFundOn,
-        backgroundColor,
         updateStatusBarColor = updateStatusBarColor
     )
 

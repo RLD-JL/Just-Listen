@@ -12,7 +12,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.SaveableStateHolder
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -40,7 +39,6 @@ fun Navigation.OnePane(
     musicServiceConnection: MusicServiceConnection,
     settingsUpdated: () -> Unit,
     hasNavigationFundOn: Boolean,
-    backgroundColor: Int,
     updateStatusBarColor: (Int, Boolean) -> Unit
 ) {
     val shouldHavePlayBar =
@@ -54,11 +52,7 @@ fun Navigation.OnePane(
         bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     )
 
-    val id = musicServiceConnection.currentPlayingSong.value?.id.toString()
-
     val context = LocalContext.current
-
-    val dominantColorMutable = rememberSaveable { mutableMapOf("null" to backgroundColor) }
 
     val addPlaylistList = remember { mutableStateOf(events.getPlaylist()) }
 
@@ -118,8 +112,7 @@ fun Navigation.OnePane(
                                 Toast.LENGTH_SHORT
                             ).show()
                         },
-                        newDominantColor = { songId, color ->
-                            dominantColorMutable[songId] = color
+                        newDominantColor = { color ->
                             updateStatusBarColor(
                                 color,
                                 scaffoldState.bottomSheetState.isExpanded &&
