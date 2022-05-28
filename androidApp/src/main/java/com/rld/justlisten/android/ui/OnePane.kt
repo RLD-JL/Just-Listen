@@ -83,9 +83,9 @@ fun Navigation.OnePane(
                         onCollapsedClicked = { coroutineScope.launch { scaffoldState.bottomSheetState.collapse() } },
                         bottomPadding = bottomBarPadding,
                         currentFraction = scaffoldState.fraction,
+                        isExpanded = scaffoldState.bottomSheetState.isExpanded,
                         onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
                         musicServiceConnection = musicServiceConnection,
-                        dominantColor = dominantColorMutable[id] ?: backgroundColor,
                         onFavoritePressed = { id, title, userModel, songIconList, isFavorite ->
                             events.saveSongToFavorites(
                                 id,

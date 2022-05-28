@@ -23,9 +23,9 @@ import kotlinx.coroutines.launch
 fun PlayerBarSheetContent(
     bottomPadding: Dp,
     currentFraction: Float,
+    isExpanded: Boolean,
     onSkipNextPressed: () -> Unit,
     musicServiceConnection: MusicServiceConnection,
-    dominantColor: Int,
     onCollapsedClicked: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     addPlaylistList: List<AddPlaylist>,
@@ -91,6 +91,7 @@ fun PlayerBarSheetContent(
             onCollapsedClicked = onCollapsedClicked,
             bottomPadding = bottomPadding,
             currentFraction = currentFraction,
+            isExtended = isExpanded,
             songIcon = songIcon, title = title,
             musicServiceConnection = musicServiceConnection,
             onSkipNextPressed = onSkipNextPressed,
@@ -106,7 +107,6 @@ fun PlayerBarSheetContent(
                 mutablePainter.value = painter
             },
             playBarMinimizedClicked =  playBarMinimizedClicked,
-            dominantColor = dominantColor,
             onFavoritePressed = onFavoritePressed,
             newDominantColor = newDominantColor
         )

@@ -34,6 +34,20 @@ fun Modifier.verticalGradientBackground(
     )
 }
 
+fun Modifier.verticalGradientBackgroundColor(
+    color: Int
+): Modifier {
+    val colors = listOf(Color(color), Color(color).copy(alpha = 0.8f))
+
+    return this.gradientBackground(colors) { gradientColors, size ->
+        Brush.verticalGradient(
+            colors = gradientColors,
+            startY = 0f,
+            endY = size.width
+        )
+    }
+}
+
 fun Modifier.diagonalGradientTint(
     colors: List<Color>,
     blendMode: BlendMode
