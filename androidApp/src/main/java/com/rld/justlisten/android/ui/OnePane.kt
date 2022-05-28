@@ -118,9 +118,13 @@ fun Navigation.OnePane(
                                 Toast.LENGTH_SHORT
                             ).show()
                         },
-                        newDominantColor = {songId, color ->
+                        newDominantColor = { songId, color ->
                             dominantColorMutable[songId] = color
-                            updateStatusBarColor(color, scaffoldState.bottomSheetState.isExpanded)
+                            updateStatusBarColor(
+                                color,
+                                scaffoldState.bottomSheetState.isExpanded &&
+                                scaffoldState.bottomSheetState.targetValue != BottomSheetValue.Collapsed
+                            )
                         },
                         playBarMinimizedClicked = {
                             coroutineScope.launch { scaffoldState.bottomSheetState.expand() }
@@ -132,7 +136,8 @@ fun Navigation.OnePane(
                             Modifier.padding(bottom = bottomBarPadding)
                     ) {
                         saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
-                            ScreenPicker(currentScreenIdentifier,
+                            ScreenPicker(
+                                currentScreenIdentifier,
                                 musicServiceConnection,
                                 settingsUpdated = settingsUpdated
                             )
