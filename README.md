@@ -9,7 +9,7 @@ https://www.youtube.com/watch?v=IAExKH6L5P4
 
 ## GIFs 
 <p align="start">
-<img width = "340" height ="600" src="https://user-images.githubusercontent.com/106017010/169871821-10779d18-ebf4-4a4d-92a9-bc4c44dd4b65.GIF" /img>
+<img width = "340" height ="600" src="https://user-images.githubusercontent.com/106017010/170878348-11563819-ca1b-4012-b4d9-12c436942e28.gif" /img>
 <img width = "340" height ="600" src="https://user-images.githubusercontent.com/106017010/169871828-202b61e8-cc0e-405a-95ba-d1a20cd5d0cd.GIF" /img>
 </p>
 
