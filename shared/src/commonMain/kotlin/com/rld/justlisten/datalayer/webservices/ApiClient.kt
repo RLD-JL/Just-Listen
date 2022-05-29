@@ -9,7 +9,6 @@ import io.ktor.client.features.*
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
-import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlin.collections.set
@@ -24,7 +23,7 @@ class ApiClient {
             })
         }
         install(HttpTimeout) {
-            requestTimeoutMillis = 3000
+            requestTimeoutMillis = 4000
         }
     }
 
@@ -55,7 +54,6 @@ class ApiClient {
                     return response
                 }
             } catch (e: Exception) {
-                delay(10)
                 numberOfCalls += 1
             }
         }
