@@ -23,22 +23,21 @@ import kotlinx.coroutines.launch
 fun PlayerBarSheetContent(
     bottomPadding: Dp,
     currentFraction: Float,
+    isExtended: Boolean,
     onSkipNextPressed: () -> Unit,
     musicServiceConnection: MusicServiceConnection,
-    dominantColor: Int,
     onCollapsedClicked: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     addPlaylistList: List<AddPlaylist>,
     onAddPlaylistClicked: (String, String?) -> Unit,
     getLatestPlaylist: () -> Unit,
-    clickedToAddSongToPlaylist: (String, String?,  List<String>) -> Unit,
-    newDominantColor: (String, Int) -> Unit,
+    clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit,
+    newDominantColor: (Int) -> Unit,
     playBarMinimizedClicked: () -> Unit
 ) {
-    val songIcon =
-        musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString()
-    val title =
-        musicServiceConnection.currentPlayingSong.value?.description?.title.toString()
+    val songIcon by remember { derivedStateOf { musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString() } }
+    val title by remember { derivedStateOf {
+        musicServiceConnection.currentPlayingSong.value?.description?.title.toString()  } }
 
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
@@ -91,6 +90,7 @@ fun PlayerBarSheetContent(
             onCollapsedClicked = onCollapsedClicked,
             bottomPadding = bottomPadding,
             currentFraction = currentFraction,
+            isExtended = isExtended,
             songIcon = songIcon, title = title,
             musicServiceConnection = musicServiceConnection,
             onSkipNextPressed = onSkipNextPressed,
@@ -105,8 +105,7 @@ fun PlayerBarSheetContent(
             painterLoaded = { painter ->
                 mutablePainter.value = painter
             },
-            playBarMinimizedClicked =  playBarMinimizedClicked,
-            dominantColor = dominantColor,
+            playBarMinimizedClicked = playBarMinimizedClicked,
             onFavoritePressed = onFavoritePressed,
             newDominantColor = newDominantColor
         )

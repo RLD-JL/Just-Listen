@@ -1,13 +1,16 @@
 package com.rld.justlisten.android.ui.bottombars.playbar
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
-import androidx.compose.runtime.Composable
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Icon
+import androidx.compose.material.LinearProgressIndicator
+import androidx.compose.material.MaterialTheme
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -18,7 +21,7 @@ import com.rld.justlisten.android.ui.bottombars.playbar.components.PlayBarAction
 import com.rld.justlisten.android.ui.bottombars.playbar.components.PlayBarSwipeActions
 import com.rld.justlisten.android.ui.bottombars.playbar.components.PlayBarTopSection
 import com.rld.justlisten.android.ui.extensions.noRippleClickable
-import com.rld.justlisten.android.ui.theme.modifiers.verticalGradientBackground
+import com.rld.justlisten.android.ui.theme.modifiers.verticalGradientBackgroundColor
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import kotlinx.coroutines.InternalCoroutinesApi
@@ -28,6 +31,7 @@ import kotlinx.coroutines.InternalCoroutinesApi
 fun PlayerBottomBar(
     bottomPadding: Dp,
     currentFraction: Float,
+    isExtended: Boolean,
     songIcon: String,
     title: String,
     musicServiceConnection: MusicServiceConnection,
@@ -36,15 +40,18 @@ fun PlayerBottomBar(
     onMoreClicked: () -> Unit,
     onBackgroundClicked: () -> Unit,
     painterLoaded: (Painter) -> Unit,
-    dominantColor: Int,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    newDominantColor: (String, Int) -> Unit,
+    newDominantColor: (Int) -> Unit,
     playBarMinimizedClicked: () -> Unit
 ) {
-    val list = listOf(Color(dominantColor), Color(dominantColor).copy(alpha = 0.6f))
+    val color = MaterialTheme.colors.background.toArgb()
+    var gradientColor by remember {
+        mutableStateOf(color)
+    }
+
     BoxWithConstraints(
-        modifier = if (currentFraction > 0.001) Modifier
-            .verticalGradientBackground(list)
+        modifier = if (isExtended) Modifier
+            .verticalGradientBackgroundColor(gradientColor)
             .noRippleClickable { onBackgroundClicked() } else Modifier.noRippleClickable { onBackgroundClicked() }
     ) {
         val constraints = this@BoxWithConstraints
@@ -55,8 +62,11 @@ fun PlayerBottomBar(
             PlayBarSwipeActions(
                 songIcon, currentFraction, constraints,
                 title, musicServiceConnection, onSkipNextPressed, painterLoaded, onFavoritePressed,
-                newDominantColor = newDominantColor,
-                playBarMinimizedClicked =  playBarMinimizedClicked
+                newDominantColor = { color ->
+                    gradientColor = color
+                    newDominantColor(color)
+                },
+                playBarMinimizedClicked = playBarMinimizedClicked
             )
             LinearProgressIndicator(
                 progress = musicServiceConnection.songDuration.value / curSongDuration.toFloat(),
