@@ -9,11 +9,11 @@ import android.support.v4.media.session.MediaSessionCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.rld.justlisten.android.R
 import com.rld.justlisten.android.exoplayer.utils.Constants.NOTIFICATION_CHANNEL_ID
 import com.rld.justlisten.android.exoplayer.utils.Constants.NOTIFICATION_ID
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import kotlinx.coroutines.*
 
 class MusicNotificationManager(
@@ -97,19 +97,14 @@ class MusicNotificationManager(
         }
 
         private suspend fun resolveUriAsBitmap(uri: Uri): Bitmap? {
-            withContext(Dispatchers.IO) {
+            return withContext(Dispatchers.IO) {
                 // Block on downloading artwork.
-                return@withContext try {
-                    Glide.with(context).applyDefaultRequestOptions(glideOptions)
-                        .asBitmap()
-                        .load(uri)
-                        .submit(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
-                        .get()
-                } catch (e: Exception) {
-                    return@withContext null
-                }
+                Glide.with(context).applyDefaultRequestOptions(glideOptions)
+                    .asBitmap()
+                    .load(uri)
+                    .submit(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
+                    .get()
             }
-            return null
         }
     }
 }
