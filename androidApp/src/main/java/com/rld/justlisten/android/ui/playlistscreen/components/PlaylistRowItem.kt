@@ -35,7 +35,7 @@ fun PlaylistRowItem(
 
         SubcomposeAsyncImage(model = ImageRequest.Builder(LocalContext.current)
             .data(playlistItem.songIconList.songImageURL480px)
-            .crossfade(true)
+            .allowHardware(true)
             .build(),
             modifier = Modifier
                 .width(180.dp)
