@@ -27,9 +27,7 @@ https://www.youtube.com/watch?v=IAExKH6L5P4
 
 ## WARNING ⚠️
 <b>
-The app is high network data consumption, so I would highly suggest using it only on wifi, unless you have a lot of network data.
-One of the reasons for it is the high quality of the songs (320kbps), icons and because I am not doing caching. 
-I am working on fixing this.
+The app is high network data consumption, since it streams songs at 320 kbps. I have done a test run and it consumed ~150 MB for listening to songs for 1 hour. Since it is streamed at 320 kbps that would be around 140 MB for one hour run, so I am satisfied.
 </b>
 
 ## Technologies 
@@ -37,6 +35,7 @@ I am working on fixing this.
 - SQLDelight
 - Ktor
 - Jetpack Compose
+- Hilt
 
 ## Credits
 - [Audius](https://audius.org/) for providing free APIs to access the content.
