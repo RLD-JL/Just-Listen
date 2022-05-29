@@ -5,6 +5,7 @@ import android.support.v4.media.MediaMetadataCompat
 import com.rld.justlisten.android.exoplayer.State.*
 import com.rld.justlisten.android.exoplayer.library.extension.*
 import com.rld.justlisten.datalayer.utils.Constants.BASEURL
+import com.rld.justlisten.datalayer.utils.Constants.appName
 import com.rld.justlisten.viewmodel.interfaces.Item
 
 class MusicSource {
@@ -75,7 +76,7 @@ class MusicSource {
     }
 
     private fun setSongUrl(songId: String): String {
-        return "${BASEURL}/v1/tracks/${songId}/stream?app_name=EXAMPLEAPP"
+        return "${BASEURL}/v1/tracks/${songId}/stream?app_name=$appName"
     }
 }
 

@@ -9,8 +9,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.rld.justlisten.android.ui.MainComposable
-import com.rld.justlisten.android.ui.theme.JustListenTheme
 import com.rld.justlisten.android.ui.theme.ColorPallet
+import com.rld.justlisten.android.ui.theme.JustListenTheme
 import com.rld.justlisten.android.ui.utils.getColorPallet
 import com.rld.justlisten.datalayer.datacalls.settings.getSettingsInfo
 
@@ -31,15 +31,24 @@ class MainActivity : ComponentActivity() {
                 darkTheme = settingsInfo.value.isDarkThemeOn,
                 colorPallet = getColorPallet(settingsInfo.value.palletColor)
             ) {
-                window.statusBarColor = if (getColorPallet(settingsInfo.value.palletColor) == ColorPallet.Dark) MaterialTheme.colors.background.toArgb()
-                else MaterialTheme.colors.primary.toArgb()
-                window.navigationBarColor =  if (getColorPallet(settingsInfo.value.palletColor) == ColorPallet.Dark)
-                    MaterialTheme.colors.background.toArgb() else MaterialTheme.colors.primary.toArgb()
+                val statusBarColor =
+                    if (getColorPallet(settingsInfo.value.palletColor) == ColorPallet.Dark) MaterialTheme.colors.background.toArgb()
+                    else MaterialTheme.colors.primary.toArgb()
+                window.statusBarColor = statusBarColor
+                window.navigationBarColor =
+                    if (getColorPallet(settingsInfo.value.palletColor) == ColorPallet.Dark)
+                        MaterialTheme.colors.background.toArgb() else MaterialTheme.colors.primary.toArgb()
                 MainComposable(
                     model, musicServiceConnection, settingsUpdated = {
                         settingsInfo.value = model.repository.getSettingsInfo()
                     },
-                    hasNavigationDonationOn = settingsInfo.value.hasNavigationDonationOn
+                    hasNavigationDonationOn = settingsInfo.value.hasNavigationDonationOn,
+                    updateStatusBarColor = { color, extended ->
+                        if (extended)
+                            window.statusBarColor = color
+                        else
+                            window.statusBarColor = statusBarColor
+                    }
                 )
             }
         }

@@ -2,14 +2,13 @@ package com.rld.justlisten.android.ui
 
 import android.media.session.PlaybackState
 import android.widget.Toast
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.SaveableStateHolder
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -36,105 +35,110 @@ fun Navigation.OnePane(
     saveableStateHolder: SaveableStateHolder,
     musicServiceConnection: MusicServiceConnection,
     settingsUpdated: () -> Unit,
-    hasNavigationFundOn: Boolean
+    hasNavigationFundOn: Boolean,
+    updateStatusBarColor: (Int, Boolean) -> Unit
 ) {
-    val shouldHavePlayBar =
-        musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
-                || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PAUSED
-                || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_SKIPPING_TO_NEXT
-                || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_BUFFERING
-                || musicServiceConnection.currentPlayingSong.value != null
+    val shouldHavePlayBar by remember {
+        derivedStateOf {
+            musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING
+                    || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PAUSED
+                    || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_SKIPPING_TO_NEXT
+                    || musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_BUFFERING
+                    || musicServiceConnection.currentPlayingSong.value != null
+        }
+    }
 
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
-    )
+        val scaffoldState = rememberBottomSheetScaffoldState(
+            bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
+        )
 
-    val id = musicServiceConnection.currentPlayingSong.value?.id.toString()
+        val context = LocalContext.current
 
-    val context = LocalContext.current
+        val addPlaylistList = remember { mutableStateOf(events.getPlaylist()) }
 
-    val dominantColorMutable = rememberSaveable { mutableMapOf("null" to 12312312) }
-
-    val addPlaylistList = remember { mutableStateOf(events.getPlaylist()) }
-
-    val coroutineScope = rememberCoroutineScope()
-    Scaffold(
-        bottomBar = {
-            if (currentScreenIdentifier.screen.navigationLevel == 1) {
-                Level1BottomBar(
-                    currentScreenIdentifier,
-                    Modifier.offset(y = lerp(0f, 65f, scaffoldState.fraction).dp),
-                    hasNavigationFundOn
-                )
-            }
-        },
-        content = {
-            val bottomBarPadding = it.calculateBottomPadding()
-            BottomSheetScaffold(
-                modifier = Modifier.fillMaxSize(),
-                scaffoldState = scaffoldState,
-                sheetContent = {
-                    PlayerBarSheetContent(
-                        onCollapsedClicked = { coroutineScope.launch { scaffoldState.bottomSheetState.collapse() } },
-                        bottomPadding = bottomBarPadding,
-                        currentFraction = scaffoldState.fraction,
-                        onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
-                        musicServiceConnection = musicServiceConnection,
-                        dominantColor = dominantColorMutable[id] ?: 12312312,
-                        onFavoritePressed = { id, title, userModel, songIconList, isFavorite ->
-                            events.saveSongToFavorites(
-                                id,
-                                title,
-                                userModel,
-                                songIconList,
-                                isFavorite = isFavorite
-                            )
-                            updateFavorite(isFavorite, musicServiceConnection, id)
-                        },
-                        addPlaylistList = addPlaylistList.value,
-                        onAddPlaylistClicked = { playlistName, playlistDescription ->
-                            events.addPlaylist(playlistName, playlistDescription)
-                            addPlaylistList.value = events.getPlaylist()
-                        },
-                        getLatestPlaylist = {
-                            addPlaylistList.value = events.getPlaylist()
-                        },
-                        clickedToAddSongToPlaylist = { playlistTitle, playlistDescription, songList ->
-                            val list = songList.toMutableList()
-                            list.add(musicServiceConnection.currentPlayingSong.value?.id ?: "")
-                            events.updatePlaylistSongs(
-                                playlistTitle,
-                                playlistDescription,
-                                list
-                            )
-                            Toast.makeText(
-                                context,
-                                "The song was added to $playlistTitle",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        },
-                        newDominantColor = {songId, color ->
-                            dominantColorMutable[songId] = color
-                        },
-                        playBarMinimizedClicked = {
-                            coroutineScope.launch { scaffoldState.bottomSheetState.expand() }
-                        }
+        val coroutineScope = rememberCoroutineScope()
+        Scaffold(
+            bottomBar = {
+                if (currentScreenIdentifier.screen.navigationLevel == 1) {
+                    Level1BottomBar(
+                        currentScreenIdentifier,
+                        Modifier.offset(y = lerp(0f, 65f, scaffoldState.fraction).dp),
+                        hasNavigationFundOn
                     )
-                }, content = {
-                    Column(
-                        modifier = if (shouldHavePlayBar) Modifier.padding(bottom = bottomBarPadding + 55.dp) else
-                            Modifier.padding(bottom = bottomBarPadding)
-                    ) {
-                        saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
-                            ScreenPicker(currentScreenIdentifier,
-                                musicServiceConnection,
-                                settingsUpdated = settingsUpdated
-                            )
+                }
+            },
+            content = {
+                val bottomBarPadding = it.calculateBottomPadding()
+                BottomSheetScaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    scaffoldState = scaffoldState,
+                    sheetContent = {
+                        PlayerBarSheetContent(
+                            onCollapsedClicked = { coroutineScope.launch { scaffoldState.bottomSheetState.collapse() } },
+                            bottomPadding = bottomBarPadding,
+                            currentFraction = scaffoldState.fraction,
+                            isExtended = scaffoldState.bottomSheetState.isExpanded,
+                            onSkipNextPressed = { musicServiceConnection.transportControls.skipToNext() },
+                            musicServiceConnection = musicServiceConnection,
+                            onFavoritePressed = { id, title, userModel, songIconList, isFavorite ->
+                                events.saveSongToFavorites(
+                                    id,
+                                    title,
+                                    userModel,
+                                    songIconList,
+                                    isFavorite = isFavorite
+                                )
+                                updateFavorite(isFavorite, musicServiceConnection, id)
+                            },
+                            addPlaylistList = addPlaylistList.value,
+                            onAddPlaylistClicked = { playlistName, playlistDescription ->
+                                events.addPlaylist(playlistName, playlistDescription)
+                                addPlaylistList.value = events.getPlaylist()
+                            },
+                            getLatestPlaylist = {
+                                addPlaylistList.value = events.getPlaylist()
+                            },
+                            clickedToAddSongToPlaylist = { playlistTitle, playlistDescription, songList ->
+                                val list = songList.toMutableList()
+                                list.add(musicServiceConnection.currentPlayingSong.value?.id ?: "")
+                                events.updatePlaylistSongs(
+                                    playlistTitle,
+                                    playlistDescription,
+                                    list
+                                )
+                                Toast.makeText(
+                                    context,
+                                    "The song was added to $playlistTitle",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            newDominantColor = { color ->
+                                updateStatusBarColor(
+                                    color,
+                                    scaffoldState.bottomSheetState.isExpanded &&
+                                            scaffoldState.bottomSheetState.targetValue != BottomSheetValue.Collapsed
+                                )
+                            },
+                            playBarMinimizedClicked = {
+                                coroutineScope.launch { scaffoldState.bottomSheetState.expand() }
+                            }
+                        )
+                    }, content = {
+                        Column(
+                            modifier = if (shouldHavePlayBar) Modifier.padding(bottom = bottomBarPadding + 55.dp) else
+                                Modifier.padding(bottom = bottomBarPadding)
+                        ) {
+                            saveableStateHolder.SaveableStateProvider(currentScreenIdentifier.URI) {
+                                ScreenPicker(
+                                    currentScreenIdentifier,
+                                    musicServiceConnection,
+                                    settingsUpdated = settingsUpdated
+                                )
+                            }
                         }
-                    }
-                }, sheetPeekHeight = if (shouldHavePlayBar) {
-                    bottomBarPadding + 65.dp
-                } else bottomBarPadding - 50.dp
-            )
-        })
-}
+                    }, sheetPeekHeight = if (shouldHavePlayBar) {
+                        bottomBarPadding + 65.dp
+                    } else bottomBarPadding - 50.dp
+                )
+            })
+    }

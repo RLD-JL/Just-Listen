@@ -9,7 +9,7 @@ import com.rld.justlisten.viewmodel.screens.ScreenInitSettings
 import com.rld.justlisten.viewmodel.screens.search.TrackItem
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.supervisorScope
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
@@ -31,7 +31,7 @@ fun Navigation.initPlaylist(params: PlaylistParams) = ScreenInitSettings(
                 queryIndex -= 1
             else queryIndex += 1
         }
-        coroutineScope {
+        supervisorScope {
             playlist = async { dataRepository.getPlaylist(index = 20, PlayListEnum.TOP_PLAYLIST) }
             tracks = async { dataRepository.getTracks(limit = 16, "Electronic", "week") }
             remix = async { dataRepository.getPlaylist(index = 20, PlayListEnum.REMIX, queryPlaylist = list[queryIndex]) }
