@@ -9,7 +9,7 @@ import com.rld.justlisten.viewmodel.screens.ScreenInitSettings
 import com.rld.justlisten.viewmodel.screens.search.TrackItem
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
@@ -27,26 +27,38 @@ fun Navigation.initPlaylist(params: PlaylistParams) = ScreenInitSettings(
         var queryIndex = Random.nextInt(0, list.size)
         val queryIndex2 = Random.nextInt(0, list.size)
         if (queryIndex == queryIndex2) {
-            if (queryIndex>0)
+            if (queryIndex > 0)
                 queryIndex -= 1
             else queryIndex += 1
         }
-        supervisorScope {
+        coroutineScope {
             playlist = async { dataRepository.getPlaylist(index = 20, PlayListEnum.TOP_PLAYLIST) }
             tracks = async { dataRepository.getTracks(limit = 16, "Electronic", "week") }
-            remix = async { dataRepository.getPlaylist(index = 20, PlayListEnum.REMIX, queryPlaylist = list[queryIndex]) }
-            hot = async { dataRepository.getPlaylist(index = 20, PlayListEnum.HOT, queryPlaylist = list[queryIndex2]) }
-        }
-        stateManager.updateScreen(PlaylistState::class) {
-            it.copy(
-                remixPlaylist = remix.await(),
-                isLoading = false,
-                playlistItems = playlist.await(),
-                hotPlaylist = hot.await(),
-                queryIndex = queryIndex,
-                queryIndex2 = queryIndex2,
-                tracksList = tracks.await()
-            )
+            remix = async {
+                dataRepository.getPlaylist(
+                    index = 20,
+                    PlayListEnum.REMIX,
+                    queryPlaylist = list[queryIndex]
+                )
+            }
+            hot = async {
+                dataRepository.getPlaylist(
+                    index = 20,
+                    PlayListEnum.HOT,
+                    queryPlaylist = list[queryIndex2]
+                )
+            }
+            stateManager.updateScreen(PlaylistState::class) {
+                it.copy(
+                    remixPlaylist = remix.await(),
+                    isLoading = false,
+                    playlistItems = playlist.await(),
+                    hotPlaylist = hot.await(),
+                    queryIndex = queryIndex,
+                    queryIndex2 = queryIndex2,
+                    tracksList = tracks.await()
+                )
+            }
         }
     },
     reinitOnEachNavigation = false
