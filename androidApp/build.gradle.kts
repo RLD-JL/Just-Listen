@@ -33,7 +33,7 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.38.1")
     kapt("com.google.dagger:hilt-android-compiler:2.38.1")
     implementation("com.github.bumptech.glide:glide:4.13.2")
-    annotationProcessor("com.github.bumptech.glide:compiler:4.13.2")
+    kapt("com.github.bumptech.glide:compiler:4.13.2")
 
     implementation("com.google.accompanist:accompanist-swiperefresh:0.24.1-alpha")
     implementation("androidx.core:core-splashscreen:1.0.0-rc01")
