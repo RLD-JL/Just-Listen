@@ -16,9 +16,9 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.4.0")
     implementation("androidx.palette:palette-ktx:1.0.0")
 
-    implementation("androidx.compose.ui:ui-util:1.2.0-beta03")
-    implementation("androidx.compose.material:material:1.2.0-beta03")
-    implementation("androidx.compose.ui:ui:1.2.0-beta03")
+    implementation("androidx.compose.ui:ui-util:1.2.0-beta02")
+    implementation("androidx.compose.material:material:1.2.0-beta02")
+    implementation("androidx.compose.ui:ui:1.2.0-beta02")
     implementation("androidx.compose.animation:animation:1.1.1")
     debugImplementation("androidx.compose.ui:ui-tooling:1.1.1")
     implementation("androidx.compose.ui:ui-tooling-preview:1.1.1")
