@@ -1,6 +1,7 @@
 package com.rld.justlisten.android.ui.screenpicker
 
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import com.rld.justlisten.Navigation
 import com.rld.justlisten.ScreenIdentifier
@@ -44,7 +45,7 @@ fun Navigation.ScreenPicker(
     musicServiceConnection: MusicServiceConnection,
     settingsUpdated: () -> Unit
 ) {
-    val isPlayerReady: MutableState<Boolean> = remember {
+    val isPlayerReady: MutableState<Boolean> = rememberSaveable{
         mutableStateOf(false)
     }
 
@@ -158,7 +159,7 @@ fun Navigation.ScreenPicker(
                 isPlayerReady.value = false
             },
             searchScreenState = stateProvider.get(screenIdentifier = screenIdentifier),
-            onSongPressed = { songId, title, user, songIcon ->
+            onSongPressed = { songId, _, _, _ ->
                 playMusicFromId(
                     musicServiceConnection,
                     (stateProvider.get(screenIdentifier = screenIdentifier) as SearchScreenState).searchResultTracks,
