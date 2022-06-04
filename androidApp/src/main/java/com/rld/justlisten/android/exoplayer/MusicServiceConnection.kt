@@ -17,7 +17,7 @@ import kotlinx.coroutines.*
 import javax.inject.Inject
 
 class MusicServiceConnection @Inject constructor(
-    val musicSource: MusicSource,
+    private val musicSource: MusicSource,
     context: Context
 ) {
 
