@@ -2,7 +2,7 @@
 
 A music player currently only for android. It is using [Audius](https://audius.org/) public APIs to display and get the playlists/songs.
 
-Available on [google play store](https://play.google.com/store/apps/details?id=com.rld.justlisten.android).
+Available on [google play store](https://play.google.com/store/apps/details?id=com.rld.justlisten.android) and [on github](https://github.com/RLD-JL/Just-Listen/releases/tag/v1.0.2)
 
 ## Demo
 https://www.youtube.com/watch?v=IAExKH6L5P4
