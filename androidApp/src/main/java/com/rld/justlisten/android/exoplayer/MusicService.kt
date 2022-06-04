@@ -8,18 +8,21 @@ import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.media.MediaBrowserServiceCompat
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
+import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import com.rld.justlisten.android.exoplayer.callbacks.MusicPlaybackPreparer
 import com.rld.justlisten.android.exoplayer.callbacks.MusicPlayerEventListener
 import com.rld.justlisten.android.exoplayer.callbacks.MusicPlayerNotificationListener
 import com.rld.justlisten.android.exoplayer.library.extension.toMediaItem
 import com.rld.justlisten.android.exoplayer.utils.Constants.MEDIA_ROOT_ID
 import com.rld.justlisten.android.exoplayer.utils.Constants.NETWORK_ERROR
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
-import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import javax.inject.Inject
 
 private const val SERVICE_TAG = "MusicService"
@@ -32,7 +35,7 @@ class MusicService : MediaBrowserServiceCompat() {
 
     lateinit var musicNotificationManager: MusicNotificationManager
 
-    private val serviceJob = Job()
+    private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
     private lateinit var mediaSession: MediaSessionCompat
