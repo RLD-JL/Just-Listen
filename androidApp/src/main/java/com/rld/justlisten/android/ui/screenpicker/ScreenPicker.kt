@@ -107,7 +107,7 @@ fun Navigation.ScreenPicker(
                 },
                 onSearchClicked = { navigate(Search) },
                 refreshScreen = { events.refreshScreen() },
-                onSongPressed = { songId, title, user, songIcon ->
+                onSongPressed = { songId, _, _, _ ->
                     if (isPlayerReady.value) {
                         isPlayerReady.value = false
                     }
