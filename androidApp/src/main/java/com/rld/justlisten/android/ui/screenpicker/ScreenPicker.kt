@@ -74,12 +74,23 @@ fun Navigation.ScreenPicker(
             LibraryScreen(
                 musicServiceConnection = musicServiceConnection,
                 libraryState = stateProvider.get(screenIdentifier),
-                onPlaylistPressed = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
+                onFavoritePlaylistPressed = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
                     navigate(
                         PlaylistDetail,
                         PlaylistDetailParams(
                             playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
                             FAVORITE
+                        )
+                    )
+                    events.playMusicFromPlaylist(playlistId = playlistId)
+                },
+                onMostPlaylistPressed = {
+                        playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
+                    navigate(
+                        PlaylistDetail,
+                        PlaylistDetailParams(
+                            playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
+                            MOST_PLAYED
                         )
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)

@@ -9,8 +9,12 @@ import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -32,7 +36,8 @@ import com.rld.justlisten.viewmodel.screens.search.TrackItem
 fun LibraryScreen(
     musicServiceConnection: MusicServiceConnection,
     libraryState: LibraryState,
-    onPlaylistPressed: (String, String, String, String) -> Unit,
+    onFavoritePlaylistPressed: (String, String, String, String) -> Unit,
+    onMostPlaylistPressed: (String, String, String, String) -> Unit,
     onPlayListViewClicked: () -> Unit,
     lasItemReached: (Int) -> Unit
 ) {
@@ -63,7 +68,9 @@ fun LibraryScreen(
             Divider(thickness = 1.dp)
             PlaylistView(onPlayListViewClicked)
             Spacer(modifier = Modifier.height(10.dp))
-            FavoritePlaylist(libraryState, onPlaylistPressed)
+            FavoritePlaylist(libraryState, onFavoritePlaylistPressed)
+            Spacer(modifier = Modifier.height(10.dp))
+            MostPlayedSongs(libraryState, onMostPlaylistPressed)
         }
     }
 }
@@ -154,6 +161,42 @@ fun FavoritePlaylist(
         Text(
             modifier = Modifier.padding(start = 5.dp),
             text = "Favorite Playlist",
+            fontWeight = FontWeight.ExtraBold,
+            fontSize = 20.sp
+        )
+    }
+}
+
+@Composable
+fun MostPlayedSongs(
+    libraryState: LibraryState,
+    onPlaylistPressed: (String, String, String, String) -> Unit
+) {
+    val songIcon =
+        if (libraryState.mostPlayedSongs.isNotEmpty())
+            libraryState.mostPlayedSongs[0].songIconList.songImageURL480px
+        else
+            ""
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 15.dp)
+            .clickable(
+                onClick = {
+                    onPlaylistPressed(
+                        "Most Played",
+                        songIcon,
+                        "Most Played",
+                        "You"
+                    )
+                }
+            ),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(imageVector = Icons.Default.AccountCircle, contentDescription = null)
+        Text(
+            modifier = Modifier.padding(start = 5.dp),
+            text = "Most Played Songs",
             fontWeight = FontWeight.ExtraBold,
             fontSize = 20.sp
         )
