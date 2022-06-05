@@ -8,17 +8,17 @@ plugins {
 
 dependencies {
     implementation(project(":shared"))
-    implementation("com.google.android.material:material:1.6.0")
-    implementation("androidx.appcompat:appcompat:1.4.1")
+    implementation("com.google.android.material:material:1.6.1")
+    implementation("androidx.appcompat:appcompat:1.4.2")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.0-rc01")
     implementation("androidx.activity:activity-compose:1.4.0")
     implementation("androidx.palette:palette-ktx:1.0.0")
 
-    implementation("androidx.compose.ui:ui-util:1.2.0-beta02")
-    implementation("androidx.compose.material:material:1.2.0-beta02")
-    implementation("androidx.compose.ui:ui:1.2.0-beta02")
+    implementation("androidx.compose.ui:ui-util:1.2.0-beta03")
+    implementation("androidx.compose.material:material:1.2.0-beta03")
+    implementation("androidx.compose.ui:ui:1.2.0-beta03")
     implementation("androidx.compose.animation:animation:1.1.1")
     debugImplementation("androidx.compose.ui:ui-tooling:1.1.1")
     implementation("androidx.compose.ui:ui-tooling-preview:1.1.1")
@@ -51,8 +51,8 @@ android {
         applicationId = "com.rld.justlisten.android"
         minSdk = 21
         targetSdk = 32
-        versionCode = 15
-        versionName = "1.0.3"
+        versionCode = 16
+        versionName = "1.0.4"
         vectorDrawables {
             useSupportLibrary = true
         }
