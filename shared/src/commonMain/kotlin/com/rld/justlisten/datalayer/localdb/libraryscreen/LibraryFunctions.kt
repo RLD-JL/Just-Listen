@@ -55,6 +55,15 @@ fun LocalDb.saveSongRecentSongs(
     }
 }
 
+fun LocalDb.saveMostPlayedSongs(
+    id: String, title: String, user: UserModel, songImgList: SongIconList,
+    playlistName: String
+) {
+    libraryQueries.transaction {
+        libraryQueries.upsertLibraryMostPlayed(id, title, user, songImgList, playlistName)
+    }
+}
+
 fun LocalDb.getRecentPlayed(numberOfLines: Long): List<PlayListModel> {
     return libraryQueries.getRecentPlayed(
         mapper = { id, title, user, songImgList, _, _, isFavorite, _, _ ->

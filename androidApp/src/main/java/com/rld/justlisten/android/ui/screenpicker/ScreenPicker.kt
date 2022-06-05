@@ -25,6 +25,7 @@ import com.rld.justlisten.viewmodel.screens.addplaylist.addPlaylist
 import com.rld.justlisten.viewmodel.screens.addplaylist.updatePlaylist
 import com.rld.justlisten.viewmodel.screens.library.getLastPlayed
 import com.rld.justlisten.viewmodel.screens.library.saveSongToFavorites
+import com.rld.justlisten.viewmodel.screens.library.saveSongToMostPlayed
 import com.rld.justlisten.viewmodel.screens.library.saveSongToRecent
 import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum.*
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistState
@@ -65,6 +66,7 @@ fun Navigation.ScreenPicker(
                 songImageURL1000px = songIcon.replace("480", "1000")
             )
             events.saveSongToRecent(newId, title, user, icon)
+            events.saveSongToMostPlayed(newId, title, user, icon)
         }
     }
 

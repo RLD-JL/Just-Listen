@@ -16,6 +16,11 @@ fun Repository.saveSongToRecent(id: String, title : String, user: UserModel, son
     localDb.saveSongRecentSongs(id, title, user, songImgList, playlistName)
 }
 
+fun Repository.saveSongToMostPlayed(id: String, title : String, user: UserModel, songImgList: SongIconList,
+                                playlistName: String) {
+    localDb.saveMostPlayedSongs(id, title, user, songImgList, playlistName)
+}
+
 fun Repository.getFavoritePlaylist(): List<PlayListModel> {
     return localDb.getFavoritePlaylist()
 }
