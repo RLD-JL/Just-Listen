@@ -54,6 +54,7 @@ fun Events.fetchPlaylist(index: Int, playlistEnum: PlayListEnum, queryPlaylist: 
                 CURRENT_PLAYLIST -> TODO()
                 CREATED_BY_USER -> TODO()
                 FAVORITE -> it.copy(currentPlaylist = dataRepository.getPlaylist(0, playlistEnum))
+                MOST_PLAYED -> TODO()
             }
         }
     }
