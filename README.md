@@ -45,7 +45,7 @@ I am working on fixing this.
 - [UAMP](https://github.com/android/uamp) for media player sample using ExoPlayer.
 - Every other person that motivated me and helped with testing.
 
-## Contibutors
+## Contributors
 Contributors are way more than welcomed, especially for iOS development.
 
 ## Contact
