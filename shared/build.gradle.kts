@@ -44,7 +44,7 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-android:$ktor_version")
-                implementation("com.squareup.sqldelight:android-driver:1.5.0")
+                implementation("com.squareup.sqldelight:android-driver:1.5.3")
 
             }
         }
@@ -57,7 +57,7 @@ kotlin {
         val iosMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-ios:$ktor_version")
-                implementation("com.squareup.sqldelight:native-driver:1.5.0")
+                implementation("com.squareup.sqldelight:native-driver:1.5.3")
 
             }
         }
