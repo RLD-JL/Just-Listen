@@ -17,7 +17,7 @@ import kotlinx.coroutines.*
 import javax.inject.Inject
 
 class MusicServiceConnection @Inject constructor(
-    val musicSource: MusicSource,
+    private val musicSource: MusicSource,
     context: Context
 ) {
 
@@ -75,13 +75,14 @@ class MusicServiceConnection @Inject constructor(
         serviceScope.launch {
             while (!sliderClicked.value) {
                 ensureActive()
+                delay(100L)
                 val pos = playbackState.value?.currentPlaybackPosition
                 if (songDuration.value != pos) {
                     pos?.let {
                         songDuration.value = it
                     }
                 }
-                delay(1000L)
+                delay(900L)
             }
         }
     }

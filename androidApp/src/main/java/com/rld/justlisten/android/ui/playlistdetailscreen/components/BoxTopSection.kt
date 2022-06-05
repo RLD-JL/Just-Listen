@@ -1,8 +1,13 @@
 package com.rld.justlisten.android.ui.playlistdetailscreen.components
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.MaterialTheme.typography
@@ -13,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,8 +41,10 @@ fun BoxTopSection(scrollState: MutableState<Float>, playlistDetailState: Playlis
                 .padding(8.dp)
         )
         Text(
-            text = playlistDetailState.playlistName,
-            style = typography.h5.copy(fontWeight = FontWeight.ExtraBold),
+            text = playlistDetailState.playListCreatedBy,
+            style = typography.subtitle2.copy(fontWeight = FontWeight.ExtraBold),
+            maxLines = 1,
+            textAlign = TextAlign.Center,
             modifier = Modifier.padding(8.dp),
         )
         Text(
@@ -51,7 +59,9 @@ fun BoxTopSection(scrollState: MutableState<Float>, playlistDetailState: Playlis
                 .padding(vertical = 4.dp, horizontal = 24.dp)
         )
         Text(
-            text = "Playlist created by ${playlistDetailState.playListCreatedBy}",
+            text = "Created by ${playlistDetailState.playlistName}",
+            maxLines = 1,
+            textAlign = TextAlign.Center,
             style = typography.subtitle2,
             modifier = Modifier.padding(4.dp)
         )

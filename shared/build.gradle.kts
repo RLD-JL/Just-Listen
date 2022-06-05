@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
-    kotlin("plugin.serialization") version "1.6.20"
+    kotlin("plugin.serialization") version "1.6.21"
     id("com.squareup.sqldelight")
 }
 
@@ -24,16 +24,15 @@ kotlin {
         }
     }
     sourceSets {
-        val ktor_version = "1.6.3"
+        val ktor_version = "2.0.2"
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
-                implementation("io.ktor:ktor-client-core:$ktor_version")
-                implementation("io.ktor:ktor-client-json:$ktor_version")
-                implementation("io.ktor:ktor-client-logging:$ktor_version")
-                implementation("io.ktor:ktor-client-serialization:$ktor_version")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
+                implementation("io.ktor:ktor-client-core:$ktor_version")
+                implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+                implementation("io.ktor:ktor-client-logging:$ktor_version")
             }
         }
         val commonTest by getting {

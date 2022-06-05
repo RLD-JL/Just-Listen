@@ -1,11 +1,11 @@
 package com.rld.justlisten.android.exoplayer.callbacks
 
 import android.widget.Toast
-import com.rld.justlisten.android.exoplayer.MusicNotificationManager
-import com.rld.justlisten.android.exoplayer.MusicService
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
+import com.rld.justlisten.android.exoplayer.MusicNotificationManager
+import com.rld.justlisten.android.exoplayer.MusicService
 
 class MusicPlayerEventListener(
     private val musicService: MusicService,
@@ -22,7 +22,7 @@ class MusicPlayerEventListener(
 
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
-        Toast.makeText(musicService, "Error", Toast.LENGTH_SHORT).show()
+        Toast.makeText(musicService, "Unfortunately this song has issues, try another one", Toast.LENGTH_SHORT).show()
     }
 
     override fun onPlaybackStateChanged(playbackState: Int) {

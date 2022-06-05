@@ -1,13 +1,10 @@
 package com.rld.justlisten.android.ui.bottombars.playbar.components
 
 import android.media.session.PlaybackState
-import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v4.media.session.PlaybackStateCompat.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.DragInteraction
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.*
@@ -16,7 +13,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -26,10 +22,8 @@ import com.rld.justlisten.android.exoplayer.MusicService
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 import com.rld.justlisten.android.ui.extensions.ModifiedSlider
 import com.rld.justlisten.android.ui.utils.offsetX
-import com.rld.justlisten.android.ui.utils.offsetY
 import com.rld.justlisten.android.ui.utils.widthSize
 import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 
 @InternalCoroutinesApi
 @Composable
@@ -48,13 +42,17 @@ fun PlayBarActionsMaximized(
         interactionSource.interactions.collect { interaction ->
             when (interaction) {
                 is PressInteraction.Press -> {
+                    musicServiceConnection.sliderClicked.value = true
+                }
+                is PressInteraction.Release -> {
                     musicServiceConnection.transportControls.seekTo(musicServiceConnection.songDuration.value)
                     musicServiceConnection.sliderClicked.value = false
                     musicServiceConnection.updateSong()
                 }
-                is PressInteraction.Release -> {}
                 is PressInteraction.Cancel -> {}
-                is DragInteraction.Start -> {}
+                is DragInteraction.Start -> {
+                    musicServiceConnection.sliderClicked.value = true
+                }
                 is DragInteraction.Stop -> {
                     musicServiceConnection.transportControls.seekTo(musicServiceConnection.songDuration.value)
                     musicServiceConnection.sliderClicked.value = false
@@ -87,7 +85,6 @@ fun PlayBarActionsMaximized(
                     .offset(x = offsetX(currentFraction, maxWidth).dp)
                     .width(widthSize(currentFraction, maxWidth).dp),
                 value = sliderPosition, onValueChange = {
-                    musicServiceConnection.sliderClicked.value = true
                     musicServiceConnection.songDuration.value =
                         (it * MusicService.curSongDuration).toLong()
                 })

@@ -74,7 +74,7 @@ object Constants {
     )
 
     val usedBasedUrl = mutableMapOf<String, String>()
-    val bestResponseTime = mutableMapOf<String, Int>()
+    val bestResponseTime = mutableMapOf<String, Long>()
 
     val list = listOf("Electronic", "Rock", "Trending", "Pop", "Classical")
 
