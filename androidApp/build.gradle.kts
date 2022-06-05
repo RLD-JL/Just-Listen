@@ -17,11 +17,11 @@ dependencies {
     implementation("androidx.palette:palette-ktx:1.0.0")
 
     implementation("androidx.compose.ui:ui-util:1.2.0-beta02")
-    implementation("androidx.compose.animation:animation:1.1.1")
+    implementation("androidx.compose.material:material:1.2.0-beta02")
     implementation("androidx.compose.ui:ui:1.2.0-beta02")
+    implementation("androidx.compose.animation:animation:1.1.1")
     debugImplementation("androidx.compose.ui:ui-tooling:1.1.1")
     implementation("androidx.compose.ui:ui-tooling-preview:1.1.1")
-    implementation("androidx.compose.material:material:1.2.0-beta02")
 
     implementation("com.google.android.exoplayer:exoplayer:2.17.1")
     implementation("com.google.android.exoplayer:extension-mediasession:2.17.1")
@@ -32,13 +32,9 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.1.0")
     implementation("com.google.dagger:hilt-android:2.38.1")
     kapt("com.google.dagger:hilt-android-compiler:2.38.1")
-    implementation("com.github.bumptech.glide:glide:4.13.2")
-    annotationProcessor("com.github.bumptech.glide:compiler:4.13.2")
 
     implementation("com.google.accompanist:accompanist-swiperefresh:0.24.1-alpha")
     implementation("androidx.core:core-splashscreen:1.0.0-rc01")
-
-
 
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:${rootProject.extra["compose_version"]}")
     debugImplementation("androidx.compose.ui:ui-tooling:${rootProject.extra["compose_version"]}")
@@ -50,13 +46,13 @@ kapt {
 }
 
 android {
-    compileSdk = 31
+    compileSdk = 32
     defaultConfig {
         applicationId = "com.rld.justlisten.android"
         minSdk = 21
-        targetSdk = 31
-        versionCode = 14
-        versionName = "1.0.2"
+        targetSdk = 32
+        versionCode = 15
+        versionName = "1.0.3"
         vectorDrawables {
             useSupportLibrary = true
         }

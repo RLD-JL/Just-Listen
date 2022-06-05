@@ -3,12 +3,14 @@ package com.rld.justlisten.android.exoplayer
 import android.app.PendingIntent
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.RequestOptions
+import coil.ImageLoader
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.rld.justlisten.android.R
@@ -98,19 +100,24 @@ class MusicNotificationManager(
 
         private suspend fun resolveUriAsBitmap(uri: Uri): Bitmap? {
             return withContext(Dispatchers.IO) {
-                // Block on downloading artwork.
-                Glide.with(context).applyDefaultRequestOptions(glideOptions)
-                    .asBitmap()
-                    .load(uri)
-                    .submit(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
-                    .get()
+                getBitmap(uri)
             }
         }
     }
+
+    private suspend fun getBitmap(uri: Uri): Bitmap? {
+        val loader = ImageLoader(context)
+        val request = ImageRequest.Builder(context)
+            .data(uri)
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .allowHardware(false) // Disable hardware bitmaps.
+            .build()
+        return try {
+            val result = (loader.execute(request) as SuccessResult).drawable
+            (result as BitmapDrawable).bitmap
+        } catch (e: Exception) {
+            null
+        }
+    }
 }
-
-const val NOTIFICATION_LARGE_ICON_SIZE = 144 // px
-
-private val glideOptions = RequestOptions()
-    .fallback(R.drawable.ic_add_to_playlist_background)
-    .diskCacheStrategy(DiskCacheStrategy.DATA)

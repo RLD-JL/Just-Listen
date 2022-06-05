@@ -23,13 +23,13 @@ fun Events.searchFor(searchInfo: String) = screenCoroutine {
         coroutineScope {
             tracksList = async { dataRepository.searchForTracks(searchInfo) }
             playList = async { dataRepository.searchForPlaylist(searchInfo) }
+            val trackListResult = tracksList.await()
+            val playlistResult = playList.await()
+            searchState.copy(
+                searchResultTracks = trackListResult, isLoading = false, searchFor = searchInfo,
+                searchResultPlaylist = playlistResult
+            )
         }
-        val trackListResult = tracksList.await()
-        val playlistResult = playList.await()
-        searchState.copy(
-            searchResultTracks = trackListResult, isLoading = false, searchFor = searchInfo,
-            searchResultPlaylist = playlistResult
-        )
     }
 }
 
