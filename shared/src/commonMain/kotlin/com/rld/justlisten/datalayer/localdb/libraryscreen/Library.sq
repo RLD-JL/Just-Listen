@@ -40,5 +40,12 @@ upsertLibraryRecent {
     INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName, recentPlayed, favoriteSong, recentIncrement, songCounter)
     VALUES(:id, :title, :user,  :songImgList, :playlistName, 1,
     (SELECT favoriteSong FROM Library WHERE id= :id), (SELECT IFNULL(MAX(recentIncrement), 0) +1 FROM Library WHERE recentPlayed = 1),
-    (SELECT favoriteSong FROM Library WHERE id= :id));
+    (SELECT songCounter FROM Library WHERE id= :id));
+}
+
+upsertLibraryMostPlayed {
+    INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName, recentPlayed, favoriteSong, recentIncrement, songCounter)
+    VALUES(:id, :title, :user,  :songImgList, :playlistName, 1,
+    (SELECT favoriteSong FROM Library WHERE id= :id), (SELECT recentIncrement FROM Library WHERE id= :id),
+    (SELECT IFNULL(songCounter, 0) +1 FROM Library WHERE id = : id));
 }
