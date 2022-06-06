@@ -23,10 +23,9 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling:1.1.1")
     implementation("androidx.compose.ui:ui-tooling-preview:1.1.1")
 
-    implementation("com.google.android.exoplayer:exoplayer:2.17.1")
-    implementation("com.google.android.exoplayer:extension-mediasession:2.17.1")
-    implementation("com.google.android.exoplayer:extension-cast:2.17.1")
-
+    implementation ("com.google.android.exoplayer:exoplayer-core:2.17.1")
+    implementation ("com.google.android.exoplayer:extension-mediasession:2.17.1")
+    implementation ("com.google.android.exoplayer:exoplayer-ui:2.17.1")
 
     implementation("androidx.lifecycle:lifecycle-process:2.4.1")
     implementation("io.coil-kt:coil-compose:2.1.0")
