@@ -5,6 +5,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import com.rld.justlisten.Navigation
 import com.rld.justlisten.ScreenIdentifier
+import com.rld.justlisten.android.exoplayer.MusicService
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 import com.rld.justlisten.android.exoplayer.library.extension.displayIconUri
 import com.rld.justlisten.android.exoplayer.library.extension.id
@@ -66,7 +67,23 @@ fun Navigation.ScreenPicker(
                 songImageURL1000px = songIcon.replace("480", "1000")
             )
             events.saveSongToRecent(newId, title, user, icon)
+        }
+    }
+
+    if (MusicService.songHasRepeated.value) {
+        LaunchedEffect(key1 = MusicService.songHasRepeated) {
+            val title = musicServiceConnection.currentPlayingSong.value?.title ?: "title"
+            val newId = musicServiceConnection.currentPlayingSong.value?.id ?: "id"
+            val user = UserModel("asd")
+            val songIcon =
+                musicServiceConnection.currentPlayingSong.value?.displayIconUri.toString()
+            val icon = SongIconList(
+                songImageURL150px = songIcon,
+                songImageURL480px = songIcon,
+                songImageURL1000px = songIcon.replace("480", "1000")
+            )
             events.saveSongToMostPlayed(newId, title, user, icon)
+            MusicService.songHasRepeated.value = false
         }
     }
 
