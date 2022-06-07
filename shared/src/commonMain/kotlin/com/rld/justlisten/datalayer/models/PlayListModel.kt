@@ -12,5 +12,6 @@ data class PlayListModel(
     @SerialName("artwork") val songImgList: SongIconList = SongIconList(),
     @SerialName("user") val user: UserModel = UserModel(),
     @SerialName("is_playlist") val isPlaylist: Boolean = false,
-    @Transient val isFavorite: Boolean = false
+    @Transient val isFavorite: Boolean = false,
+    @Transient val songCounter: String = ""
 )

@@ -2,7 +2,6 @@ package com.rld.justlisten.viewmodel.screens.search
 
 import com.rld.justlisten.ScreenState
 import com.rld.justlisten.datalayer.models.PlayListModel
-import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.viewmodel.interfaces.Item
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 
@@ -21,4 +20,6 @@ data class TrackItem(val _data: PlayListModel, override var isFavorite: Boolean 
     override val playlistTitle = _data.playlistTitle
     override val id = _data.id
     override val songIconList = _data.songImgList
+    override val songCounter: String
+        get() = TODO("Not yet implemented")
 }
