@@ -32,5 +32,6 @@ data class PlaylistItem(
     override val playlistTitle = _data.playlistTitle
     override val id = _data.id
     override val songIconList = _data.songImgList
+    override val songCounter = _data.songCounter
 }
 

@@ -82,13 +82,14 @@ fun LocalDb.getRecentPlayed(numberOfLines: Long): List<PlayListModel> {
 
 fun LocalDb.getMostPlayedSongs(numberOfSongs: Long): List<PlayListModel> {
     return libraryQueries.getMostPlayed(numberOfSongs = numberOfSongs,
-        mapper = { id, title, user, songImgList, _, _, _, _, _ ->
+        mapper = { id, title, user, songImgList, _, _, _, _, songCounter ->
             PlayListModel(
                 id = id,
                 playlistTitle = title,
                 title = title,
                 user = user,
-                songImgList = songImgList
+                songImgList = songImgList,
+                songCounter = songCounter.toString()
             )
         }).executeAsList()
 }
