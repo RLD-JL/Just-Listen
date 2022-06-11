@@ -35,12 +35,12 @@ import com.rld.justlisten.android.ui.loadingscreen.LoadingScreen
 import com.rld.justlisten.android.ui.playlistscreen.Header
 import com.rld.justlisten.android.ui.playlistscreen.components.PlaylistRowItem
 import com.rld.justlisten.android.ui.playlistscreen.components.TrackGridItem
+import com.rld.justlisten.android.ui.searchscreen.components.VerticalGrid
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.viewmodel.interfaces.Item
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import com.rld.justlisten.viewmodel.screens.search.SearchScreenState
 import com.rld.justlisten.viewmodel.screens.search.TrackItem
-import com.rld.justlisten.android.ui.searchscreen.components.VerticalGrid
 
 @ExperimentalComposeUiApi
 @Composable
@@ -68,14 +68,13 @@ fun SearchScreen(
                 .verticalScroll(scrollState)
         ) {
             AnimatedToolBar(
-                onBackPressed,
-                requester,
-                onSearchPressed,
-                searchScreenState,
+               onBackPressed = onBackPressed,
+               requester = requester,
+                onSearchPressed = onSearchPressed,
                 updateSearch = { updateSearch ->
                     searchFor = updateSearch.trimStart { it == '0' }
                 },
-                searchFor
+               searchFor = searchFor
             )
             when {
                 searchScreenState.isLoading -> {
@@ -104,7 +103,6 @@ fun AnimatedToolBar(
     onBackPressed: (Boolean) -> Unit,
     requester: FocusRequester,
     onSearchPressed: (String) -> Unit,
-    searchedFor: SearchScreenState,
     updateSearch: (String) -> Unit,
     searchFor: String
 ) {
