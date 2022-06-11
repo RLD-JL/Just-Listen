@@ -1,36 +1,39 @@
 package com.rld.justlisten.android.ui.playlistdetailscreen
 
 import android.graphics.drawable.ColorDrawable
+import android.support.v4.media.MediaBrowserCompat
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import com.rld.justlisten.android.ui.playlistdetailscreen.components.SongListScrollingSection
-import com.rld.justlisten.android.ui.theme.modifiers.horizontalGradientBackground
-import android.support.v4.media.MediaBrowserCompat
-import androidx.compose.material.IconButton
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.runtime.*
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 import com.rld.justlisten.android.exoplayer.utils.Constants
 import com.rld.justlisten.android.ui.loadingscreen.LoadingScreen
+import com.rld.justlisten.android.ui.playlistdetailscreen.components.SongListScrollingSection
+import com.rld.justlisten.android.ui.theme.modifiers.horizontalGradientBackground
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.interfaces.Item
@@ -123,7 +126,7 @@ fun AnimatedToolBar(
             )
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        IconButton(onClick = { onBackButtonPressed(true) }) {
+        IconButton(modifier = Modifier.size(48.dp), onClick = { onBackButtonPressed(true) }) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = null,
