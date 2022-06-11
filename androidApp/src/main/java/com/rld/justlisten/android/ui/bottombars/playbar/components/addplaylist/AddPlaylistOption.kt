@@ -12,9 +12,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
-import com.rld.justlisten.android.ui.addplaylistscreen.AddPlaylistDialog
-import com.rld.justlisten.android.ui.addplaylistscreen.AddPlaylistRow
-import com.rld.justlisten.android.ui.addplaylistscreen.PlaylistViewItem
+import com.rld.justlisten.android.ui.addplaylistscreen.components.AddPlaylistDialog
+import com.rld.justlisten.android.ui.addplaylistscreen.components.AddPlaylistRow
+import com.rld.justlisten.android.ui.addplaylistscreen.components.PlaylistViewItem
 import com.rld.justlisten.android.ui.bottombars.playbar.components.more.TopSection
 import com.rld.justlisten.datalayer.localdb.addplaylistscreen.AddPlaylist
 
@@ -33,7 +33,7 @@ fun AddPlaylistOption(
             TopSection(title, painter)
             Divider(thickness = 2.dp)
         }
-        itemsIndexed(items = addPlaylistList) { index, playlist ->
+        itemsIndexed(items = addPlaylistList) { _, playlist ->
             PlaylistViewItem(playlist, clickedToAddSongToPlaylist)
         }
         item {
