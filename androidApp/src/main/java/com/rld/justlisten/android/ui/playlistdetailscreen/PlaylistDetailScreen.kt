@@ -1,43 +1,29 @@
 package com.rld.justlisten.android.ui.playlistdetailscreen
 
 import android.graphics.drawable.ColorDrawable
-import android.support.v4.media.MediaBrowserCompat
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
-import com.rld.justlisten.android.exoplayer.utils.Constants
 import com.rld.justlisten.android.ui.loadingscreen.LoadingScreen
-import com.rld.justlisten.android.ui.playlistdetailscreen.components.SongListScrollingSection
-import com.rld.justlisten.android.ui.theme.modifiers.horizontalGradientBackground
+import com.rld.justlisten.android.ui.playlistdetailscreen.components.AnimatedToolBar
+import com.rld.justlisten.android.ui.playlistdetailscreen.components.BottomScrollableContent
+import com.rld.justlisten.android.ui.utils.playMusic
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
-import com.rld.justlisten.viewmodel.interfaces.Item
-import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailState
 
 @Composable
@@ -106,92 +92,3 @@ fun PlaylistDetailScreen(
     }
 }
 
-@Composable
-fun AnimatedToolBar(
-    playlistDetailState: PlaylistDetailState,
-    scrollState: MutableState<Float>,
-    onBackButtonPressed: (Boolean) -> Unit
-) {
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalGradientBackground(
-                if (Dp(-scrollState.value) < 1080.dp)
-                    listOf(
-                        Color.Transparent,
-                        Color.Transparent
-                    ) else listOf(MaterialTheme.colors.background, MaterialTheme.colors.background)
-            )
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-        IconButton(modifier = Modifier.size(48.dp), onClick = { onBackButtonPressed(true) }) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = null,
-            )
-        }
-        Text(
-            text = playlistDetailState.playlistName,
-            modifier = Modifier
-                .alpha(((-scrollState.value + 0.010f) / 1000).coerceIn(0f, 1f))
-        )
-        Icon(
-            imageVector = Icons.Default.Search,
-            contentDescription = null,
-            modifier = Modifier.alpha(0f)
-        )
-    }
-}
-
-@Composable
-fun BottomScrollableContent(
-    playlistDetailState: PlaylistDetailState,
-    scrollState: MutableState<Float>,
-    playlist: List<PlaylistItem>,
-    onSongClicked: (String) -> Unit,
-    onShuffleClicked: () -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    painter: AsyncImagePainter
-) {
-    SongListScrollingSection(
-        painter = painter,
-        playlistDetailState = playlistDetailState,
-        scrollState = scrollState,
-        playlist = playlist,
-        onSongClicked = onSongClicked,
-        onShuffleClicked = onShuffleClicked,
-        onFavoritePressed = onFavoritePressed,
-    )
-}
-
-fun playMusicFromId(
-    musicServiceConnection: MusicServiceConnection,
-    playlist: List<Item>,
-    songId: String,
-    isPlayerReady: Boolean
-) {
-    if (isPlayerReady) {
-        musicServiceConnection.transportControls.playFromMediaId(songId, null)
-    } else {
-        playMusic(musicServiceConnection, playlist, isPlayerReady, songId)
-    }
-}
-
-fun playMusic(
-    musicServiceConnection: MusicServiceConnection,
-    playlist: List<Item>,
-    isPlayerReady: Boolean,
-    playFromId: String = ""
-) {
-    if (!isPlayerReady) {
-        musicServiceConnection.updatePlaylist(playlist)
-        musicServiceConnection.subscribe(
-            Constants.CLICKED_PLAYLIST,
-            object : MediaBrowserCompat.SubscriptionCallback() {})
-    }
-    if (playFromId != "") {
-        musicServiceConnection.transportControls.playFromMediaId(playFromId, null)
-    }
-}

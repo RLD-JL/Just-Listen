@@ -14,10 +14,10 @@ import com.rld.justlisten.android.ui.addplaylistscreen.AddPlaylistScreen
 import com.rld.justlisten.android.ui.donationscreen.DonationScreen
 import com.rld.justlisten.android.ui.libraryscreen.LibraryScreen
 import com.rld.justlisten.android.ui.playlistdetailscreen.PlaylistDetailScreen
-import com.rld.justlisten.android.ui.playlistdetailscreen.playMusicFromId
 import com.rld.justlisten.android.ui.playlistscreen.PlaylistScreen
 import com.rld.justlisten.android.ui.searchscreen.SearchScreen
 import com.rld.justlisten.android.ui.settingsscreen.SettingsScreen
+import com.rld.justlisten.android.ui.utils.playMusicFromId
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.Screen.*
