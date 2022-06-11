@@ -97,8 +97,9 @@ fun Navigation.ScreenPicker(
                     navigate(
                         PlaylistDetail,
                         PlaylistDetailParams(
-                            playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
-                            FAVORITE
+                           playlistId = playlistId, playlistIcon =  playlistIcon, playlistTitle = playlistTitle,
+                            playlistCreatedBy = playlistCreatedBy,
+                           playlistEnum =  FAVORITE
                         )
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)
