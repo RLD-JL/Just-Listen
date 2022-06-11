@@ -85,3 +85,11 @@ android {
     }
     namespace = "com.rld.justlisten.android"
 }
+
+sourceSets {
+    android {
+        kotlinOptions {
+            freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
+        }
+    }
+}
