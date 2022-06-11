@@ -24,7 +24,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.rld.justlisten.android.ui.extensions.customTabIndicatorOffset
 import com.rld.justlisten.android.ui.loadingscreen.LoadingScreen
 import com.rld.justlisten.android.ui.playlistscreen.components.PlaylistRowItem
-import com.rld.justlisten.android.ui.searchscreen.SearchGridTracks
+import com.rld.justlisten.android.ui.searchscreen.components.SearchGridTracks
 import com.rld.justlisten.android.ui.theme.modifiers.horizontalGradientBackground
 import com.rld.justlisten.android.ui.theme.typography
 import com.rld.justlisten.datalayer.models.SongIconList
