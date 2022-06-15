@@ -1,4 +1,4 @@
-package com.rld.justlisten.android.ui.bottombars.playbar
+package com.rld.justlisten.android.ui.bottombars.playbar.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator
@@ -17,9 +17,6 @@ import androidx.compose.ui.unit.dp
 import com.rld.justlisten.android.R
 import com.rld.justlisten.android.exoplayer.MusicService.Companion.curSongDuration
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
-import com.rld.justlisten.android.ui.bottombars.playbar.components.PlayBarActionsMaximized
-import com.rld.justlisten.android.ui.bottombars.playbar.components.PlayBarSwipeActions
-import com.rld.justlisten.android.ui.bottombars.playbar.components.PlayBarTopSection
 import com.rld.justlisten.android.ui.extensions.noRippleClickable
 import com.rld.justlisten.android.ui.theme.modifiers.verticalGradientBackgroundColor
 import com.rld.justlisten.datalayer.models.SongIconList

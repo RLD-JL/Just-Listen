@@ -1,10 +1,7 @@
 package com.rld.justlisten.datalayer.datacalls.library
 
 import com.rld.justlisten.datalayer.Repository
-import com.rld.justlisten.datalayer.localdb.libraryscreen.getFavoritePlaylist
-import com.rld.justlisten.datalayer.localdb.libraryscreen.getRecentPlayed
-import com.rld.justlisten.datalayer.localdb.libraryscreen.saveSongRecentSongs
-import com.rld.justlisten.datalayer.localdb.libraryscreen.saveSongToFavorites
+import com.rld.justlisten.datalayer.localdb.libraryscreen.*
 import com.rld.justlisten.datalayer.models.PlayListModel
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
@@ -19,8 +16,17 @@ fun Repository.saveSongToRecent(id: String, title : String, user: UserModel, son
     localDb.saveSongRecentSongs(id, title, user, songImgList, playlistName)
 }
 
+fun Repository.saveSongToMostPlayed(id: String, title : String, user: UserModel, songImgList: SongIconList,
+                                playlistName: String) {
+    localDb.saveMostPlayedSongs(id, title, user, songImgList, playlistName)
+}
+
 fun Repository.getFavoritePlaylist(): List<PlayListModel> {
     return localDb.getFavoritePlaylist()
+}
+
+fun Repository.getMostPlayedSongs(numberOfLines: Long): List<PlayListModel> {
+    return localDb.getMostPlayedSongs(numberOfLines)
 }
 
 fun Repository.getRecentSongs(numberOfLines: Long): List<PlayListModel> {

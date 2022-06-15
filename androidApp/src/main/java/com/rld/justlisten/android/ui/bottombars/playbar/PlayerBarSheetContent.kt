@@ -7,9 +7,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.annotation.ExperimentalCoilApi
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
-import com.rld.justlisten.android.ui.bottombars.playbar.components.addplaylist.AddPlaylistOption
-import com.rld.justlisten.android.ui.bottombars.playbar.components.more.PlayBarMoreAction
-import com.rld.justlisten.android.ui.bottombars.sheetcontent.BottomSheetScreen
+import com.rld.justlisten.android.ui.bottombars.playbar.components.PlayerBottomBar
+import com.rld.justlisten.android.ui.bottombars.sheets.BottomSheetScreen
+import com.rld.justlisten.android.ui.bottombars.sheets.SheetLayout
 import com.rld.justlisten.datalayer.localdb.addplaylistscreen.AddPlaylist
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
@@ -112,35 +112,3 @@ fun PlayerBarSheetContent(
     }
 }
 
-@Composable
-fun SheetLayout(
-    currentScreen: BottomSheetScreen,
-    onCloseBottomSheet: () -> Unit,
-    title: String,
-    mutablePainter: MutableState<Painter?>,
-    openSheet: (BottomSheetScreen) -> Unit,
-    addPlaylistList: List<AddPlaylist>,
-    onAddPlaylistClicked: (String, String?) -> Unit,
-    getLatestPlaylist: () -> Unit,
-    clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit
-) {
-    when (currentScreen) {
-        BottomSheetScreen.AddPlaylist -> {
-            AddPlaylistOption(
-                title,
-                mutablePainter,
-                addPlaylistList,
-                onAddPlaylistClicked,
-                clickedToAddSongToPlaylist
-            )
-            getLatestPlaylist()
-        }
-        BottomSheetScreen.More -> PlayBarMoreAction(
-            title,
-            mutablePainter,
-        ) {
-            onCloseBottomSheet()
-            openSheet(BottomSheetScreen.AddPlaylist)
-        }
-    }
-}

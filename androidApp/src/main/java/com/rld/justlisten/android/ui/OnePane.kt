@@ -16,7 +16,7 @@ import coil.annotation.ExperimentalCoilApi
 import com.rld.justlisten.Navigation
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 import com.rld.justlisten.android.exoplayer.library.extension.id
-import com.rld.justlisten.android.ui.bottombars.Level1BottomBar
+import com.rld.justlisten.android.ui.bottombars.bottombarnav.Level1BottomBar
 import com.rld.justlisten.android.ui.bottombars.playbar.PlayerBarSheetContent
 import com.rld.justlisten.android.ui.extensions.fraction
 import com.rld.justlisten.android.ui.screenpicker.ScreenPicker

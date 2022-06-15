@@ -5,7 +5,7 @@ CREATE TABLE SettingsInfo (
      palletColor  TEXT  NOT NULL
 );
 
-INSERT INTO SettingsInfo(hasNavigationDonationOn, isDarkThemeOn, palletColor) VALUES (1, 1, "Dark");
+INSERT INTO SettingsInfo(hasNavigationDonationOn, isDarkThemeOn, palletColor) VALUES (0, 1, "Dark");
 
 getSettingsInfo:
 SELECT * FROM SettingsInfo;

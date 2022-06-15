@@ -3,6 +3,7 @@ package com.rld.justlisten.viewmodel.screens.library
 import com.rld.justlisten.Navigation
 import com.rld.justlisten.ScreenParams
 import com.rld.justlisten.datalayer.datacalls.library.getFavoritePlaylist
+import com.rld.justlisten.datalayer.datacalls.library.getMostPlayedSongs
 import com.rld.justlisten.datalayer.datacalls.library.getRecentSongs
 import com.rld.justlisten.viewmodel.screens.ScreenInitSettings
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
@@ -21,9 +22,15 @@ fun Navigation.initLibrary(params: LibraryParams) = ScreenInitSettings(
         val favoritePlaylist = dataRepository.getFavoritePlaylist().map { playlistModel ->
             PlaylistItem(playlistModel)
         }.toList()
+        val mostPlayedSongs = dataRepository.getMostPlayedSongs(20).map { playlistModel ->
+            PlaylistItem(playlistModel)
+        }
         stateManager.updateScreen(LibraryState::class) {
-            it.copy(isLoading = false, favoritePlaylistItems = favoritePlaylist,
-            recentSongsItems = recentSongs)
+            it.copy(
+                isLoading = false, favoritePlaylistItems = favoritePlaylist,
+                mostPlayedSongs = mostPlayedSongs,
+                recentSongsItems = recentSongs
+            )
         }
     },
     reinitOnEachNavigation = true

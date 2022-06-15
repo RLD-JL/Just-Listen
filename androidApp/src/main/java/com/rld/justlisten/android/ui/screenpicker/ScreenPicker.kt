@@ -5,6 +5,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import com.rld.justlisten.Navigation
 import com.rld.justlisten.ScreenIdentifier
+import com.rld.justlisten.android.exoplayer.MusicService
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 import com.rld.justlisten.android.exoplayer.library.extension.displayIconUri
 import com.rld.justlisten.android.exoplayer.library.extension.id
@@ -13,10 +14,10 @@ import com.rld.justlisten.android.ui.addplaylistscreen.AddPlaylistScreen
 import com.rld.justlisten.android.ui.donationscreen.DonationScreen
 import com.rld.justlisten.android.ui.libraryscreen.LibraryScreen
 import com.rld.justlisten.android.ui.playlistdetailscreen.PlaylistDetailScreen
-import com.rld.justlisten.android.ui.playlistdetailscreen.playMusicFromId
 import com.rld.justlisten.android.ui.playlistscreen.PlaylistScreen
 import com.rld.justlisten.android.ui.searchscreen.SearchScreen
 import com.rld.justlisten.android.ui.settingsscreen.SettingsScreen
+import com.rld.justlisten.android.ui.utils.playMusicFromId
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.Screen.*
@@ -25,6 +26,7 @@ import com.rld.justlisten.viewmodel.screens.addplaylist.addPlaylist
 import com.rld.justlisten.viewmodel.screens.addplaylist.updatePlaylist
 import com.rld.justlisten.viewmodel.screens.library.getLastPlayed
 import com.rld.justlisten.viewmodel.screens.library.saveSongToFavorites
+import com.rld.justlisten.viewmodel.screens.library.saveSongToMostPlayed
 import com.rld.justlisten.viewmodel.screens.library.saveSongToRecent
 import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum.*
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistState
@@ -68,18 +70,47 @@ fun Navigation.ScreenPicker(
         }
     }
 
+    if (MusicService.songHasRepeated.value) {
+        LaunchedEffect(key1 = MusicService.songHasRepeated) {
+            val title = musicServiceConnection.currentPlayingSong.value?.title ?: "title"
+            val newId = musicServiceConnection.currentPlayingSong.value?.id ?: "id"
+            val user = UserModel("asd")
+            val songIcon =
+                musicServiceConnection.currentPlayingSong.value?.displayIconUri.toString()
+            val icon = SongIconList(
+                songImageURL150px = songIcon,
+                songImageURL480px = songIcon,
+                songImageURL1000px = songIcon.replace("480", "1000")
+            )
+            events.saveSongToMostPlayed(newId, title, user, icon)
+            MusicService.songHasRepeated.value = false
+        }
+    }
+
     when (screenIdentifier.screen) {
 
         Library ->
             LibraryScreen(
                 musicServiceConnection = musicServiceConnection,
                 libraryState = stateProvider.get(screenIdentifier),
-                onPlaylistPressed = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
+                onFavoritePlaylistPressed = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
+                    navigate(
+                        PlaylistDetail,
+                        PlaylistDetailParams(
+                           playlistId = playlistId, playlistIcon =  playlistIcon, playlistTitle = playlistTitle,
+                            playlistCreatedBy = playlistCreatedBy,
+                           playlistEnum =  FAVORITE
+                        )
+                    )
+                    events.playMusicFromPlaylist(playlistId = playlistId)
+                },
+                onMostPlaylistPressed = {
+                        playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
                     navigate(
                         PlaylistDetail,
                         PlaylistDetailParams(
                             playlistId, playlistIcon, playlistTitle, playlistCreatedBy,
-                            FAVORITE
+                            MOST_PLAYED
                         )
                     )
                     events.playMusicFromPlaylist(playlistId = playlistId)

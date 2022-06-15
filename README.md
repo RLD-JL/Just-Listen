@@ -57,7 +57,7 @@ The app is high network data consumption, since it streams songs at 320 kbps. I 
 - [UAMP](https://github.com/android/uamp) for media player sample using ExoPlayer.
 - Every other person that motivated me and helped with testing.
 
-## Contibutors
+## Contributors
 Contributors are way more than welcomed, especially for iOS development.
 
 ## Contact
