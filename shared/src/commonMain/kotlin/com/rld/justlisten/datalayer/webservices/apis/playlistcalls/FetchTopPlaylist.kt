@@ -16,6 +16,7 @@ suspend fun ApiClient.fetchPlaylist(index: Int, playListEnum: PlayListEnum, play
        HOT -> getResponse("/playlists/search?query=${queryPlaylist}&limit=${index}&app_name=$appName")
        FAVORITE -> TODO()
        CREATED_BY_USER -> TODO()
+       MOST_PLAYED -> TODO()
    }
 }
 

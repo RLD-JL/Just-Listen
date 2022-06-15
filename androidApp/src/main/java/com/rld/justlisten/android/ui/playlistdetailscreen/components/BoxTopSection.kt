@@ -41,7 +41,7 @@ fun BoxTopSection(scrollState: MutableState<Float>, playlistDetailState: Playlis
                 .padding(8.dp)
         )
         Text(
-            text = playlistDetailState.playListCreatedBy,
+            text = playlistDetailState.playlistName,
             style = typography.subtitle2.copy(fontWeight = FontWeight.ExtraBold),
             maxLines = 1,
             textAlign = TextAlign.Center,
@@ -59,7 +59,7 @@ fun BoxTopSection(scrollState: MutableState<Float>, playlistDetailState: Playlis
                 .padding(vertical = 4.dp, horizontal = 24.dp)
         )
         Text(
-            text = "Created by ${playlistDetailState.playlistName}",
+            text = "Created by ${playlistDetailState.playListCreatedBy}",
             maxLines = 1,
             textAlign = TextAlign.Center,
             style = typography.subtitle2,

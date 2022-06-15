@@ -18,16 +18,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
-import com.rld.justlisten.android.ui.loadingscreen.LoadingScreen
-import com.rld.justlisten.android.ui.playlistscreen.components.PlaylistRowItem
-import com.rld.justlisten.android.ui.theme.modifiers.horizontalGradientBackground
-import com.rld.justlisten.android.ui.theme.typography
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.rld.justlisten.android.ui.extensions.customTabIndicatorOffset
-import com.rld.justlisten.android.ui.searchscreen.SearchGridTracks
+import com.rld.justlisten.android.ui.loadingscreen.LoadingScreen
+import com.rld.justlisten.android.ui.playlistscreen.components.PlaylistRowItem
+import com.rld.justlisten.android.ui.searchscreen.components.SearchGridTracks
+import com.rld.justlisten.android.ui.theme.modifiers.horizontalGradientBackground
+import com.rld.justlisten.android.ui.theme.typography
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.utils.Constants.list
 import com.rld.justlisten.viewmodel.Events
@@ -70,6 +69,7 @@ fun PlaylistScreen(
                             PlayListEnum.CURRENT_PLAYLIST -> TODO()
                             PlayListEnum.FAVORITE -> TODO()
                             PlayListEnum.CREATED_BY_USER -> TODO()
+                            PlayListEnum.MOST_PLAYED -> TODO()
                         }
                     },
                     scrollState = scrollState,

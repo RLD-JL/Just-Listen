@@ -35,7 +35,8 @@ import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 @Composable
 fun SongListItem(
     playlistItem: PlaylistItem, onSongClicked: (String) -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit
+    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
+    playlist: String
 ) {
     Row(
         modifier = Modifier
@@ -78,8 +79,12 @@ fun SongListItem(
             )
         }
 
+        if (playlist == "Most Played") {
+            Text(text = playlistItem.songCounter)
+        }
+
         var isFavorite by rememberSaveable { mutableStateOf(playlistItem.isFavorite) }
-            Icon(imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+        Icon(imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                 contentDescription = null,
                 tint = Color.Red,
                 modifier = Modifier

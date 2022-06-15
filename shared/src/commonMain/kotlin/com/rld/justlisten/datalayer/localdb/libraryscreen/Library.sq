@@ -9,7 +9,8 @@ CREATE TABLE Library  (
        playlistName TEXT NOT NULL,
        recentPlayed INTEGER AS Boolean DEFAULT 0,
        favoriteSong INTEGER AS Boolean DEFAULT 0,
-       recentIncrement INTEGER
+       recentIncrement INTEGER,
+       songCounter Integer
 );
 
 getFavoritePlaylist:
@@ -24,14 +25,27 @@ SELECT * FROM Library WHERE recentPlayed = 1 ORDER BY recentIncrement DESC LIMIT
 getCustomPlaylistSongs:
 SELECT * FROM Library WHERE id IN :songsList;
 
+getMostPlayed:
+SELECT * FROM Library WHERE songCounter NOT NULL ORDER BY songCounter DESC LIMIT :numberOfSongs;
+
 upsertLibraryFavorite {
-    INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName, favoriteSong, recentPlayed, recentIncrement)
+    INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName, favoriteSong, recentPlayed, recentIncrement, songCounter)
     VALUES(:id, :title, :user,  :songImgList, :playlistName,:favoriteSong,
-    (SELECT recentPlayed FROM Library WHERE id = :id), (SELECT recentIncrement FROM Library WHERE id= :id));
+    (SELECT recentPlayed FROM Library WHERE id = :id),
+    (SELECT recentIncrement FROM Library WHERE id= :id),
+    (SELECT songCounter FROM Library WHERE id= :id));
 }
 
 upsertLibraryRecent {
-    INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName, recentPlayed, favoriteSong, recentIncrement)
+    INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName, recentPlayed, favoriteSong, recentIncrement, songCounter)
     VALUES(:id, :title, :user,  :songImgList, :playlistName, 1,
-    (SELECT favoriteSong FROM Library WHERE id= :id), (SELECT IFNULL(MAX(recentIncrement), 0) +1 FROM Library WHERE recentPlayed = 1));
+    (SELECT favoriteSong FROM Library WHERE id= :id), (SELECT IFNULL(MAX(recentIncrement), 0) +1 FROM Library WHERE recentPlayed = 1),
+    IFNULL((SELECT songCounter FROM Library WHERE id = :id), 0) + 1);
+}
+
+upsertLibraryMostPlayed {
+    INSERT OR REPLACE INTO Library(id, title, user, songImgList, playlistName, recentPlayed, favoriteSong, recentIncrement, songCounter)
+    VALUES(:id, :title, :user,  :songImgList, :playlistName, 1,
+    (SELECT favoriteSong FROM Library WHERE id= :id), (SELECT recentIncrement FROM Library WHERE id= :id),
+    (SELECT IFNULL(songCounter, 0) +1 FROM Library WHERE id = : id));
 }

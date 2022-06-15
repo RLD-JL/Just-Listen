@@ -23,7 +23,7 @@ fun LocalDb.saveSongToFavorites(
 }
 
 fun LocalDb.getFavoritePlaylist(): List<PlayListModel> {
-    return libraryQueries.getFavoritePlaylist(mapper = { id, title, user, songImgList, _, _, _,_ ->
+    return libraryQueries.getFavoritePlaylist(mapper = { id, title, user, songImgList, _, _, _, _, _ ->
         PlayListModel(
             id = id,
             playlistTitle = title,
@@ -36,7 +36,7 @@ fun LocalDb.getFavoritePlaylist(): List<PlayListModel> {
 
 fun LocalDb.getCustomPlaylistSongs(songsList: List<String>): List<PlayListModel> {
     return libraryQueries.getCustomPlaylistSongs(
-        songsList, mapper = { id, title, user, songImgList, playlistName, _, _, _
+        songsList, mapper = { id, title, user, songImgList, _, _, _, _, _
             ->
             PlayListModel(id, title, title, songImgList, user)
         }).executeAsList()
@@ -55,9 +55,18 @@ fun LocalDb.saveSongRecentSongs(
     }
 }
 
+fun LocalDb.saveMostPlayedSongs(
+    id: String, title: String, user: UserModel, songImgList: SongIconList,
+    playlistName: String
+) {
+    libraryQueries.transaction {
+        libraryQueries.upsertLibraryMostPlayed(id, title, user, songImgList, playlistName)
+    }
+}
+
 fun LocalDb.getRecentPlayed(numberOfLines: Long): List<PlayListModel> {
     return libraryQueries.getRecentPlayed(
-        mapper = { id, title, user, songImgList, _, _, isFavorite, _ ->
+        mapper = { id, title, user, songImgList, _, _, isFavorite, _, _ ->
             PlayListModel(
                 id = id,
                 playlistTitle = title,
@@ -69,4 +78,18 @@ fun LocalDb.getRecentPlayed(numberOfLines: Long): List<PlayListModel> {
         },
         numberOfSongs = numberOfLines
     ).executeAsList()
+}
+
+fun LocalDb.getMostPlayedSongs(numberOfSongs: Long): List<PlayListModel> {
+    return libraryQueries.getMostPlayed(numberOfSongs = numberOfSongs,
+        mapper = { id, title, user, songImgList, _, _, _, _, songCounter ->
+            PlayListModel(
+                id = id,
+                playlistTitle = title,
+                title = title,
+                user = user,
+                songImgList = songImgList,
+                songCounter = songCounter.toString()
+            )
+        }).executeAsList()
 }

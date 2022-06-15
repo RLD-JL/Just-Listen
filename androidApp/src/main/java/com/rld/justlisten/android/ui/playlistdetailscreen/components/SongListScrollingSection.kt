@@ -46,6 +46,7 @@ fun SongListScrollingSection(
         itemsIndexed(playlist) { index, playlistItem ->
 
             SongListItem(
+                playlist = playlistDetailState.playlistName,
                 playlistItem = playlistItem,
                 onSongClicked = onSongClicked,
                 onFavoritePressed = onFavoritePressed,

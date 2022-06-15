@@ -7,6 +7,7 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
+import androidx.compose.runtime.mutableStateOf
 import androidx.media.MediaBrowserServiceCompat
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
@@ -33,7 +34,7 @@ class MusicService : MediaBrowserServiceCompat() {
     @Inject
     lateinit var exoPlayer: ExoPlayer
 
-    lateinit var musicNotificationManager: MusicNotificationManager
+    private lateinit var musicNotificationManager: MusicNotificationManager
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
@@ -57,6 +58,7 @@ class MusicService : MediaBrowserServiceCompat() {
     companion object {
         var curSongDuration = 0L
             private set
+        val songHasRepeated = mutableStateOf(false)
     }
 
     override fun onCreate() {
@@ -93,7 +95,9 @@ class MusicService : MediaBrowserServiceCompat() {
 
         musicNotificationManager.showNotification(exoPlayer)
 
-        musicPlayerEventListener = MusicPlayerEventListener(this, musicNotificationManager, exoPlayer)
+        musicPlayerEventListener = MusicPlayerEventListener(this, musicNotificationManager, exoPlayer) {
+            songHasRepeated.value = true
+        }
         exoPlayer.addListener(musicPlayerEventListener)
     }
 
