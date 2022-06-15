@@ -6,14 +6,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rld.justlisten.android.R
 import com.rld.justlisten.viewmodel.screens.library.LibraryState
 
 @Composable
@@ -42,7 +42,7 @@ fun MostPlayedSongs(
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(imageVector = Icons.Default.AccountCircle, contentDescription = null)
+        Icon(painterResource(id = R.drawable.ic_most_played) , contentDescription = null)
         Text(
             modifier = Modifier.padding(start = 5.dp),
             text = "Most Played Songs",
