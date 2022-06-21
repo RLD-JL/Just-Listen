@@ -1,5 +1,6 @@
 package com.rld.justlisten.android.ui.bottombars.playbar
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.painter.Painter
@@ -13,6 +14,7 @@ import com.rld.justlisten.android.ui.bottombars.sheets.SheetLayout
 import com.rld.justlisten.datalayer.localdb.addplaylistscreen.AddPlaylist
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
+import com.rld.justlisten.viewmodel.Events
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.launch
 
@@ -33,7 +35,8 @@ fun PlayerBarSheetContent(
     getLatestPlaylist: () -> Unit,
     clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit,
     newDominantColor: (Int) -> Unit,
-    playBarMinimizedClicked: () -> Unit
+    playBarMinimizedClicked: () -> Unit,
+    events: Events
 ) {
     val songIcon by remember { derivedStateOf { musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString() } }
     val title by remember { derivedStateOf {
@@ -67,6 +70,12 @@ fun PlayerBarSheetContent(
     if (scaffoldState.bottomSheetState.isCollapsed)
         currentBottomSheet = null
 
+    if (scaffoldState.bottomSheetState.isExpanded) {
+        BackHandler {
+            closeSheet()
+        }
+    }
+
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetContent = {
@@ -80,7 +89,11 @@ fun PlayerBarSheetContent(
                     addPlaylistList,
                     onAddPlaylistClicked,
                     getLatestPlaylist,
-                    clickedToAddSongToPlaylist
+                    clickedToAddSongToPlaylist = { playlistTitle, playlistDescription, songList ->
+                        closeSheet()
+                        clickedToAddSongToPlaylist(playlistTitle, playlistDescription, songList)
+                    },
+                    events
                 )
             }
         },
