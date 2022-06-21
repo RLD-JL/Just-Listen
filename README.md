@@ -33,6 +33,7 @@ https://www.youtube.com/watch?v=IAExKH6L5P4
 - Create your private playlists
 - Adds songs to favorite
 - Check your recent played
+- Check your most listened songs
 - Different themes 
 - Shuffle, repeat one/all songs
 - Notification manager displayed
