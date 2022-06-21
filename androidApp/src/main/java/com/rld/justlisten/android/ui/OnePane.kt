@@ -2,6 +2,7 @@ package com.rld.justlisten.android.ui
 
 import android.media.session.PlaybackState
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -57,6 +58,13 @@ fun Navigation.OnePane(
         val addPlaylistList = remember { mutableStateOf(events.getPlaylist()) }
 
         val coroutineScope = rememberCoroutineScope()
+    if (scaffoldState.bottomSheetState.isExpanded) {
+        BackHandler {
+            coroutineScope.launch {
+                scaffoldState.bottomSheetState.collapse()
+            }
+        }
+    }
         Scaffold(
             bottomBar = {
                 if (currentScreenIdentifier.screen.navigationLevel == 1) {
@@ -101,16 +109,16 @@ fun Navigation.OnePane(
                             clickedToAddSongToPlaylist = { playlistTitle, playlistDescription, songList ->
                                 val list = songList.toMutableList()
                                 list.add(musicServiceConnection.currentPlayingSong.value?.id ?: "")
-                                events.updatePlaylistSongs(
-                                    playlistTitle,
-                                    playlistDescription,
-                                    list
-                                )
                                 Toast.makeText(
                                     context,
                                     "The song was added to $playlistTitle",
                                     Toast.LENGTH_SHORT
                                 ).show()
+                                events.updatePlaylistSongs(
+                                    playlistTitle,
+                                    playlistDescription,
+                                    list
+                                )
                             },
                             newDominantColor = { color ->
                                 updateStatusBarColor(
@@ -121,7 +129,8 @@ fun Navigation.OnePane(
                             },
                             playBarMinimizedClicked = {
                                 coroutineScope.launch { scaffoldState.bottomSheetState.expand() }
-                            }
+                            },
+                            events = events
                         )
                     }, content = {
                         Column(

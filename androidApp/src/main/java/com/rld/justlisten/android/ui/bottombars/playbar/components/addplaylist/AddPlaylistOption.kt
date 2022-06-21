@@ -17,6 +17,7 @@ import com.rld.justlisten.android.ui.addplaylistscreen.components.AddPlaylistRow
 import com.rld.justlisten.android.ui.addplaylistscreen.components.PlaylistViewItem
 import com.rld.justlisten.android.ui.bottombars.playbar.components.more.TopSection
 import com.rld.justlisten.datalayer.localdb.addplaylistscreen.AddPlaylist
+import com.rld.justlisten.viewmodel.Events
 
 @Composable
 fun AddPlaylistOption(
@@ -24,7 +25,8 @@ fun AddPlaylistOption(
     painter: MutableState<Painter?>,
     addPlaylistList: List<AddPlaylist>,
     onAddPlaylistClicked: (String, String?) -> Unit,
-    clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit
+    clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit,
+    events: Events
 ) {
     val openDialog = remember { mutableStateOf(false) }
 
@@ -34,7 +36,7 @@ fun AddPlaylistOption(
             Divider(thickness = 2.dp)
         }
         itemsIndexed(items = addPlaylistList) { _, playlist ->
-            PlaylistViewItem(playlist, clickedToAddSongToPlaylist)
+            PlaylistViewItem(playlist, clickedToAddSongToPlaylist, events)
         }
         item {
             AddPlaylistRow(openDialog)

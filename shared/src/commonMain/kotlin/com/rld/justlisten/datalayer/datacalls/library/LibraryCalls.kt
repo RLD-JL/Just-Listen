@@ -25,6 +25,10 @@ fun Repository.getFavoritePlaylist(): List<PlayListModel> {
     return localDb.getFavoritePlaylist()
 }
 
+fun Repository.getSongWithId(songId: String): PlayListModel {
+    return localDb.getSongWithId(songId)
+}
+
 fun Repository.getMostPlayedSongs(numberOfLines: Long): List<PlayListModel> {
     return localDb.getMostPlayedSongs(numberOfLines)
 }

@@ -13,8 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun DonationScreen() {
@@ -111,5 +116,17 @@ fun DonationScreen() {
                 colors = TextFieldDefaults.textFieldColors(unfocusedIndicatorColor = Color.Transparent)
             )
         }
+        val uriHandler = LocalUriHandler.current
+        Text(
+            text = "Ko-Fi", modifier = Modifier
+                .clickable {
+                    uriHandler.openUri("https://ko-fi.com/rldjl")
+                }
+                .fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            color = Color.Cyan,
+            style = TextStyle(textDecoration = TextDecoration.Underline),
+            fontSize = 18.sp
+        )
     }
 }

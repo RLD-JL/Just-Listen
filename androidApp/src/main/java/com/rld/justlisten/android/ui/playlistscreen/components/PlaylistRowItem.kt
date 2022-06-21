@@ -45,7 +45,7 @@ fun PlaylistRowItem(
                         playlistItem.id,
                         playlistItem.songIconList.songImageURL480px,
                         playlistItem.playlistTitle,
-                        playlistItem.user,
+                        playlistItem.playlistTitle,
                         playlistItem.isFavorite
                     )
                 }

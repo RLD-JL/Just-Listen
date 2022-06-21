@@ -12,13 +12,15 @@ import androidx.compose.ui.unit.dp
 import com.rld.justlisten.android.ui.addplaylistscreen.components.AddPlaylistDialog
 import com.rld.justlisten.android.ui.addplaylistscreen.components.AddPlaylistRow
 import com.rld.justlisten.android.ui.addplaylistscreen.components.PlaylistViewItem
+import com.rld.justlisten.viewmodel.Events
 import com.rld.justlisten.viewmodel.screens.addplaylist.AddPlaylistState
 
 @Composable
 fun AddPlaylistScreen(
     addPlaylistState: AddPlaylistState,
     onAddPlaylistClicked: (String, String?) -> Unit,
-    clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit
+    clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit,
+    events: Events
 ) {
     val openDialog = remember { mutableStateOf(false) }
     LazyColumn(Modifier.fillMaxWidth()) {
@@ -26,7 +28,7 @@ fun AddPlaylistScreen(
         item { Divider(thickness = 2.dp) }
         item { AddPlaylistDialog(openDialog, onAddPlaylistClicked) }
         itemsIndexed(addPlaylistState.playlistsCreated) { _, playlist ->
-            PlaylistViewItem(playlist, clickedToAddSongToPlaylist)
+            PlaylistViewItem(playlist, clickedToAddSongToPlaylist, events)
         }
     }
 }

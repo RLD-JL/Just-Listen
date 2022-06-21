@@ -25,6 +25,9 @@ SELECT * FROM Library WHERE recentPlayed = 1 ORDER BY recentIncrement DESC LIMIT
 getCustomPlaylistSongs:
 SELECT * FROM Library WHERE id IN :songsList;
 
+getSongWithId:
+SELECT * FROM Library WHERE id = :id;
+
 getMostPlayed:
 SELECT * FROM Library WHERE songCounter NOT NULL ORDER BY songCounter DESC LIMIT :numberOfSongs;
 
