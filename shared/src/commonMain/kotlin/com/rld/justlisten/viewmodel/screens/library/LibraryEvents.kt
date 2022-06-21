@@ -1,9 +1,6 @@
 package com.rld.justlisten.viewmodel.screens.library
 
-import com.rld.justlisten.datalayer.datacalls.library.getRecentSongs
-import com.rld.justlisten.datalayer.datacalls.library.saveSongToFavorites
-import com.rld.justlisten.datalayer.datacalls.library.saveSongToMostPlayed
-import com.rld.justlisten.datalayer.datacalls.library.saveSongToRecent
+import com.rld.justlisten.datalayer.datacalls.library.*
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.Events
@@ -54,3 +51,5 @@ fun Events.getLastPlayed(numberOfSongs: Long) = screenCoroutine {
         }
     }
 }
+
+fun Events.getSongWithId(songId: String) = dataRepository.getSongWithId(songId)

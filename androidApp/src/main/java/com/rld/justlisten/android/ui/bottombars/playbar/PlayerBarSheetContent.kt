@@ -13,6 +13,7 @@ import com.rld.justlisten.android.ui.bottombars.sheets.SheetLayout
 import com.rld.justlisten.datalayer.localdb.addplaylistscreen.AddPlaylist
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
+import com.rld.justlisten.viewmodel.Events
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.launch
 
@@ -33,7 +34,8 @@ fun PlayerBarSheetContent(
     getLatestPlaylist: () -> Unit,
     clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit,
     newDominantColor: (Int) -> Unit,
-    playBarMinimizedClicked: () -> Unit
+    playBarMinimizedClicked: () -> Unit,
+    events: Events
 ) {
     val songIcon by remember { derivedStateOf { musicServiceConnection.currentPlayingSong.value?.description?.iconUri.toString() } }
     val title by remember { derivedStateOf {
@@ -80,7 +82,8 @@ fun PlayerBarSheetContent(
                     addPlaylistList,
                     onAddPlaylistClicked,
                     getLatestPlaylist,
-                    clickedToAddSongToPlaylist
+                    clickedToAddSongToPlaylist,
+                    events
                 )
             }
         },

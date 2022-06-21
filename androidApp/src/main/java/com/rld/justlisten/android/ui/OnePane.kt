@@ -109,16 +109,16 @@ fun Navigation.OnePane(
                             clickedToAddSongToPlaylist = { playlistTitle, playlistDescription, songList ->
                                 val list = songList.toMutableList()
                                 list.add(musicServiceConnection.currentPlayingSong.value?.id ?: "")
-                                events.updatePlaylistSongs(
-                                    playlistTitle,
-                                    playlistDescription,
-                                    list
-                                )
                                 Toast.makeText(
                                     context,
                                     "The song was added to $playlistTitle",
                                     Toast.LENGTH_SHORT
                                 ).show()
+                                events.updatePlaylistSongs(
+                                    playlistTitle,
+                                    playlistDescription,
+                                    list
+                                )
                             },
                             newDominantColor = { color ->
                                 updateStatusBarColor(
@@ -129,7 +129,8 @@ fun Navigation.OnePane(
                             },
                             playBarMinimizedClicked = {
                                 coroutineScope.launch { scaffoldState.bottomSheetState.expand() }
-                            }
+                            },
+                            events = events
                         )
                     }, content = {
                         Column(

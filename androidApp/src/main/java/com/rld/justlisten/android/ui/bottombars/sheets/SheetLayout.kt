@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import com.rld.justlisten.android.ui.bottombars.playbar.components.addplaylist.AddPlaylistOption
 import com.rld.justlisten.android.ui.bottombars.playbar.components.more.PlayBarMoreAction
 import com.rld.justlisten.datalayer.localdb.addplaylistscreen.AddPlaylist
+import com.rld.justlisten.viewmodel.Events
 
 @Composable
 fun SheetLayout(
@@ -17,7 +18,8 @@ fun SheetLayout(
     addPlaylistList: List<AddPlaylist>,
     onAddPlaylistClicked: (String, String?) -> Unit,
     getLatestPlaylist: () -> Unit,
-    clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit
+    clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit,
+    events: Events
 ) {
     when (currentScreen) {
         BottomSheetScreen.AddPlaylist -> {
@@ -26,7 +28,8 @@ fun SheetLayout(
                 mutablePainter,
                 addPlaylistList,
                 onAddPlaylistClicked,
-                clickedToAddSongToPlaylist
+                clickedToAddSongToPlaylist,
+                events
             )
             getLatestPlaylist()
         }

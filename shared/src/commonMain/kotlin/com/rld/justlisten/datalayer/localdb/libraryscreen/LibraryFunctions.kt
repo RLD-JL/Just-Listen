@@ -42,6 +42,12 @@ fun LocalDb.getCustomPlaylistSongs(songsList: List<String>): List<PlayListModel>
         }).executeAsList()
 }
 
+fun LocalDb.getSongWithId(songId: String): PlayListModel {
+    return libraryQueries.getSongWithId(songId, mapper = { id, title, user, songImgList, _, _, _, _, _
+        -> PlayListModel(id, title, title, songImgList, user)
+    }).executeAsOne()
+}
+
 fun LocalDb.getFavoritePlaylistWithId(id: String): String? {
     return libraryQueries.getFavoritePlaylistWithId(id).executeAsOneOrNull()
 }
