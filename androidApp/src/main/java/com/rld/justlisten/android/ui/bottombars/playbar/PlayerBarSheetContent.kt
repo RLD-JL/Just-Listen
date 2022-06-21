@@ -1,5 +1,6 @@
 package com.rld.justlisten.android.ui.bottombars.playbar
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.painter.Painter
@@ -69,6 +70,12 @@ fun PlayerBarSheetContent(
     if (scaffoldState.bottomSheetState.isCollapsed)
         currentBottomSheet = null
 
+    if (scaffoldState.bottomSheetState.isExpanded) {
+        BackHandler {
+            closeSheet()
+        }
+    }
+
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetContent = {
@@ -82,7 +89,10 @@ fun PlayerBarSheetContent(
                     addPlaylistList,
                     onAddPlaylistClicked,
                     getLatestPlaylist,
-                    clickedToAddSongToPlaylist,
+                    clickedToAddSongToPlaylist = { playlistTitle, playlistDescription, songList ->
+                        closeSheet()
+                        clickedToAddSongToPlaylist(playlistTitle, playlistDescription, songList)
+                    },
                     events
                 )
             }
