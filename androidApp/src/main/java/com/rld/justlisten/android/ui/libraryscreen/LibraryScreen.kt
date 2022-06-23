@@ -10,7 +10,7 @@ import com.rld.justlisten.android.ui.libraryscreen.components.FavoritePlaylist
 import com.rld.justlisten.android.ui.libraryscreen.components.MostPlayedSongs
 import com.rld.justlisten.android.ui.libraryscreen.components.PlaylistView
 import com.rld.justlisten.android.ui.libraryscreen.components.RowListOfRecentActivity
-import com.rld.justlisten.android.ui.playlistscreen.Header
+import com.rld.justlisten.android.ui.playlistscreen.components.Header
 import com.rld.justlisten.android.ui.utils.playMusicFromId
 import com.rld.justlisten.datalayer.models.PlayListModel
 import com.rld.justlisten.datalayer.models.SongIconList

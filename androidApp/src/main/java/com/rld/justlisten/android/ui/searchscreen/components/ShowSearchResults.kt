@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.rld.justlisten.android.ui.playlistscreen.Header
+import com.rld.justlisten.android.ui.playlistscreen.components.Header
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import com.rld.justlisten.viewmodel.screens.search.TrackItem
