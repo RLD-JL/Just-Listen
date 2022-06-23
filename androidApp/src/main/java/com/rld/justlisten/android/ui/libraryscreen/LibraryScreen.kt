@@ -25,7 +25,8 @@ fun LibraryScreen(
     onFavoritePlaylistPressed: (String, String, String, String) -> Unit,
     onMostPlaylistPressed: (String, String, String, String) -> Unit,
     onPlayListViewClicked: () -> Unit,
-    lasItemReached: (Int) -> Unit
+    lasItemReached: (Int) -> Unit,
+    isPlayerReady: Boolean
 ) {
     Box(modifier = Modifier
         .fillMaxSize()
@@ -45,7 +46,7 @@ fun LibraryScreen(
                             false
                         )
                         val item = TrackItem(playlistModel, isFavorite)
-                        playMusicFromId(musicServiceConnection, listOf(item), id, false)
+                        playMusicFromId(musicServiceConnection, listOf(item), id, isPlayerReady)
                     }
                 },
                 lasItemReached = lasItemReached,

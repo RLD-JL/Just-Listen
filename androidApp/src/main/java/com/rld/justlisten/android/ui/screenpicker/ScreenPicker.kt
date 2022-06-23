@@ -91,6 +91,7 @@ fun Navigation.ScreenPicker(
 
         Library ->
             LibraryScreen(
+                isPlayerReady = isPlayerReady.value,
                 musicServiceConnection = musicServiceConnection,
                 libraryState = stateProvider.get(screenIdentifier),
                 onFavoritePlaylistPressed = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
