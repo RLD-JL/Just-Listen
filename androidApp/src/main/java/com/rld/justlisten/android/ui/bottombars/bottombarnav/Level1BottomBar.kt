@@ -56,7 +56,7 @@ fun Navigation.Level1BottomBar(
                 BottomNavigationItem(
                     icon = { if (donateSelected)Icon(painter = painterResource(id = R.drawable.ic_baseline_monetization_on_24), "Donate")
                            else Icon(painter = painterResource(id = R.drawable.ic_outline_monetization_on_24), "Donate")},
-                    label = { Text("Donate", fontSize = 10.sp) },
+                    label = { Text("Support", fontSize = 10.sp) },
                     selected = selectedTab.URI == Level1Navigation.Donation.screenIdentifier.URI,
                     onClick = { navigateByLevel1Menu(Level1Navigation.Donation) },
                     selectedContentColor = MaterialTheme.colors.primaryVariant,
