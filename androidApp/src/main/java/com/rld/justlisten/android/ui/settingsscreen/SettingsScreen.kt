@@ -63,7 +63,8 @@ fun SettingsScreen(
         Column(
             Modifier
                 .fillMaxSize()
-                .verticalScroll(nestedScroll)) {
+                .verticalScroll(nestedScroll)
+        ) {
             SettingsContent(
                 settings,
                 updateSettings,
@@ -75,7 +76,9 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text("Timer to close the app has been added: ${hourTime.value}:${minuteTime.value}")
+                    Text(
+                        "Timer to close the app has been added: ${hourTime.value}:${minuteTime.value}"
+                    )
                 }
             }
         }
@@ -226,7 +229,7 @@ fun BottomSheetSettings(
                 color = Color.LightGray.copy(alpha = 0.40f),
                 size = newSize,
                 style = Fill,
-                topLeft = Offset(0f, (maxHeight.toPx() / 2)+((height-8.dp)/2).toPx()),
+                topLeft = Offset(0f, (maxHeight.toPx() / 2) + ((height - 8.dp) / 2).toPx()),
                 cornerRadius = CornerRadius(
                     x = 5.dp.toPx(),
                     y = 10.dp.toPx()
@@ -234,6 +237,5 @@ fun BottomSheetSettings(
             )
         }
         TimerSetup(onConfirmClicked, coroutineScope, scaffoldState)
-
     }
 }
