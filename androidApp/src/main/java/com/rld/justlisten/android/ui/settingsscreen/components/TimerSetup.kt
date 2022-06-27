@@ -2,39 +2,88 @@ package com.rld.justlisten.android.ui.settingsscreen.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.BottomSheetScaffoldState
+import androidx.compose.material.Button
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
+import dev.chrisbanes.snapper.SnapOffsets
 import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TimerSetup(
-    maxWidth: Dp
+    onConfirmClicked: (String, String) -> Unit,
+    coroutineScope: CoroutineScope,
+    scaffoldState: BottomSheetScaffoldState
 ) {
     val hours =
-        (0..12).map { number -> if (number < 10) "0$number" else number.toString() }.toList()
+        (0..23).map { number -> if (number < 10) "0$number" else "$number" }.toList()
     val minutes =
-        (0..59).map { number -> if (number < 10) "0$number" else number.toString() }.toList()
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-        val spaceBetween = 50.dp
-        val width = maxWidth / 2 - spaceBetween
-        CircularList(
-            hours,
-            modifier = Modifier.width(width),
-            isEndless = true,
-            alignment = Alignment.End
-        )
-        CircularList(
-            minutes,
-            modifier = Modifier.width(width),
-            isEndless = true,
-            alignment = Alignment.Start
-        )
+        (0..59).map { number -> if (number < 10) "0$number" else "$number" }.toList()
+    val hourListState = rememberLazyListState(Int.MAX_VALUE/ 2)
+    val minutesListState = rememberLazyListState(Int.MAX_VALUE/ 2)
+
+    Column {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Button(
+                onClick = {
+                    onConfirmClicked(
+                        hours[(hourListState.firstVisibleItemIndex + 2) % hours.size],
+                        minutes[(minutesListState.firstVisibleItemIndex + 2) % minutes.size]
+                    )
+                    coroutineScope.launch { scaffoldState.bottomSheetState.collapse() }
+
+                },
+                modifier = Modifier
+                    .weight(0.45f)
+                    .clip(CircleShape)
+            ) {
+                Text("Confirm")
+            }
+            Spacer(modifier = Modifier.weight(0.1f))
+            Button(
+                onClick = { coroutineScope.launch { scaffoldState.bottomSheetState.collapse() } },
+                modifier = Modifier
+                    .weight(0.45f)
+                    .clip(
+                        CircleShape
+                    )
+            ) {
+                Text("Cancel")
+            }
+        }
+        Row(modifier = Modifier.fillMaxWidth().padding(top = 2.dp)) {
+            CircularList(
+                hours,
+                modifier = Modifier.weight(0.45f),
+                isEndless = true,
+                alignment = Alignment.End,
+                hourListState
+            )
+            Spacer(modifier = Modifier.weight(0.1f))
+            CircularList(
+                minutes,
+                modifier = Modifier.weight(0.45f),
+                isEndless = true,
+                alignment = Alignment.Start,
+                minutesListState
+            )
+        }
     }
 }
 
@@ -44,17 +93,18 @@ fun CircularList(
     items: List<String>,
     modifier: Modifier = Modifier,
     isEndless: Boolean = false,
-    alignment: Alignment.Horizontal
+    alignment: Alignment.Horizontal,
+    listState: LazyListState
 ) {
-    val lazyListState = rememberLazyListState(if (isEndless) Int.MAX_VALUE / 2 else 0)
-    val contentPadding = PaddingValues(2.dp)
 
+    val contentPadding = PaddingValues(2.dp)
     LazyColumn(
-        state = lazyListState,
+        state = listState,
         modifier = modifier,
         horizontalAlignment = alignment,
         flingBehavior = rememberSnapperFlingBehavior(
-            lazyListState = lazyListState,
+            lazyListState = listState,
+            snapOffsetForItem = SnapOffsets.Start,
             endContentPadding = contentPadding.calculateBottomPadding(),
         ),
     ) {
@@ -66,4 +116,5 @@ fun CircularList(
             }
         )
     }
+
 }
