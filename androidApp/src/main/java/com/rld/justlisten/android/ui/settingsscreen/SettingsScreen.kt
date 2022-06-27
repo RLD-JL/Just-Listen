@@ -4,7 +4,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -14,7 +13,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -44,21 +42,43 @@ fun SettingsScreen(
     val hasTimerSetup = rememberSaveable {
         mutableStateOf(false)
     }
+    val hourTime = rememberSaveable {
+        mutableStateOf("")
+    }
+    val minuteTime = rememberSaveable {
+        mutableStateOf("")
+    }
     BottomSheetScaffold(
         sheetContent = {
-            BottomSheetSettings(scaffoldState, coroutineScope, onConfirmClicked = {
+            BottomSheetSettings(scaffoldState, coroutineScope, onConfirmClicked = { hours, minute ->
                 hasTimerSetup.value = true
+                hourTime.value = hours
+                minuteTime.value = minute
             })
         },
         sheetPeekHeight = 0.dp,
         scaffoldState = scaffoldState
     ) {
-        SettingsContent(
-            settings,
-            updateSettings,
-            sleepTimerClicked = { coroutineScope.launch { scaffoldState.bottomSheetState.expand() } },
-            hasTimerSetup.value
-        )
+        val nestedScroll = rememberScrollState()
+        Column(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(nestedScroll)) {
+            SettingsContent(
+                settings,
+                updateSettings,
+                sleepTimerClicked = { coroutineScope.launch { scaffoldState.bottomSheetState.expand() } },
+            )
+
+            if (hasTimerSetup.value) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("Timer to close the app has been added: ${hourTime.value}:${minuteTime.value}")
+                }
+            }
+        }
     }
 
 }
@@ -68,14 +88,9 @@ fun SettingsContent(
     settings: SettingsState,
     updateSettings: (SettingsState) -> Unit,
     sleepTimerClicked: () -> Unit,
-    hasTimerSetup: Boolean
 ) {
-    val nestedScroll = rememberScrollState()
-    Column(
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(nestedScroll)
-    ) {
+
+    Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -185,14 +200,6 @@ fun SettingsContent(
                 Text("Set sleep timer")
             }
         }
-        if (hasTimerSetup) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text("Timer to close the app has been added:")
-            }
-        }
     }
 }
 
@@ -202,58 +209,31 @@ fun SettingsContent(
 fun BottomSheetSettings(
     scaffoldState: BottomSheetScaffoldState,
     coroutineScope: CoroutineScope,
-    onConfirmClicked: () -> Unit
+    onConfirmClicked: (String, String) -> Unit
 ) {
     BoxWithConstraints(
-        modifier =  Modifier
+        modifier = Modifier
             .height(175.dp)
             .fillMaxWidth()
     ) {
-        val maxWidth = this.maxWidth
         val maxHeight = this.maxHeight
-        Column {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()) {
-                Button(
-                    onClick = {
-                        onConfirmClicked()
-                        coroutineScope.launch { scaffoldState.bottomSheetState.collapse() }
 
-                    },
-                    modifier = Modifier
-                        .padding(start = 100.dp)
-                        .clip(CircleShape)
-                ) {
-                    Text("Confirm")
-                }
-                Button(
-                    onClick = { coroutineScope.launch { scaffoldState.bottomSheetState.collapse() } },
-                    modifier = Modifier
-                        .padding(end = 100.dp)
-                        .clip(
-                            CircleShape
-                        )
-                ) {
-                    Text("Cancel")
-                }
-            }
-            Canvas(modifier = Modifier.fillMaxWidth()) {
-                val width = size.width
-                val newSize = Size(width, 25.dp.toPx())
-                drawRoundRect(
-                    color = Color.LightGray.copy(alpha = 0.40f),
-                    size = newSize,
-                    style = Fill,
-                    topLeft = Offset(0f, (maxHeight.toPx() / 2) - 39.dp.toPx()),
-                    cornerRadius = CornerRadius(
-                        x = 5.dp.toPx(),
-                        y = 10.dp.toPx()
-                    )
+        Canvas(modifier = Modifier.fillMaxWidth()) {
+            val width = size.width
+            val height = 25.dp
+            val newSize = Size(width, height.toPx())
+            drawRoundRect(
+                color = Color.LightGray.copy(alpha = 0.40f),
+                size = newSize,
+                style = Fill,
+                topLeft = Offset(0f, (maxHeight.toPx() / 2)+((height-8.dp)/2).toPx()),
+                cornerRadius = CornerRadius(
+                    x = 5.dp.toPx(),
+                    y = 10.dp.toPx()
                 )
-            }
-            TimerSetup(maxWidth)
+            )
         }
+        TimerSetup(onConfirmClicked, coroutineScope, scaffoldState)
+
     }
 }
