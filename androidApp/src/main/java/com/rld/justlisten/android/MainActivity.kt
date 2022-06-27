@@ -8,6 +8,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.work.WorkManager
 import com.rld.justlisten.android.ui.MainComposable
 import com.rld.justlisten.android.ui.theme.ColorPallet
 import com.rld.justlisten.android.ui.theme.JustListenTheme
@@ -23,8 +24,10 @@ class MainActivity : ComponentActivity() {
         val model = (application as JustListenApp).model
         val musicServiceConnection = (application as JustListenApp).musicServiceConnection
         installSplashScreen().apply {
-
         }
+        val workManager = WorkManager.getInstance(applicationContext)
+        workManager.cancelUniqueWork("SleepWorker")
+
         val settingsInfo = mutableStateOf(model.repository.getSettingsInfo())
         setContent {
             JustListenTheme(

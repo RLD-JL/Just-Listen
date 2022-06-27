@@ -28,6 +28,8 @@ dependencies {
     implementation ("com.google.android.exoplayer:exoplayer-ui:2.18.0")
 
     implementation ("dev.chrisbanes.snapper:snapper:0.2.2")
+    implementation ("androidx.work:work-runtime-ktx:2.7.1")
+
 
     implementation("androidx.lifecycle:lifecycle-process:2.5.0-rc02")
     implementation("io.coil-kt:coil-compose:2.1.0")
