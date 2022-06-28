@@ -96,11 +96,13 @@ fun SettingsScreen(
                         onClick = {
                             workManager.cancelUniqueWork("SleepWorker")
                             hasTimerSetup.value = false
-                                  },
+                            Toast.makeText(context, "Sleeper has been canceled", Toast.LENGTH_SHORT)
+                                .show()
+                        },
                         modifier = Modifier.clip(CircleShape)
                     ) {
                         Text("Cancel sleeper")
-                        Toast.makeText(context, "Sleeper has been canceled", Toast.LENGTH_SHORT).show()
+
                     }
                 }
             }

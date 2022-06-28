@@ -76,7 +76,7 @@ fun TimerSetup(
                         myWorkRequest
                     ).enqueue()
                     coroutineScope.launch { scaffoldState.bottomSheetState.collapse() }
-                    Toast.makeText(context, "If you close the app, the sleeper will be canceled", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "If you close the app, the sleeper will be canceled", Toast.LENGTH_SHORT).show()
                 },
                 modifier = Modifier
                     .weight(0.45f)
