@@ -76,7 +76,8 @@ fun Navigation.ScreenPicker(
         LaunchedEffect(key1 = MusicService.songHasRepeated) {
             val title = musicServiceConnection.currentPlayingSong.value?.title ?: "title"
             val newId = musicServiceConnection.currentPlayingSong.value?.id ?: "id"
-            val user = UserModel("asd")
+            val user = musicServiceConnection.currentPlayingSong.value?.artist?.let { UserModel(it) }
+                ?: UserModel("glitch")
             val songIcon =
                 musicServiceConnection.currentPlayingSong.value?.displayIconUri.toString()
             val icon = SongIconList(
