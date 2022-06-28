@@ -128,7 +128,7 @@ fun Navigation.ScreenPicker(
             PlaylistScreen(
                 events = events,
                 playlistState = stateProvider.get(screenIdentifier = screenIdentifier),
-                onPlaylistClicked = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy, _ ->
+                onPlaylistClicked = { playlistId, playlistIcon, playlistCreatedBy, playlistTitle, _ ->
                     navigate(
                         PlaylistDetail,
                         PlaylistDetailParams(
