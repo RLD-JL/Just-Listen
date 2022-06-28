@@ -10,7 +10,7 @@ import com.rld.justlisten.android.ui.libraryscreen.components.FavoritePlaylist
 import com.rld.justlisten.android.ui.libraryscreen.components.MostPlayedSongs
 import com.rld.justlisten.android.ui.libraryscreen.components.PlaylistView
 import com.rld.justlisten.android.ui.libraryscreen.components.RowListOfRecentActivity
-import com.rld.justlisten.android.ui.playlistscreen.Header
+import com.rld.justlisten.android.ui.playlistscreen.components.Header
 import com.rld.justlisten.android.ui.utils.playMusicFromId
 import com.rld.justlisten.datalayer.models.PlayListModel
 import com.rld.justlisten.datalayer.models.SongIconList
@@ -25,7 +25,8 @@ fun LibraryScreen(
     onFavoritePlaylistPressed: (String, String, String, String) -> Unit,
     onMostPlaylistPressed: (String, String, String, String) -> Unit,
     onPlayListViewClicked: () -> Unit,
-    lasItemReached: (Int) -> Unit
+    lasItemReached: (Int) -> Unit,
+    isPlayerReady: Boolean
 ) {
     Box(modifier = Modifier
         .fillMaxSize()
@@ -45,7 +46,7 @@ fun LibraryScreen(
                             false
                         )
                         val item = TrackItem(playlistModel, isFavorite)
-                        playMusicFromId(musicServiceConnection, listOf(item), id, false)
+                        playMusicFromId(musicServiceConnection, listOf(item), id, isPlayerReady)
                     }
                 },
                 lasItemReached = lasItemReached,

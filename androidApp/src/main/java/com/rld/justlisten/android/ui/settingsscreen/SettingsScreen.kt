@@ -1,126 +1,104 @@
 package com.rld.justlisten.android.ui.settingsscreen
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
-import com.rld.justlisten.android.ui.theme.ColorPallet
-import com.rld.justlisten.android.ui.utils.getColorPallet
+import androidx.work.WorkManager
+import com.rld.justlisten.android.ui.settingsscreen.components.BottomSheetSettings
+import com.rld.justlisten.android.ui.settingsscreen.components.SettingsContent
 import com.rld.justlisten.viewmodel.screens.settings.SettingsState
+import kotlinx.coroutines.launch
 
+
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SettingsScreen(
     settings: SettingsState,
-    updateSettings: (SettingsState) -> Unit,
+    updateSettings: (SettingsState) -> Unit
 ) {
-    Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+    val scaffoldState =
+        rememberBottomSheetScaffoldState(bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed))
+    val coroutineScope = rememberCoroutineScope()
 
-            ) {
-                Text(
-                    text = "Night Mode",
-                    style = MaterialTheme.typography.h6.copy(fontSize = 14.sp)
-                )
-                Switch(
-                    checked = settings.isDarkThemeOn,
-                    modifier = Modifier.padding(8.dp),
-                    onCheckedChange = {
-                        updateSettings(
-                            SettingsState(
-                                isDarkThemeOn = !settings.isDarkThemeOn,
-                                hasDonationNavigationOn = settings.hasDonationNavigationOn,
-                                palletColor = settings.palletColor
-                            )
-                        )
-                    }
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Has Bottom Donation Navigation",
-                    style = MaterialTheme.typography.h6.copy(fontSize = 14.sp)
-                )
-                Switch(
-                    checked = settings.hasDonationNavigationOn,
-                    modifier = Modifier.padding(8.dp),
-                    onCheckedChange = {
-                        updateSettings(
-                            SettingsState(
-                                hasDonationNavigationOn = !settings.hasDonationNavigationOn,
-                                isDarkThemeOn = settings.isDarkThemeOn,
-                                palletColor = settings.palletColor
-                            )
-                        )
-                    }
-                )
-            }
+    val hasTimerSetup = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val hourTime = rememberSaveable {
+        mutableStateOf("")
+    }
+    val minuteTime = rememberSaveable {
+        mutableStateOf("")
+    }
+    val context = LocalContext.current
+    val workManager = WorkManager.getInstance(context)
 
-            val palletOptions = listOf(
-                ColorPallet.Dark,
-                ColorPallet.Green,
-                ColorPallet.Pink,
-                ColorPallet.Purple,
-                ColorPallet.Orange,
-                ColorPallet.Blue
+    BottomSheetScaffold(
+        sheetContent = {
+            BottomSheetSettings(workManager, scaffoldState, coroutineScope) { hours, minute ->
+                hasTimerSetup.value = true
+                hourTime.value = hours
+                minuteTime.value = minute
+            }
+        },
+        sheetPeekHeight = 0.dp,
+        scaffoldState = scaffoldState
+    ) {
+        val nestedScroll = rememberScrollState()
+        Column(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(nestedScroll),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            SettingsContent(
+                settings,
+                updateSettings,
+                sleepTimerClicked = { coroutineScope.launch { scaffoldState.bottomSheetState.expand() } },
             )
 
-            val (selectedOption, onOptionSelected) = remember {
-                mutableStateOf(palletOptions.first {
-                    it == getColorPallet(
-                        settings.palletColor
-                    )
-                })
-            }
-            palletOptions.fastForEach { pallet ->
+            if (hasTimerSetup.value) {
                 Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .selectable(selected = (pallet == selectedOption),
-                            onClick = {
-                                onOptionSelected(pallet)
-                                updateSettings(
-                                    SettingsState(
-                                        isDarkThemeOn = settings.isDarkThemeOn,
-                                        hasDonationNavigationOn = settings.hasDonationNavigationOn,
-                                        palletColor = pallet.name
-                                    )
-                                )
-                            }),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    RadioButton(
-                        selected = (pallet == selectedOption),
+                    Text(
+                        "Timer to close the app has been added: ${hourTime.value}:${minuteTime.value}"
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(
                         onClick = {
-                            onOptionSelected(pallet)
-                            updateSettings(
-                                SettingsState(
-                                    isDarkThemeOn = settings.isDarkThemeOn,
-                                    hasDonationNavigationOn = settings.hasDonationNavigationOn,
-                                    palletColor = pallet.name
-                                )
-                            )
-                        })
-                    Text(pallet.name, modifier = Modifier.padding(start = 8.dp))
+                            workManager.cancelUniqueWork("SleepWorker")
+                            hasTimerSetup.value = false
+                            Toast.makeText(context, "Sleeper has been canceled", Toast.LENGTH_SHORT)
+                                .show()
+                        },
+                        modifier = Modifier.clip(CircleShape)
+                    ) {
+                        Text("Cancel sleeper")
+
+                    }
                 }
             }
+            Row(modifier = Modifier.fillMaxWidth().weight(1f, false),
+            horizontalArrangement = Arrangement.Center)
+            {
+                Text(text ="App version:1.0.6")
+            }
         }
-
     }
 }

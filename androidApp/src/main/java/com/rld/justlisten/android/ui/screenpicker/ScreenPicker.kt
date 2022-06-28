@@ -7,6 +7,7 @@ import com.rld.justlisten.Navigation
 import com.rld.justlisten.ScreenIdentifier
 import com.rld.justlisten.android.exoplayer.MusicService
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
+import com.rld.justlisten.android.exoplayer.library.extension.artist
 import com.rld.justlisten.android.exoplayer.library.extension.displayIconUri
 import com.rld.justlisten.android.exoplayer.library.extension.id
 import com.rld.justlisten.android.exoplayer.library.extension.title
@@ -58,7 +59,8 @@ fun Navigation.ScreenPicker(
         LaunchedEffect(musicServiceConnection.currentPlayingSong.value?.id) {
             val title = musicServiceConnection.currentPlayingSong.value?.title ?: "title"
             val newId = musicServiceConnection.currentPlayingSong.value?.id ?: "id"
-            val user = UserModel("asd")
+            val user = musicServiceConnection.currentPlayingSong.value?.artist?.let { UserModel(it) }
+                ?: UserModel("glitch")
             val songIcon =
                 musicServiceConnection.currentPlayingSong.value?.displayIconUri.toString()
             val icon = SongIconList(
@@ -74,7 +76,8 @@ fun Navigation.ScreenPicker(
         LaunchedEffect(key1 = MusicService.songHasRepeated) {
             val title = musicServiceConnection.currentPlayingSong.value?.title ?: "title"
             val newId = musicServiceConnection.currentPlayingSong.value?.id ?: "id"
-            val user = UserModel("asd")
+            val user = musicServiceConnection.currentPlayingSong.value?.artist?.let { UserModel(it) }
+                ?: UserModel("glitch")
             val songIcon =
                 musicServiceConnection.currentPlayingSong.value?.displayIconUri.toString()
             val icon = SongIconList(
@@ -91,6 +94,7 @@ fun Navigation.ScreenPicker(
 
         Library ->
             LibraryScreen(
+                isPlayerReady = isPlayerReady.value,
                 musicServiceConnection = musicServiceConnection,
                 libraryState = stateProvider.get(screenIdentifier),
                 onFavoritePlaylistPressed = { playlistId, playlistIcon, playlistTitle, playlistCreatedBy ->
