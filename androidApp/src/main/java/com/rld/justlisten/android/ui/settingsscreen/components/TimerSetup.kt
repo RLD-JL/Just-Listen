@@ -1,5 +1,6 @@
 package com.rld.justlisten.android.ui.settingsscreen.components
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -13,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
@@ -48,6 +50,7 @@ fun TimerSetup(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
+            val context = LocalContext.current
             Button(
                 onClick = {
                     val closeTimeHour =
@@ -73,6 +76,7 @@ fun TimerSetup(
                         myWorkRequest
                     ).enqueue()
                     coroutineScope.launch { scaffoldState.bottomSheetState.collapse() }
+                    Toast.makeText(context, "If you close the app, the sleeper will be canceled", Toast.LENGTH_LONG).show()
                 },
                 modifier = Modifier
                     .weight(0.45f)

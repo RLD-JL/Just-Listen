@@ -1,5 +1,6 @@
 package com.rld.justlisten.android.ui.settingsscreen
 
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -99,6 +100,7 @@ fun SettingsScreen(
                         modifier = Modifier.clip(CircleShape)
                     ) {
                         Text("Cancel sleeper")
+                        Toast.makeText(context, "Sleeper has been canceled", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
