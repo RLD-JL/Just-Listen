@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rld.justlisten.android.R
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
+import com.rld.justlisten.android.exoplayer.library.extension.artist
 import com.rld.justlisten.android.ui.theme.typography
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
@@ -54,10 +55,15 @@ fun PlayBarActionsMinimized(
                         .size(30.dp)
                         .clickable {
                             val newSongIcon = songIcon.replace("480", "1000")
+                            val user =   musicServiceConnection.currentPlayingSong.value?.artist?.let {
+                                UserModel(
+                                    it
+                                )
+                            } ?: UserModel("glitch")
                             onFavoritePressed(
                                 songId,
                                 title,
-                                UserModel(),
+                                user,
                                 SongIconList(
                                     songImageURL150px = songIcon,
                                     songImageURL480px = songIcon,
@@ -76,10 +82,15 @@ fun PlayBarActionsMinimized(
                         .size(30.dp)
                         .clickable {
                             val newSongIcon = songIcon.replace("480", "1000")
+                            val user =   musicServiceConnection.currentPlayingSong.value?.artist?.let {
+                                UserModel(
+                                    it
+                                )
+                            } ?: UserModel("glitch")
                             onFavoritePressed(
                                 songId,
                                 title,
-                                UserModel(),
+                                user,
                                 SongIconList(
                                     songImageURL150px = songIcon,
                                     songImageURL480px = songIcon,
