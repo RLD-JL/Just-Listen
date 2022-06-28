@@ -19,6 +19,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.rld.justlisten.android.workers.SleepWorker
+import com.rld.justlisten.util.delay
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 import dev.chrisbanes.snapper.SnapOffsets
 import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
@@ -149,27 +150,4 @@ fun CircularList(
         )
     }
 
-}
-
-private fun delay(
-    currentTimeHour: Int,
-    closeTimeHour: Int,
-    currentTimeMinute: Int,
-    closeTimeMinute: Int
-): Long {
-    val delayHour =
-        if (currentTimeHour < closeTimeHour) {
-            24 - closeTimeHour + currentTimeHour
-        } else if (currentTimeHour == closeTimeHour && currentTimeMinute > closeTimeMinute) {
-            23
-        } else {
-            closeTimeHour - currentTimeHour
-        }
-    val delayMinute = if (currentTimeMinute > closeTimeMinute) {
-        60 - currentTimeMinute + closeTimeMinute
-    } else {
-        closeTimeMinute - currentTimeMinute
-    }
-    val delay = (delayHour * 60 + delayMinute).toLong()
-    return delay
 }
