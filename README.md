@@ -34,6 +34,7 @@ https://www.youtube.com/watch?v=IAExKH6L5P4
 - Adds songs to favorite
 - Check your recent played
 - Check your most listened songs
+- Set close timer for the app
 - Different themes 
 - Shuffle, repeat one/all songs
 - Notification manager displayed
