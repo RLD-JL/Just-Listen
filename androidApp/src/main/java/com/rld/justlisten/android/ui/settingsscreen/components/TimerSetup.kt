@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
@@ -31,6 +30,7 @@ import java.util.concurrent.TimeUnit
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TimerSetup(
+    workManager: WorkManager,
     onConfirmClicked: (String, String) -> Unit,
     coroutineScope: CoroutineScope,
     scaffoldState: BottomSheetScaffoldState
@@ -43,9 +43,6 @@ fun TimerSetup(
     val minutesListState = rememberLazyListState(Int.MAX_VALUE / 2)
 
     Column {
-        val context = LocalContext.current
-        val workManager = WorkManager.getInstance(context)
-
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
@@ -76,7 +73,6 @@ fun TimerSetup(
                         myWorkRequest
                     ).enqueue()
                     coroutineScope.launch { scaffoldState.bottomSheetState.collapse() }
-
                 },
                 modifier = Modifier
                     .weight(0.45f)

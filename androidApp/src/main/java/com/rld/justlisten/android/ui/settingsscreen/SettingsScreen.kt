@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -13,14 +14,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
+import androidx.work.WorkManager
 import com.rld.justlisten.android.ui.settingsscreen.components.TimerSetup
 import com.rld.justlisten.android.ui.theme.ColorPallet
 import com.rld.justlisten.android.ui.utils.getColorPallet
@@ -48,13 +52,16 @@ fun SettingsScreen(
     val minuteTime = rememberSaveable {
         mutableStateOf("")
     }
+    val context = LocalContext.current
+    val workManager = WorkManager.getInstance(context)
+
     BottomSheetScaffold(
         sheetContent = {
-            BottomSheetSettings(scaffoldState, coroutineScope, onConfirmClicked = { hours, minute ->
+            BottomSheetSettings(workManager, scaffoldState, coroutineScope) { hours, minute ->
                 hasTimerSetup.value = true
                 hourTime.value = hours
                 minuteTime.value = minute
-            })
+            }
         },
         sheetPeekHeight = 0.dp,
         scaffoldState = scaffoldState
@@ -79,6 +86,20 @@ fun SettingsScreen(
                     Text(
                         "Timer to close the app has been added: ${hourTime.value}:${minuteTime.value}"
                     )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(
+                        onClick = {
+                            workManager.cancelUniqueWork("SleepWorker")
+                            hasTimerSetup.value = false
+                                  },
+                        modifier = Modifier.clip(CircleShape)
+                    ) {
+                        Text("Cancel sleeper")
+                    }
                 }
             }
         }
@@ -210,6 +231,7 @@ fun SettingsContent(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun BottomSheetSettings(
+    workManager: WorkManager,
     scaffoldState: BottomSheetScaffoldState,
     coroutineScope: CoroutineScope,
     onConfirmClicked: (String, String) -> Unit
@@ -236,6 +258,6 @@ fun BottomSheetSettings(
                 )
             )
         }
-        TimerSetup(onConfirmClicked, coroutineScope, scaffoldState)
+        TimerSetup(workManager, onConfirmClicked, coroutineScope, scaffoldState)
     }
 }
