@@ -35,7 +35,7 @@ class MusicSource {
     }
 
     private fun MediaMetadataCompat.Builder.from(song: Item): MediaMetadataCompat.Builder {
-        artist = song.title
+        artist = song.user
         id = song.id
         title = song.title
         displayIconUri = song.songIconList.songImageURL480px
