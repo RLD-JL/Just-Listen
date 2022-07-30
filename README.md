@@ -6,7 +6,7 @@ A music player currently only for android. It is using <a href="https://audius.o
 
 <div align="center">
 <br>
-Available on <a href = "https://play.google.com/store/apps/details?id=com.rld.justlisten.android">google play store</a> and on <a href="https://github.com/RLD-JL/Just-Listen/releases/latest">github</a>.
+Available on <a href = "https://play.google.com/store/apps/details?id=com.rld.justlisten.android">Google Play</a>, <a href = "https://apt.izzysoft.de/fdroid/index/apk/com.rld.justlisten.android">F-Droid via IzzyOnDroid repo</a> and on <a href="https://github.com/RLD-JL/Just-Listen/releases/latest">Github</a>.
 <br><br>
 
 <a href="https://github.com/RLD-JL/Just-Listen/releases/">
