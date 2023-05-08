@@ -44,7 +44,7 @@ dependencyResolutionManagement {
                 )
             )
 
-            version("exoPlayerVersion", "2.18.0")
+            version("exoPlayerVersion", "2.18.6")
             library("exoplayer-mediasession", "com.google.android.exoplayer", "extension-mediasession").versionRef("exoPlayerVersion")
             library("exoplayer-core", "com.google.android.exoplayer", "exoplayer-core").versionRef("exoPlayerVersion")
             library("exoplayer-ui", "com.google.android.exoplayer", "exoplayer-ui").versionRef("exoPlayerVersion")
