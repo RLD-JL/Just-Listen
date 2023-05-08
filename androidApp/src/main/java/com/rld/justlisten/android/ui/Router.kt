@@ -8,6 +8,7 @@ import androidx.compose.ui.util.fastForEach
 import coil.annotation.ExperimentalCoilApi
 import com.rld.justlisten.Navigation
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
+import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailState
 
 @ExperimentalCoilApi
 @ExperimentalMaterialApi
@@ -15,7 +16,8 @@ import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 fun Navigation.Router(
     musicServiceConnection: MusicServiceConnection, settingsUpdated: () -> Unit,
     hasNavigationFundOn: Boolean,
-    updateStatusBarColor: (Int, Boolean) -> Unit
+    updateStatusBarColor: (Int, Boolean) -> Unit,
+    playlistDetailState: PlaylistDetailState?
 ) {
     val screenUIisStateHolder = rememberSaveableStateHolder()
 
@@ -24,7 +26,8 @@ fun Navigation.Router(
         musicServiceConnection,
         settingsUpdated = settingsUpdated,
         hasNavigationFundOn,
-        updateStatusBarColor = updateStatusBarColor
+        updateStatusBarColor = updateStatusBarColor,
+        playlistDetailState
     )
 
     screenStatesToRemove.fastForEach {

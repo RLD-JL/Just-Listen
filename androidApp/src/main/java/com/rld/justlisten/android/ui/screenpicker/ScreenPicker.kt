@@ -46,7 +46,8 @@ import com.rld.justlisten.viewmodel.screens.settings.updateScreen
 fun Navigation.ScreenPicker(
     screenIdentifier: ScreenIdentifier,
     musicServiceConnection: MusicServiceConnection,
-    settingsUpdated: () -> Unit
+    settingsUpdated: () -> Unit,
+    playlistDetailState: PlaylistDetailState?
 ) {
     val isPlayerReady: MutableState<Boolean> = rememberSaveable{
         mutableStateOf(false)
@@ -157,33 +158,35 @@ fun Navigation.ScreenPicker(
                 }
             )
 
-        PlaylistDetail -> PlaylistDetailScreen(
-            playlistDetailState = stateProvider.get(screenIdentifier = screenIdentifier),
-            onBackButtonPressed = { onBackButtonPressed ->
-                if (onBackButtonPressed) exitScreen()
-            },
-            musicServiceConnection = musicServiceConnection,
-            onFavoritePressed = { id, title, userModel, songIconList, isFavorite ->
-                events.saveSongToFavorites(
-                    id,
-                    title,
-                    userModel,
-                    songIconList,
-                    isFavorite = isFavorite
-                )
-                updateFavorite(isFavorite, musicServiceConnection, id)
-            },
-            onSongPressed = { songId ->
+        PlaylistDetail -> playlistDetailState?.let {
+            PlaylistDetailScreen(
+                playlistDetailState = it,
+                onBackButtonPressed = { onBackButtonPressed ->
+                    if (onBackButtonPressed) exitScreen()
+                },
+                musicServiceConnection = musicServiceConnection,
+                onFavoritePressed = { id, title, userModel, songIconList, isFavorite ->
+                    events.saveSongToFavorites(
+                        id,
+                        title,
+                        userModel,
+                        songIconList,
+                        isFavorite = isFavorite
+                    )
+                    updateFavorite(isFavorite, musicServiceConnection, id)
+                },
+                onSongPressed = { songId ->
 
-                playMusicFromId(
-                    musicServiceConnection,
-                    (stateProvider.get(screenIdentifier = screenIdentifier) as PlaylistDetailState).songPlaylist,
-                    songId,
-                    isPlayerReady.value,
-                )
-                isPlayerReady.value = true
-            }
-        )
+                    playMusicFromId(
+                        musicServiceConnection,
+                        (stateProvider.get(screenIdentifier = screenIdentifier) as PlaylistDetailState).songPlaylist,
+                        songId,
+                        isPlayerReady.value,
+                    )
+                    isPlayerReady.value = true
+                }
+            )
+        }
         Search -> SearchScreen(
             onBackPressed = {
                 exitScreen()
