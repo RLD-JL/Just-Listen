@@ -69,11 +69,11 @@ sqldelight {
 }
 
 android {
-    compileSdk = 30
+    compileSdk = 33
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         minSdk = 21
-        targetSdk = 30
+        targetSdk = 33
     }
     namespace = "com.rld.justlisten"
 }
