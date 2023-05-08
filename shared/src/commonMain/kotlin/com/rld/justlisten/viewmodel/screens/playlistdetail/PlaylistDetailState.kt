@@ -1,7 +1,6 @@
 package com.rld.justlisten.viewmodel.screens.playlistdetail
 
 import com.rld.justlisten.ScreenState
-import com.rld.justlisten.datalayer.models.PlayListModel
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 
 data class PlaylistDetailState(

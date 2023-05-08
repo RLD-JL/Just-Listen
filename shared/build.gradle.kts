@@ -42,7 +42,6 @@ kotlin {
             dependencies {
                 implementation("io.ktor:ktor-client-android:${libs.versions.ktorVersion.get()}")
                 implementation("com.squareup.sqldelight:android-driver:1.5.3")
-
             }
         }
         val androidTest by getting {

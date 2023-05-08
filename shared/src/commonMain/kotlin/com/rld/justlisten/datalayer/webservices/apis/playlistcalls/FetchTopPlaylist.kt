@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 
 suspend fun ApiClient.fetchPlaylist(index: Int, playListEnum: PlayListEnum, playlistId: String="", queryPlaylist: String = "Rock"): PlayListResponse? {
    return when (playListEnum) {
-       TOP_PLAYLIST -> getResponse("/playlists/top?type=playlist&limit=${index}&app_name=$appName")
+       TOP_PLAYLIST -> getResponse("/full/playlists/top?type=playlist&limit=${index}&app_name=$appName")
        REMIX -> getResponse("/playlists/search?query=${queryPlaylist}&limit=${index}&app_name=$appName")
        CURRENT_PLAYLIST -> getResponse("/playlists/${playlistId}/tracks?app_name=$appName")
        HOT -> getResponse("/playlists/search?query=${queryPlaylist}&limit=${index}&app_name=$appName")
