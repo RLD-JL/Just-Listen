@@ -68,6 +68,19 @@ sqldelight {
     }
 }
 
+configurations {
+    named("debugFrameworkIos") {
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "my-unique-attribute"))
+        }
+    }
+    named("releaseFrameworkIos") {
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "huh"))
+        }
+    }
+}
+
 android {
     compileSdk = 33
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
