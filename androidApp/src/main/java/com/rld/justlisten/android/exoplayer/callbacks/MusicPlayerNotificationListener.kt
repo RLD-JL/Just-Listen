@@ -1,7 +1,9 @@
 package com.rld.justlisten.android.exoplayer.callbacks
 
 import android.app.Notification
+import android.app.Service
 import android.content.Intent
+import android.os.Build
 import androidx.core.content.ContextCompat
 import com.rld.justlisten.android.exoplayer.MusicService
 import com.rld.justlisten.android.exoplayer.utils.Constants.NOTIFICATION_ID
@@ -13,7 +15,11 @@ class MusicPlayerNotificationListener(
     override fun onNotificationCancelled(notificationId: Int, dismissedByUser: Boolean) {
         super.onNotificationCancelled(notificationId, dismissedByUser)
         musicService.apply {
-            stopForeground(true)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                musicService.stopForeground(Service.STOP_FOREGROUND_DETACH)
+            } else {
+                musicService.stopForeground(true)
+            }
             isForegroundService = false
             stopSelf()
         }

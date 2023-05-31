@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.rld.justlisten.android.R
 import com.rld.justlisten.android.exoplayer.MusicService.Companion.curSongDuration
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 import com.rld.justlisten.android.ui.extensions.noRippleClickable
@@ -96,7 +95,7 @@ fun IsLoading(isLoading: Boolean, modifier: Modifier) {
         ) {
             CircularProgressIndicator()
             Icon(
-                painter = painterResource(id = R.drawable.exo_icon_pause),
+                painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_icon_pause),
                 modifier = modifier.size(35.dp),
                 contentDescription = null
             )

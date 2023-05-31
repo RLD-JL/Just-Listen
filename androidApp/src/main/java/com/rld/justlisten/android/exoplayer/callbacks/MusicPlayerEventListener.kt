@@ -1,5 +1,7 @@
 package com.rld.justlisten.android.exoplayer.callbacks
 
+import android.app.Service.STOP_FOREGROUND_DETACH
+import android.os.Build
 import android.widget.Toast
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.PlaybackException
@@ -17,7 +19,11 @@ class MusicPlayerEventListener(
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
         super.onPlayWhenReadyChanged(playWhenReady, reason)
         if (reason == Player.STATE_READY && !playWhenReady) {
-            musicService.stopForeground(false)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                musicService.stopForeground(STOP_FOREGROUND_DETACH)
+            } else {
+                musicService.stopForeground(true)
+            }
             musicService.isForegroundService = false
         }
     }
