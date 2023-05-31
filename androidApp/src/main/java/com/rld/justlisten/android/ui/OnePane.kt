@@ -27,7 +27,6 @@ import com.rld.justlisten.viewmodel.screens.addplaylist.addPlaylist
 import com.rld.justlisten.viewmodel.screens.addplaylist.getPlaylist
 import com.rld.justlisten.viewmodel.screens.addplaylist.updatePlaylistSongs
 import com.rld.justlisten.viewmodel.screens.library.saveSongToFavorites
-import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailState
 import kotlinx.coroutines.launch
 
 @ExperimentalCoilApi
@@ -38,8 +37,7 @@ fun Navigation.OnePane(
     musicServiceConnection: MusicServiceConnection,
     settingsUpdated: () -> Unit,
     hasNavigationFundOn: Boolean,
-    updateStatusBarColor: (Int, Boolean) -> Unit,
-    playlistDetailState: PlaylistDetailState?
+    updateStatusBarColor: (Int, Boolean) -> Unit
 ) {
     val shouldHavePlayBar by remember {
         derivedStateOf {
@@ -143,8 +141,7 @@ fun Navigation.OnePane(
                                 ScreenPicker(
                                     currentScreenIdentifier,
                                     musicServiceConnection,
-                                    settingsUpdated = settingsUpdated,
-                                    playlistDetailState
+                                    settingsUpdated = settingsUpdated
                                 )
                             }
                         }

@@ -14,8 +14,6 @@ import com.rld.justlisten.android.ui.theme.ColorPallet
 import com.rld.justlisten.android.ui.theme.JustListenTheme
 import com.rld.justlisten.android.ui.utils.getColorPallet
 import com.rld.justlisten.datalayer.datacalls.settings.getSettingsInfo
-import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailState
-
 
 class MainActivity : ComponentActivity() {
 
@@ -24,25 +22,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val model = (application as JustListenApp).model
         val musicServiceConnection = (application as JustListenApp).musicServiceConnection
-        var playlistDetailState: PlaylistDetailState?
         installSplashScreen().apply {
-         /* //  model.navigation.initPlaylistDetail(PlaylistDetailParams("","","","",PlayListEnum.CURRENT_PLAYLIST))
-            val playlistDetailScreen = Screen.PlaylistDetail
-            val screenIdentifier = ScreenIdentifier(playlistDetailScreen)
-            val screenInitSettings = ScreenInitSettings(
-                title = "PlaylistEnum",
-                initState = { PlaylistDetailState(isLoading = true) },
-                callOnInit = {
-                },
-                reinitOnEachNavigation = true
-            )
-            model.state.addScreen(screenIdentifier, screenInitSettings, false)
-            println("YOLO2: ${model.navigation.stateProvider.stateManager.screenStatesMap.keys}")
-            playlistDetailState = model.navigation.stateProvider.getPlaylistDetailState()
-            println("YOLO: $playlistDetailState")*/
-             playlistDetailState = PlaylistDetailState(true)
         }
-        println("yolo ${playlistDetailState?.isLoading}")
         val workManager = WorkManager.getInstance(applicationContext)
         workManager.cancelUniqueWork("SleepWorker")
 
@@ -69,8 +50,7 @@ class MainActivity : ComponentActivity() {
                             window.statusBarColor = color
                         else
                             window.statusBarColor = statusBarColor
-                    },
-                    playlistDetailState
+                    }
                 )
             }
         }

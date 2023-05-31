@@ -6,7 +6,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 import com.rld.justlisten.viewmodel.JustListenViewModel
-import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailState
 
 @ExperimentalMaterialApi
 @Composable
@@ -15,11 +14,10 @@ fun MainComposable(
     musicServiceConnection: MusicServiceConnection,
     settingsUpdated: () -> Unit,
     hasNavigationDonationOn: Boolean,
-    updateStatusBarColor: (Int, Boolean) -> Unit,
-    playlistDetailState: PlaylistDetailState?
+    updateStatusBarColor: (Int, Boolean) -> Unit
 ) {
     val appState by model.stateFlow.collectAsState()
     val justlistenNav = appState.getNavigation(model = model)
     justlistenNav.Router(musicServiceConnection, settingsUpdated = settingsUpdated, hasNavigationDonationOn,
-        updateStatusBarColor, playlistDetailState)
+        updateStatusBarColor)
 }

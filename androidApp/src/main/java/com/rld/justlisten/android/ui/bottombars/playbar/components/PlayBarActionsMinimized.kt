@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rld.justlisten.android.R
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 import com.rld.justlisten.android.exoplayer.library.extension.artist
 import com.rld.justlisten.android.ui.theme.typography
@@ -33,7 +32,6 @@ fun PlayBarActionsMinimized(
     Row(
         Modifier
             .graphicsLayer(alpha = 1f - currentFraction * 2)
-            .height(IntrinsicSize.Max)
             .clickable(onClick = playBarMinimizedClicked)
     ) {
         if (currentFraction != 1f) {
@@ -106,7 +104,7 @@ fun PlayBarActionsMinimized(
                 musicServiceConnection.playbackState.value?.state != PlaybackState.STATE_BUFFERING
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.exo_icon_play),
+                    painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_icon_play),
                     modifier = Modifier
                         .padding(8.dp)
                         .clickable(
@@ -122,7 +120,7 @@ fun PlayBarActionsMinimized(
             )
             if (musicServiceConnection.playbackState.value?.state == PlaybackState.STATE_PLAYING) {
                 Icon(
-                    painter = painterResource(id = R.drawable.exo_icon_pause),
+                    painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_icon_pause),
                     modifier = Modifier
                         .padding(8.dp)
                         .clickable(
@@ -133,7 +131,7 @@ fun PlayBarActionsMinimized(
                 )
             }
             Icon(
-                painter = painterResource(id = R.drawable.exo_ic_skip_next),
+                painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_ic_skip_next),
                 modifier = Modifier
                     .padding(8.dp)
                     .clickable(onClick = onSkipNextPressed)
