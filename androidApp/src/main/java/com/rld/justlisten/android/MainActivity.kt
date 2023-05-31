@@ -15,7 +15,6 @@ import com.rld.justlisten.android.ui.theme.JustListenTheme
 import com.rld.justlisten.android.ui.utils.getColorPallet
 import com.rld.justlisten.datalayer.datacalls.settings.getSettingsInfo
 
-
 class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterialApi::class)

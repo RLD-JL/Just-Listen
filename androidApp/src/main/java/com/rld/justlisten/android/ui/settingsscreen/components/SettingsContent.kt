@@ -57,10 +57,11 @@ fun SettingsContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Has Bottom Donation Navigation",
+                text = "Has Bottom Donation Navigation \nDisabled thanks to google",
                 style = MaterialTheme.typography.h6.copy(fontSize = 14.sp)
             )
             Switch(
+                enabled = false,
                 checked = settings.hasDonationNavigationOn,
                 modifier = Modifier.padding(8.dp),
                 onCheckedChange = {

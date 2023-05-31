@@ -1,9 +1,10 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+@Suppress("DSL_SCOPE_VIOLATION")
 
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
-    kotlin("plugin.serialization") version "1.6.21"
+    kotlin("plugin.serialization") version libs.versions.kotlinVersion.get()
     id("com.squareup.sqldelight")
 }
 
@@ -24,15 +25,11 @@ kotlin {
         }
     }
     sourceSets {
-        val ktor_version = "2.0.2"
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
-                implementation("io.ktor:ktor-client-core:$ktor_version")
-                implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
-                implementation("io.ktor:ktor-client-logging:$ktor_version")
+                implementation(libs.bundles.ktor)
             }
         }
         val commonTest by getting {
@@ -43,9 +40,8 @@ kotlin {
         }
         val androidMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-android:$ktor_version")
+                implementation("io.ktor:ktor-client-android:${libs.versions.ktorVersion.get()}")
                 implementation("com.squareup.sqldelight:android-driver:1.5.3")
-
             }
         }
         val androidTest by getting {
@@ -56,7 +52,7 @@ kotlin {
         }
         val iosMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-ios:$ktor_version")
+                implementation("io.ktor:ktor-client-ios:${libs.versions.ktorVersion.get()}")
                 implementation("com.squareup.sqldelight:native-driver:1.5.3")
 
             }
@@ -72,12 +68,25 @@ sqldelight {
     }
 }
 
+configurations {
+    named("debugFrameworkIos") {
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "my-unique-attribute"))
+        }
+    }
+    named("releaseFrameworkIos") {
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "huh"))
+        }
+    }
+}
+
 android {
-    compileSdk = 30
+    compileSdk = 33
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         minSdk = 21
-        targetSdk = 30
+        targetSdk = 33
     }
     namespace = "com.rld.justlisten"
 }

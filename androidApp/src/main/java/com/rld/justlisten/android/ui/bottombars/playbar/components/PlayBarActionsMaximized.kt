@@ -102,7 +102,7 @@ fun PlayBarActionsMaximized(
                                     SHUFFLE_MODE_ALL
                                 )
                             },
-                        painter = painterResource(id = R.drawable.exo_styled_controls_shuffle_off),
+                        painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_styled_controls_shuffle_off),
                         contentDescription = null,
                     )
                 } else {
@@ -115,7 +115,7 @@ fun PlayBarActionsMaximized(
                                     SHUFFLE_MODE_NONE
                                 )
                             },
-                        painter = painterResource(id = R.drawable.exo_styled_controls_shuffle_on),
+                        painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_styled_controls_shuffle_on),
                         contentDescription = null,
                     )
                 }
@@ -126,7 +126,7 @@ fun PlayBarActionsMaximized(
                         .clickable {
                             musicServiceConnection.transportControls.skipToPrevious()
                         },
-                    painter = painterResource(id = R.drawable.exo_ic_skip_previous),
+                    painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_ic_skip_previous),
                     contentDescription = null,
                 )
                 if (musicServiceConnection.playbackState.value?.state != PlaybackState.STATE_PLAYING &&
@@ -142,7 +142,7 @@ fun PlayBarActionsMaximized(
                             .weight(0.2f),
                         onClick = { musicServiceConnection.transportControls.play() }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.exo_icon_play),
+                            painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_icon_play),
                             contentDescription = null
                         )
                     }
@@ -157,14 +157,14 @@ fun PlayBarActionsMaximized(
                             .weight(0.2f),
                         onClick = { musicServiceConnection.transportControls.pause() }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.exo_icon_pause),
+                            painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_icon_pause),
                             contentDescription = null
                         )
                     }
                 }
 
                 Icon(
-                    painter = painterResource(id = R.drawable.exo_ic_skip_next),
+                    painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_ic_skip_next),
                     modifier = Modifier
                         .size(40.dp)
                         .clickable(onClick = onSkipNextPressed)
@@ -181,7 +181,7 @@ fun PlayBarActionsMaximized(
                                     REPEAT_MODE_ONE
                                 )
                             },
-                        painter = painterResource(id = R.drawable.exo_controls_repeat_off),
+                        painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_off),
                         contentDescription = null,
                     )
                     REPEAT_MODE_ONE -> Icon(
@@ -193,7 +193,7 @@ fun PlayBarActionsMaximized(
                                     REPEAT_MODE_ALL
                                 )
                             },
-                        painter = painterResource(id = R.drawable.exo_controls_repeat_one),
+                        painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_one),
                         contentDescription = null,
                     )
                     REPEAT_MODE_ALL -> Icon(
@@ -205,7 +205,7 @@ fun PlayBarActionsMaximized(
                                     REPEAT_MODE_NONE
                                 )
                             },
-                        painter = painterResource(id = R.drawable.exo_controls_repeat_all),
+                        painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_all),
                         contentDescription = null,
                     )
                 }

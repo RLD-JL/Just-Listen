@@ -97,7 +97,7 @@ fun SettingsScreen(
             Row(modifier = Modifier.fillMaxWidth().weight(1f, false),
             horizontalArrangement = Arrangement.Center)
             {
-                Text(text ="App version:1.0.6")
+                Text(text ="App version:1.0.6-fix")
             }
         }
     }
