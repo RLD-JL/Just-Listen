@@ -102,15 +102,18 @@ class StateManager(repo: Repository) {
 
     // ADD SCREEN FUNCTIONS
 
-    fun addScreen(screenIdentifier: ScreenIdentifier, screenInitSettings: ScreenInitSettings) {
+    fun addScreen(screenIdentifier: ScreenIdentifier, screenInitSettings: ScreenInitSettings, triggerRecomposition: Boolean = true) {
         //debugLogger.log("addScreen: "+screenIdentifier.URI)
         addScreenToBackstack(screenIdentifier)
         initScreenScope(screenIdentifier)
         if (!isInTheStatesMap(screenIdentifier) || screenInitSettings.reinitOnEachNavigation) {
             screenStatesMap[screenIdentifier.URI] = screenInitSettings.initState(screenIdentifier)
-            triggerRecomposition() // FIRST UI RECOMPOSITION
-            runInScreenScope(screenIdentifier) {
-                screenInitSettings.callOnInit(this) // SECOND UI RECOMPOSITION
+            screenStatesMap.keys.forEach { println("YOLO 3 $it") }
+            if (triggerRecomposition) {
+                triggerRecomposition() // FIRST UI RECOMPOSITION
+                runInScreenScope(screenIdentifier) {
+                    screenInitSettings.callOnInit(this) // SECOND UI RECOMPOSITION
+                }
             }
         } else {
             triggerRecomposition() // JUST 1 UI RECOMPOSITION
