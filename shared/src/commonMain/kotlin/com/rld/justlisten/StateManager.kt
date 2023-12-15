@@ -108,7 +108,6 @@ class StateManager(repo: Repository) {
         initScreenScope(screenIdentifier)
         if (!isInTheStatesMap(screenIdentifier) || screenInitSettings.reinitOnEachNavigation) {
             screenStatesMap[screenIdentifier.URI] = screenInitSettings.initState(screenIdentifier)
-            screenStatesMap.keys.forEach { println("YOLO 3 $it") }
             if (triggerRecomposition) {
                 triggerRecomposition() // FIRST UI RECOMPOSITION
                 runInScreenScope(screenIdentifier) {
