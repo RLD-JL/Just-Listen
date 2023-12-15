@@ -7,8 +7,12 @@ import com.rld.justlisten.viewmodel.screens.search.SearchEnum
 import com.rld.justlisten.viewmodel.screens.search.SearchEnum.*
 
 suspend fun ApiClient.searchFor(searchFor: String, searchEnum: SearchEnum): PlayListResponse? {
-    return when(searchEnum) {
+    val fullSearchResponse: PlayListResponse? = when (searchEnum) {
         TRACKS -> getResponse("/tracks/search?query=${searchFor}&app_name=${Constants.appName}")
         PLAYLIST -> getResponse("/playlists/search?query=${searchFor}&app_name=${Constants.appName}")
+    }
+    return fullSearchResponse?.let {
+        val tracks = it.data.filter { it.isStreamable }
+        PlayListResponse(tracks)
     }
 }
