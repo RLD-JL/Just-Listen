@@ -27,7 +27,7 @@ dependencyResolutionManagement {
                 )
             )
 
-            version("composeVersion", "1.3.0-alpha01")
+            version("composeVersion", "1.5.4")
             library("compose-ui-util", "androidx.compose.ui", "ui-util").versionRef("composeVersion")
             library("compose-ui", "androidx.compose.ui", "ui").versionRef("composeVersion")
             library("compose-ui-preview", "androidx.compose.ui", "ui-tooling-preview").versionRef("composeVersion")
@@ -44,7 +44,7 @@ dependencyResolutionManagement {
                 )
             )
 
-            version("exoPlayerVersion", "2.18.6")
+            version("exoPlayerVersion", "2.19.1")
             library("exoplayer-mediasession", "com.google.android.exoplayer", "extension-mediasession").versionRef("exoPlayerVersion")
             library("exoplayer-core", "com.google.android.exoplayer", "exoplayer-core").versionRef("exoPlayerVersion")
             library("exoplayer-ui", "com.google.android.exoplayer", "exoplayer-ui").versionRef("exoPlayerVersion")

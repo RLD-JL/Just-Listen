@@ -232,6 +232,9 @@ fun Navigation.ScreenPicker(
                     )
                 )
                 events.playMusicFromPlaylist(playlistId = playlistId)
+            },
+            onBackButtonPressed = { onBackButtonPressed ->
+                if (onBackButtonPressed) exitScreen()
             }
         )
         Donation -> DonationScreen()

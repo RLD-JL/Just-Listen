@@ -3,6 +3,7 @@ package com.rld.justlisten.android.ui.extensions
 import androidx.compose.material.BottomSheetScaffoldState
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.ExperimentalMaterialApi
+import kotlin.math.absoluteValue
 
 /**
  * Align fraction states into single value
@@ -14,7 +15,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 @ExperimentalMaterialApi
 val BottomSheetScaffoldState.fraction: Float
     get() {
-        val fraction = bottomSheetState.progress.fraction
+        val fraction = bottomSheetState.progress.absoluteValue
         val currentValue = bottomSheetState.currentValue
         val targetValue = bottomSheetState.targetValue
 

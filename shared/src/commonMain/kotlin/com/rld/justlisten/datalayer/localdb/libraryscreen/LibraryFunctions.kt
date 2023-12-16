@@ -29,7 +29,8 @@ fun LocalDb.getFavoritePlaylist(): List<PlayListModel> {
             playlistTitle = title,
             title = title,
             user = user,
-            songImgList = songImgList
+            songImgList = songImgList,
+            isStreamable = true
         )
     }).executeAsList()
 }
@@ -38,7 +39,7 @@ fun LocalDb.getCustomPlaylistSongs(songsList: List<String>): List<PlayListModel>
     return libraryQueries.getCustomPlaylistSongs(
         songsList, mapper = { id, title, user, songImgList, _, _, _, _, _
             ->
-            PlayListModel(id, title, title, songImgList, user)
+            PlayListModel(id, title, title, songImgList, user, isStreamable = true)
         }).executeAsList()
 }
 
@@ -79,7 +80,8 @@ fun LocalDb.getRecentPlayed(numberOfLines: Long): List<PlayListModel> {
                 title = title,
                 user = user,
                 songImgList = songImgList,
-                isFavorite = isFavorite ?: false
+                isFavorite = isFavorite ?: false,
+                isStreamable = true
             )
         },
         numberOfSongs = numberOfLines
@@ -95,7 +97,8 @@ fun LocalDb.getMostPlayedSongs(numberOfSongs: Long): List<PlayListModel> {
                 title = title,
                 user = user,
                 songImgList = songImgList,
-                songCounter = songCounter.toString()
+                songCounter = songCounter.toString(),
+                isStreamable = true
             )
         }).executeAsList()
 }
