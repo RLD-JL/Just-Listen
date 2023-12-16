@@ -21,11 +21,11 @@ fun Navigation.initPlaylistDetail(params: PlaylistDetailParams) = ScreenInitSett
     callOnInit = {
         val currentPlaylist =
             dataRepository.getPlaylist(
-                index = 20,
+                index = 40,
                 params.playlistEnum,
                 params.playlistId,
                 params.songsList
-            )
+            ).filter { it._data.isStreamable }
 
         val playlistIcon =
             if (params.playlistEnum == PlayListEnum.CREATED_BY_USER && currentPlaylist.isNotEmpty())

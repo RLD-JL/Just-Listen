@@ -27,7 +27,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
                 implementation(libs.bundles.ktor)
             }
@@ -82,11 +82,11 @@ configurations {
 }
 
 android {
-    compileSdk = 33
+    compileSdk = 34
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         minSdk = 21
-        targetSdk = 33
+        targetSdk = 34
     }
     namespace = "com.rld.justlisten"
 }

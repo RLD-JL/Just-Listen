@@ -51,8 +51,6 @@ class MusicService : MediaBrowserServiceCompat() {
 
     private var curPlayingSong: MediaMetadataCompat? = null
 
-    private var isPlayerInitialized = false
-
     private lateinit var musicPlayerEventListener: MusicPlayerEventListener
 
     companion object {
@@ -164,10 +162,6 @@ class MusicService : MediaBrowserServiceCompat() {
                             )
                         }
                         result.sendResult(item)
-                        if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
-                            preparePlayer(musicSource.songs, musicSource.songs[0], true)
-                            isPlayerInitialized = true
-                        }
                     } else {
                         mediaSession.sendSessionEvent(NETWORK_ERROR, null)
                         result.sendResult(null)
