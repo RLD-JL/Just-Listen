@@ -164,10 +164,6 @@ class MusicService : MediaBrowserServiceCompat() {
                             )
                         }
                         result.sendResult(item)
-                        if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
-                            preparePlayer(musicSource.songs, musicSource.songs[0], true)
-                            isPlayerInitialized = true
-                        }
                     } else {
                         mediaSession.sendSessionEvent(NETWORK_ERROR, null)
                         result.sendResult(null)
