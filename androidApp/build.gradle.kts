@@ -8,12 +8,12 @@ plugins {
 
 dependencies {
     implementation(project(":shared"))
-    implementation("com.google.android.material:material:1.6.1")
-    implementation("androidx.appcompat:appcompat:1.4.2")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.0-alpha01")
-    implementation("androidx.activity:activity-compose:1.5.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+    implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.palette:palette-ktx:1.0.0")
 
     implementation(libs.bundles.compose)
@@ -22,17 +22,17 @@ dependencies {
     implementation (libs.bundles.exoplayer)
 
     implementation ("dev.chrisbanes.snapper:snapper:0.2.2")
-    implementation ("androidx.work:work-runtime-ktx:2.7.1")
+    implementation ("androidx.work:work-runtime-ktx:2.9.0")
 
 
-    implementation("androidx.lifecycle:lifecycle-process:2.6.0-alpha01")
+    implementation("androidx.lifecycle:lifecycle-process:2.6.2")
     implementation("io.coil-kt:coil-compose:2.1.0")
     implementation("com.google.dagger:hilt-android:2.42")
     kapt("com.google.dagger:hilt-android-compiler:2.42")
 
     implementation("com.google.accompanist:accompanist-swiperefresh:0.24.1-alpha")
-    implementation("androidx.core:core-splashscreen:1.0.0-rc01")
-    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.7")
+    implementation("androidx.core:core-splashscreen:1.0.1")
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
 }
 
 kapt {
@@ -40,11 +40,11 @@ kapt {
 }
 
 android {
-    compileSdk = 33
+    compileSdk = 34
     defaultConfig {
         applicationId = "com.rld.justlisten.android"
         minSdk = 21
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 22
         versionName = "1.0.7-b"
         vectorDrawables {
