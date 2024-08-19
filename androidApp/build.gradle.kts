@@ -4,6 +4,7 @@ plugins {
     id("kotlin-android")
     kotlin("kapt")
     id("dagger.hilt.android.plugin")
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.10"
 }
 
 dependencies {
@@ -26,9 +27,9 @@ dependencies {
 
 
     implementation("androidx.lifecycle:lifecycle-process:2.6.2")
-    implementation("io.coil-kt:coil-compose:2.1.0")
-    implementation("com.google.dagger:hilt-android:2.42")
-    kapt("com.google.dagger:hilt-android-compiler:2.42")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("com.google.dagger:hilt-android:2.52")
+    kapt("com.google.dagger:hilt-android-compiler:2.52")
 
     implementation("com.google.accompanist:accompanist-swiperefresh:0.24.1-alpha")
     implementation("androidx.core:core-splashscreen:1.0.1")
@@ -38,19 +39,19 @@ dependencies {
 kapt {
     correctErrorTypes = true
 }
-
 android {
     compileSdk = 34
     defaultConfig {
         applicationId = "com.rld.justlisten.android"
         minSdk = 21
         targetSdk = 34
-        versionCode = 23
-        versionName = "1.0.7-c"
+        versionCode = 24
+        versionName = "1.0.8"
         vectorDrawables {
             useSupportLibrary = true
         }
     }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
@@ -62,12 +63,12 @@ android {
             isShrinkResources = false
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
     kotlinOptions {
         jvmTarget = "17"
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
@@ -91,3 +92,11 @@ sourceSets {
         }
     }
 }
+
+/*
+composeCompiler {
+    enableStrongSkippingMode = true
+
+    reportsDestination = layout.buildDirectory.dir("compose_compiler")
+    stabilityConfigurationFile = rootProject.layout.projectDirectory.file("stability_config.conf")
+}*/
