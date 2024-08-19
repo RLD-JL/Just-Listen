@@ -31,7 +31,7 @@ suspend fun ApiClient.getTracks(
     timeRange: String
 ): PlayListResponse? {
     val response: PlayListResponse? =
-        getResponse("/full/tracks/trending/EJ57D?genre=${category}&limit=${limit}&time=${timeRange}&app_name=$appName")
+        getResponse("/full/tracks/trending?genre=${category}&limit=${limit}&time=${timeRange}&app_name=$appName")
     return response?.let {
         val tracks = it.data.filter { it.isStreamable }
         PlayListResponse(tracks)
