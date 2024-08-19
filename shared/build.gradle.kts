@@ -9,7 +9,7 @@ plugins {
 }
 
 kotlin {
-    android()
+    androidTarget()
 
     val iosTarget: (String, KotlinNativeTarget.() -> Unit) -> KotlinNativeTarget =
         if (System.getenv("SDK_NAME")?.startsWith("iphoneos") == true)
@@ -44,7 +44,7 @@ kotlin {
                 implementation("com.squareup.sqldelight:android-driver:1.5.3")
             }
         }
-        val androidTest by getting {
+        val androidUnitTest by getting {
             dependencies {
                 implementation(kotlin("test-junit"))
                 implementation("junit:junit:4.13.2")
@@ -89,4 +89,8 @@ android {
         targetSdk = 34
     }
     namespace = "com.rld.justlisten"
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 }

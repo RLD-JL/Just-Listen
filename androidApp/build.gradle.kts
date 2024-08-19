@@ -4,6 +4,7 @@ plugins {
     id("kotlin-android")
     kotlin("kapt")
     id("dagger.hilt.android.plugin")
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.10" // this version matches your Kotlin version
 }
 
 dependencies {
@@ -26,9 +27,9 @@ dependencies {
 
 
     implementation("androidx.lifecycle:lifecycle-process:2.6.2")
-    implementation("io.coil-kt:coil-compose:2.1.0")
-    implementation("com.google.dagger:hilt-android:2.42")
-    kapt("com.google.dagger:hilt-android-compiler:2.42")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("com.google.dagger:hilt-android:2.52")
+    kapt("com.google.dagger:hilt-android-compiler:2.52")
 
     implementation("com.google.accompanist:accompanist-swiperefresh:0.24.1-alpha")
     implementation("androidx.core:core-splashscreen:1.0.1")
@@ -38,7 +39,9 @@ dependencies {
 kapt {
     correctErrorTypes = true
 }
-
+kotlin {
+    jvmToolchain(17)
+}
 android {
     compileSdk = 34
     defaultConfig {
@@ -51,23 +54,10 @@ android {
             useSupportLibrary = true
         }
     }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles("proguard-rules.pro")
-        }
-        getByName("debug") {
-            isMinifyEnabled = false
-            isShrinkResources = false
-        }
-    }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "17"
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
@@ -91,3 +81,11 @@ sourceSets {
         }
     }
 }
+
+/*
+composeCompiler {
+    enableStrongSkippingMode = true
+
+    reportsDestination = layout.buildDirectory.dir("compose_compiler")
+    stabilityConfigurationFile = rootProject.layout.projectDirectory.file("stability_config.conf")
+}*/
