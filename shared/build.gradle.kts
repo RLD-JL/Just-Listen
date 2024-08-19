@@ -1,6 +1,6 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-@Suppress("DSL_SCOPE_VIOLATION")
 
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
@@ -24,6 +24,7 @@ kotlin {
             }
         }
     }
+
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -54,7 +55,6 @@ kotlin {
             dependencies {
                 implementation("io.ktor:ktor-client-ios:${libs.versions.ktorVersion.get()}")
                 implementation("com.squareup.sqldelight:native-driver:1.5.3")
-
             }
         }
         val iosTest by getting
@@ -85,8 +85,8 @@ android {
     compileSdk = 34
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
+        testOptions.targetSdk = 34
         minSdk = 21
-        targetSdk = 34
     }
     namespace = "com.rld.justlisten"
     compileOptions {
