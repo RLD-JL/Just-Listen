@@ -4,7 +4,7 @@ plugins {
     id("kotlin-android")
     kotlin("kapt")
     id("dagger.hilt.android.plugin")
-    id("org.jetbrains.kotlin.plugin.compose") version "2.0.10" // this version matches your Kotlin version
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.10"
 }
 
 dependencies {
@@ -39,9 +39,6 @@ dependencies {
 kapt {
     correctErrorTypes = true
 }
-kotlin {
-    jvmToolchain(17)
-}
 android {
     compileSdk = 34
     defaultConfig {
@@ -55,6 +52,20 @@ android {
         }
     }
 
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles("proguard-rules.pro")
+        }
+        getByName("debug") {
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
+    }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
