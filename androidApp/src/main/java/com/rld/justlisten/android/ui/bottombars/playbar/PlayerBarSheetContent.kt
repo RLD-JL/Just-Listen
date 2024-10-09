@@ -97,7 +97,7 @@ fun PlayerBarSheetContent(
                 )
             }
         },
-        sheetPeekHeight = (-1).dp
+        sheetPeekHeight = 0.dp
     ) {
         PlayerBottomBar(
             onCollapsedClicked = onCollapsedClicked,

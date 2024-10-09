@@ -94,10 +94,14 @@ fun SettingsScreen(
                     }
                 }
             }
-            Row(modifier = Modifier.fillMaxWidth().weight(1f, false),
-            horizontalArrangement = Arrangement.Center)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, false),
+                horizontalArrangement = Arrangement.Center
+            )
             {
-                Text(text ="App version:1.0.8")
+                Text(text = "App version:1.0.9")
             }
         }
     }

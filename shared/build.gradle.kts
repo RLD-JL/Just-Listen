@@ -54,7 +54,7 @@ kotlin {
         val iosMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-ios:${libs.versions.ktorVersion.get()}")
-                implementation("com.squareup.sqldelight:native-driver:1.5.3")
+                implementation("com.squareup.sqldelight:native-driver:2.0.2")
             }
         }
         val iosTest by getting
