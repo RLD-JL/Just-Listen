@@ -27,7 +27,7 @@ dependencyResolutionManagement {
                 )
             )
 
-            version("composeVersion", "1.5.4")
+            version("composeVersion", "1.7.0")
             library("compose-ui-util", "androidx.compose.ui", "ui-util").versionRef("composeVersion")
             library("compose-ui", "androidx.compose.ui", "ui").versionRef("composeVersion")
             library("compose-ui-preview", "androidx.compose.ui", "ui-tooling-preview").versionRef("composeVersion")

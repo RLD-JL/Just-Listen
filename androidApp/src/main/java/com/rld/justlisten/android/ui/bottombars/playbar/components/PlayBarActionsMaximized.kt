@@ -17,10 +17,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.rld.justlisten.android.R
 import com.rld.justlisten.android.exoplayer.MusicService
 import com.rld.justlisten.android.exoplayer.MusicServiceConnection
-import com.rld.justlisten.android.ui.extensions.ModifiedSlider
 import com.rld.justlisten.android.ui.utils.offsetX
 import com.rld.justlisten.android.ui.utils.widthSize
 import kotlinx.coroutines.InternalCoroutinesApi
@@ -44,20 +42,24 @@ fun PlayBarActionsMaximized(
                 is PressInteraction.Press -> {
                     musicServiceConnection.sliderClicked.value = true
                 }
+
                 is PressInteraction.Release -> {
                     musicServiceConnection.transportControls.seekTo(musicServiceConnection.songDuration.value)
                     musicServiceConnection.sliderClicked.value = false
                     musicServiceConnection.updateSong()
                 }
+
                 is PressInteraction.Cancel -> {}
                 is DragInteraction.Start -> {
                     musicServiceConnection.sliderClicked.value = true
                 }
+
                 is DragInteraction.Stop -> {
                     musicServiceConnection.transportControls.seekTo(musicServiceConnection.songDuration.value)
                     musicServiceConnection.sliderClicked.value = false
                     musicServiceConnection.updateSong()
                 }
+
                 is DragInteraction.Cancel -> {}
             }
         }
@@ -65,7 +67,7 @@ fun PlayBarActionsMaximized(
 
 
     if (currentFraction == 1f) {
-        var sliderPosition by remember { mutableStateOf(0f) }
+        var sliderPosition by remember { mutableFloatStateOf(0f) }
         sliderPosition =
             musicServiceConnection.songDuration.value / MusicService.curSongDuration.toFloat()
         Column(
@@ -79,15 +81,17 @@ fun PlayBarActionsMaximized(
                 text = title,
                 textAlign = TextAlign.Center
             )
-            ModifiedSlider(
-                interactionSource = interactionSource,
-                modifier = Modifier
-                    .offset(x = offsetX(currentFraction, maxWidth).dp)
-                    .width(widthSize(currentFraction, maxWidth).dp),
-                value = sliderPosition, onValueChange = {
-                    musicServiceConnection.songDuration.value =
-                        (it * MusicService.curSongDuration).toLong()
-                })
+            if (!sliderPosition.isNaN()) {
+                Slider(
+                    interactionSource = interactionSource,
+                    modifier = Modifier
+                        .offset(x = offsetX(currentFraction, maxWidth).dp)
+                        .width(widthSize(currentFraction, maxWidth).dp),
+                    value = sliderPosition, onValueChange = {
+                        musicServiceConnection.songDuration.value =
+                            (it * MusicService.curSongDuration).toLong()
+                    })
+            }
 
             Row(
                 Modifier.height(IntrinsicSize.Max)
@@ -184,6 +188,7 @@ fun PlayBarActionsMaximized(
                         painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_off),
                         contentDescription = null,
                     )
+
                     REPEAT_MODE_ONE -> Icon(
                         modifier = Modifier
                             .size(40.dp)
@@ -196,6 +201,7 @@ fun PlayBarActionsMaximized(
                         painter = painterResource(id = com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_one),
                         contentDescription = null,
                     )
+
                     REPEAT_MODE_ALL -> Icon(
                         modifier = Modifier
                             .size(40.dp)

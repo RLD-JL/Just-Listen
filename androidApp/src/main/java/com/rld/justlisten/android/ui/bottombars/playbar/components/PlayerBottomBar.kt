@@ -64,15 +64,20 @@ fun PlayerBottomBar(
                 },
                 playBarMinimizedClicked = playBarMinimizedClicked
             )
-            LinearProgressIndicator(
-                progress = musicServiceConnection.songDuration.value / curSongDuration.toFloat(),
-                Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .graphicsLayer {
-                        alpha = if (currentFraction > 0.001) 0f else 1f
-                    }
-            )
+            var progress by remember { mutableFloatStateOf(0f) }
+            progress = musicServiceConnection.songDuration.value / curSongDuration.toFloat()
+            if (!progress.isNaN()) {
+                LinearProgressIndicator(
+                    progress = progress,
+                    Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .graphicsLayer {
+                            alpha = if (currentFraction > 0.001) 0f else 1f
+                        }
+                )
+            }
+
             PlayBarActionsMaximized(
                 bottomPadding,
                 currentFraction,
