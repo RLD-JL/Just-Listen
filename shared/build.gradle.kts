@@ -5,7 +5,7 @@ plugins {
     kotlin("multiplatform")
     id("com.android.library")
     kotlin("plugin.serialization") version libs.versions.kotlinVersion.get()
-    id("com.squareup.sqldelight")
+    id("app.cash.sqldelight") version "2.0.2"
 }
 
 kotlin {
@@ -42,7 +42,7 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-android:${libs.versions.ktorVersion.get()}")
-                implementation("com.squareup.sqldelight:android-driver:1.5.3")
+                implementation("app.cash.sqldelight:android-driver:2.0.2")
             }
         }
         val androidUnitTest by getting {
@@ -54,7 +54,7 @@ kotlin {
         val iosMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-ios:${libs.versions.ktorVersion.get()}")
-                implementation("com.squareup.sqldelight:native-driver:2.0.2")
+                implementation("app.cash.sqldelight:native-driver:2.0.2")
             }
         }
         val iosTest by getting
@@ -62,9 +62,10 @@ kotlin {
 }
 
 sqldelight {
-    database("LocalDb") {
-        packageName = "myLocal.db"
-        sourceFolders = listOf("kotlin")
+    databases {
+        create("LocalDb") {
+            packageName.set("com.rld.justlisten")
+        }
     }
 }
 

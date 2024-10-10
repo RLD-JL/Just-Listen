@@ -1,6 +1,6 @@
 package com.rld.justlisten.datalayer.localdb.searchscreen
 
-import myLocal.db.LocalDb
+import com.rld.justlisten.LocalDb
 
 fun LocalDb.saveSearchInfo(searchFor: String) {
     searchScreenInfoQueries.transaction {
