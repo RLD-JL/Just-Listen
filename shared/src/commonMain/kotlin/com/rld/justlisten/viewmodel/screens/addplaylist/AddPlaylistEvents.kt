@@ -1,9 +1,9 @@
 package com.rld.justlisten.viewmodel.screens.addplaylist
 
+import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
 import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.getAddPlaylist
 import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.savePlaylist
 import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.updatePlaylistSongs
-import com.rld.justlisten.datalayer.localdb.addplaylistscreen.AddPlaylist
 import com.rld.justlisten.viewmodel.Events
 
 fun Events.addPlaylist(

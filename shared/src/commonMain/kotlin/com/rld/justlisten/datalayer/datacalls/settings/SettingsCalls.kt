@@ -1,7 +1,7 @@
 package com.rld.justlisten.datalayer.datacalls.settings
 
+import com.rld.justlisten.database.settingsscreen.SettingsInfo
 import com.rld.justlisten.datalayer.Repository
-import com.rld.justlisten.datalayer.localdb.settingsscreen.SettingsInfo
 import com.rld.justlisten.datalayer.localdb.settingsscreen.getSettingsInfo
 import com.rld.justlisten.datalayer.localdb.settingsscreen.saveSettingsInfo
 

@@ -101,7 +101,7 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.Center
             )
             {
-                Text(text = "App version:1.0.9")
+                Text(text = "App version:1.0.9-a")
             }
         }
     }

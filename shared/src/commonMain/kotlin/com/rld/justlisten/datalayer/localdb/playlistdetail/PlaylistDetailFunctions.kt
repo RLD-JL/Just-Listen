@@ -1,7 +1,7 @@
 package com.rld.justlisten.datalayer.localdb.playlistdetail
 
+import com.rld.justlisten.LocalDb
 import com.rld.justlisten.datalayer.models.PlayListModel
-import myLocal.db.LocalDb
 
 fun LocalDb.getPlaylistDetail() : List<PlayListModel> {
   return  playlistDetailQueries.getPlaylistDetail(mapper = ::PlayListModel).executeAsList()

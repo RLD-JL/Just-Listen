@@ -3,7 +3,7 @@ package com.rld.justlisten.datalayer.localdb.libraryscreen
 import com.rld.justlisten.datalayer.models.PlayListModel
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
-import myLocal.db.LocalDb
+import com.rld.justlisten.LocalDb
 
 fun LocalDb.saveSongToFavorites(
     id: String, title: String, user: UserModel, songImgList: SongIconList,
