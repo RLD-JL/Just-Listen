@@ -11,7 +11,7 @@ import com.rld.justlisten.android.exoplayer.MusicServiceConnection
 import com.rld.justlisten.android.ui.bottombars.playbar.components.PlayerBottomBar
 import com.rld.justlisten.android.ui.bottombars.sheets.BottomSheetScreen
 import com.rld.justlisten.android.ui.bottombars.sheets.SheetLayout
-import com.rld.justlisten.datalayer.localdb.addplaylistscreen.AddPlaylist
+import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.Events

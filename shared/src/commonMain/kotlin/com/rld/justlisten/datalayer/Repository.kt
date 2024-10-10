@@ -1,16 +1,16 @@
 package com.rld.justlisten.datalayer
 
-import com.rld.justlisten.datalayer.localdb.addplaylistscreen.AddPlaylist
-import com.rld.justlisten.datalayer.localdb.libraryscreen.Library
-import com.rld.justlisten.datalayer.localdb.playlistdetail.PlaylistDetail
+import app.cash.sqldelight.ColumnAdapter
+import app.cash.sqldelight.db.SqlDriver
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.datalayer.webservices.ApiClient
-import com.squareup.sqldelight.ColumnAdapter
-import com.squareup.sqldelight.db.SqlDriver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import myLocal.db.LocalDb
+import com.rld.justlisten.LocalDb
+import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
+import com.rld.justlisten.database.libraryscreen.Library
+import com.rld.justlisten.database.playlistdetail.PlaylistDetail
 
 
 class Repository(
