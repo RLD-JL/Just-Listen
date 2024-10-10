@@ -1,3 +1,5 @@
+import kotlin.Boolean;
+
 CREATE TABLE SettingsInfo (
      id INTEGER PRIMARY KEY DEFAULT 1,
      hasNavigationDonationOn INTEGER AS Boolean NOT NULL,

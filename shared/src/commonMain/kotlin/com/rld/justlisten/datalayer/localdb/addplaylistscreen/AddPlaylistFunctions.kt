@@ -1,6 +1,7 @@
 package com.rld.justlisten.datalayer.localdb.addplaylistscreen
 
-import myLocal.db.LocalDb
+import com.rld.justlisten.LocalDb
+import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
 
 fun LocalDb.savePlaylist(
     playlistName: String, playlistDescription: String?

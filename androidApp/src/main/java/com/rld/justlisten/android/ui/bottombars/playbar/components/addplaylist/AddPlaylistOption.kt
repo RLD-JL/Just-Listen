@@ -16,7 +16,7 @@ import com.rld.justlisten.android.ui.addplaylistscreen.components.AddPlaylistDia
 import com.rld.justlisten.android.ui.addplaylistscreen.components.AddPlaylistRow
 import com.rld.justlisten.android.ui.addplaylistscreen.components.PlaylistViewItem
 import com.rld.justlisten.android.ui.bottombars.playbar.components.more.TopSection
-import com.rld.justlisten.datalayer.localdb.addplaylistscreen.AddPlaylist
+import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
 import com.rld.justlisten.viewmodel.Events
 
 @Composable

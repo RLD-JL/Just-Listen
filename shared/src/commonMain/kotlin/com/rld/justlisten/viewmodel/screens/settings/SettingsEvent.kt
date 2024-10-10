@@ -1,8 +1,8 @@
 package com.rld.justlisten.viewmodel.screens.settings
 
+import com.rld.justlisten.database.settingsscreen.SettingsInfo
 import com.rld.justlisten.datalayer.datacalls.settings.getSettingsInfo
 import com.rld.justlisten.datalayer.datacalls.settings.saveSettingsInfo
-import com.rld.justlisten.datalayer.localdb.settingsscreen.SettingsInfo
 import com.rld.justlisten.viewmodel.Events
 
 fun Events.saveSettingsInfo(hasNavigationFundOn: Boolean, isDarkThemeOn: Boolean, palletColor: String) {

@@ -14,7 +14,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.transform.RoundedCornersTransformation
 import com.rld.justlisten.android.R
-import com.rld.justlisten.datalayer.localdb.addplaylistscreen.AddPlaylist
+import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
 import com.rld.justlisten.datalayer.models.PlayListModel
 import com.rld.justlisten.viewmodel.Events
 import com.rld.justlisten.viewmodel.screens.library.getSongWithId
