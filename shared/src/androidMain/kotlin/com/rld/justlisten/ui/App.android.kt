@@ -1,5 +1,7 @@
 package com.rld.justlisten.ui
 
+// Redundant file during migration
+/*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -24,3 +26,4 @@ actual fun JustListenAppPlatform(modifier: Modifier) {
         modifier = modifier,
     )
 }
+*/

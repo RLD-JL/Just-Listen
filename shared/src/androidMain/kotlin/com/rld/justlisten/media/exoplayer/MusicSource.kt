@@ -7,9 +7,8 @@ import com.rld.justlisten.media.exoplayer.library.extension.*
 import com.rld.justlisten.datalayer.utils.Constants.BASEURL
 import com.rld.justlisten.datalayer.utils.Constants.appName
 import com.rld.justlisten.viewmodel.interfaces.Item
-import javax.inject.Inject
 
-class MusicSource @Inject constructor() {
+class MusicSource {
 
     private val onReadyListener = mutableListOf<(Boolean) -> Unit>()
 
@@ -67,12 +66,14 @@ class MusicSource @Inject constructor() {
         }
 
     fun whenReady(performAction: (Boolean) -> Unit): Boolean {
-        return if (state == STATE_CREATED || state == STATE_INITIALIZING) {
-            onReadyListener += performAction
-            false
-        } else {
-            performAction(state != STATE_ERROR)
-            true
+        synchronized(onReadyListener) {
+            return if (state == STATE_CREATED || state == STATE_INITIALIZING) {
+                onReadyListener += performAction
+                false
+            } else {
+                performAction(state != STATE_ERROR)
+                true
+            }
         }
     }
 

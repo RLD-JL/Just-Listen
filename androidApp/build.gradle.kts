@@ -2,8 +2,6 @@ plugins {
     id("com.android.application")
     kotlin("android")
     id("kotlin-android")
-    kotlin("kapt")
-    id("dagger.hilt.android.plugin")
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.10"
 }
 
@@ -27,23 +25,19 @@ dependencies {
 
     implementation("androidx.lifecycle:lifecycle-process:2.6.2")
     implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("com.google.dagger:hilt-android:2.52")
-    kapt("com.google.dagger:hilt-android-compiler:2.52")
 
     implementation("com.google.accompanist:accompanist-swiperefresh:0.24.1-alpha")
     implementation("androidx.core:core-splashscreen:1.0.1")
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
-
+    
     // Navigation Compose
-    implementation("androidx.navigation:navigation-compose:2.8.0")
-
+    implementation(libs.navigation.compose)
+    
     // Koin for Compose
-    implementation("io.insert-koin:koin-androidx-compose:3.5.6")
+    implementation(libs.koin.androidx.compose)
 }
 
-kapt {
-    correctErrorTypes = true
-}
+
 android {
     compileSdk = 34
     defaultConfig {

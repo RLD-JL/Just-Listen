@@ -8,13 +8,13 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 sealed class Route {
-
+    
     @Serializable
     data object Library : Route()
-
+    
     @Serializable
     data object Playlist : Route()
-
+    
     @Serializable
     data class PlaylistDetail(
         val playlistId: String,
@@ -22,17 +22,18 @@ sealed class Route {
         val playlistTitle: String,
         val playlistCreatedBy: String,
         val playlistEnum: String,
+        val songsList: List<String> = emptyList()
     ) : Route()
-
+    
     @Serializable
     data class AddPlaylist(val initialData: String = "") : Route()
-
+    
     @Serializable
     data object Search : Route()
-
+    
     @Serializable
     data object Settings : Route()
-
+    
     @Serializable
     data object Donation : Route()
 }
@@ -56,7 +57,7 @@ val Route.navigationLevel: NavigationLevel
         Route.Search,
         Route.Settings,
         Route.Donation -> NavigationLevel.LEVEL_1
-
+        
         is Route.AddPlaylist,
         is Route.PlaylistDetail -> NavigationLevel.LEVEL_2
     }
@@ -95,4 +96,3 @@ fun Route.getBottomBarIcon(): String = when (this) {
     Route.Donation -> "favorite"
     else -> ""
 }
-

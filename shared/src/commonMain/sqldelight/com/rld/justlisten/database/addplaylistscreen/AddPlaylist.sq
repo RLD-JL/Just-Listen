@@ -19,3 +19,7 @@ upserAddPlaylistWithSongs {
     INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription, songsList)
     VALUES (:playlistName, :playlistDescription,:songsList);
 }
+
+deletePlaylist:
+DELETE FROM AddPlaylist
+WHERE playlistName = :playlistName;

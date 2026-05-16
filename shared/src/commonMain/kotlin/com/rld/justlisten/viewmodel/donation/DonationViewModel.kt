@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class DonationViewModel : BaseScreenViewModel() {
-
+    
     private val _donationState = MutableStateFlow(DonationScreenState())
     val donationState: StateFlow<DonationScreenState> = _donationState.asStateFlow()
 }
@@ -14,4 +14,3 @@ class DonationViewModel : BaseScreenViewModel() {
 data class DonationScreenState(
     val isLoading: Boolean = false,
 )
-

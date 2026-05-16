@@ -46,6 +46,7 @@ class AddPlaylistViewModel(
                 playlistTitle = title,
                 playlistCreatedBy = "ME",
                 playlistEnum = "CREATED_BY_USER",
+                songsList = songs
             ),
         )
     }

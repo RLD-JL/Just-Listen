@@ -19,22 +19,18 @@ import com.rld.justlisten.media.exoplayer.callbacks.MusicPlayerNotificationListe
 import com.rld.justlisten.media.exoplayer.library.extension.toMediaItem
 import com.rld.justlisten.media.exoplayer.utils.Constants.MEDIA_ROOT_ID
 import com.rld.justlisten.media.exoplayer.utils.Constants.NETWORK_ERROR
-import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
 
 private const val SERVICE_TAG = "MusicService"
 
 
-@AndroidEntryPoint
 class MusicService : MediaBrowserServiceCompat() {
 
-    @Inject
-    lateinit var exoPlayer: ExoPlayer
+    val exoPlayer: ExoPlayer by inject()
 
     private lateinit var musicNotificationManager: MusicNotificationManager
 
@@ -48,8 +44,7 @@ class MusicService : MediaBrowserServiceCompat() {
 
     var isForegroundService = false
 
-    @Inject
-    lateinit var musicSource: MusicSource
+    val musicSource: MusicSource by inject()
 
     private var curPlayingSong: MediaMetadataCompat? = null
 
@@ -64,29 +59,7 @@ class MusicService : MediaBrowserServiceCompat() {
     override fun onCreate() {
         super.onCreate()
 
-        // Use reflection to access the app-level entry point and manually inject dependencies
-        if (!::musicSource.isInitialized || !::exoPlayer.isInitialized) {
-            try {
-                val entryPointClass = Class.forName("com.rld.justlisten.media.exoplayer.MusicServiceEntryPoint")
-                val entryPoint = dagger.hilt.android.EntryPointAccessors.fromApplication(applicationContext, entryPointClass as Class<Any>)
-                
-                if (!::musicSource.isInitialized) {
-                    val musicSourceObj = entryPointClass.getMethod("musicSource").invoke(entryPoint)
-                    if (musicSourceObj is MusicSource) {
-                        musicSource = musicSourceObj
-                    }
-                }
-                
-                if (!::exoPlayer.isInitialized) {
-                    val exoPlayerObj = entryPointClass.getMethod("exoPlayer").invoke(entryPoint)
-                    if (exoPlayerObj is ExoPlayer) {
-                        exoPlayer = exoPlayerObj
-                    }
-                }
-            } catch (e: Exception) {
-                throw RuntimeException("Failed to get dependencies from Hilt entry point", e)
-            }
-        }
+
 
         val activityIntent = packageManager?.getLaunchIntentForPackage(packageName)?.let {
             PendingIntent.getActivity(this, 0, it, PendingIntent.FLAG_IMMUTABLE)
@@ -142,11 +115,11 @@ class MusicService : MediaBrowserServiceCompat() {
         val currentSongIndex = if (curPlayingSong == null) 0 else songs.indexOf(itemToPlay)
         currentPlaylistItems = songs
 
-        exoPlayer.playWhenReady = playNow
         exoPlayer.stop()
         exoPlayer.setMediaItems(songs.map {
             it.toMediaItem()}, currentSongIndex, 0L)
         exoPlayer.prepare()
+        exoPlayer.playWhenReady = playNow
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -160,6 +133,7 @@ class MusicService : MediaBrowserServiceCompat() {
             release()
         }
         serviceScope.cancel()
+        musicNotificationManager.release()
         exoPlayer.removeListener(musicPlayerEventListener)
         exoPlayer.release()
         super.onDestroy()

@@ -40,6 +40,8 @@ actual fun LibraryScreenHost(navController: NavHostController) {
         onFavoritePlaylistPressed = viewModel::onFavoritePlaylistClicked,
         onMostPlaylistPressed = viewModel::onMostPlayedPlaylistClicked,
         onPlayListViewClicked = viewModel::onAddPlaylistClicked,
+        onPlaylistCreatedClicked = viewModel::onPlaylistCreatedClicked,
+        onDeletePlaylistClicked = viewModel::deletePlaylist,
         lasItemReached = viewModel::loadMoreRecentSongs,
     )
 }

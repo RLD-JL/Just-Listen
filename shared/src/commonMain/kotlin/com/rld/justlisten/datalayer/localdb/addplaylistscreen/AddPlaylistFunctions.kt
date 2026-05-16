@@ -12,7 +12,7 @@ fun LocalDb.savePlaylist(
 }
 
 fun LocalDb.updatePlaylistSongs(
-    playlistName: String, playlistDescription: String?,songList: List<String>
+    playlistName: String, playlistDescription: String?, songList: List<String>
 ) {
     addPlaylistQueries.transaction {
         addPlaylistQueries.upserAddPlaylistWithSongs(
@@ -24,4 +24,8 @@ fun LocalDb.updatePlaylistSongs(
 
 fun LocalDb.getAddPlaylist(): List<AddPlaylist> {
     return addPlaylistQueries.getAddPlaylist().executeAsList()
+}
+
+fun LocalDb.deletePlaylist(playlistName: String) {
+    addPlaylistQueries.deletePlaylist(playlistName)
 }

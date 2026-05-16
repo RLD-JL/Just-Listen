@@ -5,6 +5,8 @@ import com.rld.justlisten.datalayer.Repository
 import com.rld.justlisten.datalayer.datacalls.library.getFavoritePlaylist
 import com.rld.justlisten.datalayer.datacalls.library.getMostPlayedSongs
 import com.rld.justlisten.datalayer.datacalls.library.getRecentSongs
+import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.getAddPlaylist
+import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.deletePlaylist
 import com.rld.justlisten.navigation.Route
 import com.rld.justlisten.viewmodel.BaseScreenViewModel
 import com.rld.justlisten.viewmodel.screens.library.LibraryState
@@ -32,12 +34,14 @@ class LibraryViewModel(
                 val recent = repository.getRecentSongs(20).map { PlaylistItem(it, it.isFavorite) }
                 val favorites = repository.getFavoritePlaylist().map { PlaylistItem(it, it.isFavorite) }
                 val mostPlayed = repository.getMostPlayedSongs(20).map { PlaylistItem(it, it.isFavorite) }
+                val playlistsCreated = repository.getAddPlaylist()
                 _libraryState.update {
                     it.copy(
                         isLoading = false,
                         recentSongsItems = recent,
                         favoritePlaylistItems = favorites,
                         mostPlayedSongs = mostPlayed,
+                        playlistsCreated = playlistsCreated,
                     )
                 }
             } catch (e: Exception) {
@@ -82,6 +86,26 @@ class LibraryViewModel(
 
     fun onAddPlaylistClicked() {
         navigate(Route.AddPlaylist())
+    }
+
+    fun onPlaylistCreatedClicked(title: String, description: String?, songs: List<String>) {
+        navigate(
+            Route.PlaylistDetail(
+                playlistId = "",
+                playlistIcon = "",
+                playlistTitle = title,
+                playlistCreatedBy = "ME",
+                playlistEnum = "CREATED_BY_USER",
+                songsList = songs
+            ),
+        )
+    }
+
+    fun deletePlaylist(playlistName: String) {
+        viewModelScope.launch {
+            repository.deletePlaylist(playlistName)
+            loadLibraryData()
+        }
     }
 
     fun loadMoreRecentSongs(currentCount: Int) {

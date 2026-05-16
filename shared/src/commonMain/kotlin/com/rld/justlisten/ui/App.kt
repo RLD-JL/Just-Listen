@@ -1,26 +1,58 @@
 package com.rld.justlisten.ui
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
+import com.rld.justlisten.datalayer.Repository
 import com.rld.justlisten.media.MusicPlayer
+import org.koin.compose.koinInject
 
-@Composable
-expect fun JustListenAppPlatform(modifier: Modifier = Modifier)
-
+/**
+ * Main app composable that can be used across all platforms
+ */
 @Composable
 fun JustListenApp(
-    musicPlayer: MusicPlayer,
-    showDonationTab: Boolean,
-    darkTheme: Boolean,
-    repository: com.rld.justlisten.datalayer.Repository,
     modifier: Modifier = Modifier,
+    musicPlayer: MusicPlayer = koinInject(),
+    repository: Repository = koinInject(),
 ) {
-    JustListenTheme(darkTheme = darkTheme) {
-        JustListenAppContent(
-            musicPlayer = musicPlayer,
-            showDonationTab = showDonationTab,
-            repository = repository,
-            modifier = modifier,
-        )
+    val navController = rememberNavController()
+    val settingsState by koinInject<com.rld.justlisten.viewmodel.settings.SettingsViewModel>().settingsState.collectAsState()
+
+    CompositionLocalProvider(
+        LocalMusicPlayer provides musicPlayer
+    ) {
+        JustListenTheme {
+            Surface(
+                modifier = modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background,
+            ) {
+                JustListenScaffold(
+                    navController = navController,
+                    musicPlayer = musicPlayer,
+                    showDonationTab = settingsState.hasDonationNavigationOn,
+                    repository = repository,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
     }
+}
+
+/**
+ * Default theme for the app
+ */
+@Composable
+fun JustListenTheme(
+    content: @Composable () -> Unit,
+) {
+    MaterialTheme(
+        content = content,
+    )
 }

@@ -4,12 +4,8 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.rld.justlisten.media.exoplayer.MusicServiceConnection
 import com.rld.justlisten.media.exoplayer.currentPlaybackPosition
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class AndroidMusicPlayer(
@@ -28,13 +24,28 @@ class AndroidMusicPlayer(
 
     init {
         scope.launch {
-            // In a real app, we would use a more robust way to sync states
-            // For this migration, we'll poll or hook into the existing MutableState
-            while(true) {
-                updateState()
-                _isConnected.value = musicServiceConnection.isConnected.value
-                _networkError.value = musicServiceConnection.networkError.value
-                kotlinx.coroutines.delay(100)
+            musicServiceConnection.isConnected.collect { _isConnected.value = it }
+        }
+        scope.launch {
+            musicServiceConnection.networkError.collect { _networkError.value = it }
+        }
+        scope.launch {
+            combine(
+                musicServiceConnection.playbackState,
+                musicServiceConnection.currentPlayingSong
+            ) { state, metadata ->
+                updateState(state, metadata)
+            }.collect()
+        }
+
+        scope.launch {
+            while (isActive) {
+                val state = _playbackState.value
+                if (state.status == PlaybackStatus.PLAYING && !musicServiceConnection.sliderClicked.value) {
+                    val currentPos = musicServiceConnection.playbackState.value?.currentPlaybackPosition ?: 0L
+                    _playbackState.value = state.copy(currentPosition = currentPos)
+                }
+                delay(250L)
             }
         }
     }
@@ -82,7 +93,7 @@ class AndroidMusicPlayer(
         scope.launch {
             var attempts = 0
             while (musicServiceConnection.transportControls == null && attempts < 30) {
-                kotlinx.coroutines.delay(100)
+                delay(100)
                 attempts++
             }
             musicServiceConnection.transportControls?.playFromMediaId(mediaId, null)
@@ -94,10 +105,8 @@ class AndroidMusicPlayer(
     }
     
     // Helper to update internal state from MusicServiceConnection
-    fun updateState() {
+    private fun updateState(compatState: PlaybackStateCompat?, metadata: MediaMetadataCompat?) {
         if (!musicServiceConnection.isConnected.value) return
-        val compatState = musicServiceConnection.playbackState.value
-        val metadata = musicServiceConnection.currentPlayingSong.value
         
         _playbackState.value = PlaybackState(
             status = mapStatus(compatState?.state),

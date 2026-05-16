@@ -43,6 +43,7 @@ kotlin {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material)
+                implementation("org.jetbrains.compose.material3:material3:1.7.0")
                 implementation(compose.materialIconsExtended)
                 implementation(compose.ui)
                 implementation(compose.components.resources)
@@ -60,6 +61,9 @@ kotlin {
 
                 // Koin DI
                 implementation(libs.koin.core)
+                implementation(libs.koin.compose)
+                implementation(libs.koin.compose.viewmodel)
+
             }
         }
         val commonTest by getting {
@@ -70,8 +74,6 @@ kotlin {
         }
         val androidMain by getting {
             dependencies {
-                implementation("com.google.accompanist:accompanist-swiperefresh:0.34.0")
-                implementation("io.coil-kt:coil-compose:2.7.0")
                 implementation("io.ktor:ktor-client-android:${libs.versions.ktorVersion.get()}")
                 implementation("app.cash.sqldelight:android-driver:2.0.2")
                 implementation("com.google.android.exoplayer:exoplayer-core:${libs.versions.exoPlayerVersion.get()}")
@@ -80,16 +82,18 @@ kotlin {
                 implementation("androidx.media:media:1.7.0")
                 implementation("androidx.palette:palette-ktx:1.0.0")
                 implementation("io.coil-kt:coil-compose:2.7.0")
-                implementation("androidx.work:work-runtime-ktx:2.9.0")
-                implementation("dev.chrisbanes.snapper:snapper:0.3.0")
-                implementation("com.google.dagger:hilt-android:2.52")
                 implementation("androidx.core:core-ktx:1.12.0")
+                
+                // Additional Android dependencies
+                implementation("androidx.work:work-runtime-ktx:2.9.0")
+                implementation("com.google.accompanist:accompanist-swiperefresh:0.24.1-alpha")
+                implementation("dev.chrisbanes.snapper:snapper:0.2.2")
 
                 // Lifecycle for Android
                 implementation(libs.lifecycle.viewmodel)
                 implementation(libs.lifecycle.runtime)
                 implementation(libs.lifecycle.viewmodel.compose)
-
+                
                 // Koin for Android
                 implementation(libs.koin.android)
                 implementation(libs.koin.androidx.compose)

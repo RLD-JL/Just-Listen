@@ -14,30 +14,40 @@ import com.rld.justlisten.media.exoplayer.library.extension.isFavorite
 import com.rld.justlisten.media.exoplayer.utils.Constants.NETWORK_ERROR
 import com.rld.justlisten.viewmodel.interfaces.Item
 import kotlinx.coroutines.*
-import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-class MusicServiceConnection @Inject constructor(
+class MusicServiceConnection(
     private val musicSource: MusicSource,
     context: Context
 ) {
 
-    val isConnected: MutableState<Boolean> = mutableStateOf(false)
+    private val _isConnected: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isConnected = _isConnected.asStateFlow()
 
     val isFavorite: MutableMap<String, Boolean> = mutableMapOf()
 
-    val networkError: MutableState<Boolean> = mutableStateOf(false)
+    private val _networkError: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val networkError = _networkError.asStateFlow()
 
-    val songDuration: MutableState<Long> = mutableStateOf(0)
+    private val _playbackPosition: MutableStateFlow<Long> = MutableStateFlow(0)
+    val playbackPosition = _playbackPosition.asStateFlow()
 
-    val playbackState: MutableState<PlaybackStateCompat?> =
-        mutableStateOf(PlaybackStateCompat.fromPlaybackState(null))
+    private val _playbackState: MutableStateFlow<PlaybackStateCompat?> =
+        MutableStateFlow(PlaybackStateCompat.fromPlaybackState(null))
+    val playbackState = _playbackState.asStateFlow()
 
-    val sliderClicked: MutableState<Boolean> = mutableStateOf(false)
+    val sliderClicked: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    val currentPlayingSong: MutableState<MediaMetadataCompat?> =
-        mutableStateOf(MediaMetadataCompat.fromMediaMetadata(null))
+    private val _currentPlayingSong: MutableStateFlow<MediaMetadataCompat?> =
+        MutableStateFlow(MediaMetadataCompat.fromMediaMetadata(null))
+    val currentPlayingSong = _currentPlayingSong.asStateFlow()
 
     lateinit var mediaController: MediaControllerCompat
+
+    private val serviceJob = SupervisorJob()
+    private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
+    private var updateJob: Job? = null
 
     private val mediaBrowserConnectionCallback = MediaBrowserConnectionCallback(context = context)
 
@@ -70,19 +80,16 @@ class MusicServiceConnection @Inject constructor(
 
 
     fun updateSong() {
-        val serviceScope = CoroutineScope(Dispatchers.IO)
-
-        serviceScope.launch {
-            while (!sliderClicked.value) {
-                ensureActive()
-                delay(100L)
-                val pos = playbackState.value?.currentPlaybackPosition
-                if (songDuration.value != pos) {
-                    pos?.let {
-                        songDuration.value = it
+        updateJob?.cancel()
+        updateJob = serviceScope.launch {
+            while (isActive) {
+                if (!sliderClicked.value) {
+                    val pos = playbackState.value?.currentPlaybackPosition ?: 0L
+                    if (_playbackPosition.value != pos) {
+                        _playbackPosition.value = pos
                     }
                 }
-                delay(900L)
+                delay(1000L)
             }
         }
     }
@@ -102,27 +109,27 @@ class MusicServiceConnection @Inject constructor(
             mediaController = MediaControllerCompat(context, mediaBrowser.sessionToken).apply {
                 registerCallback(MediaControllerCallback())
             }
-            isConnected.value = true
+            _isConnected.value = true
         }
 
         override fun onConnectionSuspended() {
-            isConnected.value = false
+            _isConnected.value = false
         }
 
         override fun onConnectionFailed() {
-            isConnected.value = false
+            _isConnected.value = false
         }
     }
 
     private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            playbackState.value = state
+            _playbackState.value = state
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            currentPlayingSong.value = metadata
+            _currentPlayingSong.value = metadata
 
-            currentPlayingSong.value?.description?.mediaId?.let {
+            _currentPlayingSong.value?.description?.mediaId?.let {
                 isFavorite.put(
                     it,
                     isFavorite[it] ?: currentPlayingSong.value?.isFavorite.toBoolean()
@@ -132,7 +139,7 @@ class MusicServiceConnection @Inject constructor(
 
         override fun onSessionEvent(event: String?, extras: Bundle?) {
             when (event) {
-                NETWORK_ERROR -> networkError.value = true
+                NETWORK_ERROR -> _networkError.value = true
             }
         }
 

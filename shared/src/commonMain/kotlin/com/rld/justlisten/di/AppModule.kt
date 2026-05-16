@@ -1,7 +1,25 @@
 package com.rld.justlisten.di
 
+import com.rld.justlisten.datalayer.Repository
+import com.rld.justlisten.viewmodel.addplaylist.AddPlaylistViewModel
+import com.rld.justlisten.viewmodel.donation.DonationViewModel
+import com.rld.justlisten.viewmodel.library.LibraryViewModel
+import com.rld.justlisten.viewmodel.playlist.PlaylistViewModel
+import com.rld.justlisten.viewmodel.playlistdetail.PlaylistDetailViewModel
+import com.rld.justlisten.viewmodel.search.SearchViewModel
+import com.rld.justlisten.viewmodel.settings.SettingsViewModel
 import org.koin.dsl.module
 
 fun appModule() = module {
-    // Platform-specific bindings live in androidModule() / iosModule()
+    // Single instances
+    single { Repository(get()) }
+    
+    // ViewModels
+    factory { LibraryViewModel(get()) }
+    factory { PlaylistViewModel(get()) }
+    factory { SearchViewModel(get()) }
+    factory { PlaylistDetailViewModel(get()) }
+    factory { AddPlaylistViewModel(get()) }
+    factory { SettingsViewModel(get()) }
+    factory { DonationViewModel() }
 }

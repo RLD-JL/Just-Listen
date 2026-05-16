@@ -8,17 +8,24 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.rld.justlisten.media.exoplayer.MusicServiceConnection
 import com.rld.justlisten.media.exoplayer.utils.Constants.CLICKED_PLAYLIST
-import dagger.hilt.android.HiltAndroidApp
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
+import com.rld.justlisten.di.appModule
+import com.rld.justlisten.di.androidModule
 
-@HiltAndroidApp
 class JustListenApp : Application() {
 
-    @Inject
-    lateinit var musicServiceConnection: MusicServiceConnection
+    val musicServiceConnection: MusicServiceConnection by inject()
 
     override fun onCreate() {
         super.onCreate()
+        
+        startKoin {
+            androidContext(this@JustListenApp)
+            modules(appModule(), androidModule())
+        }
+        
         ProcessLifecycleOwner.get().lifecycle.addObserver(
             AppLifecycleObserver(musicServiceConnection),
         )

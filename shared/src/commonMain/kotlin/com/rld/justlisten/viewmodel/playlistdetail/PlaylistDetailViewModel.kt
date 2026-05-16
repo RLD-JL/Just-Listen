@@ -22,28 +22,27 @@ class PlaylistDetailViewModel(
 
     fun load(args: Route.PlaylistDetail) {
         viewModelScope.launch {
-            _playlistDetailState.value = PlaylistDetailState(isLoading = true)
-            val enum = runCatching { PlayListEnum.valueOf(args.playlistEnum) }
-                .getOrDefault(PlayListEnum.CURRENT_PLAYLIST)
-            val currentPlaylist = repository.getPlaylist(
-                index = 40,
-                enum,
-                args.playlistId,
-            ).filter { it._data.isStreamable }
-
-            val playlistIcon = if (enum == PlayListEnum.CREATED_BY_USER && currentPlaylist.isNotEmpty()) {
-                currentPlaylist[0].songIconList.songImageURL480px
-            } else {
-                args.playlistIcon
+            _playlistDetailState.update { 
+                it.copy(
+                    isLoading = true, 
+                    playlistName = args.playlistTitle, 
+                    playListCreatedBy = args.playlistCreatedBy, 
+                    playlistIcon = args.playlistIcon
+                ) 
             }
-
-            _playlistDetailState.value = PlaylistDetailState(
-                isLoading = false,
-                playlistIcon = playlistIcon,
-                playListCreatedBy = args.playlistCreatedBy,
-                playlistName = args.playlistTitle,
-                songPlaylist = currentPlaylist,
+            val playlistEnum = PlayListEnum.valueOf(args.playlistEnum)
+            val songs = repository.getPlaylist(
+                index = 0, 
+                playListEnum = playlistEnum, 
+                playlistId = args.playlistId,
+                songsList = args.songsList
             )
+            _playlistDetailState.update {
+                it.copy(
+                    isLoading = false,
+                    songPlaylist = songs,
+                )
+            }
         }
     }
 
