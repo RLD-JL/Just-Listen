@@ -28,10 +28,15 @@ dependencyResolutionManagement {
             )
 
             version("composeVersion", "1.7.0")
+            version("lifecycleVersion", "2.8.0")
+            version("navigationVersion", "2.8.0")
+
+            // Compose
             library("compose-ui-util", "androidx.compose.ui", "ui-util").versionRef("composeVersion")
             library("compose-ui", "androidx.compose.ui", "ui").versionRef("composeVersion")
             library("compose-ui-preview", "androidx.compose.ui", "ui-tooling-preview").versionRef("composeVersion")
             library("compose-material", "androidx.compose.material", "material").versionRef("composeVersion")
+            library("compose-material-icons", "androidx.compose.material", "material-icons-extended").versionRef("composeVersion")
             library("compose-animation", "androidx.compose.animation", "animation").versionRef("composeVersion")
             bundle(
                 "compose",
@@ -40,9 +45,27 @@ dependencyResolutionManagement {
                     "compose-ui-util",
                     "compose-ui-preview",
                     "compose-material",
+                    "compose-material-icons",
                     "compose-animation"
                 )
             )
+
+            // Navigation Compose
+            library("navigation-compose", "androidx.navigation", "navigation-compose").versionRef("navigationVersion")
+
+            // Lifecycle & ViewModel
+            library("lifecycle-viewmodel", "androidx.lifecycle", "lifecycle-viewmodel").versionRef("lifecycleVersion")
+            library("lifecycle-runtime", "androidx.lifecycle", "lifecycle-runtime").versionRef("lifecycleVersion")
+            library("lifecycle-viewmodel-compose", "androidx.lifecycle", "lifecycle-viewmodel-compose").versionRef("lifecycleVersion")
+
+            // Serialization
+            library("kotlinx-serialization-json", "org.jetbrains.kotlinx", "kotlinx-serialization-json").version("1.7.0")
+
+            // Koin DI
+            version("koinVersion", "3.5.6")
+            library("koin-core", "io.insert-koin", "koin-core").versionRef("koinVersion")
+            library("koin-android", "io.insert-koin", "koin-android").versionRef("koinVersion")
+            library("koin-androidx-compose", "io.insert-koin", "koin-androidx-compose").versionRef("koinVersion")
 
             version("exoPlayerVersion", "2.19.1")
             library("exoplayer-mediasession", "com.google.android.exoplayer", "extension-mediasession").versionRef("exoPlayerVersion")
@@ -60,6 +83,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Just Listen"
+rootProject.name = "JustListen"
 include(":androidApp")
 include(":shared")

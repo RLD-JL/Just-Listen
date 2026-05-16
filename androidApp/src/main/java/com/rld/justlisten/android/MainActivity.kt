@@ -3,60 +3,54 @@ package com.rld.justlisten.android
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.work.WorkManager
-import com.rld.justlisten.android.ui.MainComposable
-import com.rld.justlisten.android.ui.theme.ColorPallet
-import com.rld.justlisten.android.ui.theme.JustListenTheme
-import com.rld.justlisten.android.ui.utils.getColorPallet
-import com.rld.justlisten.datalayer.datacalls.settings.getSettingsInfo
+import com.rld.justlisten.di.appModule
+import com.rld.justlisten.di.androidModule
+import com.rld.justlisten.media.MusicPlayer
+import com.rld.justlisten.ui.JustListenAppPlatform
+import com.rld.justlisten.ui.LocalMusicPlayer
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import org.koin.android.ext.koin.androidContext
+import org.koin.compose.KoinContext
+import org.koin.core.context.GlobalContext.startKoin
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @OptIn(ExperimentalMaterialApi::class)
+    @Inject
+    lateinit var musicPlayer: MusicPlayer
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val model = (application as JustListenApp).model
-        val musicServiceConnection = (application as JustListenApp).musicServiceConnection
-        installSplashScreen().apply {
-        }
-        val workManager = WorkManager.getInstance(applicationContext)
-        workManager.cancelUniqueWork("SleepWorker")
 
-        val settingsInfo = mutableStateOf(model.repository.getSettingsInfo())
-        setContent {
-            JustListenTheme(
-                darkTheme = settingsInfo.value.isDarkThemeOn,
-                colorPallet = getColorPallet(settingsInfo.value.palletColor)
-            ) {
-                val statusBarColor =
-                    if (getColorPallet(settingsInfo.value.palletColor) == ColorPallet.Dark) MaterialTheme.colors.background.toArgb()
-                    else MaterialTheme.colors.primary.toArgb()
-                window.statusBarColor = statusBarColor
-                window.navigationBarColor =
-                    if (getColorPallet(settingsInfo.value.palletColor) == ColorPallet.Dark)
-                        MaterialTheme.colors.background.toArgb() else MaterialTheme.colors.primary.toArgb()
-                MainComposable(
-                    model, musicServiceConnection, settingsUpdated = {
-                        settingsInfo.value = model.repository.getSettingsInfo()
-                    },
-                    hasNavigationDonationOn = settingsInfo.value.hasNavigationDonationOn,
-                    updateStatusBarColor = { color, extended ->
-                        if (extended)
-                            window.statusBarColor = color
-                        else
-                            window.statusBarColor = statusBarColor
-                    }
-                )
+        try {
+            startKoin {
+                androidContext(this@MainActivity)
+                modules(appModule(), androidModule())
             }
+        } catch (_: Exception) {
+            // Koin already initialized
+        }
+
+        installSplashScreen()
+
+        WorkManager.getInstance(applicationContext).cancelUniqueWork("SleepWorker")
+
+        setContent {
+            JustListenAppContent(musicPlayer = musicPlayer)
         }
     }
 }
 
-
-
-
+@Composable
+fun JustListenAppContent(musicPlayer: MusicPlayer) {
+    KoinContext {
+        CompositionLocalProvider(LocalMusicPlayer provides musicPlayer) {
+            JustListenAppPlatform()
+        }
+    }
+}

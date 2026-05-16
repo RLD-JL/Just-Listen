@@ -16,7 +16,7 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.App.Starting">
         <service
-            android:name=".exoplayer.MusicService"
+            android:name="com.rld.justlisten.media.exoplayer.MusicService"
             android:foregroundServiceType="mediaPlayback"
             tools:ignore="Instantiatable"
             android:exported="false">

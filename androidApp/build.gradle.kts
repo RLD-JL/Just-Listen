@@ -25,7 +25,6 @@ dependencies {
     implementation ("dev.chrisbanes.snapper:snapper:0.2.2")
     implementation ("androidx.work:work-runtime-ktx:2.9.0")
 
-
     implementation("androidx.lifecycle:lifecycle-process:2.6.2")
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.google.dagger:hilt-android:2.52")
@@ -34,6 +33,12 @@ dependencies {
     implementation("com.google.accompanist:accompanist-swiperefresh:0.24.1-alpha")
     implementation("androidx.core:core-splashscreen:1.0.1")
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
+
+    // Navigation Compose
+    implementation("androidx.navigation:navigation-compose:2.8.0")
+
+    // Koin for Compose
+    implementation("io.insert-koin:koin-androidx-compose:3.5.6")
 }
 
 kapt {

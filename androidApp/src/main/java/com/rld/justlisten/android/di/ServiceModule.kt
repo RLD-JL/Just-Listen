@@ -15,6 +15,7 @@ import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
+import com.rld.justlisten.media.exoplayer.MusicSource
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,7 +28,6 @@ import java.io.File
 @Module
 @InstallIn(ServiceComponent::class)
 object ServiceModule {
-
 
     @Provides
     @ServiceScoped

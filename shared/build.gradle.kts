@@ -6,10 +6,17 @@ plugins {
     id("com.android.library")
     kotlin("plugin.serialization") version libs.versions.kotlinVersion.get()
     id("app.cash.sqldelight") version "2.0.2"
+    id("org.jetbrains.compose") version "1.7.0"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.10"
 }
 
 kotlin {
+    jvmToolchain(17)
     androidTarget()
+    
+    sourceSets.all {
+        languageSettings.optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
+    }
 
     val iosTarget: (String, KotlinNativeTarget.() -> Unit) -> KotlinNativeTarget =
         if (System.getenv("SDK_NAME")?.startsWith("iphoneos") == true)
@@ -21,6 +28,7 @@ kotlin {
         binaries {
             framework {
                 baseName = "shared"
+                isStatic = true
             }
         }
     }
@@ -31,6 +39,27 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
                 implementation(libs.bundles.ktor)
+                
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material)
+                implementation(compose.materialIconsExtended)
+                implementation(compose.ui)
+                implementation(compose.components.resources)
+                implementation(compose.components.uiToolingPreview)
+
+                // Navigation Compose (Multiplatform)
+                implementation(libs.navigation.compose)
+
+                // ViewModel + Lifecycle
+                implementation(libs.lifecycle.viewmodel)
+                implementation(libs.lifecycle.runtime)
+
+                // Serialization for routes
+                implementation(libs.kotlinx.serialization.json)
+
+                // Koin DI
+                implementation(libs.koin.core)
             }
         }
         val commonTest by getting {
@@ -41,8 +70,29 @@ kotlin {
         }
         val androidMain by getting {
             dependencies {
+                implementation("com.google.accompanist:accompanist-swiperefresh:0.34.0")
+                implementation("io.coil-kt:coil-compose:2.7.0")
                 implementation("io.ktor:ktor-client-android:${libs.versions.ktorVersion.get()}")
                 implementation("app.cash.sqldelight:android-driver:2.0.2")
+                implementation("com.google.android.exoplayer:exoplayer-core:${libs.versions.exoPlayerVersion.get()}")
+                implementation("com.google.android.exoplayer:exoplayer-ui:${libs.versions.exoPlayerVersion.get()}")
+                implementation("com.google.android.exoplayer:extension-mediasession:${libs.versions.exoPlayerVersion.get()}")
+                implementation("androidx.media:media:1.7.0")
+                implementation("androidx.palette:palette-ktx:1.0.0")
+                implementation("io.coil-kt:coil-compose:2.7.0")
+                implementation("androidx.work:work-runtime-ktx:2.9.0")
+                implementation("dev.chrisbanes.snapper:snapper:0.3.0")
+                implementation("com.google.dagger:hilt-android:2.52")
+                implementation("androidx.core:core-ktx:1.12.0")
+
+                // Lifecycle for Android
+                implementation(libs.lifecycle.viewmodel)
+                implementation(libs.lifecycle.runtime)
+                implementation(libs.lifecycle.viewmodel.compose)
+
+                // Koin for Android
+                implementation(libs.koin.android)
+                implementation(libs.koin.androidx.compose)
             }
         }
         val androidUnitTest by getting {
@@ -95,3 +145,4 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 }
+

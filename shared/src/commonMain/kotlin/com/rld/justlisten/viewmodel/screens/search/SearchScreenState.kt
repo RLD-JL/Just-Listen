@@ -21,5 +21,5 @@ data class TrackItem(val _data: PlayListModel, override var isFavorite: Boolean 
     override val id = _data.id
     override val songIconList = _data.songImgList
     override val songCounter: String
-        get() = TODO("Not yet implemented")
+        get() = _data.songCounter
 }
