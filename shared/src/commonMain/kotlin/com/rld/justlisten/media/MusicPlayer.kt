@@ -7,7 +7,8 @@ data class MediaMetadata(
     val title: String,
     val artist: String,
     val duration: Long,
-    val artworkUrl: String? = null
+    val artworkUrl: String? = null,
+    val lowResArtworkUrl: String? = null
 )
 
 enum class PlaybackStatus {

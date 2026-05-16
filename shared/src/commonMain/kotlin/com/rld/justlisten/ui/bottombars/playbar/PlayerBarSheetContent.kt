@@ -32,7 +32,8 @@ fun PlayerBarSheetContent(
     playBarMinimizedClicked: () -> Unit,
 ) {
     val playbackState by musicPlayer.playbackState.collectAsState()
-    val songIcon by remember { derivedStateOf { playbackState.currentMedia?.artworkUrl ?: "" } }
+    val songIcon by remember { derivedStateOf { playbackState.currentMedia?.lowResArtworkUrl ?: playbackState.currentMedia?.artworkUrl ?: "" } }
+    val artworkUrl by remember { derivedStateOf { playbackState.currentMedia?.artworkUrl ?: "" } }
     val title by remember { derivedStateOf { playbackState.currentMedia?.title ?: "" } }
 
     val scaffoldState = rememberBottomSheetScaffoldState(
@@ -90,7 +91,9 @@ fun PlayerBarSheetContent(
             bottomPadding = bottomPadding,
             currentFraction = currentFraction,
             isExtended = isExtended,
-            songIcon = songIcon, title = title,
+            songIcon = songIcon,
+            artworkUrl = artworkUrl,
+            title = title,
             musicPlayer = musicPlayer,
             onSkipNextPressed = onSkipNextPressed,
             onMoreClicked = {

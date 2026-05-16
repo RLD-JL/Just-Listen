@@ -42,6 +42,9 @@ class MusicPlayerEventListener(
             Player.STATE_BUFFERING,
             Player.STATE_READY -> {
                 notificationManager.showNotification(exoPlayer)
+                if (playbackState == Player.STATE_READY) {
+                     // Update duration in media session metadata if needed
+                }
             }
             else -> {
                 notificationManager.hideNotification()

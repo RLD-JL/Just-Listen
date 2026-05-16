@@ -1,10 +1,7 @@
 package com.rld.justlisten.ui.bottombars.playbar.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -22,7 +19,8 @@ fun PlayBarTopSection(
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .height(lerp(0f, 50f, currentFraction).dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Icon(

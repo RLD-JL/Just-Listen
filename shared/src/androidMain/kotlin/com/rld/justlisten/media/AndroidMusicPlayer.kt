@@ -34,7 +34,7 @@ class AndroidMusicPlayer(
                 updateState()
                 _isConnected.value = musicServiceConnection.isConnected.value
                 _networkError.value = musicServiceConnection.networkError.value
-                kotlinx.coroutines.delay(500)
+                kotlinx.coroutines.delay(100)
             }
         }
     }
@@ -124,7 +124,8 @@ class AndroidMusicPlayer(
             title = compat.description.title?.toString() ?: "",
             artist = compat.description.subtitle?.toString() ?: "",
             duration = compat.getLong(MediaMetadataCompat.METADATA_KEY_DURATION),
-            artworkUrl = compat.description.iconUri?.toString()
+            artworkUrl = compat.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI) ?: compat.description.iconUri?.toString(),
+            lowResArtworkUrl = compat.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI) ?: compat.description.iconUri?.toString()
         )
     }
     

@@ -130,7 +130,7 @@ fun JustListenScaffold(
                             )
                     ) {
                         PlayerBarSheetContent(
-                            bottomPadding = 0.dp,
+                            bottomPadding = if (showBottomBar) bottomNavHeight else 0.dp,
                             currentFraction = currentFraction,
                             isExtended = swipeableState.currentValue == PlayBarState.EXPANDED,
                             onSkipNextPressed = { musicPlayer.skipToNext() },

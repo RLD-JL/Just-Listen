@@ -88,9 +88,17 @@ fun PlayBarActionsMaximized(
                     )
                 }
 
-                if (playbackState.status != PlaybackStatus.PLAYING &&
-                    playbackState.status != PlaybackStatus.BUFFERING
-                ) {
+                if (playbackState.status == PlaybackStatus.BUFFERING) {
+                    Box(
+                        modifier = Modifier.size(48.dp).weight(0.2f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            color = MaterialTheme.colors.onSurface
+                        )
+                    }
+                } else if (playbackState.status != PlaybackStatus.PLAYING) {
                     OutlinedButton(
                         shape = CircleShape,
                         border = BorderStroke(1.dp, MaterialTheme.colors.onSurface),

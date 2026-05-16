@@ -21,6 +21,7 @@ fun PlayerBottomBar(
     currentFraction: Float,
     isExtended: Boolean,
     songIcon: String,
+    artworkUrl: String,
     title: String,
     musicPlayer: MusicPlayer,
     onSkipNextPressed: () -> Unit,
@@ -45,12 +46,32 @@ fun PlayerBottomBar(
             .noRippleClickable { onBackgroundClicked() } else Modifier.fillMaxWidth().height(65.dp).noRippleClickable { onBackgroundClicked() }
     ) {
         val constraints = this@BoxWithConstraints
+        
+        val progress = if ((playbackState.currentMedia?.duration ?: 0L) > 0) {
+            playbackState.currentPosition.toFloat() / playbackState.currentMedia!!.duration.toFloat()
+        } else 0f
+
+        if (!progress.isNaN() && currentFraction < 1f) {
+            LinearProgressIndicator(
+                progress = progress,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .align(Alignment.BottomCenter)
+                    .graphicsLayer {
+                        alpha = (1f - currentFraction * 10f).coerceIn(0f, 1f)
+                    }
+            )
+        }
+
         Column(Modifier.fillMaxSize()) {
 
             PlayBarTopSection(currentFraction, onCollapsedClicked, onMoreClicked)
 
             PlayBarSwipeActions(
-                songIcon, currentFraction, constraints,
+                songIcon,
+                artworkUrl,
+                currentFraction, constraints,
                 title, musicPlayer, onSkipNextPressed, painterLoaded, onFavoritePressed,
                 newDominantColor = { color ->
                     gradientColor = color
@@ -58,22 +79,6 @@ fun PlayerBottomBar(
                 },
                 playBarMinimizedClicked = playBarMinimizedClicked
             )
-            
-            val progress = if ((playbackState.currentMedia?.duration ?: 0L) > 0) {
-                playbackState.currentPosition.toFloat() / playbackState.currentMedia!!.duration.toFloat()
-            } else 0f
-            
-            if (!progress.isNaN()) {
-                LinearProgressIndicator(
-                    progress = progress,
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .graphicsLayer {
-                            alpha = if (currentFraction > 0.001) 0f else 1f
-                        }
-                )
-            }
 
             PlayBarActionsMaximized(
                 bottomPadding,

@@ -68,11 +68,19 @@ fun PlayBarActionsMinimized(
         IconButton(onClick = {
             if (playbackState.status == PlaybackStatus.PLAYING) musicPlayer.pause() else musicPlayer.play()
         }) {
-            Icon(
-                imageVector = if (playbackState.status == PlaybackStatus.PLAYING) Icons.Default.Pause else Icons.Default.PlayArrow,
-                contentDescription = null,
-                tint = MaterialTheme.colors.onBackground
-            )
+            if (playbackState.status == PlaybackStatus.BUFFERING) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colors.onBackground,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Icon(
+                    imageVector = if (playbackState.status == PlaybackStatus.PLAYING) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    tint = MaterialTheme.colors.onBackground
+                )
+            }
         }
         IconButton(onClick = onSkipNextPressed) {
             Icon(

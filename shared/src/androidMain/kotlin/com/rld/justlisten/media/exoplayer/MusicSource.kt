@@ -39,13 +39,13 @@ class MusicSource @Inject constructor() {
         artist = song.user
         id = song.id
         title = song.title
-        displayIconUri = song.songIconList.songImageURL480px
+        displayIconUri = song.songIconList.songImageURL150px
         mediaUri = setSongUrl(song.id)
         albumArtUri = song.songIconList.songImageURL480px
         displaySubtitle = song.title
         displayDescription = song.title
         isFavorite = song.isFavorite.toString()
-        duration = 120
+        putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 180000L) // Default 3 mins in ms
 
         downloadStatus = MediaDescriptionCompat.STATUS_NOT_DOWNLOADED
 
