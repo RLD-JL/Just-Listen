@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -32,7 +33,7 @@ fun PlayBarActionsMaximized(
     val interactionSource = remember { MutableInteractionSource() }
     val playbackState by musicPlayer.playbackState.collectAsState()
 
-    if (currentFraction == 1f) {
+    if (currentFraction > 0.001f) {
         val sliderPosition = if (playbackState.currentMedia?.duration ?: 0L > 0) {
             playbackState.currentPosition.toFloat() / playbackState.currentMedia!!.duration.toFloat()
         } else 0f
@@ -40,6 +41,9 @@ fun PlayBarActionsMaximized(
         Column(
             Modifier
                 .fillMaxSize()
+                .graphicsLayer {
+                    alpha = ((currentFraction - 0.5f) * 2f).coerceIn(0f, 1f)
+                }
                 .padding(bottom = bottomPadding + 5.dp),
             verticalArrangement = Arrangement.Bottom
         ) {

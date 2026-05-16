@@ -39,9 +39,10 @@ fun PlayerBottomBar(
     }
 
     BoxWithConstraints(
-        modifier = if (isExtended) Modifier
+        modifier = if (isExtended || currentFraction > 0.001f) Modifier
+            .fillMaxSize()
             .verticalGradientBackgroundColor(gradientColor)
-            .noRippleClickable { onBackgroundClicked() } else Modifier.noRippleClickable { onBackgroundClicked() }
+            .noRippleClickable { onBackgroundClicked() } else Modifier.fillMaxWidth().height(65.dp).noRippleClickable { onBackgroundClicked() }
     ) {
         val constraints = this@BoxWithConstraints
         Column(Modifier.fillMaxSize()) {

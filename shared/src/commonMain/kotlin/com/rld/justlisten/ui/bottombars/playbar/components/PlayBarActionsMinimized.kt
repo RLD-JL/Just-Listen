@@ -38,9 +38,10 @@ fun PlayBarActionsMinimized(
 
     Row(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
+            .height(65.dp)
             .graphicsLayer {
-                alpha = 1f - currentFraction
+                alpha = 1f - (currentFraction * 2f).coerceIn(0f, 1f)
             }
             .clickable(onClick = playBarMinimizedClicked),
         verticalAlignment = Alignment.CenterVertically
