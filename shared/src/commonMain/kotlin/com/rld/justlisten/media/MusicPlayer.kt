@@ -8,7 +8,8 @@ data class MediaMetadata(
     val artist: String,
     val duration: Long,
     val artworkUrl: String? = null,
-    val lowResArtworkUrl: String? = null
+    val lowResArtworkUrl: String? = null,
+    val isFavorite: Boolean = false
 )
 
 enum class PlaybackStatus {
@@ -42,4 +43,5 @@ interface MusicPlayer {
     fun setRepeatMode(repeatMode: RepeatMode)
     fun playMedia(mediaId: String)
     fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>)
+    fun refreshMetadata()
 }

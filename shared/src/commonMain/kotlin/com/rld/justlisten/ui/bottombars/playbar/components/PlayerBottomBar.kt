@@ -86,6 +86,7 @@ fun PlayerBottomBar(
                 musicPlayer,
                 title,
                 onSkipNextPressed,
+                onFavoritePressed,
                 constraints.maxWidth.value
             )
         }

@@ -88,7 +88,8 @@ actual fun PlaylistDetailScreenHost(
         onSongPressed = { songId ->
             playMusicFromId(musicPlayer, state.songPlaylist, songId)
         },
-        onFavoritePressed = { _, _, _, _, _ -> },
+        onFavoritePressed = viewModel::onFavoritePressed,
+        onDeletePlaylistClicked = viewModel::deletePlaylist,
     )
 }
 

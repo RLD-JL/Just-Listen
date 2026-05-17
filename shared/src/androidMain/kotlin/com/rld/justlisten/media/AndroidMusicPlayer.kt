@@ -4,12 +4,14 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.rld.justlisten.media.exoplayer.MusicServiceConnection
 import com.rld.justlisten.media.exoplayer.currentPlaybackPosition
+import com.rld.justlisten.datalayer.datacalls.library.getFavoritePlaylistWithId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class AndroidMusicPlayer(
-    val musicServiceConnection: MusicServiceConnection
+    val musicServiceConnection: MusicServiceConnection,
+    private val repository: com.rld.justlisten.datalayer.Repository
 ) : MusicPlayer {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -103,6 +105,10 @@ class AndroidMusicPlayer(
     override fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>) {
         musicServiceConnection.updatePlaylist(list)
     }
+
+    override fun refreshMetadata() {
+        updateState(musicServiceConnection.playbackState.value, musicServiceConnection.currentPlayingSong.value)
+    }
     
     // Helper to update internal state from MusicServiceConnection
     private fun updateState(compatState: PlaybackStateCompat?, metadata: MediaMetadataCompat?) {
@@ -128,13 +134,15 @@ class AndroidMusicPlayer(
     
     private fun mapMetadata(compat: MediaMetadataCompat?): MediaMetadata? {
         if (compat == null) return null
+        val id = compat.description.mediaId ?: ""
         return MediaMetadata(
-            id = compat.description.mediaId ?: "",
+            id = id,
             title = compat.description.title?.toString() ?: "",
             artist = compat.description.subtitle?.toString() ?: "",
             duration = compat.getLong(MediaMetadataCompat.METADATA_KEY_DURATION),
             artworkUrl = compat.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI) ?: compat.description.iconUri?.toString(),
-            lowResArtworkUrl = compat.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI) ?: compat.description.iconUri?.toString()
+            lowResArtworkUrl = compat.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI) ?: compat.description.iconUri?.toString(),
+            isFavorite = repository.getFavoritePlaylistWithId(id) != null
         )
     }
     

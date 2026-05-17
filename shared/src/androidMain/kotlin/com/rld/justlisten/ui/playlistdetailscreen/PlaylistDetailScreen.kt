@@ -31,6 +31,7 @@ fun PlaylistDetailScreen(
     musicPlayer: MusicPlayer,
     onSongPressed: (String) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
+    onDeletePlaylistClicked: (String) -> Unit,
 ) {
     if (playlistDetailState.isLoading) {
         LoadingScreen()
@@ -77,7 +78,7 @@ fun PlaylistDetailScreen(
                 onFavoritePressed = onFavoritePressed,
                 painter = painter
             )
-            AnimatedToolBar(playlistDetailState, toolbarOffsetHeightPx, onBackButtonPressed)
+            AnimatedToolBar(playlistDetailState, toolbarOffsetHeightPx, onBackButtonPressed, onDeletePlaylistClicked)
         }
     }
 }

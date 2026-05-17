@@ -267,7 +267,10 @@ inline var MediaMetadataCompat.Builder.flag: Int
 
 fun MediaMetadataCompat.toMediaItem(): com.google.android.exoplayer2.MediaItem {
     return with(com.google.android.exoplayer2.MediaItem.Builder()) {
-        setMediaId(mediaUri.toString())
+        // Use the metadata id as the mediaId when available so MediaSession and
+        // MediaMetadataCompat id stay in sync. Fall back to mediaUri when id is
+        // not present.
+        setMediaId(id ?: mediaUri.toString())
         setUri(mediaUri)
         setMimeType(MimeTypes.AUDIO_MPEG)
         setMediaMetadata(toMediaItemMetadata())

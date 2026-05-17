@@ -2,12 +2,16 @@ package com.rld.justlisten.viewmodel.playlistdetail
 
 import androidx.lifecycle.viewModelScope
 import com.rld.justlisten.datalayer.Repository
+import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.deletePlaylist
 import com.rld.justlisten.datalayer.datacalls.playlist.getPlaylist
 import com.rld.justlisten.navigation.Route
 import com.rld.justlisten.viewmodel.BaseScreenViewModel
 import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum
 import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailState
 import com.rld.justlisten.viewmodel.update
+import com.rld.justlisten.datalayer.datacalls.library.saveSongToFavorites
+import com.rld.justlisten.datalayer.models.SongIconList
+import com.rld.justlisten.datalayer.models.UserModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +23,15 @@ class PlaylistDetailViewModel(
 
     private val _playlistDetailState = MutableStateFlow(PlaylistDetailState(isLoading = true))
     val playlistDetailState: StateFlow<PlaylistDetailState> = _playlistDetailState.asStateFlow()
+
+    fun onFavoritePressed(
+        id: String, title: String, user: UserModel, songIconList: SongIconList,
+        isFavorite: Boolean
+    ) {
+        viewModelScope.launch {
+            repository.saveSongToFavorites(id, title, user, songIconList, "Favorite", isFavorite)
+        }
+    }
 
     fun load(args: Route.PlaylistDetail) {
         viewModelScope.launch {
@@ -43,6 +56,13 @@ class PlaylistDetailViewModel(
                     songPlaylist = songs,
                 )
             }
+        }
+    }
+
+    fun deletePlaylist(playlistName: String) {
+        viewModelScope.launch {
+            repository.deletePlaylist(playlistName)
+            popBackStack()
         }
     }
 

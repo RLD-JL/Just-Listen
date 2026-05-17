@@ -144,6 +144,7 @@ fun JustListenScaffold(
                                 repository.saveSongToFavorites(
                                     id, title, user, songIcon, "Favorite", isFavorite = isFavorite,
                                 )
+                                musicPlayer.refreshMetadata()
                             },
                             addPlaylistList = addPlaylistList.value,
                             onAddPlaylistClicked = { name, description ->

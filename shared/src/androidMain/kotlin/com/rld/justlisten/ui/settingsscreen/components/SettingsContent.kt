@@ -61,7 +61,7 @@ fun SettingsContent(
                 style = MaterialTheme.typography.h6.copy(fontSize = 14.sp)
             )
             Switch(
-                enabled = false,
+                enabled = true,
                 checked = settings.hasDonationNavigationOn,
                 modifier = Modifier.padding(8.dp),
                 onCheckedChange = {

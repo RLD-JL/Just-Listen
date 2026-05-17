@@ -7,6 +7,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -23,7 +24,8 @@ import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailState
 fun AnimatedToolBar(
     playlistDetailState: PlaylistDetailState,
     scrollState: MutableState<Float>,
-    onBackButtonPressed: (Boolean) -> Unit
+    onBackButtonPressed: (Boolean) -> Unit,
+    onDeletePlaylistClicked: (String) -> Unit
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -50,10 +52,20 @@ fun AnimatedToolBar(
             modifier = Modifier
                 .alpha(((-scrollState.value + 0.010f) / 1000).coerceIn(0f, 1f))
         )
-        Icon(
-            imageVector = Icons.Default.Search,
-            contentDescription = null,
-            modifier = Modifier.alpha(0f)
-        )
+        if (playlistDetailState.playListCreatedBy == "ME") {
+            IconButton(onClick = { onDeletePlaylistClicked(playlistDetailState.playlistName) }) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
+                    tint = Color.Red
+                )
+            }
+        } else {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
+                modifier = Modifier.alpha(0f)
+            )
+        }
     }
 }

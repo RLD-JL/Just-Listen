@@ -20,6 +20,9 @@ import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.media.RepeatMode
 import com.rld.justlisten.ui.utils.offsetX
 import com.rld.justlisten.ui.utils.widthSize
+import com.rld.justlisten.datalayer.models.UserModel
+import com.rld.justlisten.datalayer.models.SongIconList
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun PlayBarActionsMaximized(
@@ -28,6 +31,7 @@ fun PlayBarActionsMaximized(
     musicPlayer: MusicPlayer,
     title: String,
     onSkipNextPressed: () -> Unit,
+    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     maxWidth: Float,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -65,11 +69,31 @@ fun PlayBarActionsMaximized(
                 })
 
             Row(
-                Modifier.height(IntrinsicSize.Max),
+                Modifier.height(IntrinsicSize.Max).fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    modifier = Modifier.weight(0.2f),
+                    modifier = Modifier.weight(0.16f),
+                    onClick = {
+                        playbackState.currentMedia?.let {
+                            onFavoritePressed(
+                                it.id,
+                                it.title,
+                                UserModel(it.artist),
+                                SongIconList(it.artworkUrl ?: "", it.artworkUrl ?: "", it.artworkUrl ?: ""),
+                                !it.isFavorite
+                            )
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = if (playbackState.currentMedia?.isFavorite == true) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = null,
+                        tint = if (playbackState.currentMedia?.isFavorite == true) Color.Red else MaterialTheme.colors.onSurface
+                    )
+                }
+                IconButton(
+                    modifier = Modifier.weight(0.16f),
                     onClick = { musicPlayer.setShuffleModeEnabled(!playbackState.isShuffleModeEnabled) }
                 ) {
                     Icon(
@@ -79,7 +103,7 @@ fun PlayBarActionsMaximized(
                 }
                 
                 IconButton(
-                    modifier = Modifier.weight(0.2f),
+                    modifier = Modifier.weight(0.16f),
                     onClick = { musicPlayer.skipToPrevious() }
                 ) {
                     Icon(
@@ -90,7 +114,7 @@ fun PlayBarActionsMaximized(
 
                 if (playbackState.status == PlaybackStatus.BUFFERING) {
                     Box(
-                        modifier = Modifier.size(48.dp).weight(0.2f),
+                        modifier = Modifier.size(48.dp).weight(0.16f),
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(
@@ -104,7 +128,7 @@ fun PlayBarActionsMaximized(
                         border = BorderStroke(1.dp, MaterialTheme.colors.onSurface),
                         contentPadding = PaddingValues(0.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colors.onSurface),
-                        modifier = Modifier.size(48.dp).weight(0.2f),
+                        modifier = Modifier.size(48.dp).weight(0.16f),
                         onClick = { musicPlayer.play() }) {
                         Icon(
                             imageVector = Icons.Default.PlayArrow,
@@ -117,7 +141,7 @@ fun PlayBarActionsMaximized(
                         border = BorderStroke(1.dp, MaterialTheme.colors.onSurface),
                         contentPadding = PaddingValues(0.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colors.onSurface),
-                        modifier = Modifier.size(48.dp).weight(0.2f),
+                        modifier = Modifier.size(48.dp).weight(0.16f),
                         onClick = { musicPlayer.pause() }) {
                         Icon(
                             imageVector = Icons.Default.Pause,
@@ -127,7 +151,7 @@ fun PlayBarActionsMaximized(
                 }
 
                 IconButton(
-                    modifier = Modifier.weight(0.2f),
+                    modifier = Modifier.weight(0.16f),
                     onClick = onSkipNextPressed
                 ) {
                     Icon(
@@ -137,7 +161,7 @@ fun PlayBarActionsMaximized(
                 }
                 
                 IconButton(
-                    modifier = Modifier.weight(0.2f),
+                    modifier = Modifier.weight(0.16f),
                     onClick = { 
                         val nextMode = when(playbackState.repeatMode) {
                             RepeatMode.NONE -> RepeatMode.ONE

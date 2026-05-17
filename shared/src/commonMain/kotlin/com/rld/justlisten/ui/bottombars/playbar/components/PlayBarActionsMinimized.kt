@@ -57,12 +57,20 @@ fun PlayBarActionsMinimized(
             overflow = TextOverflow.Ellipsis
         )
         IconButton(onClick = {
-             // Handle favorite
+            playbackState.currentMedia?.let {
+                onFavoritePressed(
+                    it.id,
+                    it.title,
+                    UserModel(it.artist),
+                    SongIconList(it.artworkUrl ?: "", it.artworkUrl ?: "", it.artworkUrl ?: ""),
+                    !it.isFavorite
+                )
+            }
         }) {
             Icon(
-                imageVector = Icons.Default.FavoriteBorder,
+                imageVector = if (playbackState.currentMedia?.isFavorite == true) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                 contentDescription = null,
-                tint = MaterialTheme.colors.onBackground
+                tint = if (playbackState.currentMedia?.isFavorite == true) Color.Red else MaterialTheme.colors.onBackground
             )
         }
         IconButton(onClick = {

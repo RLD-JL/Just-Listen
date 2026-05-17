@@ -76,6 +76,6 @@ fun androidModule() = module {
     
     // Provide MusicPlayer implementation
     single<MusicPlayer> { 
-        AndroidMusicPlayer(get())
+        AndroidMusicPlayer(get(), get())
     }
 }

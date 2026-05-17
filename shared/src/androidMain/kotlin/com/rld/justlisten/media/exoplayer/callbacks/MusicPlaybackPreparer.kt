@@ -11,7 +11,7 @@ import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 
 class MusicPlaybackPreparer(
     private val musicSource: MusicSource,
-    private val playerPrepared: (MediaMetadataCompat?) -> Unit
+    private val playerPrepared: (MediaMetadataCompat?, Boolean) -> Unit
 ) : MediaSessionConnector.PlaybackPreparer{
 
     override fun onCommand(
@@ -27,13 +27,13 @@ class MusicPlaybackPreparer(
     }
 
     override fun onPrepare(playWhenReady: Boolean) {
-        musicSource.songs[0].description.mediaId?.let { onPrepareFromMediaId(it, playWhenReady, musicSource.songs[0].bundle) }
+        musicSource.songs.firstOrNull()?.description?.mediaId?.let { onPrepareFromMediaId(it, playWhenReady, musicSource.songs.firstOrNull()?.bundle) }
     }
 
     override fun onPrepareFromMediaId(mediaId: String, playWhenReady: Boolean, extras: Bundle?) {
         musicSource.whenReady {
             val itemToPlay = musicSource.songs.find { mediaId == it.description.mediaId }
-            playerPrepared(itemToPlay)
+            playerPrepared(itemToPlay, playWhenReady)
         }
     }
 

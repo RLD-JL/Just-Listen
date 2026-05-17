@@ -80,9 +80,9 @@ class MusicService : MediaBrowserServiceCompat() {
             curSongDuration = exoPlayer.duration
         }
 
-        val musicPlaybackPreparer = MusicPlaybackPreparer(musicSource) {
-            curPlayingSong = it
-            preparePlayer(musicSource.songs, it, true)
+        val musicPlaybackPreparer = MusicPlaybackPreparer(musicSource) { itemToPlay, playWhenReady ->
+            curPlayingSong = itemToPlay
+            preparePlayer(musicSource.songs, itemToPlay, playWhenReady)
         }
 
         mediaSessionConnector = MediaSessionConnector(mediaSession)
