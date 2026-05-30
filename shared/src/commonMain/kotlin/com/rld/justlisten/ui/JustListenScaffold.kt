@@ -22,6 +22,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
@@ -114,50 +115,29 @@ fun JustListenScaffold(
 
         Box(modifier = Modifier.fillMaxSize()) {
 
-            // ── Main scaffold with nav bar ───────────────────────────────────
+            // 1. ── Main scaffold (Without bottomBar passed into it) ──────────
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
-                bottomBar = {
-                    if (showBottomBar) {
-                        Level1BottomBar(
-                            navController = navController,
-                            showDonationTab = showDonationTab,
-                            modifier = Modifier.offset {
-                                // Slide the nav bar down as the player fully expands
-                                val progress = if (currentFraction > 0.8f)
-                                    (currentFraction - 0.8f) / 0.2f
-                                else 0f
-                                IntOffset(
-                                    x = 0,
-                                    y = (bottomNavHeight.toPx() * progress).toInt()
-                                )
-                            },
-                            onItemClick = {
-                                coroutineScope.launch {
-                                    anchoredDraggableState.animateTo(PlayBarState.COLLAPSED)
-                                }
-                            }
-                        )
-                    }
-                },
             ) { innerPadding ->
-                // innerPadding.calculateBottomPadding() already includes the
-                // nav bar height. We add minibarHeight on top so content
-                // isn't hidden behind the minibar.
+
+                // Calculate padding manually since Scaffold no longer reserves space for the nav bar
+                val navBarPadding = if (showBottomBar) bottomNavHeight else 0.dp
                 val extraBottom = if (shouldShowPlayBar) minibarHeight else 0.dp
+
                 Box(
                     Modifier
                         .fillMaxSize()
                         .padding(
                             top    = innerPadding.calculateTopPadding(),
-                            bottom = innerPadding.calculateBottomPadding() + extraBottom,
+                            // Combine all paddings together to prevent overlapping
+                            bottom = innerPadding.calculateBottomPadding() + navBarPadding + extraBottom,
                         )
                 ) {
                     AppNavigation(navController = navController)
                 }
             }
 
-            // ── Mini / full player ───────────────────────────────────────────
+            // 2. ── Mini / full player ────────────────────────────────────────
             if (shouldShowPlayBar) {
                 Box(
                     modifier = Modifier
@@ -209,6 +189,31 @@ fun JustListenScaffold(
                         },
                     )
                 }
+            }
+
+            // 3. ── Bottom Navigation (Drawn LAST -> Highest Z-Index) ─────────
+            if (showBottomBar) {
+                Level1BottomBar(
+                    navController = navController,
+                    showDonationTab = showDonationTab,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter) // Align properly within root Box
+                        .offset {
+                            // Slide the nav bar down as the player fully expands
+                            val progress = if (currentFraction > 0.8f)
+                                (currentFraction - 0.8f) / 0.2f
+                            else 0f
+                            IntOffset(
+                                x = 0,
+                                y = (bottomNavHeight.toPx() * progress).toInt()
+                            )
+                        },
+                    onItemClick = {
+                        coroutineScope.launch {
+                            anchoredDraggableState.animateTo(PlayBarState.COLLAPSED)
+                        }
+                    }
+                )
             }
         }
     }
