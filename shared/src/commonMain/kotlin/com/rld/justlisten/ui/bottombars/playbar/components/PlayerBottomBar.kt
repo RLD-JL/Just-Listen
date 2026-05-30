@@ -1,20 +1,33 @@
 package com.rld.justlisten.ui.bottombars.playbar.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.ui.extensions.noRippleClickable
-import com.rld.justlisten.ui.theme.modifiers.verticalGradientBackgroundColor
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.ui.utils.lerp
+
+// Dark base colour used when collapsed or no artwork colour available
+private val MinibarBackground = Color(0xFF1C1C1E)
 
 @Composable
 fun PlayerBottomBar(
@@ -37,56 +50,73 @@ fun PlayerBottomBar(
 ) {
     val playbackState by musicPlayer.playbackState.collectAsState()
 
-    var gradientColor by remember {
-        mutableStateOf(0xFF1C1C1E.toInt()) // Sleek dark grey/black background fallback
-    }
+    // Dominant color extracted from artwork
+    var targetColor by remember { mutableStateOf(MinibarBackground) }
+    val animatedColor by animateColorAsState(
+        targetValue = targetColor,
+        animationSpec = tween(durationMillis = 800, easing = LinearEasing),
+        label = "dominantColor"
+    )
+
+    // Ease the fraction for the background blend too
+    val eased = FastOutSlowInEasing.transform(currentFraction)
+
+    // Blend: collapsed = MinibarBackground, expanded = dominant color (darkened slightly)
+    val blendedBackground = Color(
+        red   = lerp(MinibarBackground.red,   animatedColor.red   * 0.7f, eased).coerceIn(0f, 1f),
+        green = lerp(MinibarBackground.green, animatedColor.green * 0.7f, eased).coerceIn(0f, 1f),
+        blue  = lerp(MinibarBackground.blue,  animatedColor.blue  * 0.7f, eased).coerceIn(0f, 1f),
+        alpha = 1f
+    )
 
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .verticalGradientBackgroundColor(gradientColor)
+            .background(blendedBackground)
             .noRippleClickable { onBackgroundClicked() }
     ) {
         val constraints = this@BoxWithConstraints
 
-        // 1. Minimized Progress Indicator
-        val progress = if ((playbackState.currentMedia?.duration ?: 0L) > 0) {
-            playbackState.currentPosition.toFloat() / playbackState.currentMedia!!.duration.toFloat()
-        } else 0f
+        // ── 1. Progress bar (minibar only) ──────────────────────────────────
+        val progress = if ((playbackState.currentMedia?.duration ?: 0L) > 0L)
+            playbackState.currentPosition.toFloat() /
+                    playbackState.currentMedia!!.duration.toFloat()
+        else 0f
 
         if (!progress.isNaN() && currentFraction < 0.99f) {
             LinearProgressIndicator(
                 progress = progress,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(1.dp)
+                    .height(1.5.dp)
                     .align(Alignment.TopCenter)
                     .graphicsLayer {
-                        alpha = (1f - currentFraction * 10f).coerceIn(0f, 1f)
-                        translationY = 64.dp.toPx() // Float exactly at the bottom of the collapsed minibar
-                    }
+                        alpha = (1f - currentFraction * 4f).coerceIn(0f, 1f)
+                    },
+                color = animatedColor.copy(alpha = 0.85f),
+                backgroundColor = Color.White.copy(alpha = 0.15f)
             )
         }
 
-        // 2. PlayBarSwipeActions (Unified image and minimized controls, completely flat layout)
+        // ── 2. Album art + minimized controls ───────────────────────────────
         PlayBarSwipeActions(
-            songIcon,
-            artworkUrl,
-            currentFraction,
-            constraints,
-            title,
-            musicPlayer,
-            onSkipNextPressed,
-            painterLoaded,
-            onFavoritePressed,
+            songIcon = songIcon,
+            highResIcon = artworkUrl,
+            currentFraction = currentFraction,
+            constraints = constraints,
+            title = title,
+            musicPlayer = musicPlayer,
+            onSkipNextPressed = onSkipNextPressed,
+            painterLoaded = painterLoaded,
+            onFavoritePressed = onFavoritePressed,
             newDominantColor = { color ->
-                gradientColor = color
+                targetColor = Color(color)
                 newDominantColor(color)
             },
             playBarMinimizedClicked = playBarMinimizedClicked
         )
 
-        // 3. PlayBarTopSection (Expandable collapse/more icons at the top)
+        // ── 3. Top section: collapse arrow + more (expanded only) ───────────
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -95,32 +125,41 @@ fun PlayerBottomBar(
             PlayBarTopSection(currentFraction, onCollapsedClicked, onMoreClicked)
         }
 
-        // 4. PlayBarActionsMaximized (Fades and slides up in the bottom half of the screen)
-        if (currentFraction > 0.05f) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 56.dp)
-                    .graphicsLayer {
-                        alpha = lerp(0f, 1f, 0.4f, 1f, currentFraction)
-                        translationY = lerp(120f, 0f, 0.4f, 1f, currentFraction)
-                    }
-            ) {
-                PlayBarActionsMaximized(
-                    bottomPadding,
-                    currentFraction,
-                    musicPlayer,
-                    title,
-                    onSkipNextPressed,
-                    onFavoritePressed,
-                    onSaveClicked = onSaveClicked
-                )
-            }
+        // ── 4. Playback controls + seek bar (fade in after 40% expanded) ────
+        AnimatedVisibility(
+            visible = currentFraction > 0.4f,
+            enter = fadeIn(tween(220)) + slideInVertically(
+                tween(280), initialOffsetY = { it / 3 }
+            ),
+            exit = fadeOut(tween(160)) + slideOutVertically(
+                tween(200), targetOffsetY = { it / 3 }
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 56.dp)
+        ) {
+            PlayBarActionsMaximized(
+                bottomPadding = bottomPadding,
+                currentFraction = currentFraction,
+                musicPlayer = musicPlayer,
+                title = title,
+                onSkipNextPressed = onSkipNextPressed,
+                onFavoritePressed = onFavoritePressed,
+                onSaveClicked = onSaveClicked
+            )
         }
 
-        // 5. PlayerBottomTabs (Slides in at the very bottom when fully extended)
-        if (currentFraction > 0.8f) {
+        // ── 5. Bottom tabs (UP NEXT / LYRICS / RELATED) ─────────────────────
+        AnimatedVisibility(
+            visible = currentFraction > 0.85f,
+            enter = fadeIn(tween(180)) + slideInVertically(
+                tween(220), initialOffsetY = { it / 2 }
+            ),
+            exit = fadeOut(tween(130)) + slideOutVertically(
+                tween(160), targetOffsetY = { it / 2 }
+            )
+        ) {
             PlayerBottomTabs(
                 currentFraction = currentFraction,
                 musicPlayer = musicPlayer,

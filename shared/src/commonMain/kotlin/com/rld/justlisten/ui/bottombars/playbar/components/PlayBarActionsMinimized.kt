@@ -39,62 +39,83 @@ fun PlayBarActionsMinimized(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            // Exactly 65dp — same as minibar height in JustListenScaffold
             .height(65.dp)
             .graphicsLayer {
-                alpha = 1f - (currentFraction * 2f).coerceIn(0f, 1f)
+                // Fade out fast so it's gone before the image reaches mid-expansion
+                alpha = (1f - currentFraction * 3f).coerceIn(0f, 1f)
             }
-            .clickable(onClick = playBarMinimizedClicked),
+            .clickable(
+                enabled = currentFraction < 0.1f,
+                onClick = playBarMinimizedClicked
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // 8dp left margin + 49dp image + 8dp gap = 65dp before text starts
         Spacer(Modifier.width(65.dp))
+
         Text(
             text = title,
-            style = MaterialTheme.typography.h6.copy(fontSize = 14.sp),
+            style = MaterialTheme.typography.body1.copy(fontSize = 14.sp),
             modifier = Modifier
                 .weight(1f)
-                .padding(8.dp),
+                .padding(horizontal = 6.dp),
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            color = Color.White
         )
+
         IconButton(onClick = {
-            playbackState.currentMedia?.let {
+            playbackState.currentMedia?.let { media ->
                 onFavoritePressed(
-                    it.id,
-                    it.title,
-                    UserModel(it.artist),
-                    SongIconList(it.artworkUrl ?: "", it.artworkUrl ?: "", it.artworkUrl ?: ""),
-                    !it.isFavorite
+                    media.id,
+                    media.title,
+                    UserModel(media.artist),
+                    SongIconList(
+                        media.artworkUrl ?: "",
+                        media.artworkUrl ?: "",
+                        media.artworkUrl ?: ""
+                    ),
+                    !media.isFavorite
                 )
             }
         }) {
             Icon(
-                imageVector = if (playbackState.currentMedia?.isFavorite == true) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                imageVector = if (playbackState.currentMedia?.isFavorite == true)
+                    Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                 contentDescription = null,
-                tint = if (playbackState.currentMedia?.isFavorite == true) Color.Red else MaterialTheme.colors.onBackground
+                tint = if (playbackState.currentMedia?.isFavorite == true)
+                    Color.Red else Color.White
             )
         }
+
         IconButton(onClick = {
-            if (playbackState.status == PlaybackStatus.PLAYING) musicPlayer.pause() else musicPlayer.play()
+            if (playbackState.status == PlaybackStatus.PLAYING)
+                musicPlayer.pause()
+            else
+                musicPlayer.play()
         }) {
             if (playbackState.status == PlaybackStatus.BUFFERING) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colors.onBackground,
+                    color = Color.White,
                     strokeWidth = 2.dp
                 )
             } else {
                 Icon(
-                    imageVector = if (playbackState.status == PlaybackStatus.PLAYING) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    imageVector = if (playbackState.status == PlaybackStatus.PLAYING)
+                        Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = null,
-                    tint = MaterialTheme.colors.onBackground
+                    tint = Color.White
                 )
             }
         }
+
         IconButton(onClick = onSkipNextPressed) {
             Icon(
                 imageVector = Icons.Default.SkipNext,
                 contentDescription = null,
-                tint = MaterialTheme.colors.onBackground
+                tint = Color.White
             )
         }
     }

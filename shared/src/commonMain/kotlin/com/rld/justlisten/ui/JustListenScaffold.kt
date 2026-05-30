@@ -15,15 +15,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.Scaffold
-import androidx.compose.material.rememberSwipeableState
-import androidx.compose.material.swipeable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -32,18 +28,10 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
 import com.rld.justlisten.datalayer.Repository
-import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.getAddPlaylist
-import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.savePlaylist
-import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.updatePlaylistSongs
-import com.rld.justlisten.datalayer.datacalls.library.saveSongToFavorites
-import com.rld.justlisten.datalayer.models.SongIconList
-import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.navigation.AppNavigation
-import com.rld.justlisten.navigation.Route
 import com.rld.justlisten.ui.bottombars.bottombarnav.Level1BottomBar
 import com.rld.justlisten.ui.bottombars.playbar.PlayerBarSheetContent
 import kotlinx.coroutines.launch
@@ -52,6 +40,7 @@ enum class PlayBarState {
     COLLAPSED,
     EXPANDED
 }
+
 @OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun JustListenScaffold(
@@ -63,28 +52,43 @@ fun JustListenScaffold(
 ) {
     val playbackState by musicPlayer.playbackState.collectAsState()
     val shouldShowPlayBar = playbackState.status == PlaybackStatus.PLAYING ||
-        playbackState.status == PlaybackStatus.PAUSED ||
-        playbackState.status == PlaybackStatus.BUFFERING ||
-        playbackState.currentMedia != null
+            playbackState.status == PlaybackStatus.PAUSED ||
+            playbackState.status == PlaybackStatus.BUFFERING ||
+            playbackState.currentMedia != null
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val routeLabel = navBackStackEntry?.destination?.route.orEmpty()
-    val showBottomBar = !routeLabel.contains("PlaylistDetail") && !routeLabel.contains("AddPlaylist")
+    val showBottomBar =
+        !routeLabel.contains("PlaylistDetail") && !routeLabel.contains("AddPlaylist")
 
     val coroutineScope = rememberCoroutineScope()
     val scaffoldState = rememberJustListenScaffoldState(repository, musicPlayer, coroutineScope)
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        val constraints = this
-        val maxHeight = constraints.maxHeight
+        val maxHeight = this.maxHeight
         val minibarHeight = 65.dp
-        val bottomNavHeight = 56.dp // Standard BottomNavigation height
+        val bottomNavHeight = 56.dp
+        val density = LocalDensity.current
 
-        val endAnchor = with(LocalDensity.current) { (maxHeight - (if (showBottomBar) bottomNavHeight else 0.dp) - minibarHeight).toPx() }
+        // endAnchor = the Y offset at which the minibar's TOP edge sits
+        // so that its BOTTOM edge is flush with the top of the nav bar.
+        //
+        // Total screen height
+        //   minus nav bar height   (so minibar bottom = nav bar top)
+        //   minus minibar height   (so minibar top is above its bottom)
+        //
+        // When showBottomBar is false there's no nav bar, so just leave
+        // room for the minibar above the very bottom of the screen.
+        val endAnchor = with(density) {
+            (maxHeight
+                    - (if (showBottomBar) bottomNavHeight else 0.dp)
+                    - minibarHeight
+                    ).toPx()
+        }
         val startAnchor = 0f
 
-        val density = LocalDensity.current
         val decayAnimationSpec = rememberSplineBasedDecay<Float>()
+
         val anchoredDraggableState = remember(endAnchor) {
             AnchoredDraggableState(
                 initialValue = PlayBarState.COLLAPSED,
@@ -103,11 +107,14 @@ fun JustListenScaffold(
             derivedStateOf {
                 val fullRange = endAnchor - startAnchor
                 val currentOffset = anchoredDraggableState.offset
-                if (fullRange == 0f) 0f else ((endAnchor - currentOffset) / fullRange).coerceIn(0f, 1f)
+                if (fullRange == 0f || currentOffset.isNaN()) 0f
+                else ((endAnchor - currentOffset) / fullRange).coerceIn(0f, 1f)
             }
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
+
+            // ── Main scaffold with nav bar ───────────────────────────────────
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 bottomBar = {
@@ -116,9 +123,10 @@ fun JustListenScaffold(
                             navController = navController,
                             showDonationTab = showDonationTab,
                             modifier = Modifier.offset {
-                                val progress = if (currentFraction > 0.8f) {
+                                // Slide the nav bar down as the player fully expands
+                                val progress = if (currentFraction > 0.8f)
                                     (currentFraction - 0.8f) / 0.2f
-                                } else 0f
+                                else 0f
                                 IntOffset(
                                     x = 0,
                                     y = (bottomNavHeight.toPx() * progress).toInt()
@@ -133,26 +141,33 @@ fun JustListenScaffold(
                     }
                 },
             ) { innerPadding ->
-                Box(Modifier.fillMaxSize().padding(innerPadding)) {
-                    Column(Modifier.fillMaxSize()) {
-                        Box(
-                            Modifier
-                                .weight(1f)
-                                .padding(bottom = if (shouldShowPlayBar) 65.dp else 0.dp),
-                        ) {
-                            AppNavigation(navController = navController)
-                        }
-                    }
+                // innerPadding.calculateBottomPadding() already includes the
+                // nav bar height. We add minibarHeight on top so content
+                // isn't hidden behind the minibar.
+                val extraBottom = if (shouldShowPlayBar) minibarHeight else 0.dp
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(
+                            top    = innerPadding.calculateTopPadding(),
+                            bottom = innerPadding.calculateBottomPadding() + extraBottom,
+                        )
+                ) {
+                    AppNavigation(navController = navController)
                 }
             }
+
+            // ── Mini / full player ───────────────────────────────────────────
             if (shouldShowPlayBar) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .offset {
+                            val offset = anchoredDraggableState.offset
                             IntOffset(
-                                0,
-                                anchoredDraggableState.offset.toInt()
+                                x = 0,
+                                y = if (offset.isNaN()) endAnchor.toInt()
+                                else offset.toInt()
                             )
                         }
                         .anchoredDraggable(
@@ -172,7 +187,9 @@ fun JustListenScaffold(
                             }
                         },
                         onFavoritePressed = { id, title, user, songIcon, isFavorite ->
-                            scaffoldState.saveSongToFavorites(id, title, user, songIcon, isFavorite)
+                            scaffoldState.saveSongToFavorites(
+                                id, title, user, songIcon, isFavorite
+                            )
                         },
                         addPlaylistList = scaffoldState.addPlaylistList,
                         onAddPlaylistClicked = { name, description ->

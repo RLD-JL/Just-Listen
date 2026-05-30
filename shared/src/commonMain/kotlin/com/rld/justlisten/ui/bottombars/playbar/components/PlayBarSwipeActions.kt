@@ -1,11 +1,10 @@
 package com.rld.justlisten.ui.bottombars.playbar.components
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,20 +28,27 @@ import com.rld.justlisten.datalayer.models.UserModel
 
 @Composable
 fun PlayBarSwipeActions(
-    songIcon: String, highResIcon: String, currentFraction: Float, constraints: BoxWithConstraintsScope, title: String,
-    musicPlayer: MusicPlayer, onSkipNextPressed: () -> Unit,
+    songIcon: String,
+    highResIcon: String,
+    currentFraction: Float,
+    constraints: BoxWithConstraintsScope,
+    title: String,
+    musicPlayer: MusicPlayer,
+    onSkipNextPressed: () -> Unit,
     painterLoaded: (Painter) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     newDominantColor: (Int) -> Unit,
     playBarMinimizedClicked: () -> Unit
 ) {
+    // Ease the fraction — image decelerates as it reaches its destination
+    val eased = FastOutSlowInEasing.transform(currentFraction)
+
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.CenterStart
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopStart   // anchor to top-left so offset math is predictable
     ) {
-        val width = widthSize(currentFraction, constraints.maxWidth.value).dp
-        val height = heightSize(currentFraction, constraints.maxHeight.value).dp
+        val width  = widthSize(eased, constraints.maxWidth.value).dp
+        val height = heightSize(eased, constraints.maxHeight.value).dp
 
         val painter = rememberAsyncImagePainter(
             model = ImageRequest.Builder(LocalPlatformContext.current)
@@ -63,10 +69,11 @@ fun PlayBarSwipeActions(
             modifier = Modifier
                 .size(width = width, height = height)
                 .offset(
-                    x = offsetX(currentFraction, constraints.maxWidth.value).dp,
-                    y = lerp(7.5f, offsetY(currentFraction, constraints.maxHeight.value, 0.12f), currentFraction).dp
+                    x = offsetX(eased, constraints.maxWidth.value).dp,
+                    y = offsetY(eased, constraints.maxHeight.value).dp
                 )
-                .clip(RoundedCornerShape(lerp(0f, 12f, currentFraction).dp))
+                // Slight rounding even when collapsed so it looks polished
+                .clip(RoundedCornerShape(lerp(6f, 16f, eased).dp))
         ) {
             Image(
                 painter = painter,
@@ -79,13 +86,15 @@ fun PlayBarSwipeActions(
             }
         }
 
+        // Minimized controls sit in the same Box, anchored TopStart,
+        // they fade out as the player expands
         PlayBarActionsMinimized(
-            currentFraction,
-            musicPlayer,
-            title,
-            onSkipNextPressed,
-            onFavoritePressed,
-            songIcon,
+            currentFraction = currentFraction,
+            musicPlayer = musicPlayer,
+            title = title,
+            onSkipNextPressed = onSkipNextPressed,
+            onFavoritePressed = onFavoritePressed,
+            songIcon = songIcon,
             playBarMinimizedClicked = playBarMinimizedClicked
         )
     }
