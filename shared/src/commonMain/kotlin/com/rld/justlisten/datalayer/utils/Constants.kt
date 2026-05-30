@@ -73,9 +73,6 @@ object Constants {
         "https://audius-discovery-6.cultur3stake.com"
     )
 
-    val usedBasedUrl = mutableMapOf<String, String>()
-    val bestResponseTime = mutableMapOf<String, Long>()
-
     val list = listOf("Electronic", "Rock", "Trending", "Pop", "Classical")
 
     const val appName = "Just Listen"

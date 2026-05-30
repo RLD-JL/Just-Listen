@@ -29,6 +29,7 @@ fun Level1BottomBar(
     navController: NavHostController,
     modifier: Modifier = Modifier,
     showDonationTab: Boolean = false,
+    onItemClick: () -> Unit = {}
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -39,6 +40,7 @@ fun Level1BottomBar(
     }
 
     fun navigateTo(route: Route) {
+        onItemClick()
         navController.navigate(route) {
             popUpTo(Route.Library) { saveState = true }
             launchSingleTop = true

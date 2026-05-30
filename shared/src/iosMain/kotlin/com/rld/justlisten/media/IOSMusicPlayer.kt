@@ -22,6 +22,9 @@ class IOSMusicPlayer : MusicPlayer {
     )
     override val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
 
+    private val _currentPlaylist = MutableStateFlow<List<MediaMetadata>>(emptyList())
+    override val currentPlaylist: StateFlow<List<MediaMetadata>> = _currentPlaylist.asStateFlow()
+
     private val _isConnected = MutableStateFlow(false)
     override val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
@@ -66,6 +69,14 @@ class IOSMusicPlayer : MusicPlayer {
 
     override fun updatePlaylist(list: List<Item>) {
         // TODO: Implement iOS update playlist
+    }
+
+    override fun removeTrack(index: Int) {
+        // TODO: Implement iOS remove track
+    }
+
+    override fun moveTrack(fromIndex: Int, toIndex: Int) {
+        // TODO: Implement iOS move track
     }
 }
 

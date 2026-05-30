@@ -30,6 +30,7 @@ enum class RepeatMode {
 
 interface MusicPlayer {
     val playbackState: StateFlow<PlaybackState>
+    val currentPlaylist: StateFlow<List<MediaMetadata>>
     val isConnected: StateFlow<Boolean>
     val networkError: StateFlow<Boolean>
     
@@ -44,4 +45,6 @@ interface MusicPlayer {
     fun playMedia(mediaId: String)
     fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>)
     fun refreshMetadata()
+    fun removeTrack(index: Int)
+    fun moveTrack(fromIndex: Int, toIndex: Int)
 }

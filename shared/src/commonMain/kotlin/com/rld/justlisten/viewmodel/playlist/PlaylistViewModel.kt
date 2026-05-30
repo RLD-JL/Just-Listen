@@ -32,19 +32,27 @@ class PlaylistViewModel(
     init {
         refreshScreen()
         viewModelScope.launch {
-            println("DEBUG: [PlaylistViewModel] initialized and collecting favoriteEvents")
-            repository.favoriteEvents.collect { (songId, isFavorite) ->
-                println("DEBUG: [PlaylistViewModel] collected favoriteEvent: id=$songId, isFavorite=$isFavorite")
+            repository.getFavoritePlaylistFlow().collect { favoriteList ->
+                val favoriteIds = favoriteList.map { it.id }.toSet()
                 _playlistState.update { state ->
-                    val updated = state.tracksList.map { item ->
-                        if (item.id == songId) {
-                            println("DEBUG: [PlaylistViewModel] matching song found! Toggling isFavorite to $isFavorite")
-                            item.copy(isFavorite = isFavorite)
-                        } else {
-                            item
-                        }
+                    val updatedTracks = state.tracksList.map { item ->
+                        item.copy(isFavorite = favoriteIds.contains(item.id))
                     }
-                    state.copy(tracksList = updated)
+                    val updatedPlaylistItems = state.playlistItems.map { item ->
+                        item.copy(isFavorite = favoriteIds.contains(item.id))
+                    }
+                    val updatedRemix = state.remixPlaylist.map { item ->
+                        item.copy(isFavorite = favoriteIds.contains(item.id))
+                    }
+                    val updatedHot = state.hotPlaylist.map { item ->
+                        item.copy(isFavorite = favoriteIds.contains(item.id))
+                    }
+                    state.copy(
+                        tracksList = updatedTracks,
+                        playlistItems = updatedPlaylistItems,
+                        remixPlaylist = updatedRemix,
+                        hotPlaylist = updatedHot
+                    )
                 }
             }
         }

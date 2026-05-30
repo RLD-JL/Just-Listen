@@ -32,10 +32,22 @@ class MusicServiceConnection(
     private val _playbackState: MutableStateFlow<Int> = MutableStateFlow(Player.STATE_IDLE)
     val playbackState = _playbackState.asStateFlow()
 
+    private val _playWhenReady: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val playWhenReady = _playWhenReady.asStateFlow()
+
+    private val _shuffleModeEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val shuffleModeEnabled = _shuffleModeEnabled.asStateFlow()
+
+    private val _repeatMode: MutableStateFlow<Int> = MutableStateFlow(Player.REPEAT_MODE_OFF)
+    val repeatMode = _repeatMode.asStateFlow()
+
     val sliderClicked: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     private val _currentPlayingSong: MutableStateFlow<MediaItem?> = MutableStateFlow(null)
     val currentPlayingSong = _currentPlayingSong.asStateFlow()
+
+    private val _currentPlaylist: MutableStateFlow<List<MediaItem>> = MutableStateFlow(emptyList())
+    val currentPlaylist = _currentPlaylist.asStateFlow()
 
     var mediaController: MediaController? = null
 
@@ -79,6 +91,28 @@ class MusicServiceConnection(
     private inner class PlayerListener : Player.Listener {
         override fun onPlaybackStateChanged(state: Int) {
             _playbackState.value = state
+        }
+
+        override fun onTimelineChanged(timeline: androidx.media3.common.Timeline, reason: Int) {
+            val list = mutableListOf<MediaItem>()
+            mediaController?.let { controller ->
+                for (i in 0 until controller.mediaItemCount) {
+                    list.add(controller.getMediaItemAt(i))
+                }
+            }
+            _currentPlaylist.value = list
+        }
+
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            _playWhenReady.value = playWhenReady
+        }
+
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+            _shuffleModeEnabled.value = shuffleModeEnabled
+        }
+
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            _repeatMode.value = repeatMode
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {

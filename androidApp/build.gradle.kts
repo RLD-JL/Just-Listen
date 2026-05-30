@@ -1,19 +1,18 @@
 plugins {
-    id("com.android.application")
-    kotlin("android")
-    id("kotlin-android")
-    id("org.jetbrains.kotlin.plugin.compose") version "2.1.10"
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
 }
 
 dependencies {
     implementation(project(":shared"))
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.2.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
-    implementation("androidx.activity:activity-compose:1.9.1")
-    implementation("androidx.palette:palette-ktx:1.0.0")
+    implementation(libs.android.material)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.palette)
 
     implementation(libs.bundles.compose)
     debugImplementation(libs.compose.ui.preview)
@@ -23,11 +22,11 @@ dependencies {
     implementation(libs.snapper)
     implementation(libs.androidx.work.runtime)
 
-    implementation("androidx.lifecycle:lifecycle-process:2.8.4")
-    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation(libs.lifecycle.process)
+    implementation(libs.coil.compose)
 
-    implementation("androidx.core:core-splashscreen:1.0.1")
-    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
+    implementation(libs.androidx.core.splashscreen)
+    debugImplementation(libs.leakcanary.android)
     
     // Navigation Compose
     implementation(libs.navigation.compose)

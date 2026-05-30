@@ -2,12 +2,12 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    kotlin("multiplatform")
-    id("com.android.library")
-    kotlin("plugin.serialization") version libs.versions.kotlinVersion.get()
-    id("app.cash.sqldelight") version "2.0.2"
-    id("org.jetbrains.compose") version "1.7.0"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.1.10"
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.sqldelight)
+    alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.kotlin.compose)
 }
 
 kotlin {
@@ -36,14 +36,14 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.datetime)
                 implementation(libs.bundles.ktor)
                 
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material)
-                implementation("org.jetbrains.compose.material3:material3:1.7.0")
+                implementation(compose.material3)
                 implementation(compose.materialIconsExtended)
                 implementation(compose.ui)
                 implementation(compose.components.resources)
@@ -64,6 +64,7 @@ kotlin {
                 implementation(libs.koin.compose)
                 implementation(libs.koin.compose.viewmodel)
 
+                implementation(libs.sqldelight.coroutines.extensions)
             }
         }
         val commonTest by getting {
@@ -74,15 +75,15 @@ kotlin {
         }
         val androidMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-okhttp:${libs.versions.ktorVersion.get()}")
-                implementation("app.cash.sqldelight:android-driver:2.0.2")
+                implementation(libs.ktor.client.okhttp)
+                implementation(libs.sqldelight.android.driver)
                 
                 implementation(libs.bundles.media3)
                 
                 implementation("androidx.media:media:1.7.0")
-                implementation("androidx.palette:palette-ktx:1.0.0")
-                implementation("io.coil-kt:coil-compose:2.7.0")
-                implementation("androidx.core:core-ktx:1.15.0")
+                implementation(libs.androidx.palette)
+                implementation(libs.coil.compose)
+                implementation(libs.androidx.core.ktx)
                 
                 // Additional Android dependencies
                 implementation(libs.androidx.work.runtime)

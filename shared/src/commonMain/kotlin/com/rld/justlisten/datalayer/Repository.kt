@@ -11,6 +11,9 @@ import com.rld.justlisten.LocalDb
 import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
 import com.rld.justlisten.database.libraryscreen.Library
 import com.rld.justlisten.database.playlistdetail.PlaylistDetail
+import com.rld.justlisten.datalayer.localdb.libraryscreen.getFavoritePlaylistFlow
+import com.rld.justlisten.datalayer.models.PlayListModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.json.Json
@@ -73,16 +76,10 @@ class Repository(
         val addPlaylistAdapter = AddPlaylist.Adapter(playlistAdapter)
     }
 
-    private val _favoriteEvents = MutableSharedFlow<Pair<String, Boolean>>()
-    val favoriteEvents = _favoriteEvents.asSharedFlow()
-
-    suspend fun emitFavoriteEvent(songId: String, isFavorite: Boolean) {
-        println("DEBUG: [Repository] emitFavoriteEvent songId=$songId, isFavorite=$isFavorite")
-        _favoriteEvents.emit(Pair(songId, isFavorite))
+    fun getFavoritePlaylistFlow(): Flow<List<PlayListModel>> {
+        return localDb.getFavoritePlaylistFlow()
     }
 
-    // we run each repository function on a Dispatchers.Default coroutine
-    // we pass useDefaultDispatcher=false just for the TestRepository instance
     suspend fun <T> withRepoContext(block: suspend () -> T): T {
         return if (useDefaultDispatcher) {
             withContext(Dispatchers.Default) {

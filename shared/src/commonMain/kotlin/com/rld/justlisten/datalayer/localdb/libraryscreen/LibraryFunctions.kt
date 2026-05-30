@@ -5,6 +5,12 @@ import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.LocalDb
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.Flow
+
 fun LocalDb.saveSongToFavorites(
     id: String, title: String, user: UserModel, songImgList: SongIconList,
     playlistName: String,
@@ -33,6 +39,19 @@ fun LocalDb.getFavoritePlaylist(): List<PlayListModel> {
             isStreamable = true
         )
     }).executeAsList()
+}
+
+fun LocalDb.getFavoritePlaylistFlow(): Flow<List<PlayListModel>> {
+    return libraryQueries.getFavoritePlaylist(mapper = { id, title, user, songImgList, _, _, _, _, _ ->
+        PlayListModel(
+            id = id,
+            playlistTitle = title,
+            title = title,
+            user = user,
+            songImgList = songImgList,
+            isStreamable = true
+        )
+    }).asFlow().mapToList(Dispatchers.IO)
 }
 
 fun LocalDb.getCustomPlaylistSongs(songsList: List<String>): List<PlayListModel> {

@@ -5,6 +5,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.Modifier
 import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.ui.bottombars.playbar.components.PlayerBottomBar
 import com.rld.justlisten.ui.bottombars.sheets.BottomSheetScreen
@@ -67,21 +71,27 @@ fun PlayerBarSheetContent(
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetContent = {
-            currentBottomSheet?.let { currentSheet ->
-                SheetLayout(
-                    currentSheet,
-                    closeSheet,
-                    title,
-                    mutablePainter,
-                    openSheet,
-                    addPlaylistList,
-                    onAddPlaylistClicked,
-                    getLatestPlaylist,
-                    clickedToAddSongToPlaylist = { playlistTitle, playlistDescription, songList ->
-                        closeSheet()
-                        clickedToAddSongToPlaylist(playlistTitle, playlistDescription, songList)
-                    },
-                )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(if (currentBottomSheet != null) 0.7f else 0.01f)
+            ) {
+                currentBottomSheet?.let { currentSheet ->
+                    SheetLayout(
+                        currentSheet,
+                        closeSheet,
+                        title,
+                        mutablePainter,
+                        openSheet,
+                        addPlaylistList,
+                        onAddPlaylistClicked,
+                        getLatestPlaylist,
+                        clickedToAddSongToPlaylist = { playlistTitle, playlistDescription, songList ->
+                            closeSheet()
+                            clickedToAddSongToPlaylist(playlistTitle, playlistDescription, songList)
+                        },
+                    )
+                }
             }
         },
         sheetPeekHeight = 0.dp
@@ -109,6 +119,9 @@ fun PlayerBarSheetContent(
             },
             playBarMinimizedClicked = playBarMinimizedClicked,
             onFavoritePressed = onFavoritePressed,
+            onSaveClicked = {
+                openSheet(BottomSheetScreen.AddPlaylist)
+            },
             newDominantColor = newDominantColor
         )
     }

@@ -18,8 +18,8 @@ fun widthSize(fraction: Float, screenWidth: Float) : Float {
     return lerp(50f,screenWidth*0.9f,fraction)
 }
 
-fun heightSize(fraction: Float, screenWidth: Float) : Float {
-    return lerp(50f,screenWidth*0.6f,fraction)
+fun heightSize(fraction: Float, screenHeight: Float) : Float {
+    return lerp(50f, screenHeight * 0.45f, fraction)
 }
 
 fun offsetX(fraction: Float, screenWidth: Float) : Float {

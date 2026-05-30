@@ -1,0 +1,100 @@
+[versions]
+kotlinVersion = "2.1.10"
+coroutinesVersion = "1.10.1"
+ktorVersion = "3.0.3"
+composeVersion = "1.7.3"
+lifecycleVersion = "2.8.4"
+navigationVersion = "2.8.0-alpha10"
+koinVersion = "4.0.2"
+koinComposeVersion = "4.0.2"
+media3Version = "1.5.1"
+sqldelightVersion = "2.0.2"
+composeMultiplatformVersion = "1.7.0"
+serializationVersion = "1.8.0"
+datetimeVersion = "0.6.1"
+coilVersion = "2.7.0"
+workVersion = "2.10.0"
+snapperVersion = "0.3.0"
+agpVersion = "8.7.1"
+materialVersion = "1.12.0"
+appcompatVersion = "1.7.0"
+constraintlayoutVersion = "2.2.0"
+activityVersion = "1.9.1"
+paletteVersion = "1.0.0"
+splashscreenVersion = "1.0.1"
+leakcanaryVersion = "2.14"
+
+[libraries]
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinVersion" }
+android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agpVersion" }
+hilt-android-gradle-plugin = { module = "com.google.dagger:hilt-android-gradle-plugin", version = "2.52" }
+
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutinesVersion" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesVersion" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetimeVersion" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serializationVersion" }
+
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorVersion" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorVersion" }
+ktor-client-ios = { module = "io.ktor:ktor-client-ios", version.ref = "ktorVersion" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorVersion" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorVersion" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktorVersion" }
+
+compose-ui = { module = "androidx.compose.ui:ui", version.ref = "composeVersion" }
+compose-ui-util = { module = "androidx.compose.ui:ui-util", version.ref = "composeVersion" }
+compose-ui-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "composeVersion" }
+compose-material = { module = "androidx.compose.material:material", version.ref = "composeVersion" }
+compose-material3 = { module = "androidx.compose.material3:material3", version = "1.3.1" }
+compose-material-icons = { module = "androidx.compose.material:material-icons-extended", version.ref = "composeVersion" }
+compose-animation = { module = "androidx.compose.animation:animation", version.ref = "composeVersion" }
+
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationVersion" }
+
+lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "lifecycleVersion" }
+lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime", version.ref = "lifecycleVersion" }
+lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleVersion" }
+lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleVersion" }
+lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycleVersion" }
+
+sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelightVersion" }
+sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelightVersion" }
+sqldelight-coroutines-extensions = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelightVersion" }
+
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koinVersion" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinVersion" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinVersion" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koinComposeVersion" }
+koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koinComposeVersion" }
+
+media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3Version" }
+media3-session = { module = "androidx.media3:media3-session", version.ref = "media3Version" }
+media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Version" }
+media3-common = { module = "androidx.media3:media3-common", version.ref = "media3Version" }
+
+androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "workVersion" }
+snapper = { module = "dev.chrisbanes.snapper:snapper", version.ref = "snapperVersion" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilVersion" }
+androidx-palette = { module = "androidx.palette:palette-ktx", version.ref = "paletteVersion" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.15.0" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreenVersion" }
+android-material = { module = "com.google.android.material:material", version.ref = "materialVersion" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
+androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayoutVersion" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityVersion" }
+leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryVersion" }
+
+[bundles]
+ktor = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-serialization-kotlinx-json", "ktor-client-logging"]
+compose = ["compose-ui", "compose-ui-util", "compose-ui-preview", "compose-material", "compose-material3", "compose-material-icons", "compose-animation"]
+media3 = ["media3-exoplayer", "media3-session", "media3-ui", "media3-common"]
+
+[plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlinVersion" }
+android-library = { id = "com.android.library", version.ref = "agpVersion" }
+android-application = { id = "com.android.application", version.ref = "agpVersion" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinVersion" }
+sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelightVersion" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatformVersion" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinVersion" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinVersion" }

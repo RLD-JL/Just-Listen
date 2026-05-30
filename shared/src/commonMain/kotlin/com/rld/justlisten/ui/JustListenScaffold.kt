@@ -1,6 +1,13 @@
 package com.rld.justlisten.ui
 
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.rememberSplineBasedDecay
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -45,7 +52,7 @@ enum class PlayBarState {
     COLLAPSED,
     EXPANDED
 }
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun JustListenScaffold(
     navController: NavHostController,
@@ -64,8 +71,8 @@ fun JustListenScaffold(
     val routeLabel = navBackStackEntry?.destination?.route.orEmpty()
     val showBottomBar = !routeLabel.contains("PlaylistDetail") && !routeLabel.contains("AddPlaylist")
 
-    val addPlaylistList = remember { mutableStateOf(emptyList<AddPlaylist>()) }
     val coroutineScope = rememberCoroutineScope()
+    val scaffoldState = rememberJustListenScaffoldState(repository, musicPlayer, coroutineScope)
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val constraints = this
@@ -73,100 +80,114 @@ fun JustListenScaffold(
         val minibarHeight = 65.dp
         val bottomNavHeight = 56.dp // Standard BottomNavigation height
 
-        val swipeableState = rememberSwipeableState(initialValue = PlayBarState.COLLAPSED)
-
         val endAnchor = with(LocalDensity.current) { (maxHeight - (if (showBottomBar) bottomNavHeight else 0.dp) - minibarHeight).toPx() }
         val startAnchor = 0f
 
-        val anchors = mapOf(
-            startAnchor to PlayBarState.EXPANDED,
-            endAnchor to PlayBarState.COLLAPSED
-        )
+        val density = LocalDensity.current
+        val decayAnimationSpec = rememberSplineBasedDecay<Float>()
+        val anchoredDraggableState = remember(endAnchor) {
+            AnchoredDraggableState(
+                initialValue = PlayBarState.COLLAPSED,
+                anchors = DraggableAnchors {
+                    PlayBarState.EXPANDED at startAnchor
+                    PlayBarState.COLLAPSED at endAnchor
+                },
+                positionalThreshold = { distance: Float -> distance * 0.3f },
+                velocityThreshold = { with(density) { 100.dp.toPx() } },
+                snapAnimationSpec = spring(stiffness = 300f, dampingRatio = 0.8f),
+                decayAnimationSpec = decayAnimationSpec
+            )
+        }
 
         val currentFraction by remember {
             derivedStateOf {
                 val fullRange = endAnchor - startAnchor
-                val currentOffset = swipeableState.offset.value
-                ((endAnchor - currentOffset) / fullRange).coerceIn(0f, 1f)
+                val currentOffset = anchoredDraggableState.offset
+                if (fullRange == 0f) 0f else ((endAnchor - currentOffset) / fullRange).coerceIn(0f, 1f)
             }
         }
 
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            bottomBar = {
-                if (showBottomBar) {
-                    Level1BottomBar(
-                        navController = navController,
-                        showDonationTab = showDonationTab,
-                    )
-                }
-            },
-        ) { innerPadding ->
-            Box(Modifier.fillMaxSize().padding(innerPadding)) {
-                Column(Modifier.fillMaxSize()) {
-                    Box(
-                        Modifier
-                            .weight(1f)
-                            .padding(bottom = if (shouldShowPlayBar) 65.dp else 0.dp),
-                    ) {
-                        AppNavigation(navController = navController)
-                    }
-                }
-                if (shouldShowPlayBar) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .offset {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                bottomBar = {
+                    if (showBottomBar) {
+                        Level1BottomBar(
+                            navController = navController,
+                            showDonationTab = showDonationTab,
+                            modifier = Modifier.offset {
                                 IntOffset(
-                                    0,
-                                    swipeableState.offset.value.toInt()
+                                    x = 0,
+                                    y = (bottomNavHeight.toPx() * currentFraction).toInt()
                                 )
+                            },
+                            onItemClick = {
+                                coroutineScope.launch {
+                                    anchoredDraggableState.animateTo(PlayBarState.COLLAPSED)
+                                }
                             }
-                            .swipeable(
-                                state = swipeableState,
-                                anchors = anchors,
-                                thresholds = { _, _ -> FractionalThreshold(0.3f) },
-                                orientation = Orientation.Vertical
-                            )
-                    ) {
-                        PlayerBarSheetContent(
-                            bottomPadding = if (showBottomBar) bottomNavHeight else 0.dp,
-                            currentFraction = currentFraction,
-                            isExtended = swipeableState.currentValue == PlayBarState.EXPANDED,
-                            onSkipNextPressed = { musicPlayer.skipToNext() },
-                            musicPlayer = musicPlayer,
-                            onCollapsedClicked = {
-                                coroutineScope.launch {
-                                    swipeableState.animateTo(PlayBarState.COLLAPSED)
-                                }
-                            },
-                            onFavoritePressed = { id, title, user, songIcon, isFavorite ->
-                                coroutineScope.launch {
-                                    repository.saveSongToFavorites(
-                                        id, title, user, songIcon, "Favorite", isFavorite = isFavorite,
-                                    )
-                                    musicPlayer.refreshMetadata()
-                                }
-                            },
-                            addPlaylistList = addPlaylistList.value,
-                            onAddPlaylistClicked = { name, description ->
-                                repository.savePlaylist(name, description)
-                                addPlaylistList.value = repository.getAddPlaylist()
-                            },
-                            getLatestPlaylist = {
-                                addPlaylistList.value = repository.getAddPlaylist()
-                            },
-                            clickedToAddSongToPlaylist = { title, description, songs ->
-                                repository.updatePlaylistSongs(title, description, songs)
-                            },
-                            newDominantColor = {},
-                            playBarMinimizedClicked = {
-                                coroutineScope.launch {
-                                    swipeableState.animateTo(PlayBarState.EXPANDED)
-                                }
-                            },
                         )
                     }
+                },
+            ) { innerPadding ->
+                Box(Modifier.fillMaxSize().padding(innerPadding)) {
+                    Column(Modifier.fillMaxSize()) {
+                        Box(
+                            Modifier
+                                .weight(1f)
+                                .padding(bottom = if (shouldShowPlayBar) 65.dp else 0.dp),
+                        ) {
+                            AppNavigation(navController = navController)
+                        }
+                    }
+                }
+            }
+            if (shouldShowPlayBar) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .offset {
+                            IntOffset(
+                                0,
+                                anchoredDraggableState.offset.toInt()
+                            )
+                        }
+                        .anchoredDraggable(
+                            state = anchoredDraggableState,
+                            orientation = Orientation.Vertical
+                        )
+                ) {
+                    PlayerBarSheetContent(
+                        bottomPadding = if (showBottomBar) bottomNavHeight else 0.dp,
+                        currentFraction = currentFraction,
+                        isExtended = anchoredDraggableState.currentValue == PlayBarState.EXPANDED,
+                        onSkipNextPressed = { musicPlayer.skipToNext() },
+                        musicPlayer = musicPlayer,
+                        onCollapsedClicked = {
+                            coroutineScope.launch {
+                                anchoredDraggableState.animateTo(PlayBarState.COLLAPSED)
+                            }
+                        },
+                        onFavoritePressed = { id, title, user, songIcon, isFavorite ->
+                            scaffoldState.saveSongToFavorites(id, title, user, songIcon, isFavorite)
+                        },
+                        addPlaylistList = scaffoldState.addPlaylistList,
+                        onAddPlaylistClicked = { name, description ->
+                            scaffoldState.savePlaylist(name, description)
+                        },
+                        getLatestPlaylist = {
+                            scaffoldState.loadAddPlaylists()
+                        },
+                        clickedToAddSongToPlaylist = { title, description, songs ->
+                            scaffoldState.updatePlaylistSongs(title, description, songs)
+                        },
+                        newDominantColor = {},
+                        playBarMinimizedClicked = {
+                            coroutineScope.launch {
+                                anchoredDraggableState.animateTo(PlayBarState.EXPANDED)
+                            }
+                        },
+                    )
                 }
             }
         }

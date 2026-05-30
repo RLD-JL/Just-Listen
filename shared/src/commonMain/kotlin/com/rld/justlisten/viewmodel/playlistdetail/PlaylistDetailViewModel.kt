@@ -26,17 +26,11 @@ class PlaylistDetailViewModel(
 
     init {
         viewModelScope.launch {
-            println("DEBUG: [PlaylistDetailViewModel] initialized and collecting favoriteEvents")
-            repository.favoriteEvents.collect { (songId, isFavorite) ->
-                println("DEBUG: [PlaylistDetailViewModel] collected favoriteEvent: id=$songId, isFavorite=$isFavorite")
+            repository.getFavoritePlaylistFlow().collect { favoriteList ->
+                val favoriteIds = favoriteList.map { it.id }.toSet()
                 _playlistDetailState.update { state ->
                     val updated = state.songPlaylist.map { item ->
-                        if (item.id == songId) {
-                            println("DEBUG: [PlaylistDetailViewModel] matching song found! Toggling isFavorite to $isFavorite")
-                            item.copy(isFavorite = isFavorite)
-                        } else {
-                            item
-                        }
+                        item.copy(isFavorite = favoriteIds.contains(item.id))
                     }
                     state.copy(songPlaylist = updated)
                 }

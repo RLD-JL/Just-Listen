@@ -17,6 +17,9 @@ class AndroidMusicPlayer(
     private val _playbackState = MutableStateFlow(PlaybackState(PlaybackStatus.IDLE, 0L))
     override val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
 
+    private val _currentPlaylist = MutableStateFlow<List<MediaMetadata>>(emptyList())
+    override val currentPlaylist: StateFlow<List<MediaMetadata>> = _currentPlaylist.asStateFlow()
+
     private val _isConnected = MutableStateFlow(false)
     override val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
@@ -33,15 +36,24 @@ class AndroidMusicPlayer(
         scope.launch {
             combine(
                 musicServiceConnection.playbackState,
-                musicServiceConnection.currentPlayingSong
-            ) { state, mediaItem ->
+                musicServiceConnection.currentPlayingSong,
+                musicServiceConnection.playWhenReady,
+                musicServiceConnection.shuffleModeEnabled,
+                musicServiceConnection.repeatMode,
+                musicServiceConnection.currentPlaylist
+            ) { args ->
+                val state = args[0] as Int
+                val mediaItem = args[1] as? MediaItem
+                val playlist = args[5] as List<MediaItem>
                 updateState(state, mediaItem)
+                _currentPlaylist.value = playlist.mapNotNull { mapMetadata(it) }
             }.collect()
         }
 
         scope.launch {
-            repository.favoriteEvents.collect { (songId, _) ->
-                if (_playbackState.value.currentMedia?.id == songId) {
+            repository.getFavoritePlaylistFlow().collect { favoriteList ->
+                val favoriteIds = favoriteList.map { it.id }.toSet()
+                if (favoriteIds.contains(_playbackState.value.currentMedia?.id)) {
                     refreshMetadata()
                 }
             }
@@ -121,6 +133,22 @@ class AndroidMusicPlayer(
 
     override fun refreshMetadata() {
         updateState(musicServiceConnection.playbackState.value, musicServiceConnection.currentPlayingSong.value)
+    }
+
+    override fun removeTrack(index: Int) {
+        musicServiceConnection.mediaController?.let { controller ->
+            if (index in 0 until controller.mediaItemCount) {
+                controller.removeMediaItem(index)
+            }
+        }
+    }
+
+    override fun moveTrack(fromIndex: Int, toIndex: Int) {
+        musicServiceConnection.mediaController?.let { controller ->
+            if (fromIndex in 0 until controller.mediaItemCount && toIndex in 0 until controller.mediaItemCount) {
+                controller.moveMediaItem(fromIndex, toIndex)
+            }
+        }
     }
     
     // Helper to update internal state from MusicServiceConnection

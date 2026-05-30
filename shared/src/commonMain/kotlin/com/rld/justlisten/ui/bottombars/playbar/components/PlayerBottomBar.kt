@@ -30,6 +30,7 @@ fun PlayerBottomBar(
     onBackgroundClicked: () -> Unit,
     painterLoaded: (Painter) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
+    onSaveClicked: () -> Unit,
     newDominantColor: (Int) -> Unit,
     playBarMinimizedClicked: () -> Unit
 ) {
@@ -64,31 +65,61 @@ fun PlayerBottomBar(
             )
         }
 
-        Column(Modifier.fillMaxSize()) {
+        if (isExtended || currentFraction > 0.001f) {
+            Box(Modifier.fillMaxSize()) {
+                Column(Modifier.fillMaxSize()) {
+                    PlayBarTopSection(currentFraction, onCollapsedClicked, onMoreClicked)
 
-            PlayBarTopSection(currentFraction, onCollapsedClicked, onMoreClicked)
+                    Box(modifier = Modifier.weight(1f)) {
+                        PlayBarSwipeActions(
+                            songIcon,
+                            artworkUrl,
+                            currentFraction, constraints,
+                            title, musicPlayer, onSkipNextPressed, painterLoaded, onFavoritePressed,
+                            newDominantColor = { color ->
+                                gradientColor = color
+                                newDominantColor(color)
+                            },
+                            playBarMinimizedClicked = playBarMinimizedClicked
+                        )
+                    }
 
-            PlayBarSwipeActions(
-                songIcon,
-                artworkUrl,
-                currentFraction, constraints,
-                title, musicPlayer, onSkipNextPressed, painterLoaded, onFavoritePressed,
-                newDominantColor = { color ->
-                    gradientColor = color
-                    newDominantColor(color)
-                },
-                playBarMinimizedClicked = playBarMinimizedClicked
-            )
+                    PlayBarActionsMaximized(
+                        bottomPadding,
+                        currentFraction,
+                        musicPlayer,
+                        title,
+                        onSkipNextPressed,
+                        onFavoritePressed,
+                        onSaveClicked = onSaveClicked
+                    )
+                    
+                    Spacer(Modifier.height(56.dp))
+                }
 
-            PlayBarActionsMaximized(
-                bottomPadding,
-                currentFraction,
-                musicPlayer,
-                title,
-                onSkipNextPressed,
-                onFavoritePressed,
-                constraints.maxWidth.value
-            )
+                PlayerBottomTabs(
+                    currentFraction = currentFraction,
+                    musicPlayer = musicPlayer,
+                    maxHeight = constraints.maxHeight,
+                    bottomPadding = bottomPadding
+                )
+            }
+        } else {
+            Column(Modifier.fillMaxSize()) {
+                Box(modifier = Modifier.weight(1f)) {
+                    PlayBarSwipeActions(
+                        songIcon,
+                        artworkUrl,
+                        currentFraction, constraints,
+                        title, musicPlayer, onSkipNextPressed, painterLoaded, onFavoritePressed,
+                        newDominantColor = { color ->
+                            gradientColor = color
+                            newDominantColor(color)
+                        },
+                        playBarMinimizedClicked = playBarMinimizedClicked
+                    )
+                }
+            }
         }
     }
 }
