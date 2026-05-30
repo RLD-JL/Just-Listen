@@ -6,9 +6,10 @@ import com.rld.justlisten.datalayer.models.PlayListModel
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 
-fun Repository.saveSongToFavorites(id: String, title : String, user: UserModel, songImgList: SongIconList,
+suspend fun Repository.saveSongToFavorites(id: String, title : String, user: UserModel, songImgList: SongIconList,
                                    playlistName: String, isFavorite: Boolean) {
     localDb.saveSongToFavorites(id, title, user, songImgList, playlistName, isFavorite = isFavorite)
+    emitFavoriteEvent(id, isFavorite)
 }
 
 fun Repository.saveSongToRecent(id: String, title : String, user: UserModel, songImgList: SongIconList,

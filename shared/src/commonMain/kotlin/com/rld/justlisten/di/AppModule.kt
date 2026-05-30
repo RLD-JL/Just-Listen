@@ -20,6 +20,6 @@ fun appModule() = module {
     factory { SearchViewModel(get()) }
     factory { PlaylistDetailViewModel(get()) }
     factory { AddPlaylistViewModel(get()) }
-    factory { SettingsViewModel(get()) }
+    single { SettingsViewModel(get()) }
     factory { DonationViewModel() }
 }

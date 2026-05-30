@@ -7,8 +7,15 @@ import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 
 @Composable
-expect fun JustListenTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    palletColor: String = "Dark",
+actual fun JustListenTheme(
+    darkTheme: Boolean,
+    palletColor: String,
     content: @Composable () -> Unit,
-)
+) {
+    // iOS: basic dark/light theme support
+    // TODO: Add full color palette support matching Android
+    MaterialTheme(
+        colors = if (darkTheme) darkColors() else lightColors(),
+        content = content,
+    )
+}

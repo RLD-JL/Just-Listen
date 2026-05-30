@@ -11,6 +11,8 @@ import com.rld.justlisten.LocalDb
 import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
 import com.rld.justlisten.database.libraryscreen.Library
 import com.rld.justlisten.database.playlistdetail.PlaylistDetail
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 
 class Repository(
@@ -73,6 +75,13 @@ class Repository(
     private val addPlaylistAdapter = AddPlaylist.Adapter(playlistAdapter)
     internal val webservices by lazy { ApiClient() }
     internal val localDb by lazy { LocalDb(sqlDriver, addPlaylistAdapter, libraryAdapter, adapter) }
+
+    private val _favoriteEvents = MutableSharedFlow<Pair<String, Boolean>>()
+    val favoriteEvents = _favoriteEvents.asSharedFlow()
+
+    suspend fun emitFavoriteEvent(songId: String, isFavorite: Boolean) {
+        _favoriteEvents.emit(Pair(songId, isFavorite))
+    }
 
     // we run each repository function on a Dispatchers.Default coroutine
     // we pass useDefaultDispatcher=false just for the TestRepository instance

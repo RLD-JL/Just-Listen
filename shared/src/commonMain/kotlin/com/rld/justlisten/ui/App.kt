@@ -1,8 +1,8 @@
 package com.rld.justlisten.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -28,10 +28,13 @@ fun JustListenApp(
     CompositionLocalProvider(
         LocalMusicPlayer provides musicPlayer
     ) {
-        JustListenTheme {
+        JustListenTheme(
+            darkTheme = settingsState.isDarkThemeOn,
+            palletColor = settingsState.palletColor,
+        ) {
             Surface(
                 modifier = modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.background,
+                color = MaterialTheme.colors.background,
             ) {
                 JustListenScaffold(
                     navController = navController,
@@ -43,16 +46,4 @@ fun JustListenApp(
             }
         }
     }
-}
-
-/**
- * Default theme for the app
- */
-@Composable
-fun JustListenTheme(
-    content: @Composable () -> Unit,
-) {
-    MaterialTheme(
-        content = content,
-    )
 }

@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
+import com.rld.justlisten.datalayer.Repository
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.ui.addplaylistscreen.AddPlaylistScreen
 import com.rld.justlisten.ui.donationscreen.DonationScreen
@@ -25,6 +26,7 @@ import com.rld.justlisten.viewmodel.search.SearchViewModel
 import com.rld.justlisten.viewmodel.settings.SettingsViewModel
 import com.rld.justlisten.viewmodel.screens.settings.SettingsState
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @Composable
 actual fun LibraryScreenHost(navController: NavHostController) {
@@ -50,6 +52,7 @@ actual fun LibraryScreenHost(navController: NavHostController) {
 actual fun PlaylistScreenHost(navController: NavHostController) {
     val viewModel: PlaylistViewModel = koinViewModel()
     val musicPlayer = LocalMusicPlayer.current
+    val repository: Repository = koinInject()
     val state by viewModel.playlistState.collectAsState()
 
     CollectNavigationEvents(viewModel, navController)
@@ -62,7 +65,7 @@ actual fun PlaylistScreenHost(navController: NavHostController) {
         onSearchClicked = viewModel::onSearchClicked,
         refreshScreen = viewModel::refreshScreen,
         onSongPressed = { songId, _, _, _ ->
-            playMusicFromId(musicPlayer, state.tracksList, songId)
+            playMusicFromId(musicPlayer, state.tracksList, songId, repository)
         },
         fetchPlaylist = viewModel::fetchPlaylist,
         getNewTracks = viewModel::getNewTracks,
@@ -76,6 +79,7 @@ actual fun PlaylistDetailScreenHost(
 ) {
     val viewModel: PlaylistDetailViewModel = koinViewModel()
     val musicPlayer = LocalMusicPlayer.current
+    val repository: Repository = koinInject()
     val state by viewModel.playlistDetailState.collectAsState()
 
     LaunchedEffect(args) { viewModel.load(args) }
@@ -86,7 +90,7 @@ actual fun PlaylistDetailScreenHost(
         onBackButtonPressed = { if (it) viewModel.popBack() },
         musicPlayer = musicPlayer,
         onSongPressed = { songId ->
-            playMusicFromId(musicPlayer, state.songPlaylist, songId)
+            playMusicFromId(musicPlayer, state.songPlaylist, songId, repository)
         },
         onFavoritePressed = viewModel::onFavoritePressed,
         onDeletePlaylistClicked = viewModel::deletePlaylist,
@@ -98,6 +102,7 @@ actual fun PlaylistDetailScreenHost(
 actual fun SearchScreenHost(navController: NavHostController) {
     val viewModel: SearchViewModel = koinViewModel()
     val musicPlayer = LocalMusicPlayer.current
+    val repository: Repository = koinInject()
     val state by viewModel.searchState.collectAsState()
 
     CollectNavigationEvents(viewModel, navController)
@@ -106,7 +111,7 @@ actual fun SearchScreenHost(navController: NavHostController) {
         onBackPressed = { viewModel.popBack() },
         onSearchPressed = viewModel::onSearchSubmitted,
         onSongPressed = { songId, _, _, _ ->
-            playMusicFromId(musicPlayer, state.searchResultTracks, songId)
+            playMusicFromId(musicPlayer, state.searchResultTracks, songId, repository)
         },
         onPlaylistPressed = { id, icon, title, createdBy, _ ->
             viewModel.onPlaylistPressed(id, icon, title, createdBy)

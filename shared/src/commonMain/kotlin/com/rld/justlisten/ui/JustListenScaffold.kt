@@ -141,10 +141,12 @@ fun JustListenScaffold(
                                 }
                             },
                             onFavoritePressed = { id, title, user, songIcon, isFavorite ->
-                                repository.saveSongToFavorites(
-                                    id, title, user, songIcon, "Favorite", isFavorite = isFavorite,
-                                )
-                                musicPlayer.refreshMetadata()
+                                coroutineScope.launch {
+                                    repository.saveSongToFavorites(
+                                        id, title, user, songIcon, "Favorite", isFavorite = isFavorite,
+                                    )
+                                    musicPlayer.refreshMetadata()
+                                }
                             },
                             addPlaylistList = addPlaylistList.value,
                             onAddPlaylistClicked = { name, description ->

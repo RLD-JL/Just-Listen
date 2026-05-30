@@ -1,29 +1,19 @@
 package com.rld.justlisten.ui
 
-// Redundant file during migration
-/*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import com.rld.justlisten.datalayer.Repository
-import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
-import com.rld.justlisten.viewmodel.settings.SettingsViewModel
+import com.rld.justlisten.ui.theme.ColorPallet
+import com.rld.justlisten.ui.utils.getColorPallet
+import com.rld.justlisten.ui.theme.JustListenTheme as AndroidJustListenTheme
 
 @Composable
-actual fun JustListenAppPlatform(modifier: Modifier) {
-    val musicPlayer = LocalMusicPlayer.current
-    val repository: Repository = koinInject()
-    val settingsViewModel: SettingsViewModel = koinViewModel()
-    val settingsState by settingsViewModel.settingsState.collectAsState()
-
-    JustListenApp(
-        musicPlayer = musicPlayer,
-        showDonationTab = settingsState.hasDonationNavigationOn,
-        darkTheme = settingsState.isDarkThemeOn,
-        repository = repository,
-        modifier = modifier,
+actual fun JustListenTheme(
+    darkTheme: Boolean,
+    palletColor: String,
+    content: @Composable () -> Unit,
+) {
+    AndroidJustListenTheme(
+        darkTheme = darkTheme,
+        colorPallet = getColorPallet(palletColor),
+        content = content,
     )
 }
-*/

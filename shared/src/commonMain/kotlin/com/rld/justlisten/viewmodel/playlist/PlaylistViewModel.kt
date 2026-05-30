@@ -31,6 +31,21 @@ class PlaylistViewModel(
 
     init {
         refreshScreen()
+        viewModelScope.launch {
+            repository.favoriteEvents.collect { (songId, isFavorite) ->
+                _playlistState.update { state ->
+                    state.copy(
+                        tracksList = state.tracksList.map { item ->
+                            if (item.id == songId) {
+                                item.copy(isFavorite = isFavorite)
+                            } else {
+                                item
+                            }
+                        }
+                    )
+                }
+            }
+        }
     }
 
     fun refreshScreen() {

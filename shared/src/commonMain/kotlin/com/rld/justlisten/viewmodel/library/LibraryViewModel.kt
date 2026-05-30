@@ -26,6 +26,11 @@ class LibraryViewModel(
 
     init {
         loadLibraryData()
+        viewModelScope.launch {
+            repository.favoriteEvents.collect {
+                loadLibraryData()
+            }
+        }
     }
 
     private fun loadLibraryData() {

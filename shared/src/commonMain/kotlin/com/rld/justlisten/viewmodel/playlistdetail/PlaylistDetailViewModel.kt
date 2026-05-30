@@ -24,12 +24,42 @@ class PlaylistDetailViewModel(
     private val _playlistDetailState = MutableStateFlow(PlaylistDetailState(isLoading = true))
     val playlistDetailState: StateFlow<PlaylistDetailState> = _playlistDetailState.asStateFlow()
 
+    init {
+        viewModelScope.launch {
+            repository.favoriteEvents.collect { (songId, isFavorite) ->
+                _playlistDetailState.update { state ->
+                    state.copy(
+                        songPlaylist = state.songPlaylist.map { item ->
+                            if (item.id == songId) {
+                                item.copy(isFavorite = isFavorite)
+                            } else {
+                                item
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
+
     fun onFavoritePressed(
         id: String, title: String, user: UserModel, songIconList: SongIconList,
         isFavorite: Boolean
     ) {
         viewModelScope.launch {
             repository.saveSongToFavorites(id, title, user, songIconList, "Favorite", isFavorite)
+            // Update in-memory state so UI reflects the change immediately
+            _playlistDetailState.update { state ->
+                state.copy(
+                    songPlaylist = state.songPlaylist.map { item ->
+                        if (item.id == id) {
+                            item.copy(isFavorite = isFavorite)
+                        } else {
+                            item
+                        }
+                    }
+                )
+            }
         }
     }
 
