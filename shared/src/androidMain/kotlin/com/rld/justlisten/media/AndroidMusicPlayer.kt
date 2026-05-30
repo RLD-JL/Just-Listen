@@ -41,6 +41,14 @@ class AndroidMusicPlayer(
         }
 
         scope.launch {
+            repository.favoriteEvents.collect { (songId, _) ->
+                if (_playbackState.value.currentMedia?.id == songId) {
+                    refreshMetadata()
+                }
+            }
+        }
+
+        scope.launch {
             while (isActive) {
                 val state = _playbackState.value
                 if (state.status == PlaybackStatus.PLAYING && !musicServiceConnection.sliderClicked.value) {

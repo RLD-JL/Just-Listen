@@ -80,6 +80,7 @@ class Repository(
     val favoriteEvents = _favoriteEvents.asSharedFlow()
 
     suspend fun emitFavoriteEvent(songId: String, isFavorite: Boolean) {
+        println("DEBUG: [Repository] emitFavoriteEvent songId=$songId, isFavorite=$isFavorite")
         _favoriteEvents.emit(Pair(songId, isFavorite))
     }
 

@@ -27,7 +27,9 @@ class LibraryViewModel(
     init {
         loadLibraryData()
         viewModelScope.launch {
-            repository.favoriteEvents.collect {
+            println("DEBUG: [LibraryViewModel] initialized and collecting favoriteEvents")
+            repository.favoriteEvents.collect { (songId, isFavorite) ->
+                println("DEBUG: [LibraryViewModel] collected favoriteEvent: id=$songId, isFavorite=$isFavorite. Reloading library data.")
                 loadLibraryData()
             }
         }

@@ -8,6 +8,7 @@ import com.rld.justlisten.datalayer.models.UserModel
 
 suspend fun Repository.saveSongToFavorites(id: String, title : String, user: UserModel, songImgList: SongIconList,
                                    playlistName: String, isFavorite: Boolean) {
+    println("DEBUG: [Repository] saveSongToFavorites id=$id, isFavorite=$isFavorite")
     localDb.saveSongToFavorites(id, title, user, songImgList, playlistName, isFavorite = isFavorite)
     emitFavoriteEvent(id, isFavorite)
 }

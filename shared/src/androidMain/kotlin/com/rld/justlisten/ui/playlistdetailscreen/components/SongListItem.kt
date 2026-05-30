@@ -83,7 +83,7 @@ fun SongListItem(
             Text(text = playlistItem.songCounter)
         }
 
-        var isFavorite by rememberSaveable { mutableStateOf(playlistItem.isFavorite) }
+        val isFavorite = playlistItem.isFavorite
         Icon(imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                 contentDescription = null,
                 tint = Color.Red,
@@ -96,7 +96,6 @@ fun SongListItem(
                             UserModel(playlistItem.user), playlistItem.songIconList,
                             !isFavorite
                         )
-                        isFavorite = !isFavorite
                     }
             )
     }

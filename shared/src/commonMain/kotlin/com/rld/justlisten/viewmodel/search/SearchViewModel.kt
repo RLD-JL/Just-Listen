@@ -25,17 +25,19 @@ class SearchViewModel(
     init {
         loadSearchHistory()
         viewModelScope.launch {
+            println("DEBUG: [SearchViewModel] initialized and collecting favoriteEvents")
             repository.favoriteEvents.collect { (songId, isFavorite) ->
+                println("DEBUG: [SearchViewModel] collected favoriteEvent: id=$songId, isFavorite=$isFavorite")
                 _searchState.update { state ->
-                    state.copy(
-                        searchResultTracks = state.searchResultTracks.map { item ->
-                            if (item.id == songId) {
-                                item.copy(isFavorite = isFavorite)
-                            } else {
-                                item
-                            }
+                    val updated = state.searchResultTracks.map { item ->
+                        if (item.id == songId) {
+                            println("DEBUG: [SearchViewModel] matching song found! Toggling isFavorite to $isFavorite")
+                            item.copy(isFavorite = isFavorite)
+                        } else {
+                            item
                         }
-                    )
+                    }
+                    state.copy(searchResultTracks = updated)
                 }
             }
         }
