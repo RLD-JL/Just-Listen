@@ -18,7 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberAsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import com.rld.justlisten.ui.theme.graySurface
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.viewmodel.interfaces.Item

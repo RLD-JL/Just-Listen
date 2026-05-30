@@ -14,8 +14,10 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
+import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
+import coil3.asImage
 import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.ui.loadingscreen.LoadingScreen
 import com.rld.justlisten.ui.playlistdetailscreen.components.AnimatedToolBar
@@ -37,8 +39,8 @@ fun PlaylistDetailScreen(
         LoadingScreen()
     } else {
         val painter = rememberAsyncImagePainter(
-            model = ImageRequest.Builder(context = LocalContext.current)
-                .placeholder(ColorDrawable(MaterialTheme.colors.secondaryVariant.toArgb()))
+            model = ImageRequest.Builder(context = LocalPlatformContext.current)
+                .placeholder(ColorDrawable(MaterialTheme.colors.secondaryVariant.toArgb()).asImage())
                 .data(playlistDetailState.playlistIcon).build()
         )
 

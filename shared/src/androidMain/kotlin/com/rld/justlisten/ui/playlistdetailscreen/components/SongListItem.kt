@@ -24,9 +24,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.SubcomposeAsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
+import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
 import com.rld.justlisten.ui.components.AnimatedShimmer
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
@@ -48,7 +49,7 @@ fun SongListItem(
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        SubcomposeAsyncImage(model = ImageRequest.Builder(LocalContext.current)
+        SubcomposeAsyncImage(model = ImageRequest.Builder(LocalPlatformContext.current)
             .data(playlistItem.songIconList.songImageURL150px)
             .memoryCachePolicy(CachePolicy.ENABLED)
             .diskCachePolicy(CachePolicy.ENABLED)

@@ -13,6 +13,7 @@ composeMultiplatformVersion = "1.7.0"
 serializationVersion = "1.8.0"
 datetimeVersion = "0.6.1"
 coilVersion = "2.7.0"
+coil3Version = "3.0.4"
 workVersion = "2.10.0"
 snapperVersion = "0.3.0"
 agpVersion = "8.7.1"
@@ -75,6 +76,8 @@ media3-common = { module = "androidx.media3:media3-common", version.ref = "media
 androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "workVersion" }
 snapper = { module = "dev.chrisbanes.snapper:snapper", version.ref = "snapperVersion" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilVersion" }
+coil3-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3Version" }
+coil3-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil3Version" }
 androidx-palette = { module = "androidx.palette:palette-ktx", version.ref = "paletteVersion" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.15.0" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreenVersion" }

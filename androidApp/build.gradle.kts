@@ -23,7 +23,7 @@ dependencies {
     implementation(libs.androidx.work.runtime)
 
     implementation(libs.lifecycle.process)
-    implementation(libs.coil.compose)
+    implementation(libs.coil3.compose)
 
     implementation(libs.androidx.core.splashscreen)
     debugImplementation(libs.leakcanary.android)

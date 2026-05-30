@@ -116,9 +116,12 @@ fun JustListenScaffold(
                             navController = navController,
                             showDonationTab = showDonationTab,
                             modifier = Modifier.offset {
+                                val progress = if (currentFraction > 0.8f) {
+                                    (currentFraction - 0.8f) / 0.2f
+                                } else 0f
                                 IntOffset(
                                     x = 0,
-                                    y = (bottomNavHeight.toPx() * currentFraction).toInt()
+                                    y = (bottomNavHeight.toPx() * progress).toInt()
                                 )
                             },
                             onItemClick = {

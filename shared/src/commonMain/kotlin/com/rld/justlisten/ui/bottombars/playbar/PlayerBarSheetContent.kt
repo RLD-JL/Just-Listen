@@ -1,6 +1,11 @@
 package com.rld.justlisten.ui.bottombars.playbar
 
-import androidx.compose.material.*
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.Dp
@@ -18,6 +23,7 @@ import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalMaterialApi
 @Composable
 fun PlayerBarSheetContent(
@@ -41,7 +47,10 @@ fun PlayerBarSheetContent(
     val title by remember { derivedStateOf { playbackState.currentMedia?.title ?: "" } }
 
     val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
+        bottomSheetState = rememberStandardBottomSheetState(
+            initialValue = SheetValue.PartiallyExpanded,
+            skipHiddenState = true
+        )
     )
 
     val mutablePainter = remember { mutableStateOf<Painter?>(null) }
@@ -52,8 +61,8 @@ fun PlayerBarSheetContent(
 
     val closeSheet: () -> Unit = {
         coroutines.launch {
-            if (scaffoldState.bottomSheetState.isExpanded) {
-                scaffoldState.bottomSheetState.collapse()
+            if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
+                scaffoldState.bottomSheetState.partialExpand()
             }
         }
     }
@@ -65,7 +74,7 @@ fun PlayerBarSheetContent(
         }
     }
 
-    if (scaffoldState.bottomSheetState.isCollapsed)
+    if (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded)
         currentBottomSheet = null
 
     BottomSheetScaffold(
@@ -110,7 +119,7 @@ fun PlayerBarSheetContent(
                 openSheet(BottomSheetScreen.More)
             },
             onBackgroundClicked = {
-                if (scaffoldState.bottomSheetState.isExpanded) {
+                if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
                     closeSheet()
                 }
             },

@@ -65,6 +65,10 @@ kotlin {
                 implementation(libs.koin.compose.viewmodel)
 
                 implementation(libs.sqldelight.coroutines.extensions)
+                
+                // Image Loading (Coil 3)
+                implementation(libs.coil3.compose)
+                implementation(libs.coil3.network.ktor)
             }
         }
         val commonTest by getting {
@@ -82,7 +86,6 @@ kotlin {
                 
                 implementation("androidx.media:media:1.7.0")
                 implementation(libs.androidx.palette)
-                implementation(libs.coil.compose)
                 implementation(libs.androidx.core.ktx)
                 
                 // Additional Android dependencies

@@ -2,7 +2,7 @@ package com.rld.justlisten.ui.playlistdetailscreen.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import coil.compose.AsyncImagePainter
+import coil3.compose.AsyncImagePainter
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem

@@ -12,8 +12,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.SubcomposeAsyncImage
-import coil.request.ImageRequest
+import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import com.rld.justlisten.ui.components.AnimatedShimmer
 import com.rld.justlisten.ui.theme.typography
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
@@ -33,7 +35,7 @@ fun PlaylistRowItem(
                 })
     ) {
 
-        SubcomposeAsyncImage(model = ImageRequest.Builder(LocalContext.current)
+        SubcomposeAsyncImage(model = ImageRequest.Builder(LocalPlatformContext.current)
             .data(playlistItem.songIconList.songImageURL480px)
             .allowHardware(true)
             .build(),
