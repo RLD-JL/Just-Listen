@@ -1,18 +1,15 @@
 package com.rld.justlisten.media.exoplayer
 
-import android.support.v4.media.MediaDescriptionCompat
-import android.support.v4.media.MediaMetadataCompat
+import androidx.media3.common.MediaItem
 import com.rld.justlisten.media.exoplayer.State.*
-import com.rld.justlisten.media.exoplayer.library.extension.*
-import com.rld.justlisten.datalayer.utils.Constants.BASEURL
-import com.rld.justlisten.datalayer.utils.Constants.appName
+import com.rld.justlisten.media.toMediaItem
 import com.rld.justlisten.viewmodel.interfaces.Item
 
 class MusicSource {
 
     private val onReadyListener = mutableListOf<(Boolean) -> Unit>()
 
-    var songs: List<MediaMetadataCompat> = emptyList()
+    var songs: List<MediaItem> = emptyList()
 
     var playlist: List<Item> = emptyList()
 
@@ -24,31 +21,10 @@ class MusicSource {
         state = STATE_INITIALIZED
     }
 
-    private fun updateCatalog(playlist: List<Item>): List<MediaMetadataCompat> {
-        val mediaMetadataCompat = playlist.map { song ->
-            MediaMetadataCompat.Builder().from(song).build()
-        }.toList()
-        mediaMetadataCompat.forEach {
-            it.description.extras?.putAll(it.bundle)
+    private fun updateCatalog(playlist: List<Item>): List<MediaItem> {
+        return playlist.map { song ->
+            song.toMediaItem()
         }
-        return mediaMetadataCompat
-    }
-
-    private fun MediaMetadataCompat.Builder.from(song: Item): MediaMetadataCompat.Builder {
-        artist = song.user
-        id = song.id
-        title = song.title
-        displayIconUri = song.songIconList.songImageURL150px
-        mediaUri = setSongUrl(song.id)
-        albumArtUri = song.songIconList.songImageURL480px
-        displaySubtitle = song.title
-        displayDescription = song.title
-        isFavorite = song.isFavorite.toString()
-        putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 180000L) // Default 3 mins in ms
-
-        downloadStatus = MediaDescriptionCompat.STATUS_NOT_DOWNLOADED
-
-        return this
     }
 
     private var state: State = STATE_CREATED
@@ -75,10 +51,6 @@ class MusicSource {
                 true
             }
         }
-    }
-
-    private fun setSongUrl(songId: String): String {
-        return "${BASEURL}/v1/tracks/${songId}/stream?app_name=$appName"
     }
 }
 

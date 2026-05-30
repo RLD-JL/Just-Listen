@@ -7,7 +7,7 @@ plugins {
     kotlin("plugin.serialization") version libs.versions.kotlinVersion.get()
     id("app.cash.sqldelight") version "2.0.2"
     id("org.jetbrains.compose") version "1.7.0"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.0.10"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.10"
 }
 
 kotlin {
@@ -68,26 +68,25 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
+                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
             }
         }
         val androidMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-android:${libs.versions.ktorVersion.get()}")
+                implementation("io.ktor:ktor-client-okhttp:${libs.versions.ktorVersion.get()}")
                 implementation("app.cash.sqldelight:android-driver:2.0.2")
-                implementation("com.google.android.exoplayer:exoplayer-core:${libs.versions.exoPlayerVersion.get()}")
-                implementation("com.google.android.exoplayer:exoplayer-ui:${libs.versions.exoPlayerVersion.get()}")
-                implementation("com.google.android.exoplayer:extension-mediasession:${libs.versions.exoPlayerVersion.get()}")
+                
+                implementation(libs.bundles.media3)
+                
                 implementation("androidx.media:media:1.7.0")
                 implementation("androidx.palette:palette-ktx:1.0.0")
                 implementation("io.coil-kt:coil-compose:2.7.0")
-                implementation("androidx.core:core-ktx:1.12.0")
+                implementation("androidx.core:core-ktx:1.15.0")
                 
                 // Additional Android dependencies
-                implementation("androidx.work:work-runtime-ktx:2.9.0")
-                implementation("com.google.accompanist:accompanist-swiperefresh:0.24.1-alpha")
-                implementation("dev.chrisbanes.snapper:snapper:0.2.2")
+                implementation(libs.androidx.work.runtime)
+                implementation(libs.snapper)
 
                 // Lifecycle for Android
                 implementation(libs.lifecycle.viewmodel)
@@ -137,10 +136,10 @@ configurations {
 }
 
 android {
-    compileSdk = 34
+    compileSdk = 35
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
-        testOptions.targetSdk = 34
+        testOptions.targetSdk = 35
         minSdk = 21
     }
     namespace = "com.rld.justlisten"

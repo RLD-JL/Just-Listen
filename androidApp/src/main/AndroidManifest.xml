@@ -19,8 +19,9 @@
             android:name="com.rld.justlisten.media.exoplayer.MusicService"
             android:foregroundServiceType="mediaPlayback"
             tools:ignore="Instantiatable"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService"/>
                 <action android:name="android.media.browse.MediaBrowserService"/>
             </intent-filter>
         </service>

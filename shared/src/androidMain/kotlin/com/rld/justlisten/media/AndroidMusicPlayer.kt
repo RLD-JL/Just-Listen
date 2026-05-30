@@ -1,9 +1,8 @@
 package com.rld.justlisten.media
 
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.PlaybackStateCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import com.rld.justlisten.media.exoplayer.MusicServiceConnection
-import com.rld.justlisten.media.exoplayer.currentPlaybackPosition
 import com.rld.justlisten.datalayer.datacalls.library.getFavoritePlaylistWithId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -35,8 +34,8 @@ class AndroidMusicPlayer(
             combine(
                 musicServiceConnection.playbackState,
                 musicServiceConnection.currentPlayingSong
-            ) { state, metadata ->
-                updateState(state, metadata)
+            ) { state, mediaItem ->
+                updateState(state, mediaItem)
             }.collect()
         }
 
@@ -52,7 +51,7 @@ class AndroidMusicPlayer(
             while (isActive) {
                 val state = _playbackState.value
                 if (state.status == PlaybackStatus.PLAYING && !musicServiceConnection.sliderClicked.value) {
-                    val currentPos = musicServiceConnection.playbackState.value?.currentPlaybackPosition ?: 0L
+                    val currentPos = musicServiceConnection.mediaController?.currentPosition ?: 0L
                     _playbackState.value = state.copy(currentPosition = currentPos)
                 }
                 delay(250L)
@@ -61,52 +60,58 @@ class AndroidMusicPlayer(
     }
 
     override fun play() {
-        musicServiceConnection.transportControls?.play()
+        musicServiceConnection.mediaController?.play()
     }
 
     override fun pause() {
-        musicServiceConnection.transportControls?.pause()
+        musicServiceConnection.mediaController?.pause()
     }
 
     override fun stop() {
-        musicServiceConnection.transportControls?.stop()
+        musicServiceConnection.mediaController?.stop()
     }
 
     override fun skipToNext() {
-        musicServiceConnection.transportControls?.skipToNext()
+        musicServiceConnection.mediaController?.seekToNext()
     }
 
     override fun skipToPrevious() {
-        musicServiceConnection.transportControls?.skipToPrevious()
+        musicServiceConnection.mediaController?.seekToPrevious()
     }
 
     override fun seekTo(position: Long) {
-        musicServiceConnection.transportControls?.seekTo(position)
+        musicServiceConnection.mediaController?.seekTo(position)
     }
 
     override fun setShuffleModeEnabled(enabled: Boolean) {
-        musicServiceConnection.transportControls?.setShuffleMode(
-            if (enabled) PlaybackStateCompat.SHUFFLE_MODE_ALL else PlaybackStateCompat.SHUFFLE_MODE_NONE
-        )
+        musicServiceConnection.mediaController?.shuffleModeEnabled = enabled
     }
 
     override fun setRepeatMode(repeatMode: RepeatMode) {
         val mode = when (repeatMode) {
-            RepeatMode.NONE -> PlaybackStateCompat.REPEAT_MODE_NONE
-            RepeatMode.ONE -> PlaybackStateCompat.REPEAT_MODE_ONE
-            RepeatMode.ALL -> PlaybackStateCompat.REPEAT_MODE_ALL
+            RepeatMode.NONE -> Player.REPEAT_MODE_OFF
+            RepeatMode.ONE -> Player.REPEAT_MODE_ONE
+            RepeatMode.ALL -> Player.REPEAT_MODE_ALL
         }
-        musicServiceConnection.transportControls?.setRepeatMode(mode)
+        musicServiceConnection.mediaController?.repeatMode = mode
     }
 
     override fun playMedia(mediaId: String) {
         scope.launch {
             var attempts = 0
-            while (musicServiceConnection.transportControls == null && attempts < 30) {
+            while (musicServiceConnection.mediaController == null && attempts < 30) {
                 delay(100)
                 attempts++
             }
-            musicServiceConnection.transportControls?.playFromMediaId(mediaId, null)
+            musicServiceConnection.mediaController?.let { controller ->
+                for (i in 0 until controller.mediaItemCount) {
+                    if (controller.getMediaItemAt(i).mediaId == mediaId) {
+                        controller.seekTo(i, 0)
+                        controller.play()
+                        break
+                    }
+                }
+            }
         }
     }
 
@@ -119,44 +124,44 @@ class AndroidMusicPlayer(
     }
     
     // Helper to update internal state from MusicServiceConnection
-    private fun updateState(compatState: PlaybackStateCompat?, metadata: MediaMetadataCompat?) {
+    private fun updateState(state: Int, mediaItem: MediaItem?) {
         if (!musicServiceConnection.isConnected.value) return
         
         _playbackState.value = PlaybackState(
-            status = mapStatus(compatState?.state),
-            currentPosition = compatState?.currentPlaybackPosition ?: 0L,
-            currentMedia = mapMetadata(metadata),
-            isShuffleModeEnabled = musicServiceConnection.shuffleMode != PlaybackStateCompat.SHUFFLE_MODE_NONE,
-            repeatMode = mapRepeatMode(musicServiceConnection.repeatMode)
+            status = mapStatus(state),
+            currentPosition = musicServiceConnection.mediaController?.currentPosition ?: 0L,
+            currentMedia = mapMetadata(mediaItem),
+            isShuffleModeEnabled = musicServiceConnection.mediaController?.shuffleModeEnabled ?: false,
+            repeatMode = mapRepeatMode(musicServiceConnection.mediaController?.repeatMode ?: Player.REPEAT_MODE_OFF)
         )
     }
     
-    private fun mapStatus(state: Int?): PlaybackStatus = when (state) {
-        PlaybackStateCompat.STATE_PLAYING -> PlaybackStatus.PLAYING
-        PlaybackStateCompat.STATE_PAUSED -> PlaybackStatus.PAUSED
-        PlaybackStateCompat.STATE_BUFFERING -> PlaybackStatus.BUFFERING
-        PlaybackStateCompat.STATE_STOPPED -> PlaybackStatus.STOPPED
-        PlaybackStateCompat.STATE_ERROR -> PlaybackStatus.ERROR
+    private fun mapStatus(state: Int): PlaybackStatus = when (state) {
+        Player.STATE_READY -> if (musicServiceConnection.mediaController?.playWhenReady == true) PlaybackStatus.PLAYING else PlaybackStatus.PAUSED
+        Player.STATE_BUFFERING -> PlaybackStatus.BUFFERING
+        Player.STATE_IDLE -> PlaybackStatus.IDLE
+        Player.STATE_ENDED -> PlaybackStatus.STOPPED
         else -> PlaybackStatus.IDLE
     }
     
-    private fun mapMetadata(compat: MediaMetadataCompat?): MediaMetadata? {
-        if (compat == null) return null
-        val id = compat.description.mediaId ?: ""
+    private fun mapMetadata(mediaItem: MediaItem?): MediaMetadata? {
+        if (mediaItem == null) return null
+        val id = mediaItem.mediaId
+        val metadata = mediaItem.mediaMetadata
         return MediaMetadata(
             id = id,
-            title = compat.description.title?.toString() ?: "",
-            artist = compat.description.subtitle?.toString() ?: "",
-            duration = compat.getLong(MediaMetadataCompat.METADATA_KEY_DURATION),
-            artworkUrl = compat.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI) ?: compat.description.iconUri?.toString(),
-            lowResArtworkUrl = compat.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI) ?: compat.description.iconUri?.toString(),
+            title = metadata.title?.toString() ?: "",
+            artist = metadata.artist?.toString() ?: "",
+            duration = musicServiceConnection.mediaController?.duration ?: 0L,
+            artworkUrl = metadata.artworkUri?.toString(),
+            lowResArtworkUrl = metadata.artworkUri?.toString(),
             isFavorite = repository.getFavoritePlaylistWithId(id) != null
         )
     }
     
     private fun mapRepeatMode(mode: Int): RepeatMode = when (mode) {
-        PlaybackStateCompat.REPEAT_MODE_ONE -> RepeatMode.ONE
-        PlaybackStateCompat.REPEAT_MODE_ALL -> RepeatMode.ALL
+        Player.REPEAT_MODE_ONE -> RepeatMode.ONE
+        Player.REPEAT_MODE_ALL -> RepeatMode.ALL
         else -> RepeatMode.NONE
     }
 }

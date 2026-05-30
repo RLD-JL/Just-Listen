@@ -15,13 +15,10 @@ import kotlinx.serialization.json.Json
 import kotlin.collections.set
 import kotlin.random.Random
 
-class ApiClient {
+open class ApiClient {
 
     val client = HttpClient {
-        engine {
-            // this: HttpClientEngineConfig
-            threadsCount = 4
-        }
+        // use default engine config
 
         install(ContentNegotiation) {
             json(Json {

@@ -1,6 +1,7 @@
 package com.rld.justlisten.di
 
 import com.rld.justlisten.datalayer.Repository
+import com.rld.justlisten.datalayer.webservices.ApiClient
 import com.rld.justlisten.viewmodel.addplaylist.AddPlaylistViewModel
 import com.rld.justlisten.viewmodel.donation.DonationViewModel
 import com.rld.justlisten.viewmodel.library.LibraryViewModel
@@ -12,7 +13,8 @@ import org.koin.dsl.module
 
 fun appModule() = module {
     // Single instances
-    single { Repository(get()) }
+    single { ApiClient() }
+    single { Repository(get(), get()) }
     
     // ViewModels
     factory { LibraryViewModel(get()) }

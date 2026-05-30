@@ -13,68 +13,65 @@ import com.rld.justlisten.database.libraryscreen.Library
 import com.rld.justlisten.database.playlistdetail.PlaylistDetail
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 
 
 class Repository(
-    private val sqlDriver: SqlDriver,
+    private val _localDb: LocalDb?,
+    internal val webservices: ApiClient,
     private val useDefaultDispatcher: Boolean = true
 ) {
+    internal val localDb: LocalDb get() = _localDb ?: error("LocalDb not initialized")
 
-
-    private val listOfStringsAdapter = object : ColumnAdapter<SongIconList, String> {
-        override fun decode(databaseValue: String): SongIconList {
-            return if (databaseValue.isEmpty())
-                SongIconList()
-            else {
-                val songIconList = databaseValue.split(",")
-                SongIconList(songIconList[0], songIconList[1], songIconList[2])
-            }
-        }
-
-        override fun encode(value: SongIconList): String {
-            return value.songImageURL150px + "," + value.songImageURL480px + "," + value.songImageURL1000px
-        }
-    }
-
-    private val listOfStringsAdapter2 = object : ColumnAdapter<UserModel, String> {
-        override fun decode(databaseValue: String): UserModel {
-            return if (databaseValue.isEmpty())
-                UserModel()
-            else {
-                UserModel(databaseValue)
-            }
-        }
-
-        override fun encode(value: UserModel): String {
-            return value.username
-        }
-    }
-
-
-    private val playlistAdapter = object : ColumnAdapter<List<String>, String> {
-        override fun decode(databaseValue: String): List<String> {
-            return if (databaseValue.isEmpty())
-                emptyList()
-            else {
-                val mutableList = mutableListOf<String>()
-
-                databaseValue.split(",").forEach {
-                    mutableList.add(it)
+    companion object {
+        val listOfStringsAdapter = object : ColumnAdapter<SongIconList, String> {
+            override fun decode(databaseValue: String): SongIconList {
+                return try {
+                    Json.decodeFromString(databaseValue)
+                } catch (e: Exception) {
+                    SongIconList()
                 }
-                return mutableList
+            }
+
+            override fun encode(value: SongIconList): String {
+                return Json.encodeToString(value)
             }
         }
 
-        override fun encode(value: List<String>): String {
-            return value.joinToString(",")
-        }
-    }
+        val userModelAdapter = object : ColumnAdapter<UserModel, String> {
+            override fun decode(databaseValue: String): UserModel {
+                return try {
+                    Json.decodeFromString(databaseValue)
+                } catch (e: Exception) {
+                    UserModel()
+                }
+            }
 
-    private val adapter = PlaylistDetail.Adapter(listOfStringsAdapter, listOfStringsAdapter2)
-    private val libraryAdapter = Library.Adapter(listOfStringsAdapter2, listOfStringsAdapter)
-    private val addPlaylistAdapter = AddPlaylist.Adapter(playlistAdapter)
-    internal val webservices by lazy { ApiClient() }
-    internal val localDb by lazy { LocalDb(sqlDriver, addPlaylistAdapter, libraryAdapter, adapter) }
+            override fun encode(value: UserModel): String {
+                return Json.encodeToString(value)
+            }
+        }
+
+
+        val playlistAdapter = object : ColumnAdapter<List<String>, String> {
+            override fun decode(databaseValue: String): List<String> {
+                return try {
+                    Json.decodeFromString(databaseValue)
+                } catch (e: Exception) {
+                    emptyList()
+                }
+            }
+
+            override fun encode(value: List<String>): String {
+                return Json.encodeToString(value)
+            }
+        }
+
+        val playlistDetailAdapter = PlaylistDetail.Adapter(listOfStringsAdapter, userModelAdapter)
+        val libraryAdapter = Library.Adapter(userModelAdapter, listOfStringsAdapter)
+        val addPlaylistAdapter = AddPlaylist.Adapter(playlistAdapter)
+    }
 
     private val _favoriteEvents = MutableSharedFlow<Pair<String, Boolean>>()
     val favoriteEvents = _favoriteEvents.asSharedFlow()

@@ -10,9 +10,10 @@ pluginManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            version("kotlinVersion", "2.0.10")
+            version("kotlinVersion", "2.1.10")
+            version("coroutinesVersion", "1.10.1")
 
-            version("ktorVersion", "2.0.2")
+            version("ktorVersion", "3.0.3")
             library("ktor-client-content-negotiation", "io.ktor", "ktor-client-content-negotiation").versionRef("ktorVersion")
             library("ktor-client-core", "io.ktor", "ktor-client-core").versionRef("ktorVersion")
             library("ktor-serialization-kotlinx-json", "io.ktor", "ktor-serialization-kotlinx-json").versionRef("ktorVersion")
@@ -27,8 +28,8 @@ dependencyResolutionManagement {
                 )
             )
 
-            version("composeVersion", "1.7.0")
-            version("lifecycleVersion", "2.8.0")
+            version("composeVersion", "1.7.3")
+            version("lifecycleVersion", "2.8.4")
             version("navigationVersion", "2.8.0-alpha10")
             
             // Compose
@@ -36,7 +37,7 @@ dependencyResolutionManagement {
             library("compose-ui", "androidx.compose.ui", "ui").versionRef("composeVersion")
             library("compose-ui-preview", "androidx.compose.ui", "ui-tooling-preview").versionRef("composeVersion")
             library("compose-material", "androidx.compose.material", "material").versionRef("composeVersion")
-            library("compose-material3", "androidx.compose.material3", "material3").version("1.3.0")
+            library("compose-material3", "androidx.compose.material3", "material3").version("1.3.1")
             library("compose-material-icons", "androidx.compose.material", "material-icons-extended").versionRef("composeVersion")
             library("compose-animation", "androidx.compose.animation", "animation").versionRef("composeVersion")
             bundle(
@@ -61,34 +62,39 @@ dependencyResolutionManagement {
             library("lifecycle-viewmodel-compose", "androidx.lifecycle", "lifecycle-viewmodel-compose").versionRef("lifecycleVersion")
             
             // Serialization
-            library("kotlinx-serialization-json", "org.jetbrains.kotlinx", "kotlinx-serialization-json").version("1.7.0")
+            library("kotlinx-serialization-json", "org.jetbrains.kotlinx", "kotlinx-serialization-json").version("1.8.0")
             
+            // Testing
+            library("kotlin-test", "org.jetbrains.kotlin", "kotlin-test").versionRef("kotlinVersion")
+            library("kotlinx-coroutines-test", "org.jetbrains.kotlinx", "kotlinx-coroutines-test").versionRef("coroutinesVersion")
+
             // Koin DI
-            version("koinVersion", "4.0.0")
-            version("koinComposeVersion", "4.0.0")
+            version("koinVersion", "4.0.2")
+            version("koinComposeVersion", "4.0.2")
             library("koin-core", "io.insert-koin", "koin-core").versionRef("koinVersion")
             library("koin-android", "io.insert-koin", "koin-android").versionRef("koinVersion")
             library("koin-androidx-compose", "io.insert-koin", "koin-androidx-compose").versionRef("koinVersion")
             library("koin-compose", "io.insert-koin", "koin-compose").versionRef("koinComposeVersion")
             library("koin-compose-viewmodel", "io.insert-koin", "koin-compose-viewmodel").versionRef("koinComposeVersion")
 
-            version("exoPlayerVersion", "2.19.1")
-            library("exoplayer-mediasession", "com.google.android.exoplayer", "extension-mediasession").versionRef("exoPlayerVersion")
-            library("exoplayer-core", "com.google.android.exoplayer", "exoplayer-core").versionRef("exoPlayerVersion")
-            library("exoplayer-ui", "com.google.android.exoplayer", "exoplayer-ui").versionRef("exoPlayerVersion")
+            version("media3Version", "1.5.1")
+            library("media3-exoplayer", "androidx.media3", "media3-exoplayer").versionRef("media3Version")
+            library("media3-session", "androidx.media3", "media3-session").versionRef("media3Version")
+            library("media3-ui", "androidx.media3", "media3-ui").versionRef("media3Version")
+            library("media3-common", "androidx.media3", "media3-common").versionRef("media3Version")
             bundle(
-                "exoplayer",
+                "media3",
                 listOf(
-                    "exoplayer-mediasession",
-                    "exoplayer-core",
-                    "exoplayer-ui"
+                    "media3-exoplayer",
+                    "media3-session",
+                    "media3-ui",
+                    "media3-common"
                 )
             )
 
             // Additional Android Dependencies
-            library("androidx-work-runtime", "androidx.work", "work-runtime-ktx").version("2.9.0")
-            library("accompanist-swiperefresh", "com.google.accompanist", "accompanist-swiperefresh").version("0.24.1-alpha")
-            library("snapper", "dev.chrisbanes.snapper", "snapper").version("0.2.2")
+            library("androidx-work-runtime", "androidx.work", "work-runtime-ktx").version("2.10.0")
+            library("snapper", "dev.chrisbanes.snapper", "snapper").version("0.3.0")
         }
     }
 }

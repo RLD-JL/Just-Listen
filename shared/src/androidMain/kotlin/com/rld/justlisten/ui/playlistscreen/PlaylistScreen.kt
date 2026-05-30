@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import androidx.media3.common.MediaItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.utils.Constants.list
 import com.rld.justlisten.ui.loadingscreen.LoadingScreen
@@ -17,6 +19,7 @@ import com.rld.justlisten.viewmodel.screens.playlist.PlaylistState
 import com.rld.justlisten.viewmodel.screens.playlist.TimeRange
 import com.rld.justlisten.viewmodel.screens.playlist.TracksCategory
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistScreen(
     playlistState: PlaylistState,
@@ -31,8 +34,11 @@ fun PlaylistScreen(
         LoadingScreen()
     } else {
         val scrollState = rememberScrollState(0)
-        val swipeRefreshState = rememberSwipeRefreshState(false)
-        SwipeRefresh(state = swipeRefreshState, onRefresh = refreshScreen) {
+        PullToRefreshBox(
+            isRefreshing = playlistState.isLoading,
+            onRefresh = refreshScreen,
+            modifier = Modifier.fillMaxSize()
+        ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 ScrollableContent(
                     lasItemReached = { lastIndex, playListEnum ->
