@@ -19,16 +19,13 @@ import com.rld.justlisten.viewmodel.screens.playlist.PlaylistState
 import com.rld.justlisten.viewmodel.screens.playlist.TimeRange
 import com.rld.justlisten.viewmodel.screens.playlist.TracksCategory
 
+import com.rld.justlisten.ui.actions.PlaylistScreenAction
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistScreen(
     playlistState: PlaylistState,
-    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
-    onSearchClicked: () -> Unit,
-    refreshScreen: () -> Unit,
-    onSongPressed: (String, String, String, SongIconList) -> Unit,
-    fetchPlaylist: (Int, PlayListEnum, String) -> Unit,
-    getNewTracks: (TracksCategory, TimeRange) -> Unit,
+    onAction: (PlaylistScreenAction) -> Unit
 ) {
     if (playlistState.isLoading) {
         LoadingScreen()
@@ -36,38 +33,36 @@ fun PlaylistScreen(
         val scrollState = rememberScrollState(0)
         PullToRefreshBox(
             isRefreshing = playlistState.isLoading,
-            onRefresh = refreshScreen,
+            onRefresh = { onAction(PlaylistScreenAction.RefreshScreen) },
             modifier = Modifier.fillMaxSize()
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 ScrollableContent(
                     lasItemReached = { lastIndex, playListEnum ->
                         when (playListEnum) {
-                            PlayListEnum.TOP_PLAYLIST -> fetchPlaylist(
+                            PlayListEnum.TOP_PLAYLIST -> onAction(PlaylistScreenAction.FetchMorePlaylists(
                                 lastIndex,
                                 PlayListEnum.TOP_PLAYLIST,
                                 "Rock",
-                            )
-                            PlayListEnum.REMIX -> fetchPlaylist(
+                            ))
+                            PlayListEnum.REMIX -> onAction(PlaylistScreenAction.FetchMorePlaylists(
                                 lastIndex,
                                 PlayListEnum.REMIX,
                                 list[playlistState.queryIndex],
-                            )
-                            PlayListEnum.HOT -> fetchPlaylist(
+                            ))
+                            PlayListEnum.HOT -> onAction(PlaylistScreenAction.FetchMorePlaylists(
                                 lastIndex,
                                 PlayListEnum.HOT,
                                 list[playlistState.queryIndex2],
-                            )
+                            ))
                             else -> Unit
                         }
                     },
                     scrollState = scrollState,
                     playlistState = playlistState,
-                    onPlaylistClicked = onPlaylistClicked,
-                    onSongPressed = onSongPressed,
-                    getNewTracks = getNewTracks,
+                    onAction = onAction,
                 )
-                AnimatedToolBar(onSearchClicked)
+                AnimatedToolBar { onAction(PlaylistScreenAction.SearchClicked) }
             }
         }
     }

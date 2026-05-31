@@ -4,6 +4,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import com.rld.justlisten.ui.LocalMusicPlayer
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
@@ -50,10 +51,10 @@ enum class TabsSheetState {
 @Composable
 fun PlayerBottomTabs(
     currentFraction: Float,
-    musicPlayer: MusicPlayer,
     maxHeight: Dp,
     bottomPadding: Dp
 ) {
+    val musicPlayer = LocalMusicPlayer.current
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("UP NEXT", "LYRICS", "RELATED")
     val playlist by musicPlayer.currentPlaylist.collectAsState()
@@ -153,7 +154,7 @@ fun PlayerBottomTabs(
                 Box(modifier = Modifier.weight(1f)) {
                     when (selectedTab) {
                         0 -> { // UP NEXT
-                            UpNextQueueView(playlist = playlist, musicPlayer = musicPlayer)
+                            UpNextQueueView(playlist = playlist)
                         }
                         1 -> { // LYRICS
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -175,8 +176,8 @@ fun PlayerBottomTabs(
 @Composable
 fun UpNextQueueView(
     playlist: List<MediaMetadata>,
-    musicPlayer: MusicPlayer
 ) {
+    val musicPlayer = LocalMusicPlayer.current
     val lazyListState = rememberLazyListState()
     
     LazyColumn(

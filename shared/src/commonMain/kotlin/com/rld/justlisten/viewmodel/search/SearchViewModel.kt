@@ -1,11 +1,8 @@
 package com.rld.justlisten.viewmodel.search
 
 import androidx.lifecycle.viewModelScope
-import com.rld.justlisten.datalayer.Repository
-import com.rld.justlisten.datalayer.datacalls.search.getSearchList
-import com.rld.justlisten.datalayer.datacalls.search.saveSearch
-import com.rld.justlisten.datalayer.datacalls.search.searchForPlaylist
-import com.rld.justlisten.datalayer.datacalls.search.searchForTracks
+import com.rld.justlisten.datalayer.repositories.SearchRepository
+import com.rld.justlisten.datalayer.repositories.FavoritesRepository
 import com.rld.justlisten.navigation.Route
 import com.rld.justlisten.viewmodel.BaseScreenViewModel
 import com.rld.justlisten.viewmodel.screens.search.SearchScreenState
@@ -16,7 +13,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class SearchViewModel(
-    private val repository: Repository,
+    private val searchRepository: SearchRepository,
+    private val favoritesRepository: FavoritesRepository,
 ) : BaseScreenViewModel() {
     
     private val _searchState = MutableStateFlow(SearchScreenState())
@@ -25,7 +23,7 @@ class SearchViewModel(
     init {
         loadSearchHistory()
         viewModelScope.launch {
-            repository.getFavoritePlaylistFlow().collect { favoriteList ->
+            favoritesRepository.getFavoritePlaylistFlow().collect { favoriteList ->
                 val favoriteIds = favoriteList.map { it.id }.toSet()
                 _searchState.update { state ->
                     val updatedTracks = state.searchResultTracks.map { item ->
@@ -39,7 +37,7 @@ class SearchViewModel(
 
     private fun loadSearchHistory() {
         viewModelScope.launch {
-            val history = repository.getSearchList()
+            val history = searchRepository.getSearchList()
             _searchState.update { it.copy(listOfSearches = history) }
         }
     }
@@ -53,15 +51,15 @@ class SearchViewModel(
         viewModelScope.launch {
             _searchState.update { it.copy(isLoading = true, searchFor = query) }
             try {
-                repository.saveSearch(query)
-                val tracks = repository.searchForTracks(query)
-                val playlists = repository.searchForPlaylist(query)
+                searchRepository.saveSearch(query)
+                val tracks = searchRepository.searchForTracks(query)
+                val playlists = searchRepository.searchForPlaylist(query)
                 _searchState.update {
                     it.copy(
                         isLoading = false,
                         searchResultTracks = tracks,
                         searchResultPlaylist = playlists,
-                        listOfSearches = repository.getSearchList()
+                        listOfSearches = searchRepository.getSearchList()
                     )
                 }
             } catch (e: Exception) {

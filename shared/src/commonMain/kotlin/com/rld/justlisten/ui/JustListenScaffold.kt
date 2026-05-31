@@ -33,7 +33,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.rld.justlisten.datalayer.Repository
+import org.koin.compose.viewmodel.koinViewModel
+import com.rld.justlisten.viewmodel.player.PlayerViewModel
 import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.navigation.AppNavigation
@@ -50,11 +51,12 @@ enum class PlayBarState {
 @Composable
 fun JustListenScaffold(
     navController: NavHostController,
-    musicPlayer: MusicPlayer,
     showDonationTab: Boolean,
     modifier: Modifier = Modifier,
-    repository: Repository,
 ) {
+    val viewModel: PlayerViewModel = koinViewModel()
+    val musicPlayer = LocalMusicPlayer.current
+    val addPlaylistList by viewModel.addPlaylistList.collectAsState()
     val playbackState by musicPlayer.playbackState.collectAsState()
     val shouldShowPlayBar = playbackState.status == PlaybackStatus.PLAYING ||
             playbackState.status == PlaybackStatus.PAUSED ||
@@ -68,7 +70,6 @@ fun JustListenScaffold(
     val primaryThemeColor = MaterialTheme.colorScheme.primary
 
     val coroutineScope = rememberCoroutineScope()
-    val scaffoldState = rememberJustListenScaffoldState(repository, musicPlayer, coroutineScope)
 
     var dominantColor by remember { mutableStateOf(Color.Transparent) }
 
@@ -167,26 +168,25 @@ fun JustListenScaffold(
                         currentFraction = currentFraction,
                         isExtended = anchoredDraggableState.currentValue == PlayBarState.EXPANDED,
                         onSkipNextPressed = { musicPlayer.skipToNext() },
-                        musicPlayer = musicPlayer,
                         onCollapsedClicked = {
                             coroutineScope.launch {
                                 anchoredDraggableState.animateTo(PlayBarState.COLLAPSED)
                             }
                         },
                         onFavoritePressed = { id, title, user, songIcon, isFavorite ->
-                            scaffoldState.saveSongToFavorites(
-                                id, title, user, songIcon, isFavorite
+                            viewModel.saveSongToFavorites(
+                                id, title, user, songIcon, isFavorite, musicPlayer
                             )
                         },
-                        addPlaylistList = scaffoldState.addPlaylistList,
+                        addPlaylistList = addPlaylistList,
                         onAddPlaylistClicked = { name, description ->
-                            scaffoldState.savePlaylist(name, description)
+                            viewModel.savePlaylist(name, description)
                         },
                         getLatestPlaylist = {
-                            scaffoldState.loadAddPlaylists()
+                            viewModel.loadAddPlaylists()
                         },
                         clickedToAddSongToPlaylist = { title, description, songs ->
-                            scaffoldState.updatePlaylistSongs(title, description, songs)
+                            viewModel.updatePlaylistSongs(title, description, songs)
                         },
                         newDominantColor = { colorInt ->
                             // Blend the extracted color with the theme's primary color

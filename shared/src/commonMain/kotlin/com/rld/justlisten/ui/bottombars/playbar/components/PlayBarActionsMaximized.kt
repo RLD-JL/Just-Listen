@@ -26,17 +26,18 @@ import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.media.RepeatMode
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.datalayer.models.SongIconList
+import com.rld.justlisten.ui.LocalMusicPlayer
 
 @Composable
 fun PlayBarActionsMaximized(
     bottomPadding: Dp,
     currentFraction: Float,
-    musicPlayer: MusicPlayer,
     title: String,
     onSkipNextPressed: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     onSaveClicked: () -> Unit,
 ) {
+    val musicPlayer = LocalMusicPlayer.current
     val playbackState by musicPlayer.playbackState.collectAsState()
     val artist = playbackState.currentMedia?.artist ?: ""
 

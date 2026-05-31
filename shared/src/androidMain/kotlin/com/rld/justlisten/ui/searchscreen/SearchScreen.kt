@@ -25,14 +25,14 @@ import com.rld.justlisten.ui.searchscreen.components.ShowSearchResults
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.viewmodel.screens.search.SearchScreenState
 
+import com.rld.justlisten.ui.actions.SearchScreenAction
+
 @ExperimentalComposeUiApi
 @Composable
 fun SearchScreen(
-    onBackPressed: (Boolean) -> Unit,
-    onSearchPressed: (String) -> Unit,
-    onSongPressed: (String, String, String, SongIconList) -> Unit,
-    onPlaylistPressed: (String, String, String, String, Boolean) -> Unit,
-    searchScreenState: SearchScreenState)
+    searchScreenState: SearchScreenState,
+    onAction: (SearchScreenAction) -> Unit
+)
 {
     val requester = FocusRequester()
     val focusManager = LocalFocusManager.current
@@ -51,9 +51,9 @@ fun SearchScreen(
                 .verticalScroll(scrollState)
         ) {
             AnimatedToolBar(
-               onBackPressed = onBackPressed,
+               onBackPressed = { onAction(SearchScreenAction.BackPressed(it)) },
                requester = requester,
-                onSearchPressed = onSearchPressed,
+                onSearchPressed = { onAction(SearchScreenAction.SearchPressed(it)) },
                 updateSearch = { updateSearch ->
                     searchFor = updateSearch.trimStart { it == '0' }
                 },
@@ -72,8 +72,14 @@ fun SearchScreen(
                 else -> {
                     ShowSearchResults(
                         searchScreenState.searchResultTracks,
-                        searchScreenState.searchResultPlaylist, onSongPressed = onSongPressed,
-                        onPlaylistPressed = onPlaylistPressed)
+                        searchScreenState.searchResultPlaylist,
+                        onSongPressed = { songId, title, user, songIcon ->
+                            onAction(SearchScreenAction.SongPressed(songId, title, user, songIcon))
+                        },
+                        onPlaylistPressed = { id, icon, title, createdBy, isFavorite ->
+                            onAction(SearchScreenAction.PlaylistPressed(id, icon, title, createdBy, isFavorite))
+                        }
+                    )
                 }
             }
         }

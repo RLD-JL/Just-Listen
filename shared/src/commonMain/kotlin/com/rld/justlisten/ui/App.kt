@@ -20,7 +20,6 @@ import org.koin.compose.koinInject
 fun JustListenApp(
     modifier: Modifier = Modifier,
     musicPlayer: MusicPlayer = koinInject(),
-    repository: Repository = koinInject(),
 ) {
     val navController = rememberNavController()
     val settingsState by koinInject<com.rld.justlisten.viewmodel.settings.SettingsViewModel>().settingsState.collectAsState()
@@ -38,9 +37,7 @@ fun JustListenApp(
             ) {
                 JustListenScaffold(
                     navController = navController,
-                    musicPlayer = musicPlayer,
                     showDonationTab = settingsState.hasDonationNavigationOn,
-                    repository = repository,
                     modifier = Modifier.fillMaxSize(),
                 )
             }

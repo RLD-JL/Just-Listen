@@ -1,8 +1,6 @@
 package com.rld.justlisten.viewmodel.settings
 
-import com.rld.justlisten.datalayer.Repository
-import com.rld.justlisten.datalayer.datacalls.settings.getSettingsInfo
-import com.rld.justlisten.datalayer.datacalls.settings.saveSettingsInfo
+import com.rld.justlisten.datalayer.repositories.SettingsRepository
 import com.rld.justlisten.viewmodel.BaseScreenViewModel
 import com.rld.justlisten.viewmodel.screens.settings.SettingsState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class SettingsViewModel(
-    private val repository: Repository,
+    private val settingsRepository: SettingsRepository,
 ) : BaseScreenViewModel() {
     
     private val _settingsState = MutableStateFlow(SettingsState())
@@ -22,7 +20,7 @@ class SettingsViewModel(
 
     private fun loadSettings() {
         try {
-            val saved = repository.getSettingsInfo()
+            val saved = settingsRepository.getSettingsInfo()
             _settingsState.value = SettingsState(
                 hasDonationNavigationOn = saved.hasNavigationDonationOn,
                 isDarkThemeOn = saved.isDarkThemeOn,
@@ -35,7 +33,7 @@ class SettingsViewModel(
 
     private fun persistSettings() {
         val state = _settingsState.value
-        repository.saveSettingsInfo(
+        settingsRepository.saveSettingsInfo(
             state.hasDonationNavigationOn,
             state.isDarkThemeOn,
             state.palletColor

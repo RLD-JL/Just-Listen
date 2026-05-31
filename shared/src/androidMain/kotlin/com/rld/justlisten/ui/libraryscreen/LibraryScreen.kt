@@ -23,16 +23,13 @@ import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.library.LibraryState
 import com.rld.justlisten.viewmodel.screens.search.TrackItem
 
+import com.rld.justlisten.ui.actions.LibraryScreenAction
+
 @Composable
 fun LibraryScreen(
     musicPlayer: MusicPlayer,
     libraryState: LibraryState,
-    onFavoritePlaylistPressed: (String, String, String, String) -> Unit,
-    onMostPlaylistPressed: (String, String, String, String) -> Unit,
-    onPlayListViewClicked: () -> Unit,
-    onPlaylistCreatedClicked: (String, String?, List<String>) -> Unit,
-    onDeletePlaylistClicked: (String) -> Unit,
-    lasItemReached: (Int) -> Unit,
+    onAction: (LibraryScreenAction) -> Unit
 ) {
     Box(modifier = Modifier
         .fillMaxSize()
@@ -56,11 +53,11 @@ fun LibraryScreen(
                         playMusicFromId(musicPlayer, listOf(item), id)
                     }
                 },
-                lasItemReached = lasItemReached,
+                lasItemReached = { onAction(LibraryScreenAction.LastItemReached(it)) },
                 lastIndexReached = libraryState.lastIndexReached
             )
             Divider(thickness = 1.dp)
-            PlaylistView(onPlayListViewClicked)
+            PlaylistView { onAction(LibraryScreenAction.PlayListViewClicked) }
             
             if (libraryState.playlistsCreated.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(10.dp))
@@ -69,17 +66,23 @@ fun LibraryScreen(
                     items(libraryState.playlistsCreated) { playlist ->
                          MyPlaylistRowItem(
                              playlist, 
-                             onPlaylistClicked = onPlaylistCreatedClicked,
-                             onDeleteClicked = onDeletePlaylistClicked
+                             onPlaylistClicked = { title, desc, songs ->
+                                 onAction(LibraryScreenAction.PlaylistCreatedClicked(title, desc, songs))
+                             },
+                             onDeleteClicked = { onAction(LibraryScreenAction.DeletePlaylistClicked(it)) }
                          )
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(10.dp))
-            FavoritePlaylist(libraryState, onFavoritePlaylistPressed)
+            FavoritePlaylist(libraryState, onPlaylistPressed = { id, icon, title, createdBy ->
+                onAction(LibraryScreenAction.FavoritePlaylistPressed(id, icon, title, createdBy))
+            })
             Spacer(modifier = Modifier.height(10.dp))
-            MostPlayedSongs(libraryState, onMostPlaylistPressed)
+            MostPlayedSongs(libraryState, onPlaylistPressed = { id, icon, title, createdBy ->
+                onAction(LibraryScreenAction.MostPlayedPlaylistPressed(id, icon, title, createdBy))
+            })
         }
     }
 }

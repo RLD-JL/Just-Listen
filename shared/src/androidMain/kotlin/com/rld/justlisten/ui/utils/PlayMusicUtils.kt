@@ -3,9 +3,7 @@ package com.rld.justlisten.ui.utils
 import com.rld.justlisten.ui.theme.ColorPallet
 import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.viewmodel.interfaces.Item
-import com.rld.justlisten.datalayer.Repository
-import com.rld.justlisten.datalayer.datacalls.library.saveSongToMostPlayed
-import com.rld.justlisten.datalayer.datacalls.library.saveSongToRecent
+import com.rld.justlisten.datalayer.repositories.LibraryRepository
 import com.rld.justlisten.datalayer.models.UserModel
 
 fun getColorPallet(pallet: String): ColorPallet {
@@ -24,7 +22,7 @@ fun playMusicFromId(
     musicPlayer: MusicPlayer,
     playlist: List<Item>,
     songId: String,
-    repository: Repository? = null,
+    repository: LibraryRepository? = null,
 ) {
     // Save to recent & most played tracking
     repository?.let { repo ->
@@ -53,7 +51,7 @@ fun playMusic(
     musicPlayer: MusicPlayer,
     playlist: List<Item>,
     playFromId: String = "",
-    repository: Repository? = null,
+    repository: LibraryRepository? = null,
 ) {
     if (playlist.isEmpty()) return
     musicPlayer.updatePlaylist(playlist)

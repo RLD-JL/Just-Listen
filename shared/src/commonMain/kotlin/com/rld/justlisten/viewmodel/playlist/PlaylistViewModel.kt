@@ -1,9 +1,8 @@
 package com.rld.justlisten.viewmodel.playlist
 
 import androidx.lifecycle.viewModelScope
-import com.rld.justlisten.datalayer.Repository
-import com.rld.justlisten.datalayer.datacalls.playlist.getPlaylist
-import com.rld.justlisten.datalayer.datacalls.playlist.getTracks
+import com.rld.justlisten.datalayer.repositories.PlaylistRepository
+import com.rld.justlisten.datalayer.repositories.FavoritesRepository
 import com.rld.justlisten.datalayer.utils.Constants.list
 import com.rld.justlisten.navigation.Route
 import com.rld.justlisten.viewmodel.BaseScreenViewModel
@@ -21,7 +20,8 @@ import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class PlaylistViewModel(
-    private val repository: Repository,
+    private val playlistRepository: PlaylistRepository,
+    private val favoritesRepository: FavoritesRepository,
 ) : BaseScreenViewModel() {
 
     private val _playlistState = MutableStateFlow(PlaylistState(isLoading = true))
@@ -32,7 +32,7 @@ class PlaylistViewModel(
     init {
         refreshScreen()
         viewModelScope.launch {
-            repository.getFavoritePlaylistFlow().collect { favoriteList ->
+            favoritesRepository.getFavoritePlaylistFlow().collect { favoriteList ->
                 val favoriteIds = favoriteList.map { it.id }.toSet()
                 _playlistState.update { state ->
                     val updatedTracks = state.tracksList.map { item ->
@@ -67,12 +67,12 @@ class PlaylistViewModel(
                 if (it == queryIndex) if (it > 0) it - 1 else it + 1 else it
             }
             coroutineScope {
-                val top = async { repository.getPlaylist(20, PlayListEnum.TOP_PLAYLIST) }
+                val top = async { playlistRepository.getPlaylist(20, PlayListEnum.TOP_PLAYLIST) }
                 val remix = async {
-                    repository.getPlaylist(20, PlayListEnum.REMIX, queryPlaylist = list[queryIndex])
+                    playlistRepository.getPlaylist(20, PlayListEnum.REMIX, queryPlaylist = list[queryIndex])
                 }
                 val hot = async {
-                    repository.getPlaylist(20, PlayListEnum.HOT, queryPlaylist = list[queryIndex2])
+                    playlistRepository.getPlaylist(20, PlayListEnum.HOT, queryPlaylist = list[queryIndex2])
                 }
                 _playlistState.update {
                     it.copy(
@@ -93,7 +93,7 @@ class PlaylistViewModel(
             _playlistState.update { state ->
                 when (playlistEnum) {
                     PlayListEnum.TOP_PLAYLIST -> {
-                        val items = repository.getPlaylist(index, playlistEnum)
+                        val items = playlistRepository.getPlaylist(index, playlistEnum)
                         if (items.size == state.playlistItems.size) {
                             state.copy(lastFetchPlaylist = true)
                         } else {
@@ -101,7 +101,7 @@ class PlaylistViewModel(
                         }
                     }
                     PlayListEnum.REMIX -> {
-                        val items = repository.getPlaylist(index, playlistEnum, queryPlaylist = queryPlaylist)
+                        val items = playlistRepository.getPlaylist(index, playlistEnum, queryPlaylist = queryPlaylist)
                         if (items.size == state.remixPlaylist.size) {
                             state.copy(lastFetchRemix = true)
                         } else {
@@ -109,7 +109,7 @@ class PlaylistViewModel(
                         }
                     }
                     PlayListEnum.HOT -> {
-                        val items = repository.getPlaylist(index, playlistEnum, queryPlaylist = queryPlaylist)
+                        val items = playlistRepository.getPlaylist(index, playlistEnum, queryPlaylist = queryPlaylist)
                         if (items.size == state.hotPlaylist.size) {
                             state.copy(lastFetchHot = true)
                         } else {
@@ -131,7 +131,7 @@ class PlaylistViewModel(
                 TimeRange.WEEK -> TimeRange.WEEK.value.lowercase()
             }
             val searchCategory = if (category == TracksCategory.RAP) "Hip-Hop/Rap" else category.value
-            val tracks = repository.getTracks(16, searchCategory, time)
+            val tracks = playlistRepository.getTracks(16, searchCategory, time)
             _playlistState.update { it.copy(tracksList = tracks, tracksLoading = false) }
         }
     }

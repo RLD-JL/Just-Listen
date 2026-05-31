@@ -27,13 +27,13 @@ import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailState
 
+import com.rld.justlisten.ui.actions.PlaylistDetailAction
+
 @Composable
 fun PlaylistDetailScreen(
-    playlistDetailState: PlaylistDetailState, onBackButtonPressed: (Boolean) -> Unit,
+    playlistDetailState: PlaylistDetailState,
     musicPlayer: MusicPlayer,
-    onSongPressed: (String) -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    onDeletePlaylistClicked: (String) -> Unit,
+    onAction: (PlaylistDetailAction) -> Unit
 ) {
     if (playlistDetailState.isLoading) {
         LoadingScreen()
@@ -80,11 +80,18 @@ fun PlaylistDetailScreen(
                 onShuffleClicked = {
                     playMusic(musicPlayer, playlistDetailState.songPlaylist)
                 },
-                onSongClicked = onSongPressed,
-                onFavoritePressed = onFavoritePressed,
+                onSongClicked = { onAction(PlaylistDetailAction.SongPressed(it)) },
+                onFavoritePressed = { id, title, user, icon, isFav -> 
+                    onAction(PlaylistDetailAction.FavoritePressed(id, title, user, icon, isFav)) 
+                },
                 painter = painter
             )
-            AnimatedToolBar(playlistDetailState, toolbarOffsetHeightPx, onBackButtonPressed, onDeletePlaylistClicked)
+            AnimatedToolBar(
+                playlistDetailState, 
+                toolbarOffsetHeightPx, 
+                onBackButtonPressed = { onAction(PlaylistDetailAction.BackPressed(it)) }, 
+                onDeletePlaylistClicked = { onAction(PlaylistDetailAction.DeletePlaylistClicked(it)) }
+            )
         }
     }
 }

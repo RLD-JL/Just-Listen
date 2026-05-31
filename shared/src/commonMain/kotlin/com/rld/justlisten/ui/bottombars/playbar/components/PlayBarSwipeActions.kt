@@ -34,7 +34,6 @@ fun PlayBarSwipeActions(
     currentFraction: Float,
     constraints: BoxWithConstraintsScope,
     title: String,
-    musicPlayer: MusicPlayer,
     onSkipNextPressed: () -> Unit,
     painterLoaded: (Painter) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
@@ -103,7 +102,6 @@ fun PlayBarSwipeActions(
         // they fade out as the player expands
         PlayBarActionsMinimized(
             currentFraction = currentFraction,
-            musicPlayer = musicPlayer,
             title = title,
             onSkipNextPressed = onSkipNextPressed,
             onFavoritePressed = onFavoritePressed,

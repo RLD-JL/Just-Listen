@@ -1,10 +1,7 @@
 package com.rld.justlisten.viewmodel.addplaylist
 
 import androidx.lifecycle.viewModelScope
-import com.rld.justlisten.datalayer.Repository
-import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.getAddPlaylist
-import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.savePlaylist
-import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.updatePlaylistSongs
+import com.rld.justlisten.datalayer.repositories.LibraryRepository
 import com.rld.justlisten.navigation.Route
 import com.rld.justlisten.viewmodel.BaseScreenViewModel
 import com.rld.justlisten.viewmodel.screens.addplaylist.AddPlaylistState
@@ -15,7 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class AddPlaylistViewModel(
-    private val repository: Repository,
+    private val libraryRepository: LibraryRepository,
 ) : BaseScreenViewModel() {
 
     private val _addPlaylistState = MutableStateFlow(AddPlaylistState(isLoading = true))
@@ -28,13 +25,13 @@ class AddPlaylistViewModel(
     fun refreshPlaylists() {
         viewModelScope.launch {
             _addPlaylistState.update {
-                it.copy(isLoading = false, playlistsCreated = repository.getAddPlaylist())
+                it.copy(isLoading = false, playlistsCreated = libraryRepository.getAddPlaylist())
             }
         }
     }
 
     fun onAddPlaylistClicked(name: String, description: String?) {
-        repository.savePlaylist(name, description)
+        libraryRepository.savePlaylist(name, description)
         refreshPlaylists()
     }
 
@@ -56,6 +53,6 @@ class AddPlaylistViewModel(
     }
 
     fun updatePlaylistSongs(title: String, description: String?, songs: List<String>) {
-        repository.updatePlaylistSongs(title, description, songs)
+        libraryRepository.updatePlaylistSongs(title, description, songs)
     }
 }

@@ -16,15 +16,14 @@ import com.rld.justlisten.ui.extensions.customTabIndicatorOffset
 import com.rld.justlisten.ui.searchscreen.components.SearchGridTracks
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.viewmodel.screens.playlist.*
+import com.rld.justlisten.ui.actions.PlaylistScreenAction
 
 @Composable
 fun ScrollableContent(
     lasItemReached: (Int, PlayListEnum) -> Unit,
     scrollState: ScrollState,
     playlistState: PlaylistState,
-    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
-    onSongPressed: (String, String, String, SongIconList) -> Unit,
-    getNewTracks: (TracksCategory, TimeRange) -> Unit
+    onAction: (PlaylistScreenAction) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -35,7 +34,9 @@ fun ScrollableContent(
         Spacer(modifier = Modifier.height(50.dp))
         ListOfCollections(
             playlistState = playlistState, lasItemReached = lasItemReached,
-            onPlaylistClicked = onPlaylistClicked
+            onPlaylistClicked = { id, icon, createdBy, title, _ -> 
+                onAction(PlaylistScreenAction.PlaylistClicked(id, icon, createdBy, title)) 
+            }
         )
         Spacer(modifier = Modifier.height(25.dp))
 
@@ -84,7 +85,7 @@ fun ScrollableContent(
                     selected = index == selectedTab,
                     onClick = {
                         selectedTab = index
-                        getNewTracks(item, timeRangeList[selectedTabTimeRange])
+                        onAction(PlaylistScreenAction.ChangeTracksCategory(item, timeRangeList[selectedTabTimeRange]))
                     }
                 )
                 {
@@ -118,7 +119,7 @@ fun ScrollableContent(
                         selected = index == selectedTabTimeRange,
                         onClick = {
                             selectedTabTimeRange = index
-                            getNewTracks(list[selectedTab], item)
+                            onAction(PlaylistScreenAction.ChangeTracksCategory(list[selectedTab], item))
                         }
                     )
                     {
@@ -144,7 +145,9 @@ fun ScrollableContent(
             if (playlistState.tracksLoading) {
                 CircularProgressIndicator()
             } else {
-                SearchGridTracks(list = playlistState.tracksList, onSongPressed = onSongPressed)
+                SearchGridTracks(list = playlistState.tracksList, onSongPressed = { id, title, user, icon ->
+                    onAction(PlaylistScreenAction.SongPressed(id, title, user, icon))
+                })
             }
         }
     }

@@ -8,7 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
-import com.rld.justlisten.datalayer.Repository
+import com.rld.justlisten.datalayer.repositories.LibraryRepository
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.ui.addplaylistscreen.AddPlaylistScreen
 import com.rld.justlisten.ui.donationscreen.DonationScreen
@@ -27,6 +27,11 @@ import com.rld.justlisten.viewmodel.settings.SettingsViewModel
 import com.rld.justlisten.viewmodel.screens.settings.SettingsState
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import com.rld.justlisten.ui.actions.LibraryScreenAction
+import com.rld.justlisten.ui.actions.PlaylistScreenAction
+import com.rld.justlisten.ui.actions.PlaylistDetailAction
+import com.rld.justlisten.ui.actions.SearchScreenAction
+import com.rld.justlisten.ui.actions.AddPlaylistAction
 
 @Composable
 actual fun LibraryScreenHost(navController: NavHostController) {
@@ -39,38 +44,74 @@ actual fun LibraryScreenHost(navController: NavHostController) {
     LibraryScreen(
         musicPlayer = musicPlayer,
         libraryState = state,
-        onFavoritePlaylistPressed = viewModel::onFavoritePlaylistClicked,
-        onMostPlaylistPressed = viewModel::onMostPlayedPlaylistClicked,
-        onPlayListViewClicked = viewModel::onAddPlaylistClicked,
-        onPlaylistCreatedClicked = viewModel::onPlaylistCreatedClicked,
-        onDeletePlaylistClicked = viewModel::deletePlaylist,
-        lasItemReached = viewModel::loadMoreRecentSongs,
+        onAction = { action ->
+            when (action) {
+                is LibraryScreenAction.FavoritePlaylistPressed -> viewModel.onFavoritePlaylistClicked(
+                    action.playlistId,
+                    action.playlistIcon,
+                    action.playlistTitle,
+                    action.playlistCreatedBy
+                )
+                is LibraryScreenAction.MostPlayedPlaylistPressed -> viewModel.onMostPlayedPlaylistClicked(
+                    action.playlistId,
+                    action.playlistIcon,
+                    action.playlistTitle,
+                    action.playlistCreatedBy
+                )
+                LibraryScreenAction.PlayListViewClicked -> viewModel.onAddPlaylistClicked()
+                is LibraryScreenAction.PlaylistCreatedClicked -> viewModel.onPlaylistCreatedClicked(
+                    action.title,
+                    action.description,
+                    action.songs
+                )
+                is LibraryScreenAction.DeletePlaylistClicked -> viewModel.deletePlaylist(action.playlistName)
+                is LibraryScreenAction.LastItemReached -> viewModel.loadMoreRecentSongs(action.index)
+            }
+        }
     )
 }
+
 
 @Composable
 actual fun PlaylistScreenHost(navController: NavHostController) {
     val viewModel: PlaylistViewModel = koinViewModel()
     val musicPlayer = LocalMusicPlayer.current
-    val repository: Repository = koinInject()
+    val repository: LibraryRepository = koinInject()
     val state by viewModel.playlistState.collectAsState()
 
     CollectNavigationEvents(viewModel, navController)
 
     PlaylistScreen(
         playlistState = state,
-        onPlaylistClicked = { id, icon, createdBy, title, _ ->
-            viewModel.onPlaylistClicked(id, icon, createdBy, title)
-        },
-        onSearchClicked = viewModel::onSearchClicked,
-        refreshScreen = viewModel::refreshScreen,
-        onSongPressed = { songId, _, _, _ ->
-            playMusicFromId(musicPlayer, state.tracksList, songId, repository)
-        },
-        fetchPlaylist = viewModel::fetchPlaylist,
-        getNewTracks = viewModel::getNewTracks,
+        onAction = { action ->
+            when (action) {
+                is PlaylistScreenAction.PlaylistClicked -> {
+                    viewModel.onPlaylistClicked(
+                        action.playlistId, 
+                        action.playlistIcon, 
+                        action.createdBy, 
+                        action.title
+                    )
+                }
+                is PlaylistScreenAction.SongPressed -> {
+                    playMusicFromId(musicPlayer, state.tracksList, action.songId, repository)
+                }
+                PlaylistScreenAction.SearchClicked -> viewModel.onSearchClicked()
+                PlaylistScreenAction.RefreshScreen -> viewModel.refreshScreen()
+                is PlaylistScreenAction.FetchMorePlaylists -> viewModel.fetchPlaylist(
+                    action.index,
+                    action.category,
+                    action.query
+                )
+                is PlaylistScreenAction.ChangeTracksCategory -> viewModel.getNewTracks(
+                    action.category,
+                    action.timeRange
+                )
+            }
+        }
     )
 }
+
 
 @Composable
 actual fun PlaylistDetailScreenHost(
@@ -79,7 +120,7 @@ actual fun PlaylistDetailScreenHost(
 ) {
     val viewModel: PlaylistDetailViewModel = koinViewModel()
     val musicPlayer = LocalMusicPlayer.current
-    val repository: Repository = koinInject()
+    val repository: LibraryRepository = koinInject()
     val state by viewModel.playlistDetailState.collectAsState()
 
     LaunchedEffect(args) { viewModel.load(args) }
@@ -87,41 +128,66 @@ actual fun PlaylistDetailScreenHost(
 
     PlaylistDetailScreen(
         playlistDetailState = state,
-        onBackButtonPressed = { if (it) viewModel.popBack() },
         musicPlayer = musicPlayer,
-        onSongPressed = { songId ->
-            playMusicFromId(musicPlayer, state.songPlaylist, songId, repository)
-        },
-        onFavoritePressed = { id, title, user, songIcon, isFavorite ->
-            viewModel.onFavoritePressed(id, title, user, songIcon, isFavorite)
-            musicPlayer.refreshMetadata()
-        },
-        onDeletePlaylistClicked = viewModel::deletePlaylist,
+        onAction = { action ->
+            when (action) {
+                is PlaylistDetailAction.BackPressed -> if (action.isFromBottomSheet) viewModel.popBack()
+                is PlaylistDetailAction.SongPressed -> playMusicFromId(
+                    musicPlayer, 
+                    state.songPlaylist, 
+                    action.songId, 
+                    repository
+                )
+                is PlaylistDetailAction.FavoritePressed -> {
+                    viewModel.onFavoritePressed(
+                        action.songId, 
+                        action.title, 
+                        action.user, 
+                        action.songIcon, 
+                        action.isFavorite
+                    )
+                    musicPlayer.refreshMetadata()
+                }
+                is PlaylistDetailAction.DeletePlaylistClicked -> viewModel.deletePlaylist(action.playlistName)
+            }
+        }
     )
 }
+
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 actual fun SearchScreenHost(navController: NavHostController) {
     val viewModel: SearchViewModel = koinViewModel()
     val musicPlayer = LocalMusicPlayer.current
-    val repository: Repository = koinInject()
+    val repository: LibraryRepository = koinInject()
     val state by viewModel.searchState.collectAsState()
 
     CollectNavigationEvents(viewModel, navController)
 
     SearchScreen(
-        onBackPressed = { viewModel.popBack() },
-        onSearchPressed = viewModel::onSearchSubmitted,
-        onSongPressed = { songId, _, _, _ ->
-            playMusicFromId(musicPlayer, state.searchResultTracks, songId, repository)
-        },
-        onPlaylistPressed = { id, icon, title, createdBy, _ ->
-            viewModel.onPlaylistPressed(id, icon, title, createdBy)
-        },
         searchScreenState = state,
+        onAction = { action ->
+            when (action) {
+                is SearchScreenAction.BackPressed -> viewModel.popBack()
+                is SearchScreenAction.SearchPressed -> viewModel.onSearchSubmitted(action.query)
+                is SearchScreenAction.SongPressed -> playMusicFromId(
+                    musicPlayer, 
+                    state.searchResultTracks, 
+                    action.songId, 
+                    repository
+                )
+                is SearchScreenAction.PlaylistPressed -> viewModel.onPlaylistPressed(
+                    action.playlistId,
+                    action.playlistIcon,
+                    action.playlistTitle,
+                    action.playlistCreatedBy
+                )
+            }
+        }
     )
 }
+
 
 @Composable
 actual fun AddPlaylistScreenHost(
@@ -135,11 +201,20 @@ actual fun AddPlaylistScreenHost(
 
     AddPlaylistScreen(
         addPlaylistState = state,
-        onAddPlaylistClicked = viewModel::onAddPlaylistClicked,
-        clickedToAddSongToPlaylist = { title, description, songs ->
-            viewModel.onPlaylistItemClicked(title, description, songs)
-        },
-        onBackButtonPressed = { if (it) viewModel.popBack() },
+        onAction = { action ->
+            when (action) {
+                is AddPlaylistAction.BackPressed -> if (action.isFromBottomSheet) viewModel.popBack()
+                is AddPlaylistAction.AddPlaylistClicked -> viewModel.onAddPlaylistClicked(
+                    action.playlistName, 
+                    action.playlistDescription
+                )
+                is AddPlaylistAction.AddSongToPlaylist -> viewModel.onPlaylistItemClicked(
+                    action.playlistTitle, 
+                    action.playlistDescription, 
+                    action.songs
+                )
+            }
+        }
     )
 }
 

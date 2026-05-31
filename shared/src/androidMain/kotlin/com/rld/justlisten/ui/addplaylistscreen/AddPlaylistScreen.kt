@@ -20,16 +20,16 @@ import com.rld.justlisten.ui.addplaylistscreen.components.AddPlaylistRow
 import com.rld.justlisten.ui.addplaylistscreen.components.PlaylistViewItem
 import com.rld.justlisten.viewmodel.screens.addplaylist.AddPlaylistState
 
+import com.rld.justlisten.ui.actions.AddPlaylistAction
+
 @Composable
 fun AddPlaylistScreen(
     addPlaylistState: AddPlaylistState,
-    onAddPlaylistClicked: (String, String?) -> Unit,
-    clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit,
-    onBackButtonPressed: (Boolean) -> Unit,
+    onAction: (AddPlaylistAction) -> Unit
 ) {
     val openDialog = remember { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth()) {
-        IconButton(modifier = Modifier.size(48.dp), onClick = { onBackButtonPressed(true) }) {
+        IconButton(modifier = Modifier.size(48.dp), onClick = { onAction(AddPlaylistAction.BackPressed(true)) }) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = null,
@@ -38,9 +38,15 @@ fun AddPlaylistScreen(
         LazyColumn(Modifier.fillMaxWidth()) {
             item { AddPlaylistRow(openDialog) }
             item { Divider(thickness = 2.dp) }
-            item { AddPlaylistDialog(openDialog, onAddPlaylistClicked) }
+            item { 
+                AddPlaylistDialog(openDialog) { title, desc -> 
+                    onAction(AddPlaylistAction.AddPlaylistClicked(title, desc)) 
+                } 
+            }
             itemsIndexed(addPlaylistState.playlistsCreated) { _, playlist ->
-                PlaylistViewItem(playlist, clickedToAddSongToPlaylist)
+                PlaylistViewItem(playlist) { title, desc, songs ->
+                    onAction(AddPlaylistAction.AddSongToPlaylist(title, desc, songs))
+                }
             }
         }
     }

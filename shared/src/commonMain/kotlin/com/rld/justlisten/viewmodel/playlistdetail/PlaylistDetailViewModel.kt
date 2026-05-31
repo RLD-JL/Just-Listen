@@ -1,15 +1,14 @@
 package com.rld.justlisten.viewmodel.playlistdetail
 
 import androidx.lifecycle.viewModelScope
-import com.rld.justlisten.datalayer.Repository
-import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.deletePlaylist
-import com.rld.justlisten.datalayer.datacalls.playlist.getPlaylist
+import com.rld.justlisten.datalayer.repositories.FavoritesRepository
+import com.rld.justlisten.datalayer.repositories.LibraryRepository
+import com.rld.justlisten.datalayer.repositories.PlaylistRepository
 import com.rld.justlisten.navigation.Route
 import com.rld.justlisten.viewmodel.BaseScreenViewModel
 import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum
 import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailState
 import kotlinx.coroutines.flow.update
-import com.rld.justlisten.datalayer.datacalls.library.saveSongToFavorites
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +17,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class PlaylistDetailViewModel(
-    private val repository: Repository,
+    private val playlistRepository: PlaylistRepository,
+    private val favoritesRepository: FavoritesRepository,
+    private val libraryRepository: LibraryRepository,
 ) : BaseScreenViewModel() {
 
     private val _playlistDetailState = MutableStateFlow(PlaylistDetailState(isLoading = true))
@@ -26,7 +27,7 @@ class PlaylistDetailViewModel(
 
     init {
         viewModelScope.launch {
-            repository.getFavoritePlaylistFlow().collect { favoriteList ->
+            favoritesRepository.getFavoritePlaylistFlow().collect { favoriteList ->
                 val favoriteIds = favoriteList.map { it.id }.toSet()
                 _playlistDetailState.update { state ->
                     val updated = state.songPlaylist.map { item ->
@@ -43,7 +44,7 @@ class PlaylistDetailViewModel(
         isFavorite: Boolean
     ) {
         viewModelScope.launch {
-            repository.saveSongToFavorites(id, title, user, songIconList, "Favorite", isFavorite)
+            favoritesRepository.saveSongToFavorites(id, title, user, songIconList, "Favorite", isFavorite)
             // Update in-memory state so UI reflects the change immediately
             _playlistDetailState.update { state ->
                 state.copy(
@@ -75,7 +76,7 @@ class PlaylistDetailViewModel(
                 ) 
             }
             val playlistEnum = PlayListEnum.valueOf(args.playlistEnum)
-            val songs = repository.getPlaylist(
+            val songs = playlistRepository.getPlaylist(
                 index = 0, 
                 playListEnum = playlistEnum, 
                 playlistId = args.playlistId,
@@ -92,7 +93,7 @@ class PlaylistDetailViewModel(
 
     fun deletePlaylist(playlistName: String) {
         viewModelScope.launch {
-            repository.deletePlaylist(playlistName)
+            libraryRepository.deletePlaylist(playlistName)
             popBackStack()
         }
     }

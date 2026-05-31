@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.rld.justlisten.media.MusicPlayer
+import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.ui.extensions.noRippleClickable
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
@@ -36,7 +37,6 @@ fun PlayerBottomBar(
     songIcon: String,
     artworkUrl: String,
     title: String,
-    musicPlayer: MusicPlayer,
     onSkipNextPressed: () -> Unit,
     onCollapsedClicked: () -> Unit,
     onMoreClicked: () -> Unit,
@@ -47,6 +47,7 @@ fun PlayerBottomBar(
     newDominantColor: (Int) -> Unit,
     playBarMinimizedClicked: () -> Unit
 ) {
+    val musicPlayer = LocalMusicPlayer.current
     val playbackState by musicPlayer.playbackState.collectAsState()
 
     val minibarBackground = androidx.compose.material3.MaterialTheme.colorScheme.background
@@ -106,7 +107,6 @@ fun PlayerBottomBar(
             currentFraction = currentFraction,
             constraints = constraints,
             title = title,
-            musicPlayer = musicPlayer,
             onSkipNextPressed = onSkipNextPressed,
             painterLoaded = painterLoaded,
             onFavoritePressed = onFavoritePressed,
@@ -144,7 +144,6 @@ fun PlayerBottomBar(
             PlayBarActionsMaximized(
                 bottomPadding = bottomPadding,
                 currentFraction = currentFraction,
-                musicPlayer = musicPlayer,
                 title = title,
                 onSkipNextPressed = onSkipNextPressed,
                 onFavoritePressed = onFavoritePressed,
@@ -164,7 +163,6 @@ fun PlayerBottomBar(
         ) {
             PlayerBottomTabs(
                 currentFraction = currentFraction,
-                musicPlayer = musicPlayer,
                 maxHeight = constraints.maxHeight,
                 bottomPadding = bottomPadding
             )

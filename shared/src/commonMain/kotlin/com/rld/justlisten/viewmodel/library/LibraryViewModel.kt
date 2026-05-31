@@ -1,12 +1,8 @@
 package com.rld.justlisten.viewmodel.library
 
 import androidx.lifecycle.viewModelScope
-import com.rld.justlisten.datalayer.Repository
-import com.rld.justlisten.datalayer.datacalls.library.getFavoritePlaylist
-import com.rld.justlisten.datalayer.datacalls.library.getMostPlayedSongs
-import com.rld.justlisten.datalayer.datacalls.library.getRecentSongs
-import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.getAddPlaylist
-import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.deletePlaylist
+import com.rld.justlisten.datalayer.repositories.LibraryRepository
+import com.rld.justlisten.datalayer.repositories.FavoritesRepository
 import com.rld.justlisten.navigation.Route
 import com.rld.justlisten.viewmodel.BaseScreenViewModel
 import com.rld.justlisten.viewmodel.screens.library.LibraryState
@@ -18,7 +14,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class LibraryViewModel(
-    private val repository: Repository,
+    private val libraryRepository: LibraryRepository,
+    private val favoritesRepository: FavoritesRepository,
 ) : BaseScreenViewModel() {
 
     private val _libraryState = MutableStateFlow(LibraryState(isLoading = true))
@@ -27,7 +24,7 @@ class LibraryViewModel(
     init {
         loadLibraryData()
         viewModelScope.launch {
-            repository.getFavoritePlaylistFlow().collect {
+            favoritesRepository.getFavoritePlaylistFlow().collect {
                 loadLibraryData()
             }
         }
@@ -36,10 +33,10 @@ class LibraryViewModel(
     private fun loadLibraryData() {
         viewModelScope.launch {
             try {
-                val recent = repository.getRecentSongs(20).map { PlaylistItem(it, it.isFavorite) }
-                val favorites = repository.getFavoritePlaylist().map { PlaylistItem(it, it.isFavorite) }
-                val mostPlayed = repository.getMostPlayedSongs(20).map { PlaylistItem(it, it.isFavorite) }
-                val playlistsCreated = repository.getAddPlaylist()
+                val recent = libraryRepository.getRecentSongs(20).map { PlaylistItem(it, it.isFavorite) }
+                val favorites = favoritesRepository.getFavoritePlaylist().map { PlaylistItem(it, it.isFavorite) }
+                val mostPlayed = libraryRepository.getMostPlayedSongs(20).map { PlaylistItem(it, it.isFavorite) }
+                val playlistsCreated = libraryRepository.getAddPlaylist()
                 _libraryState.update {
                     it.copy(
                         isLoading = false,
@@ -108,14 +105,14 @@ class LibraryViewModel(
 
     fun deletePlaylist(playlistName: String) {
         viewModelScope.launch {
-            repository.deletePlaylist(playlistName)
+            libraryRepository.deletePlaylist(playlistName)
             loadLibraryData()
         }
     }
 
     fun loadMoreRecentSongs(currentCount: Int) {
         viewModelScope.launch {
-            val recent = repository.getRecentSongs((currentCount + 20).toLong())
+            val recent = libraryRepository.getRecentSongs((currentCount + 20).toLong())
                 .map { PlaylistItem(it, it.isFavorite) }
             if (recent.size == _libraryState.value.recentSongsItems.size) {
                 _libraryState.update { it.copy(lastIndexReached = true) }

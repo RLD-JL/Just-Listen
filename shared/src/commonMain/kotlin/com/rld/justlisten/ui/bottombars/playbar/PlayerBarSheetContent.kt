@@ -20,6 +20,7 @@ import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.media.MusicPlayer
+import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.ui.bottombars.playbar.components.PlayerBottomBar
 import com.rld.justlisten.ui.bottombars.sheets.BottomSheetScreen
 import com.rld.justlisten.ui.bottombars.sheets.SheetLayout
@@ -32,7 +33,6 @@ fun PlayerBarSheetContent(
     currentFraction: Float,
     isExtended: Boolean,
     onSkipNextPressed: () -> Unit,
-    musicPlayer: MusicPlayer,
     onCollapsedClicked: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     addPlaylistList: List<AddPlaylist>,
@@ -42,6 +42,7 @@ fun PlayerBarSheetContent(
     newDominantColor: (Int) -> Unit,
     playBarMinimizedClicked: () -> Unit,
 ) {
+    val musicPlayer = LocalMusicPlayer.current
     val playbackState by musicPlayer.playbackState.collectAsState()
 
     // 1. Create mutable states instead of derived states
@@ -84,7 +85,6 @@ fun PlayerBarSheetContent(
             songIcon = songIcon,
             artworkUrl = artworkUrl,
             title = title,
-            musicPlayer = musicPlayer,
             onSkipNextPressed = onSkipNextPressed,
             onMoreClicked = { openSheet(BottomSheetScreen.More) },
             onBackgroundClicked = { closeSheet() },
