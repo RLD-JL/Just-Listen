@@ -26,7 +26,7 @@ kotlin {
         if (System.getenv("SDK_NAME")?.startsWith("iphoneos") == true)
             ::iosArm64
         else
-            ::iosX64
+            ::iosSimulatorArm64
 
     iosTarget("ios") {
         binaries {

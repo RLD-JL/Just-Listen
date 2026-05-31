@@ -71,6 +71,10 @@ class IOSMusicPlayer : MusicPlayer {
         // TODO: Implement iOS update playlist
     }
 
+    override fun refreshMetadata() {
+        // TODO: Implement iOS refresh metadata
+    }
+
     override fun removeTrack(index: Int) {
         // TODO: Implement iOS remove track
     }
