@@ -50,6 +50,8 @@ fun PlayerBottomBar(
 ) {
     val playbackState by musicPlayer.playbackState.collectAsState()
 
+    val primaryThemeColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
+
     // Dominant color extracted from artwork
     var targetColor by remember { mutableStateOf(MinibarBackground) }
     val animatedColor by animateColorAsState(
@@ -110,7 +112,8 @@ fun PlayerBottomBar(
             painterLoaded = painterLoaded,
             onFavoritePressed = onFavoritePressed,
             newDominantColor = { color ->
-                targetColor = Color(color)
+                val extracted = Color(color)
+                targetColor = androidx.compose.ui.graphics.lerp(extracted, primaryThemeColor, 0.6f)
                 newDominantColor(color)
             },
             playBarMinimizedClicked = playBarMinimizedClicked

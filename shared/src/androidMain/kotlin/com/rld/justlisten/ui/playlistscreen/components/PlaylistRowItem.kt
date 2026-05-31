@@ -61,7 +61,7 @@ fun PlaylistRowItem(
 
         Text(
             text = "${playlistItem.playlistTitle}: by ${playlistItem.user}",
-            style = typography.subtitle2,
+            style = typography.titleSmall,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(vertical = 8.dp)

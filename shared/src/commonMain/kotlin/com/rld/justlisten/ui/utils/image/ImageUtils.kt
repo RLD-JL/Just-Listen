@@ -1,5 +1,5 @@
 package com.rld.justlisten.ui.utils.image
 
-import androidx.compose.ui.graphics.painter.Painter
+import coil3.Image
 
-expect suspend fun getImageDominantColor(painter: Painter): Int?
+expect suspend fun getImageDominantColor(image: Image): Int?

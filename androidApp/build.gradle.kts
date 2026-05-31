@@ -20,7 +20,7 @@ dependencies {
 
     implementation(libs.bundles.media3)
 
-    implementation(libs.snapper)
+
     implementation(libs.androidx.work.runtime)
 
     implementation(libs.lifecycle.process)
@@ -82,9 +82,7 @@ android {
         compose = true
         buildConfig = true  // required for BuildConfig fields in AGP 8+
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.2.0"
-    }
+
 
     packaging {
         resources {

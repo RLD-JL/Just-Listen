@@ -23,6 +23,7 @@ import com.rld.justlisten.ui.utils.lerp
 import com.rld.justlisten.ui.utils.offsetX
 import com.rld.justlisten.ui.utils.offsetY
 import com.rld.justlisten.ui.utils.widthSize
+import com.rld.justlisten.ui.utils.image.getImageDominantColor
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 
@@ -63,6 +64,15 @@ fun PlayBarSwipeActions(
         val state by painter.state.collectAsState()
         if (state is coil3.compose.AsyncImagePainter.State.Success) {
             painterLoaded((state as coil3.compose.AsyncImagePainter.State.Success).painter)
+        }
+        
+        LaunchedEffect(state) {
+            if (state is coil3.compose.AsyncImagePainter.State.Success) {
+                val image = (state as coil3.compose.AsyncImagePainter.State.Success).result.image
+                getImageDominantColor(image)?.let { colorInt ->
+                    newDominantColor(colorInt)
+                }
+            }
         }
 
         Box(

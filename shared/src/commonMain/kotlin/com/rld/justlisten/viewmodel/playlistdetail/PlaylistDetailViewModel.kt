@@ -8,7 +8,7 @@ import com.rld.justlisten.navigation.Route
 import com.rld.justlisten.viewmodel.BaseScreenViewModel
 import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum
 import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailState
-import com.rld.justlisten.viewmodel.update
+import kotlinx.coroutines.flow.update
 import com.rld.justlisten.datalayer.datacalls.library.saveSongToFavorites
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel

@@ -12,10 +12,8 @@ sqldelightVersion = "2.0.2"
 composeMultiplatformVersion = "1.7.3"
 serializationVersion = "1.8.0"
 datetimeVersion = "0.6.1"
-coilVersion = "2.7.0"
 coil3Version = "3.0.4"
 workVersion = "2.10.0"
-snapperVersion = "0.3.0"
 agpVersion = "9.2.1"
 materialVersion = "1.12.0"
 appcompatVersion = "1.7.0"
@@ -28,7 +26,7 @@ leakcanaryVersion = "2.14"
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinVersion" }
 android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agpVersion" }
-hilt-android-gradle-plugin = { module = "com.google.dagger:hilt-android-gradle-plugin", version = "2.52" }
+
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutinesVersion" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesVersion" }
@@ -74,8 +72,6 @@ media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Version
 media3-common = { module = "androidx.media3:media3-common", version.ref = "media3Version" }
 
 androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "workVersion" }
-snapper = { module = "dev.chrisbanes.snapper:snapper", version.ref = "snapperVersion" }
-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilVersion" }
 coil3-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3Version" }
 coil3-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil3Version" }
 androidx-palette = { module = "androidx.palette:palette-ktx", version.ref = "paletteVersion" }
@@ -86,6 +82,7 @@ androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "a
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayoutVersion" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityVersion" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryVersion" }
+androidx-media = { module = "androidx.media:media", version = "1.7.0" }
 
 [bundles]
 ktor = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-serialization-kotlinx-json", "ktor-client-logging"]

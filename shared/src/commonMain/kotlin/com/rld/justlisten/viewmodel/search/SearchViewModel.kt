@@ -9,7 +9,7 @@ import com.rld.justlisten.datalayer.datacalls.search.searchForTracks
 import com.rld.justlisten.navigation.Route
 import com.rld.justlisten.viewmodel.BaseScreenViewModel
 import com.rld.justlisten.viewmodel.screens.search.SearchScreenState
-import com.rld.justlisten.viewmodel.update
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

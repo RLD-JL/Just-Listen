@@ -13,15 +13,20 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Scaffold
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -42,7 +47,7 @@ enum class PlayBarState {
     EXPANDED
 }
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, androidx.compose.material.ExperimentalMaterialApi::class)
 @Composable
 fun JustListenScaffold(
     navController: NavHostController,
@@ -61,13 +66,17 @@ fun JustListenScaffold(
     val routeLabel = navBackStackEntry?.destination?.route.orEmpty()
     val showBottomBar = !routeLabel.contains("AddPlaylist")
 
+    val primaryThemeColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
+
     val coroutineScope = rememberCoroutineScope()
     val scaffoldState = rememberJustListenScaffoldState(repository, musicPlayer, coroutineScope)
+
+    var dominantColor by remember { mutableStateOf(Color.Transparent) }
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val maxHeight = this.maxHeight
         val minibarHeight = 65.dp
-        val bottomNavHeight = 56.dp
+        val bottomNavHeight = 80.dp
         val density = LocalDensity.current
 
         // Calculate endAnchor based on whether the nav bar is showing
@@ -116,6 +125,7 @@ fun JustListenScaffold(
             // 1. ── Main scaffold (Without bottomBar passed into it) ──────────
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
+                containerColor = Color.Transparent, // Let the Box's background show through
             ) { innerPadding ->
 
                 // Calculate padding manually to account for dynamically showing/hiding items
@@ -179,7 +189,12 @@ fun JustListenScaffold(
                         clickedToAddSongToPlaylist = { title, description, songs ->
                             scaffoldState.updatePlaylistSongs(title, description, songs)
                         },
-                        newDominantColor = {},
+                        newDominantColor = { colorInt ->
+                            // Blend the extracted color with the theme's primary color
+                            val extracted = Color(colorInt)
+                            val blended = androidx.compose.ui.graphics.lerp(extracted, primaryThemeColor, 0.6f)
+                            dominantColor = blended.copy(alpha = 0.3f)
+                        },
                         playBarMinimizedClicked = {
                             coroutineScope.launch {
                                 anchoredDraggableState.animateTo(PlayBarState.EXPANDED)

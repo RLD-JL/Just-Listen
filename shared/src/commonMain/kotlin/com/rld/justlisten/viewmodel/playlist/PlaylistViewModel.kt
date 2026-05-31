@@ -11,7 +11,7 @@ import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistState
 import com.rld.justlisten.viewmodel.screens.playlist.TimeRange
 import com.rld.justlisten.viewmodel.screens.playlist.TracksCategory
-import com.rld.justlisten.viewmodel.update
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow

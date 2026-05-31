@@ -145,18 +145,13 @@ actual fun AddPlaylistScreenHost(
 
 @Composable
 actual fun SettingsScreenHost(navController: NavHostController) {
-    val viewModel: SettingsViewModel = koinViewModel()
+    val viewModel: SettingsViewModel = koinInject()
     val state by viewModel.settingsState.collectAsState()
 
     CollectNavigationEvents(viewModel, navController)
 
     SettingsScreen(
-        settings = SettingsState(
-            isLoading = state.isLoading,
-            hasDonationNavigationOn = state.hasDonationNavigationOn,
-            isDarkThemeOn = state.isDarkThemeOn,
-            palletColor = state.palletColor,
-        ),
+        settings = state,
         updateSettings = { updated ->
             if (updated.isDarkThemeOn != state.isDarkThemeOn) {
                 viewModel.onDarkModeToggled(updated.isDarkThemeOn)

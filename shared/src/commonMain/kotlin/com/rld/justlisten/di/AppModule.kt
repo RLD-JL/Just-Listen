@@ -9,17 +9,18 @@ import com.rld.justlisten.viewmodel.playlistdetail.PlaylistDetailViewModel
 import com.rld.justlisten.viewmodel.search.SearchViewModel
 import com.rld.justlisten.viewmodel.settings.SettingsViewModel
 import org.koin.dsl.module
+import org.koin.core.module.dsl.viewModel
 
 fun appModule() = module {
     // Single instances
     single { Repository(get(), get()) }
     
     // ViewModels
-    factory { LibraryViewModel(get()) }
-    factory { PlaylistViewModel(get()) }
-    factory { SearchViewModel(get()) }
-    factory { PlaylistDetailViewModel(get()) }
-    factory { AddPlaylistViewModel(get()) }
+    viewModel { LibraryViewModel(get()) }
+    viewModel { PlaylistViewModel(get()) }
+    viewModel { SearchViewModel(get()) }
+    viewModel { PlaylistDetailViewModel(get()) }
+    viewModel { AddPlaylistViewModel(get()) }
     single { SettingsViewModel(get()) }
-    factory { DonationViewModel() }
+    viewModel { DonationViewModel() }
 }

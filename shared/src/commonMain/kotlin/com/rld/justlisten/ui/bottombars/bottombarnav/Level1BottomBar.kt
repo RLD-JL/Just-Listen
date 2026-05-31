@@ -1,10 +1,12 @@
 package com.rld.justlisten.ui.bottombars.bottombarnav
 
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryMusic
@@ -48,11 +50,11 @@ fun Level1BottomBar(
         }
     }
 
-    BottomNavigation(
-        backgroundColor = MaterialTheme.colors.background,
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.background,
         modifier = modifier,
     ) {
-        BottomNavigationItem(
+        NavigationBarItem(
             icon = {
                 Icon(
                     if (isSelected(Route.Playlist)) Icons.Filled.Home else Icons.Outlined.Home,
@@ -62,10 +64,15 @@ fun Level1BottomBar(
             label = { Text("Playlist", fontSize = 10.sp) },
             selected = isSelected(Route.Playlist),
             onClick = { navigateTo(Route.Playlist) },
-            selectedContentColor = MaterialTheme.colors.primaryVariant,
-            unselectedContentColor = MaterialTheme.colors.onBackground,
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.primaryContainer,
+                selectedTextColor = MaterialTheme.colorScheme.primaryContainer,
+                unselectedIconColor = MaterialTheme.colorScheme.onBackground,
+                unselectedTextColor = MaterialTheme.colorScheme.onBackground,
+                indicatorColor = Color.Transparent
+            )
         )
-        BottomNavigationItem(
+        NavigationBarItem(
             icon = {
                 Icon(
                     if (isSelected(Route.Library)) Icons.Filled.LibraryMusic else Icons.Outlined.LibraryMusic,
@@ -75,10 +82,15 @@ fun Level1BottomBar(
             label = { Text("Library", fontSize = 10.sp) },
             selected = isSelected(Route.Library),
             onClick = { navigateTo(Route.Library) },
-            selectedContentColor = MaterialTheme.colors.primaryVariant,
-            unselectedContentColor = MaterialTheme.colors.onBackground,
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.primaryContainer,
+                selectedTextColor = MaterialTheme.colorScheme.primaryContainer,
+                unselectedIconColor = MaterialTheme.colorScheme.onBackground,
+                unselectedTextColor = MaterialTheme.colorScheme.onBackground,
+                indicatorColor = Color.Transparent
+            )
         )
-        BottomNavigationItem(
+        NavigationBarItem(
             icon = {
                 Icon(
                     if (isSelected(Route.Search)) Icons.Filled.Search else Icons.Outlined.Search,
@@ -88,11 +100,16 @@ fun Level1BottomBar(
             label = { Text("Search", fontSize = 10.sp) },
             selected = isSelected(Route.Search),
             onClick = { navigateTo(Route.Search) },
-            selectedContentColor = MaterialTheme.colors.primaryVariant,
-            unselectedContentColor = MaterialTheme.colors.onBackground,
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.primaryContainer,
+                selectedTextColor = MaterialTheme.colorScheme.primaryContainer,
+                unselectedIconColor = MaterialTheme.colorScheme.onBackground,
+                unselectedTextColor = MaterialTheme.colorScheme.onBackground,
+                indicatorColor = Color.Transparent
+            )
         )
         if (showDonationTab) {
-            BottomNavigationItem(
+            NavigationBarItem(
                 icon = {
                     Icon(
                         if (isSelected(Route.Donation)) Icons.Filled.MonetizationOn else Icons.Outlined.MonetizationOn,
@@ -102,11 +119,16 @@ fun Level1BottomBar(
                 label = { Text("Support", fontSize = 10.sp) },
                 selected = isSelected(Route.Donation),
                 onClick = { navigateTo(Route.Donation) },
-                selectedContentColor = MaterialTheme.colors.primaryVariant,
-                unselectedContentColor = MaterialTheme.colors.onBackground,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedTextColor = MaterialTheme.colorScheme.primaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onBackground,
+                    unselectedTextColor = MaterialTheme.colorScheme.onBackground,
+                    indicatorColor = Color.Transparent
+                )
             )
         }
-        BottomNavigationItem(
+        NavigationBarItem(
             icon = {
                 Icon(
                     if (isSelected(Route.Settings)) Icons.Filled.Settings else Icons.Outlined.Settings,
@@ -116,8 +138,13 @@ fun Level1BottomBar(
             label = { Text("Settings", fontSize = 10.sp) },
             selected = isSelected(Route.Settings),
             onClick = { navigateTo(Route.Settings) },
-            selectedContentColor = MaterialTheme.colors.primaryVariant,
-            unselectedContentColor = MaterialTheme.colors.onBackground,
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.primaryContainer,
+                selectedTextColor = MaterialTheme.colorScheme.primaryContainer,
+                unselectedIconColor = MaterialTheme.colorScheme.onBackground,
+                unselectedTextColor = MaterialTheme.colorScheme.onBackground,
+                indicatorColor = Color.Transparent
+            )
         )
     }
 }

@@ -44,19 +44,4 @@ abstract class BaseScreenViewModel : ViewModel() {
     }
 }
 
-/**
- * Sealed class for common UI states
- */
-sealed class UiState {
-    data object Loading : UiState()
-    data class Success(val data: Any) : UiState()
-    data class Error(val message: String) : UiState()
-}
-
-/**
- * Extension function for easier state updates
- */
-inline fun <T> kotlinx.coroutines.flow.MutableStateFlow<T>.update(transform: (T) -> T) {
-    value = transform(value)
-}
 

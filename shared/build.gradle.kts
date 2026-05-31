@@ -1,6 +1,5 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kmp.library)
@@ -21,9 +20,7 @@ kotlin {
         androidResources { enable = true }
     }
 
-    sourceSets.all {
-        languageSettings.optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
-    }
+
 
     val iosTarget: (String, KotlinNativeTarget.() -> Unit) -> KotlinNativeTarget =
         if (System.getenv("SDK_NAME")?.startsWith("iphoneos") == true)
@@ -91,13 +88,12 @@ kotlin {
 
                 implementation(libs.bundles.media3)
 
-                implementation("androidx.media:media:1.7.0")
+                implementation(libs.androidx.media)
                 implementation(libs.androidx.palette)
                 implementation(libs.androidx.core.ktx)
 
                 // Additional Android dependencies
                 implementation(libs.androidx.work.runtime)
-                implementation(libs.snapper)
 
                 // Lifecycle for Android
                 implementation(libs.lifecycle.viewmodel)
@@ -112,8 +108,8 @@ kotlin {
 
         val iosMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-ios:${libs.versions.ktorVersion.get()}")
-                implementation("app.cash.sqldelight:native-driver:2.0.2")
+                implementation(libs.ktor.client.ios)
+                implementation(libs.sqldelight.native.driver)
             }
         }
         val iosTest by getting

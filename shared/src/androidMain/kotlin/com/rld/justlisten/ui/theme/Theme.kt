@@ -1,18 +1,20 @@
 package com.rld.justlisten.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.MaterialTheme.shapes
-import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.shapes
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material.Colors as M2Colors
+import androidx.compose.material.MaterialTheme as M2MaterialTheme
 
-private val DarkGreenColorPalette = darkColors(
+private val DarkGreenColorPalette = darkColorScheme(
     primary = greenPrimary,
-    primaryVariant = greenPrimaryVariant,
+    primaryContainer = greenPrimaryVariant,
     secondary = greenSecondaryPrimary,
-    secondaryVariant = greenSecondaryPrimaryVariant,
+    secondaryContainer = greenSecondaryPrimaryVariant,
     background = Color.Black,
     surface = Color.DarkGray,
     error = Color.Red,
@@ -23,11 +25,11 @@ private val DarkGreenColorPalette = darkColors(
     onError = Color.Black
 )
 
-private val DarkPurpleColorPalette = darkColors(
+private val DarkPurpleColorPalette = darkColorScheme(
     primary = purple,
-    primaryVariant = purpleLight,
+    primaryContainer = purpleLight,
     secondary = secondaryPurple,
-    secondaryVariant = secondaryPurpleLight,
+    secondaryContainer = secondaryPurpleLight,
     background = Color.Black,
     surface = Color.LightGray,
     onPrimary = Color.Black,
@@ -39,11 +41,11 @@ private val DarkPurpleColorPalette = darkColors(
 )
 
 
-private val LightPurpleColorPalette = lightColors(
+private val LightPurpleColorPalette = lightColorScheme(
     primary = purple,
-    primaryVariant = purpleDark,
+    primaryContainer = purpleDark,
     secondary = secondaryPurple,
-    secondaryVariant = secondaryPurpleDark,
+    secondaryContainer = secondaryPurpleDark,
     background = Color.White,
     surface = Color.LightGray,
     onPrimary = Color.White,
@@ -55,11 +57,11 @@ private val LightPurpleColorPalette = lightColors(
 )
 
 
-private val DarkBlueColorPalette = darkColors(
+private val DarkBlueColorPalette = darkColorScheme(
     primary = blueCustom,
-    primaryVariant = blueCustomLight,
+    primaryContainer = blueCustomLight,
     secondary = secondaryBlue,
-    secondaryVariant = secondaryBlueLight,
+    secondaryContainer = secondaryBlueLight,
     background = Color.Black,
     surface = Color.LightGray,
     onPrimary = Color.Black,
@@ -70,11 +72,11 @@ private val DarkBlueColorPalette = darkColors(
     onError = Color.Black
 )
 
-private val DarkOrangeColorPalette = darkColors(
+private val DarkOrangeColorPalette = darkColorScheme(
     primary = orange200,
-    primaryVariant = orangeLight,
+    primaryContainer = orangeLight,
     secondary = secondaryOrange,
-    secondaryVariant = secondaryOrangeLight,
+    secondaryContainer = secondaryOrangeLight,
     background = Color.Black,
     surface = Color.DarkGray,
     onPrimary = Color.Black,
@@ -85,11 +87,11 @@ private val DarkOrangeColorPalette = darkColors(
     onError = Color.Black
 )
 
-private val LightOrangeColorPalette = lightColors(
+private val LightOrangeColorPalette = lightColorScheme(
     primary = orange200,
-    primaryVariant = orangeDark,
+    primaryContainer = orangeDark,
     secondary = secondaryOrange,
-    secondaryVariant = secondaryOrangeDark,
+    secondaryContainer = secondaryOrangeDark,
     background = Color.White,
     surface = Color.LightGray,
     onPrimary = Color.White,
@@ -101,9 +103,9 @@ private val LightOrangeColorPalette = lightColors(
 )
 
 // Light pallets
-private val LightGreenColorPalette = lightColors(
+private val LightGreenColorPalette = lightColorScheme(
     primary = green500,
-    primaryVariant = green700,
+    primaryContainer = green700,
     secondary = teal200,
     background = Color.White,
     surface = Color.LightGray,
@@ -117,11 +119,11 @@ private val LightGreenColorPalette = lightColors(
 
 
 
-private val DarkColorPalette = darkColors(
+private val DarkColorPalette = darkColorScheme(
     primary = primaryDark000,
-    primaryVariant = primaryDarkVariant,
+    primaryContainer = primaryDarkVariant,
     secondary = secondaryDark,
-    secondaryVariant = secondaryDarkVariant,
+    secondaryContainer = secondaryDarkVariant,
     background = Color.Black,
     surface = Color.DarkGray,
     error = Color.Red,
@@ -132,11 +134,11 @@ private val DarkColorPalette = darkColors(
     onError = Color.Black
 )
 
-private val LightDarkColorPalette = darkColors(
+private val LightDarkColorPalette = darkColorScheme(
     primary = primaryLightDark000,
-    primaryVariant = primaryLightDarkVariant,
+    primaryContainer = primaryLightDarkVariant,
     secondary = secondaryLightDark,
-    secondaryVariant = secondaryLightDarkVariant,
+    secondaryContainer = secondaryLightDarkVariant,
     background = Color.LightGray,
     surface = Color.White,
     error = Color.Red,
@@ -147,11 +149,11 @@ private val LightDarkColorPalette = darkColors(
     onError = Color.White
 )
 
-private val LightBlueColorPalette = lightColors(
+private val LightBlueColorPalette = lightColorScheme(
     primary = blueCustom,
-    primaryVariant = blueCustomDark,
+    primaryContainer = blueCustomDark,
     secondary = secondaryBlue,
-    secondaryVariant = secondaryBlueDark,
+    secondaryContainer = secondaryBlueDark,
     background = Color.White,
     surface = Color.LightGray,
     onPrimary = Color.White,
@@ -162,11 +164,11 @@ private val LightBlueColorPalette = lightColors(
     onError = Color.Black
 )
 
-private val DarkPinkColorPalette = darkColors(
+private val DarkPinkColorPalette = darkColorScheme(
     primary = pink,
-    primaryVariant = pinkLight,
+    primaryContainer = pinkLight,
     secondary = secondaryPink,
-    secondaryVariant = secondaryPinkLight,
+    secondaryContainer = secondaryPinkLight,
     background = Color.Black,
     surface = Color.DarkGray,
     onPrimary = Color.Black,
@@ -177,11 +179,11 @@ private val DarkPinkColorPalette = darkColors(
     onError = Color.Black
 )
 
-private val LightPinkColorPalette = lightColors(
+private val LightPinkColorPalette = lightColorScheme(
     primary = pink,
-    primaryVariant = pinkDark,
+    primaryContainer = pinkDark,
     secondary = secondaryPink,
-    secondaryVariant = secondaryPinkDark,
+    secondaryContainer = secondaryPinkDark,
     background = Color.White,
     surface = Color.LightGray,
     onPrimary = Color.White,
@@ -212,17 +214,30 @@ fun JustListenTheme(
         ColorPallet.Pink -> if (darkTheme) DarkPinkColorPalette else LightPinkColorPalette
     }
 
-    MaterialTheme(
-        colors = colors,
-        typography = typography,
-        shapes = shapes,
-        content = content
-    )
-    /* TODO() CONVERT TO MATERIAL3 THEME
-    androidx.compose.material3.MaterialTheme(
-        colorScheme = DarkColorPaletteScheme,
-        content = content
+    val m2Colors = M2Colors(
+        primary = colors.primary,
+        primaryVariant = colors.primaryContainer,
+        secondary = colors.secondary,
+        secondaryVariant = colors.secondaryContainer,
+        background = colors.background,
+        surface = colors.surface,
+        error = colors.error,
+        onPrimary = colors.onPrimary,
+        onSecondary = colors.onSecondary,
+        onBackground = colors.onBackground,
+        onSurface = colors.onSurface,
+        onError = colors.onError,
+        isLight = !darkTheme
     )
 
-     */
+    MaterialTheme(
+        colorScheme = colors,
+        typography = typography,
+        shapes = shapes
+    ) {
+        M2MaterialTheme(
+            colors = m2Colors,
+            content = content
+        )
+    }
 }

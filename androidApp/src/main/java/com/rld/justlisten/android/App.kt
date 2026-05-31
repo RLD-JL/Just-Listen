@@ -6,7 +6,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.rld.justlisten.media.exoplayer.MusicServiceConnection
-import com.rld.justlisten.media.exoplayer.utils.Constants.CLICKED_PLAYLIST
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin

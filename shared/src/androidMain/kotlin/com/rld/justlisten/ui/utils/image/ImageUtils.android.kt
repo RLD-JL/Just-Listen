@@ -1,13 +1,22 @@
 package com.rld.justlisten.ui.utils.image
 
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.palette.graphics.Palette
-import androidx.core.graphics.drawable.toBitmap
-import coil3.decode.DataSource
-import coil3.request.SuccessResult
+import coil3.Image
+import coil3.toBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-actual suspend fun getImageDominantColor(painter: Painter): Int? {
-    // This is a simplified version. In a real app, you would convert the painter to a bitmap
-    // and use Palette.
-    return null 
+actual suspend fun getImageDominantColor(image: Image): Int? = withContext(Dispatchers.Default) {
+    try {
+        val originalBitmap = image.toBitmap()
+        val bitmap = if (originalBitmap.config == android.graphics.Bitmap.Config.HARDWARE) {
+            originalBitmap.copy(android.graphics.Bitmap.Config.ARGB_8888, false)
+        } else {
+            originalBitmap
+        }
+        val palette = Palette.from(bitmap).generate()
+        palette.dominantSwatch?.rgb ?: palette.vibrantSwatch?.rgb ?: palette.mutedSwatch?.rgb
+    } catch (e: Exception) {
+        null
+    }
 }

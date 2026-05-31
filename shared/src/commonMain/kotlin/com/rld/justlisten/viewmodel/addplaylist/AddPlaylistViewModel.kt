@@ -8,7 +8,7 @@ import com.rld.justlisten.datalayer.datacalls.addplaylistscreen.updatePlaylistSo
 import com.rld.justlisten.navigation.Route
 import com.rld.justlisten.viewmodel.BaseScreenViewModel
 import com.rld.justlisten.viewmodel.screens.addplaylist.AddPlaylistState
-import com.rld.justlisten.viewmodel.update
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

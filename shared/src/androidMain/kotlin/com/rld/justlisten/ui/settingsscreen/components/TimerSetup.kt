@@ -21,9 +21,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.rld.justlisten.workers.SleepWorker
 import com.rld.justlisten.util.delay
-import dev.chrisbanes.snapper.ExperimentalSnapperApi
-import dev.chrisbanes.snapper.SnapOffsets
-import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.*
@@ -120,7 +118,7 @@ fun TimerSetup(
     }
 }
 
-@OptIn(ExperimentalSnapperApi::class)
+
 @Composable
 fun CircularList(
     items: List<String>,
@@ -135,11 +133,7 @@ fun CircularList(
         state = listState,
         modifier = modifier,
         horizontalAlignment = alignment,
-        flingBehavior = rememberSnapperFlingBehavior(
-            lazyListState = listState,
-            snapOffsetForItem = SnapOffsets.Start,
-            endContentPadding = contentPadding.calculateBottomPadding(),
-        ),
+        flingBehavior = rememberSnapFlingBehavior(lazyListState = listState),
     ) {
         items(
             count = if (isEndless) Int.MAX_VALUE else items.size,
