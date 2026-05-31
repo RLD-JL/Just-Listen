@@ -13,8 +13,8 @@ kotlin {
     jvmToolchain(17)
     android {
         namespace = "com.rld.justlisten"
-        compileSdk = 35
-        minSdk = 21
+        compileSdk = 36
+        minSdk = 23
         withHostTestBuilder {}.configure {}
         withDeviceTestBuilder { sourceSetTreeName = "test" }
         androidResources { enable = true }

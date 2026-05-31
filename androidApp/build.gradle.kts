@@ -38,10 +38,10 @@ dependencies {
 
 
 android {
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         applicationId = "com.rld.justlisten.android"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 35
         versionCode = 26
         versionName = "1.0.9-a"
