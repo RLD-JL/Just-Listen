@@ -3,7 +3,6 @@ kotlinVersion = "2.3.21"
 coroutinesVersion = "1.11.0"
 ktorVersion = "3.5.0"
 composeUiVersion = "1.11.2"
-composeMaterialVersion = "1.11.2"
 lifecycleVersion = "2.10.0"
 navigationVersion = "2.9.2"
 koinVersion = "4.2.1"
@@ -40,7 +39,6 @@ ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "k
 compose-ui = { module = "androidx.compose.ui:ui", version.ref = "composeUiVersion" }
 compose-ui-util = { module = "androidx.compose.ui:ui-util", version.ref = "composeUiVersion" }
 compose-ui-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "composeUiVersion" }
-compose-material = { module = "androidx.compose.material:material", version.ref = "composeMaterialVersion" }
 compose-material3 = { module = "androidx.compose.material3:material3", version = "1.4.0" }
 compose-material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version = "1.7.3" }
 compose-material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version = "1.7.3" }
@@ -84,7 +82,7 @@ androidx-media = { module = "androidx.media:media", version = "1.8.0" }
 
 [bundles]
 ktor = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-serialization-kotlinx-json", "ktor-client-logging"]
-compose = ["compose-ui", "compose-ui-util", "compose-ui-preview", "compose-material", "compose-material3", "compose-animation"]
+compose = ["compose-ui", "compose-ui-util", "compose-ui-preview", "compose-material3", "compose-animation"]
 media3 = ["media3-exoplayer", "media3-session", "media3-ui", "media3-common"]
 
 [plugins]
