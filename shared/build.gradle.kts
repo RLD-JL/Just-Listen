@@ -13,7 +13,7 @@ plugins {
 kotlin {
     jvmToolchain(17)
     androidTarget()
-    
+
     sourceSets.all {
         languageSettings.optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
     }
@@ -39,7 +39,7 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.bundles.ktor)
-                
+
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material)
@@ -65,7 +65,7 @@ kotlin {
                 implementation(libs.koin.compose.viewmodel)
 
                 implementation(libs.sqldelight.coroutines.extensions)
-                
+
                 // Image Loading (Coil 3)
                 implementation(libs.coil3.compose)
                 implementation(libs.coil3.network.ktor)
@@ -81,13 +81,13 @@ kotlin {
             dependencies {
                 implementation(libs.ktor.client.okhttp)
                 implementation(libs.sqldelight.android.driver)
-                
+
                 implementation(libs.bundles.media3)
-                
+
                 implementation("androidx.media:media:1.7.0")
                 implementation(libs.androidx.palette)
                 implementation(libs.androidx.core.ktx)
-                
+
                 // Additional Android dependencies
                 implementation(libs.androidx.work.runtime)
                 implementation(libs.snapper)
@@ -96,7 +96,7 @@ kotlin {
                 implementation(libs.lifecycle.viewmodel)
                 implementation(libs.lifecycle.runtime)
                 implementation(libs.lifecycle.viewmodel.compose)
-                
+
                 // Koin for Android
                 implementation(libs.koin.android)
                 implementation(libs.koin.androidx.compose)
@@ -150,6 +150,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 

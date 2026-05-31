@@ -1,7 +1,6 @@
 package com.rld.justlisten.datalayer.webservices.apis.playlistcalls
 
 import com.rld.justlisten.datalayer.models.PlayListModel
-import com.rld.justlisten.datalayer.utils.Constants.appName
 import com.rld.justlisten.datalayer.webservices.ApiClient
 import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum
 import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum.*
@@ -15,13 +14,13 @@ suspend fun ApiClient.fetchPlaylist(
     queryPlaylist: String = "Rock"
 ): PlayListResponse? {
     return when (playListEnum) {
-        TOP_PLAYLIST -> getResponse("/full/playlists/top?type=playlist&limit=${index}&app_name=$appName")
-        REMIX -> getResponse("/playlists/search?query=${queryPlaylist}&limit=${index}&app_name=$appName")
-        CURRENT_PLAYLIST -> getResponse("/playlists/${playlistId}/tracks?app_name=$appName")
-        HOT -> getResponse("/playlists/search?query=${queryPlaylist}&limit=${index}&app_name=$appName")
-        FAVORITE -> TODO()
+        TOP_PLAYLIST   -> getResponse("/full/playlists/top?type=playlist&limit=$index")
+        REMIX          -> getResponse("/playlists/search?query=$queryPlaylist&limit=$index")
+        CURRENT_PLAYLIST -> getResponse("/playlists/$playlistId/tracks")
+        HOT            -> getResponse("/playlists/search?query=$queryPlaylist&limit=$index")
+        FAVORITE       -> TODO()
         CREATED_BY_USER -> TODO()
-        MOST_PLAYED -> TODO()
+        MOST_PLAYED    -> TODO()
     }
 }
 
@@ -31,10 +30,9 @@ suspend fun ApiClient.getTracks(
     timeRange: String
 ): PlayListResponse? {
     val response: PlayListResponse? =
-        getResponse("/full/tracks/trending?genre=${category}&limit=${limit}&time=${timeRange}&app_name=$appName")
+        getResponse("/full/tracks/trending?genre=$category&limit=$limit&time=$timeRange")
     return response?.let {
-        val tracks = it.data.filter { it.isStreamable }
-        PlayListResponse(tracks)
+        PlayListResponse(it.data.filter { track -> track.isStreamable })
     }
 }
 

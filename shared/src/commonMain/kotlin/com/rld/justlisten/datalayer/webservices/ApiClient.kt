@@ -1,5 +1,6 @@
 package com.rld.justlisten.datalayer.webservices
 
+import com.rld.justlisten.datalayer.utils.Constants
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -9,7 +10,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
-open class ApiClient(val discoveryNodeService: DiscoveryNodeService) {
+open class ApiClient(private val apiKey: String = "") {
 
     val client = HttpClient {
         install(ContentNegotiation) {
@@ -29,24 +30,21 @@ open class ApiClient(val discoveryNodeService: DiscoveryNodeService) {
             retryIf { _, response -> !response.status.isSuccess() }
             delayMillis { retry -> retry * 1000L }
         }
+        defaultRequest {
+            if (apiKey.isNotBlank()) {
+                header("X-API-KEY", apiKey)
+            }
+        }
     }
 
-
     suspend inline fun <reified T : Any> getResponse(endpoint: String): T? {
-        val nodeService = discoveryNodeService
-        val baseUrl = nodeService.getBestNode()
-        val url = "${baseUrl}/v1$endpoint"
+        val url = "${Constants.BASEURL}/v1$endpoint"
         return try {
             val response = client.get(url)
-            val body = response.body<T>()
-            if (response.status.isSuccess()) {
-                val responseTime = response.responseTime.timestamp - response.requestTime.timestamp
-                nodeService.updateNodePerformance(baseUrl, responseTime)
-            }
-            body
+            if (response.status.isSuccess()) response.body<T>() else null
         } catch (e: Exception) {
+            println("Error fetching $url: ${e.message}")
             null
         }
     }
 }
-

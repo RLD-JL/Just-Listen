@@ -1,9 +1,12 @@
 package com.rld.justlisten.di
 
+import androidx.annotation.OptIn
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
+import com.rld.justlisten.BuildConfig
 import com.rld.justlisten.LocalDb
 import com.rld.justlisten.datalayer.Repository
+import com.rld.justlisten.datalayer.webservices.ApiClient
 import com.rld.justlisten.media.AndroidMusicPlayer
 import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.media.exoplayer.MusicServiceConnection
@@ -12,6 +15,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -21,13 +25,14 @@ import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.database.StandaloneDatabaseProvider
 import java.io.File
 
-fun androidModule() = module {
-    // Provide SqlDriver for Android
+@OptIn(UnstableApi::class)
+fun androidModule(apiKey: String = "") = module {
+
+    single { ApiClient(apiKey = apiKey) }
+
     single<SqlDriver> {
         AndroidSqliteDriver(LocalDb.Schema, androidContext(), "Local.db")
     }
-
-    // Provide LocalDb
     single {
         LocalDb(
             get(),
@@ -36,18 +41,13 @@ fun androidModule() = module {
             Repository.playlistDetailAdapter
         )
     }
-    
-    // Provide MusicSource
     single { MusicSource() }
-    
-    // Provide ExoPlayer dependencies
     single {
         AudioAttributes.Builder()
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .setUsage(C.USAGE_MEDIA)
             .build()
     }
-
     single {
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
         val evictor = LeastRecentlyUsedCacheEvictor((50 * 1024 * 1024).toLong())
@@ -57,7 +57,6 @@ fun androidModule() = module {
             .setCache(simpleCache)
             .setUpstreamDataSourceFactory(httpDataSourceFactory)
     }
-
     single {
         ExoPlayer.Builder(androidContext())
             .setMediaSourceFactory(DefaultMediaSourceFactory(get<CacheDataSource.Factory>()))
@@ -66,14 +65,6 @@ fun androidModule() = module {
                 setHandleAudioBecomingNoisy(true)
             }
     }
-
-    // Provide MusicServiceConnection
-    single {
-        MusicServiceConnection(get(), androidContext())
-    }
-    
-    // Provide MusicPlayer implementation
-    single<MusicPlayer> { 
-        AndroidMusicPlayer(get(), get())
-    }
+    single { MusicServiceConnection(get(), androidContext()) }
+    single<MusicPlayer> { AndroidMusicPlayer(get(), get()) }
 }

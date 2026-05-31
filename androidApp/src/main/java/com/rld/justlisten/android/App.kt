@@ -22,7 +22,7 @@ class JustListenApp : Application() {
         
         startKoin {
             androidContext(this@JustListenApp)
-            modules(appModule(), androidModule())
+            modules(androidModule(BuildConfig.AUDIUS_API_KEY), appModule())
         }
         
         ProcessLifecycleOwner.get().lifecycle.addObserver(

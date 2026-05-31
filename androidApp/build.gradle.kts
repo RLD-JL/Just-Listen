@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -27,10 +29,10 @@ dependencies {
 
     implementation(libs.androidx.core.splashscreen)
     debugImplementation(libs.leakcanary.android)
-    
+
     // Navigation Compose
     implementation(libs.navigation.compose)
-    
+
     // Koin for Compose
     implementation(libs.koin.androidx.compose)
 }
@@ -47,6 +49,18 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        val localProps = gradleLocalProperties(rootDir, providers)
+        buildConfigField(
+            "String",
+            "AUDIUS_API_KEY",
+            "\"${localProps.getProperty("AUDIUS_API_KEY") ?: System.getenv("AUDIUS_API_KEY") ?: ""}\""
+        )
+        buildConfigField(
+            "String",
+            "AUDIUS_BEARER_TOKEN",
+            "\"${localProps.getProperty("AUDIUS_BEARER_TOKEN") ?: System.getenv("AUDIUS_BEARER_TOKEN") ?: ""}\""
+        )
     }
 
     buildTypes {
@@ -69,6 +83,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true  // required for BuildConfig fields in AGP 8+
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.2.0"
@@ -89,11 +104,3 @@ sourceSets {
         }
     }
 }
-
-/*
-composeCompiler {
-    enableStrongSkippingMode = true
-
-    reportsDestination = layout.buildDirectory.dir("compose_compiler")
-    stabilityConfigurationFile = rootProject.layout.projectDirectory.file("stability_config.conf")
-}*/
