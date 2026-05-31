@@ -113,7 +113,7 @@ fun PlayerBottomBar(
             onFavoritePressed = onFavoritePressed,
             newDominantColor = { color ->
                 val extracted = Color(color)
-                targetColor = androidx.compose.ui.graphics.lerp(extracted, primaryThemeColor, 0.6f)
+                targetColor = androidx.compose.ui.graphics.lerp(extracted, primaryThemeColor, 0.3f)
                 newDominantColor(color)
             },
             playBarMinimizedClicked = playBarMinimizedClicked

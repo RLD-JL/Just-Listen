@@ -9,6 +9,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.TabRowDefaults.Divider
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.runtime.Composable
@@ -71,7 +72,7 @@ fun MoreOptions(addToPlaylistClicked: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = Icons.Default.PlaylistAdd,
+            imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
             contentDescription = "Add to playlist"
         )
         Text(textAlign = TextAlign.Center, text = "Add to Playlist")

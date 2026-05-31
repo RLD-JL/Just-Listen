@@ -4,7 +4,7 @@ coroutinesVersion = "1.10.1"
 ktorVersion = "3.0.3"
 composeVersion = "1.7.3"
 lifecycleVersion = "2.8.4"
-navigationVersion = "2.8.0-alpha10"
+navigationVersion = "2.9.2"
 koinVersion = "4.0.2"
 koinComposeVersion = "4.0.2"
 media3Version = "1.5.1"
@@ -24,10 +24,6 @@ splashscreenVersion = "1.0.1"
 leakcanaryVersion = "2.14"
 
 [libraries]
-kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinVersion" }
-android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agpVersion" }
-
-
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutinesVersion" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesVersion" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetimeVersion" }

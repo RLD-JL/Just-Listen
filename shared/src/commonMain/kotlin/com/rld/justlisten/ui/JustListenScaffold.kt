@@ -23,12 +23,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -66,7 +65,7 @@ fun JustListenScaffold(
     val routeLabel = navBackStackEntry?.destination?.route.orEmpty()
     val showBottomBar = !routeLabel.contains("AddPlaylist")
 
-    val primaryThemeColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
+    val primaryThemeColor = MaterialTheme.colorScheme.primary
 
     val coroutineScope = rememberCoroutineScope()
     val scaffoldState = rememberJustListenScaffoldState(repository, musicPlayer, coroutineScope)
@@ -192,7 +191,7 @@ fun JustListenScaffold(
                         newDominantColor = { colorInt ->
                             // Blend the extracted color with the theme's primary color
                             val extracted = Color(colorInt)
-                            val blended = androidx.compose.ui.graphics.lerp(extracted, primaryThemeColor, 0.6f)
+                            val blended = lerp(extracted, primaryThemeColor, 0.3f)
                             dominantColor = blended.copy(alpha = 0.3f)
                         },
                         playBarMinimizedClicked = {
