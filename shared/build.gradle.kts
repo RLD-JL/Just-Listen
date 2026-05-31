@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.kmp.library)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.compose.multiplatform)
@@ -12,7 +12,14 @@ plugins {
 
 kotlin {
     jvmToolchain(17)
-    androidTarget()
+    android {
+        namespace = "com.rld.justlisten"
+        compileSdk = 35
+        minSdk = 21
+        withHostTestBuilder {}.configure {}
+        withDeviceTestBuilder { sourceSetTreeName = "test" }
+        androidResources { enable = true }
+    }
 
     sourceSets.all {
         languageSettings.optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
@@ -102,12 +109,7 @@ kotlin {
                 implementation(libs.koin.androidx.compose)
             }
         }
-        val androidUnitTest by getting {
-            dependencies {
-                implementation(kotlin("test-junit"))
-                implementation("junit:junit:4.13.2")
-            }
-        }
+
         val iosMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-ios:${libs.versions.ktorVersion.get()}")
@@ -139,20 +141,4 @@ configurations {
     }
 }
 
-android {
-    compileSdk = 35
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    defaultConfig {
-        testOptions.targetSdk = 35
-        minSdk = 21
-    }
-    namespace = "com.rld.justlisten"
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    buildFeatures {
-        buildConfig = true
-    }
-}
 

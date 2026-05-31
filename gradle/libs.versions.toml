@@ -1,5 +1,5 @@
 [versions]
-kotlinVersion = "2.1.10"
+kotlinVersion = "2.2.10"
 coroutinesVersion = "1.10.1"
 ktorVersion = "3.0.3"
 composeVersion = "1.7.3"
@@ -9,14 +9,14 @@ koinVersion = "4.0.2"
 koinComposeVersion = "4.0.2"
 media3Version = "1.5.1"
 sqldelightVersion = "2.0.2"
-composeMultiplatformVersion = "1.7.0"
+composeMultiplatformVersion = "1.7.3"
 serializationVersion = "1.8.0"
 datetimeVersion = "0.6.1"
 coilVersion = "2.7.0"
 coil3Version = "3.0.4"
 workVersion = "2.10.0"
 snapperVersion = "0.3.0"
-agpVersion = "8.7.1"
+agpVersion = "9.2.1"
 materialVersion = "1.12.0"
 appcompatVersion = "1.7.0"
 constraintlayoutVersion = "2.2.0"
@@ -95,9 +95,9 @@ media3 = ["media3-exoplayer", "media3-session", "media3-ui", "media3-common"]
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlinVersion" }
 android-library = { id = "com.android.library", version.ref = "agpVersion" }
+android-kmp-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agpVersion" }
 android-application = { id = "com.android.application", version.ref = "agpVersion" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinVersion" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelightVersion" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatformVersion" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinVersion" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinVersion" }

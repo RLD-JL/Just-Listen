@@ -3,7 +3,6 @@ package com.rld.justlisten.di
 import androidx.annotation.OptIn
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
-import com.rld.justlisten.BuildConfig
 import com.rld.justlisten.LocalDb
 import com.rld.justlisten.datalayer.Repository
 import com.rld.justlisten.datalayer.webservices.ApiClient
