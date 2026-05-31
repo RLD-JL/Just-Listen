@@ -3,7 +3,11 @@ package com.rld.justlisten.ui.playlistscreen.components
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,11 +71,11 @@ fun ScrollableContent(
 
         ScrollableTabRow(
             selectedTabIndex = selectedTab,
-            backgroundColor = Color.Transparent,
+            containerColor = Color.Transparent,
             modifier = Modifier.padding(8.dp),
             edgePadding = 0.dp,
             indicator = { tabPositions ->
-                TabRowDefaults.Indicator(
+                TabRowDefaults.SecondaryIndicator(
                     modifier = Modifier.customTabIndicatorOffset(
                         currentTabPosition = tabPositions[selectedTab],
                         tabWidth = tabWidths[selectedTab]
@@ -104,9 +108,9 @@ fun ScrollableContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ScrollableTabRow(selectedTabIndex = selectedTabTimeRange,
-                backgroundColor = Color.Transparent,
+                containerColor = Color.Transparent,
                 indicator = { tabPositions ->
-                    TabRowDefaults.Indicator(
+                    TabRowDefaults.SecondaryIndicator(
                         modifier = Modifier.customTabIndicatorOffset(
                             currentTabPosition = tabPositions[selectedTabTimeRange],
                             tabWidth = tabWidthsTimeRange[selectedTabTimeRange]

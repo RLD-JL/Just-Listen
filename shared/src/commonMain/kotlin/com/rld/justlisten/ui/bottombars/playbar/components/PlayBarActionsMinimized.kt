@@ -2,7 +2,11 @@ package com.rld.justlisten.ui.bottombars.playbar.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material3.Text
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -57,7 +61,7 @@ fun PlayBarActionsMinimized(
 
         Text(
             text = title,
-            style = MaterialTheme.typography.body1.copy(fontSize = 14.sp),
+            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 14.sp),
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = 6.dp),

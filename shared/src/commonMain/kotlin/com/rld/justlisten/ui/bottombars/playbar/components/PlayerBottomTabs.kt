@@ -17,11 +17,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
@@ -47,7 +47,7 @@ enum class TabsSheetState {
     EXPANDED
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerBottomTabs(
     currentFraction: Float,
@@ -148,7 +148,7 @@ fun PlayerBottomTabs(
                     }
                 }
                 
-                Divider(color = Color.White.copy(alpha = 0.1f), thickness = 1.dp)
+                HorizontalDivider(color = Color.White.copy(alpha = 0.1f), thickness = 1.dp)
 
                 // Tab Content
                 Box(modifier = Modifier.weight(1f)) {
@@ -260,7 +260,7 @@ fun UpNextQueueView(
                     )
                 }
             }
-            Divider(color = Color.White.copy(alpha = 0.1f))
+            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
         }
     }
 }

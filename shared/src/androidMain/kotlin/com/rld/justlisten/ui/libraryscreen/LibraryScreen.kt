@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -56,7 +56,7 @@ fun LibraryScreen(
                 lasItemReached = { onAction(LibraryScreenAction.LastItemReached(it)) },
                 lastIndexReached = libraryState.lastIndexReached
             )
-            Divider(thickness = 1.dp)
+            HorizontalDivider(thickness = 1.dp)
             PlaylistView { onAction(LibraryScreenAction.PlayListViewClicked) }
             
             if (libraryState.playlistsCreated.isNotEmpty()) {

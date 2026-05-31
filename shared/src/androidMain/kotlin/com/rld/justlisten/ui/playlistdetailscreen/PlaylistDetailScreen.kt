@@ -3,7 +3,7 @@ package com.rld.justlisten.ui.playlistdetailscreen
 import android.graphics.drawable.ColorDrawable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,7 +39,7 @@ fun PlaylistDetailScreen(
         LoadingScreen()
     } else {
         val context = LocalPlatformContext.current
-        val placeholderColor = MaterialTheme.colors.secondaryVariant.toArgb()
+        val placeholderColor = MaterialTheme.colorScheme.secondaryContainer.toArgb()
         val painter = rememberAsyncImagePainter(
             model = remember(playlistDetailState.playlistIcon, context, placeholderColor) {
                 ImageRequest.Builder(context = context)

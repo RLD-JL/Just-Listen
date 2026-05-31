@@ -4,14 +4,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.TabRowDefaults.Divider
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
@@ -30,10 +29,10 @@ fun PlayBarMoreAction(
         Modifier
             .fillMaxWidth()
             .fillMaxHeight(0.75f)
-            .background(MaterialTheme.colors.background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         TopSection(title, painter)
-        Divider(thickness = 2.dp)
+        HorizontalDivider(thickness = 2.dp)
         MoreOptions(addToPlaylistClicked)
     }
 }

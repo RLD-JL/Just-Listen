@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme.typography
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import com.rld.justlisten.ui.theme.typography
+import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -89,11 +89,11 @@ fun SongListItem(
         ) {
             Text(
                 text = playlistItem.playlistTitle,
-                style = typography.h6.copy(fontSize = 16.sp),
+                style = typography.titleMedium.copy(fontSize = 16.sp),
             )
             Text(
                 text = "${playlistItem.title} by ${playlistItem.user}",
-                style = typography.subtitle2,
+                style = typography.titleSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

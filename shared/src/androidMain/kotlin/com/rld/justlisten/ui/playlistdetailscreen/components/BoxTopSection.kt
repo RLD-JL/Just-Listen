@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.MaterialTheme.typography
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import com.rld.justlisten.ui.theme.typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
@@ -42,18 +42,18 @@ fun BoxTopSection(scrollState: MutableState<Float>, playlistDetailState: Playlis
         )
         Text(
             text = playlistDetailState.playlistName,
-            style = typography.subtitle2.copy(fontWeight = FontWeight.ExtraBold),
+            style = typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold),
             maxLines = 1,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(8.dp),
         )
         Text(
             text = "FOLLOWING",
-            style = typography.h6.copy(fontSize = 12.sp),
+            style = typography.titleMedium.copy(fontSize = 12.sp),
             modifier = Modifier
                 .padding(4.dp)
                 .border(
-                    border = BorderStroke(2.dp, MaterialTheme.colors.primaryVariant),
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primaryContainer),
                     shape = RoundedCornerShape(12.dp)
                 )
                 .padding(vertical = 4.dp, horizontal = 24.dp)
@@ -62,7 +62,7 @@ fun BoxTopSection(scrollState: MutableState<Float>, playlistDetailState: Playlis
             text = "Created by ${playlistDetailState.playListCreatedBy}",
             maxLines = 1,
             textAlign = TextAlign.Center,
-            style = typography.subtitle2,
+            style = typography.titleSmall,
             modifier = Modifier.padding(4.dp)
         )
     }

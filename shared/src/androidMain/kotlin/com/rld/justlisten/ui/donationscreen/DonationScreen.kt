@@ -4,10 +4,10 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Divider
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,7 +35,7 @@ fun DonationScreen() {
                     "please consider supporting me",
             modifier = Modifier.padding(20.dp)
         )
-        Divider(thickness = 2.dp, modifier = Modifier.fillMaxWidth())
+        HorizontalDivider(thickness = 2.dp, modifier = Modifier.fillMaxWidth())
 
         Row(
             Modifier
@@ -53,7 +53,7 @@ fun DonationScreen() {
                 enabled = false,
                 label = { Text(text = "BTC Address") },
                 shape = CircleShape,
-                colors = TextFieldDefaults.textFieldColors(unfocusedIndicatorColor = Color.Transparent)
+                colors = TextFieldDefaults.colors(unfocusedIndicatorColor = Color.Transparent)
             )
         }
 
@@ -73,7 +73,7 @@ fun DonationScreen() {
                 enabled = false,
                 label = { Text(text = "ETH Address") },
                 shape = CircleShape,
-                colors = TextFieldDefaults.textFieldColors(unfocusedIndicatorColor = Color.Transparent)
+                colors = TextFieldDefaults.colors(unfocusedIndicatorColor = Color.Transparent)
             )
         }
 
@@ -93,7 +93,7 @@ fun DonationScreen() {
                 enabled = false,
                 label = { Text(text = "SOL Address") },
                 shape = CircleShape,
-                colors = TextFieldDefaults.textFieldColors(unfocusedIndicatorColor = Color.Transparent)
+                colors = TextFieldDefaults.colors(unfocusedIndicatorColor = Color.Transparent)
             )
         }
 
@@ -113,7 +113,7 @@ fun DonationScreen() {
                 enabled = false,
                 label = { Text(text = "Audius Address") },
                 shape = CircleShape,
-                colors = TextFieldDefaults.textFieldColors(unfocusedIndicatorColor = Color.Transparent)
+                colors = TextFieldDefaults.colors(unfocusedIndicatorColor = Color.Transparent)
             )
         }
         val uriHandler = LocalUriHandler.current

@@ -7,8 +7,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.*
-import androidx.compose.material.MaterialTheme.typography
+import androidx.compose.material3.Text
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import com.rld.justlisten.ui.theme.typography
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -65,7 +69,7 @@ fun DownloadedRow() {
     ) {
         Text(
             text = "Download",
-            style = typography.h6.copy(fontSize = 14.sp)
+            style = typography.titleMedium.copy(fontSize = 14.sp)
         )
         var switched by remember { mutableStateOf(true) }
         Switch(
@@ -80,7 +84,7 @@ fun DownloadedRow() {
 fun ShuffleButton(onShuffleClicked: () -> Unit) {
     Button(
         onClick = { onShuffleClicked() },
-        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.surface),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 12.dp, horizontal = 100.dp)
@@ -88,7 +92,7 @@ fun ShuffleButton(onShuffleClicked: () -> Unit) {
     ) {
         Text(
             text = "SHUFFLE PLAY",
-            style = typography.h6.copy(fontSize = 14.sp),
+            style = typography.titleMedium.copy(fontSize = 14.sp),
             modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
         )
     }

@@ -6,10 +6,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.BottomSheetScaffoldState
-import androidx.compose.material.Button
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Text
+import androidx.compose.material3.BottomSheetScaffoldState
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimerSetup(
     workManager: WorkManager,
@@ -73,7 +73,7 @@ fun TimerSetup(
                         ExistingWorkPolicy.REPLACE,
                         myWorkRequest
                     ).enqueue()
-                    coroutineScope.launch { scaffoldState.bottomSheetState.collapse() }
+                    coroutineScope.launch { scaffoldState.bottomSheetState.hide() }
                     Toast.makeText(context, "If you close the app, the sleeper will be canceled", Toast.LENGTH_SHORT).show()
                 },
                 modifier = Modifier
@@ -84,7 +84,7 @@ fun TimerSetup(
             }
             Spacer(modifier = Modifier.weight(0.1f))
             Button(
-                onClick = { coroutineScope.launch { scaffoldState.bottomSheetState.collapse() } },
+                onClick = { coroutineScope.launch { scaffoldState.bottomSheetState.hide() } },
                 modifier = Modifier
                     .weight(0.45f)
                     .clip(

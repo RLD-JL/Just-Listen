@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
@@ -37,7 +37,7 @@ fun AddPlaylistScreen(
         }
         LazyColumn(Modifier.fillMaxWidth()) {
             item { AddPlaylistRow(openDialog) }
-            item { Divider(thickness = 2.dp) }
+            item { HorizontalDivider(thickness = 2.dp) }
             item { 
                 AddPlaylistDialog(openDialog) { title, desc -> 
                     onAction(AddPlaylistAction.AddPlaylistClicked(title, desc)) 

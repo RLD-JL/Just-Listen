@@ -47,7 +47,7 @@ enum class PlayBarState {
     EXPANDED
 }
 
-@OptIn(ExperimentalFoundationApi::class, androidx.compose.material.ExperimentalMaterialApi::class)
+@OptIn(ExperimentalFoundationApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun JustListenScaffold(
     navController: NavHostController,

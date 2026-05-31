@@ -4,8 +4,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material.BottomSheetScaffoldState
-import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.BottomSheetScaffoldState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.work.WorkManager
 import kotlinx.coroutines.CoroutineScope
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomSheetSettings(
     workManager: WorkManager,

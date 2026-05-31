@@ -2,7 +2,11 @@ package com.rld.justlisten.ui.settingsscreen.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.material.*
+import androidx.compose.material3.Text
+import androidx.compose.material3.Switch
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +37,7 @@ fun SettingsContent(
         ) {
             Text(
                 text = "Night Mode",
-                style = MaterialTheme.typography.h6.copy(fontSize = 14.sp)
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = 14.sp)
             )
             Switch(
                 checked = settings.isDarkThemeOn,
@@ -58,7 +62,7 @@ fun SettingsContent(
         ) {
             Text(
                 text = "Has Bottom Donation Navigation \nDisabled thanks to google",
-                style = MaterialTheme.typography.h6.copy(fontSize = 14.sp)
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = 14.sp)
             )
             Switch(
                 enabled = true,

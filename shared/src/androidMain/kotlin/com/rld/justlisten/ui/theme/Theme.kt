@@ -7,8 +7,6 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.material.Colors as M2Colors
-import androidx.compose.material.MaterialTheme as M2MaterialTheme
 
 private val DarkGreenColorPalette = darkColorScheme(
     primary = greenPrimary,
@@ -214,30 +212,10 @@ fun JustListenTheme(
         ColorPallet.Pink -> if (darkTheme) DarkPinkColorPalette else LightPinkColorPalette
     }
 
-    val m2Colors = M2Colors(
-        primary = colors.primary,
-        primaryVariant = colors.primaryContainer,
-        secondary = colors.secondary,
-        secondaryVariant = colors.secondaryContainer,
-        background = colors.background,
-        surface = colors.surface,
-        error = colors.error,
-        onPrimary = colors.onPrimary,
-        onSecondary = colors.onSecondary,
-        onBackground = colors.onBackground,
-        onSurface = colors.onSurface,
-        onError = colors.onError,
-        isLight = !darkTheme
-    )
-
     MaterialTheme(
         colorScheme = colors,
         typography = typography,
-        shapes = shapes
-    ) {
-        M2MaterialTheme(
-            colors = m2Colors,
-            content = content
-        )
-    }
+        shapes = shapes,
+        content = content
+    )
 }

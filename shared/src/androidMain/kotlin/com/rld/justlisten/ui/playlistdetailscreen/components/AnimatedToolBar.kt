@@ -1,10 +1,10 @@
 package com.rld.justlisten.ui.playlistdetailscreen.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -37,7 +37,7 @@ fun AnimatedToolBar(
                     listOf(
                         Color.Transparent,
                         Color.Transparent
-                    ) else listOf(MaterialTheme.colors.background, MaterialTheme.colors.background)
+                    ) else listOf(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.background)
             )
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {

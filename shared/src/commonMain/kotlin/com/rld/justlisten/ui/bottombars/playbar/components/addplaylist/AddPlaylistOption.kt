@@ -3,8 +3,8 @@ package com.rld.justlisten.ui.bottombars.playbar.components.addplaylist
 import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.TabRowDefaults.Divider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -16,9 +16,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.ExtendedFloatingActionButton
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.ui.Alignment
@@ -39,7 +39,7 @@ fun AddPlaylistOption(
 ) {
     val openDialog = remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background)) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -47,7 +47,7 @@ fun AddPlaylistOption(
         ) {
             item {
                 TopSection(title, painter)
-                Divider(thickness = 2.dp)
+                HorizontalDivider(thickness = 2.dp)
             }
             itemsIndexed(items = addPlaylistList) { _, playlist ->
                 PlaylistViewItem(playlist, clickedToAddSongToPlaylist)
@@ -58,7 +58,7 @@ fun AddPlaylistOption(
             icon = { Icon(Icons.Default.Add, contentDescription = null, tint = Color.White) },
             text = { Text("New Playlist", color = Color.White, fontWeight = FontWeight.Bold) },
             onClick = { openDialog.value = true },
-            backgroundColor = MaterialTheme.colors.primaryVariant,
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 24.dp)

@@ -5,7 +5,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -21,14 +25,13 @@ import com.rld.justlisten.viewmodel.screens.settings.SettingsState
 import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     settings: SettingsState,
     updateSettings: (SettingsState) -> Unit
 ) {
-    val scaffoldState =
-        rememberBottomSheetScaffoldState(bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed))
+    val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineScope = rememberCoroutineScope()
 
     val hasTimerSetup = rememberSaveable {

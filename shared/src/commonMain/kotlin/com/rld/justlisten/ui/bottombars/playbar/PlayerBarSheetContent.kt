@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +26,7 @@ import com.rld.justlisten.ui.bottombars.sheets.BottomSheetScreen
 import com.rld.justlisten.ui.bottombars.sheets.SheetLayout
 import kotlinx.coroutines.delay
 
-@ExperimentalMaterialApi
+@ExperimentalMaterial3Api
 @Composable
 fun PlayerBarSheetContent(
     bottomPadding: Dp,
