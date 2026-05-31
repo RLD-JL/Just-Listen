@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import org.jetbrains.compose.resources.painterResource
+import justlisten.shared.generated.resources.Res
+import justlisten.shared.generated.resources.ic_playlist_add
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -24,7 +26,7 @@ fun AddPlaylistRow(openDialog: MutableState<Boolean>) {
             .clickable(onClick = { openDialog.value = true })
     ) {
         Icon(
-            imageVector = Icons.Default.PlaylistAdd,
+            painter = painterResource(Res.drawable.ic_playlist_add),
             contentDescription = null,
             modifier = Modifier.height(75.dp)
         )

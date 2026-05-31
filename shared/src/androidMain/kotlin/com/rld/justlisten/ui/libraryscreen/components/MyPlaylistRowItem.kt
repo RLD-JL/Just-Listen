@@ -7,8 +7,10 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.runtime.Composable
+import org.jetbrains.compose.resources.painterResource
+import justlisten.shared.generated.resources.Res
+import justlisten.shared.generated.resources.ic_queue_music
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,7 +40,7 @@ fun MyPlaylistRowItem(
     ) {
         Box(contentAlignment = Alignment.TopEnd) {
             Icon(
-                imageVector = Icons.Default.QueueMusic,
+                painter = painterResource(Res.drawable.ic_queue_music),
                 contentDescription = null,
                 modifier = Modifier
                     .size(134.dp)

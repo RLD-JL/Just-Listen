@@ -9,16 +9,18 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LibraryMusic
-import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.LibraryMusic
-import androidx.compose.material.icons.outlined.MonetizationOn
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
+import org.jetbrains.compose.resources.painterResource
+import justlisten.shared.generated.resources.Res
+import justlisten.shared.generated.resources.ic_library_music_filled
+import justlisten.shared.generated.resources.ic_library_music_outlined
+import justlisten.shared.generated.resources.ic_monetization_on_filled
+import justlisten.shared.generated.resources.ic_monetization_on_outlined
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
@@ -75,7 +77,7 @@ fun Level1BottomBar(
         NavigationBarItem(
             icon = {
                 Icon(
-                    if (isSelected(Route.Library)) Icons.Filled.LibraryMusic else Icons.Outlined.LibraryMusic,
+                    painter = if (isSelected(Route.Library)) painterResource(Res.drawable.ic_library_music_filled) else painterResource(Res.drawable.ic_library_music_outlined),
                     contentDescription = "Library",
                 )
             },
@@ -112,7 +114,7 @@ fun Level1BottomBar(
             NavigationBarItem(
                 icon = {
                     Icon(
-                        if (isSelected(Route.Donation)) Icons.Filled.MonetizationOn else Icons.Outlined.MonetizationOn,
+                        painter = if (isSelected(Route.Donation)) painterResource(Res.drawable.ic_monetization_on_filled) else painterResource(Res.drawable.ic_monetization_on_outlined),
                         contentDescription = "Donate",
                     )
                 },

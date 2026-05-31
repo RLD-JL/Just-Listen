@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.runtime.Composable
+import org.jetbrains.compose.resources.painterResource
+import justlisten.shared.generated.resources.Res
+import justlisten.shared.generated.resources.ic_queue_music
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,7 +38,7 @@ fun PlaylistViewItem(
              Box(modifier = Modifier.height(50.dp).width(50.dp).background(Color.Gray))
         } else {
             Icon(
-                imageVector = Icons.Default.QueueMusic,
+                painter = painterResource(Res.drawable.ic_queue_music),
                 contentDescription = null,
                 modifier = Modifier.height(75.dp)
             )
