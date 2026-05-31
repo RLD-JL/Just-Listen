@@ -10,13 +10,13 @@ import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -59,8 +59,7 @@ fun JustListenScaffold(
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val routeLabel = navBackStackEntry?.destination?.route.orEmpty()
-    val showBottomBar =
-        !routeLabel.contains("PlaylistDetail") && !routeLabel.contains("AddPlaylist")
+    val showBottomBar = !routeLabel.contains("AddPlaylist")
 
     val coroutineScope = rememberCoroutineScope()
     val scaffoldState = rememberJustListenScaffoldState(repository, musicPlayer, coroutineScope)
@@ -71,15 +70,7 @@ fun JustListenScaffold(
         val bottomNavHeight = 56.dp
         val density = LocalDensity.current
 
-        // endAnchor = the Y offset at which the minibar's TOP edge sits
-        // so that its BOTTOM edge is flush with the top of the nav bar.
-        //
-        // Total screen height
-        //   minus nav bar height   (so minibar bottom = nav bar top)
-        //   minus minibar height   (so minibar top is above its bottom)
-        //
-        // When showBottomBar is false there's no nav bar, so just leave
-        // room for the minibar above the very bottom of the screen.
+        // Calculate endAnchor based on whether the nav bar is showing
         val endAnchor = with(density) {
             (maxHeight
                     - (if (showBottomBar) bottomNavHeight else 0.dp)
@@ -90,17 +81,24 @@ fun JustListenScaffold(
 
         val decayAnimationSpec = rememberSplineBasedDecay<Float>()
 
-        val anchoredDraggableState = remember(endAnchor) {
+        // FIX 1: Removed `endAnchor` from remember keys so state survives navigation
+        val anchoredDraggableState = remember {
             AnchoredDraggableState(
                 initialValue = PlayBarState.COLLAPSED,
-                anchors = DraggableAnchors {
-                    PlayBarState.EXPANDED at startAnchor
-                    PlayBarState.COLLAPSED at endAnchor
-                },
                 positionalThreshold = { distance: Float -> distance * 0.3f },
                 velocityThreshold = { with(density) { 100.dp.toPx() } },
                 snapAnimationSpec = spring(stiffness = 300f, dampingRatio = 0.8f),
                 decayAnimationSpec = decayAnimationSpec
+            )
+        }
+
+        // FIX 2: Smoothly update the anchors whenever endAnchor changes
+        SideEffect {
+            anchoredDraggableState.updateAnchors(
+                DraggableAnchors {
+                    PlayBarState.EXPANDED at startAnchor
+                    PlayBarState.COLLAPSED at endAnchor
+                }
             )
         }
 
@@ -120,7 +118,7 @@ fun JustListenScaffold(
                 modifier = Modifier.fillMaxSize(),
             ) { innerPadding ->
 
-                // Calculate padding manually since Scaffold no longer reserves space for the nav bar
+                // Calculate padding manually to account for dynamically showing/hiding items
                 val navBarPadding = if (showBottomBar) bottomNavHeight else 0.dp
                 val extraBottom = if (shouldShowPlayBar) minibarHeight else 0.dp
 
@@ -192,14 +190,15 @@ fun JustListenScaffold(
             }
 
             // 3. ── Bottom Navigation (Drawn LAST -> Highest Z-Index) ─────────
+            // FIX 3: Placed at the root Box level so it perfectly overlaps the player
             if (showBottomBar) {
                 Level1BottomBar(
                     navController = navController,
                     showDonationTab = showDonationTab,
                     modifier = Modifier
-                        .align(Alignment.BottomCenter) // Align properly within root Box
+                        .align(Alignment.BottomCenter)
                         .offset {
-                            // Slide the nav bar down as the player fully expands
+                            // Slide the nav bar down out of frame as the player fully expands
                             val progress = if (currentFraction > 0.8f)
                                 (currentFraction - 0.8f) / 0.2f
                             else 0f
