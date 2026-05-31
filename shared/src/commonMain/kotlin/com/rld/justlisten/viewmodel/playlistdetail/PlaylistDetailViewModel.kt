@@ -60,6 +60,11 @@ class PlaylistDetailViewModel(
     }
 
     fun load(args: Route.PlaylistDetail) {
+        if (_playlistDetailState.value.playlistName == args.playlistTitle &&
+            _playlistDetailState.value.songPlaylist.isNotEmpty()
+        ) {
+            return
+        }
         viewModelScope.launch {
             _playlistDetailState.update { 
                 it.copy(

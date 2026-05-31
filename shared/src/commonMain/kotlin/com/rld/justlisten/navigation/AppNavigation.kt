@@ -9,6 +9,19 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 
 
+private fun androidx.navigation.NavBackStackEntry.getTabIndex(): Int {
+    val routeStr = destination.route.orEmpty()
+    return when {
+        routeStr.contains("AddPlaylist") -> 0
+        routeStr.contains("Library") -> 0
+        routeStr.contains("Playlist") -> 1
+        routeStr.contains("Search") -> 2
+        routeStr.contains("Donation") -> 3
+        routeStr.contains("Settings") -> 4
+        else -> -1
+    }
+}
+
 /**
  * Main navigation graph for the app.
  * Handles routing between all screens using platform-specific screen hosts.
@@ -23,10 +36,58 @@ fun AppNavigation(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier,
-        enterTransition = { fadeIn() + slideInHorizontally(initialOffsetX = { 1000 }) },
-        exitTransition = { fadeOut() + slideOutHorizontally(targetOffsetX = { 1000 }) },
-        popEnterTransition = { fadeIn() + slideInHorizontally(initialOffsetX = { -1000 }) },
-        popExitTransition = { fadeOut() + slideOutHorizontally(targetOffsetX = { -1000 }) },
+        enterTransition = {
+            val fromIndex = initialState.getTabIndex()
+            val toIndex = targetState.getTabIndex()
+            if (fromIndex >= 0 && toIndex >= 0 && fromIndex != toIndex) {
+                if (toIndex > fromIndex) {
+                    fadeIn() + slideInHorizontally(initialOffsetX = { 1000 })
+                } else {
+                    fadeIn() + slideInHorizontally(initialOffsetX = { -1000 })
+                }
+            } else {
+                fadeIn() + slideInHorizontally(initialOffsetX = { 1000 })
+            }
+        },
+        exitTransition = {
+            val fromIndex = initialState.getTabIndex()
+            val toIndex = targetState.getTabIndex()
+            if (fromIndex >= 0 && toIndex >= 0 && fromIndex != toIndex) {
+                if (toIndex > fromIndex) {
+                    fadeOut() + slideOutHorizontally(targetOffsetX = { -1000 })
+                } else {
+                    fadeOut() + slideOutHorizontally(targetOffsetX = { 1000 })
+                }
+            } else {
+                fadeOut() + slideOutHorizontally(targetOffsetX = { -1000 })
+            }
+        },
+        popEnterTransition = {
+            val fromIndex = initialState.getTabIndex()
+            val toIndex = targetState.getTabIndex()
+            if (fromIndex >= 0 && toIndex >= 0 && fromIndex != toIndex) {
+                if (toIndex > fromIndex) {
+                    fadeIn() + slideInHorizontally(initialOffsetX = { 1000 })
+                } else {
+                    fadeIn() + slideInHorizontally(initialOffsetX = { -1000 })
+                }
+            } else {
+                fadeIn() + slideInHorizontally(initialOffsetX = { -1000 })
+            }
+        },
+        popExitTransition = {
+            val fromIndex = initialState.getTabIndex()
+            val toIndex = targetState.getTabIndex()
+            if (fromIndex >= 0 && toIndex >= 0 && fromIndex != toIndex) {
+                if (toIndex > fromIndex) {
+                    fadeOut() + slideOutHorizontally(targetOffsetX = { -1000 })
+                } else {
+                    fadeOut() + slideOutHorizontally(targetOffsetX = { 1000 })
+                }
+            } else {
+                fadeOut() + slideOutHorizontally(targetOffsetX = { 1000 })
+            }
+        },
     ) {
         composable<Route.Library> {
             LibraryScreenHost(navController)

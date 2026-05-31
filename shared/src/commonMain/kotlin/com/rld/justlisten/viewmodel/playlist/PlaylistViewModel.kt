@@ -59,6 +59,7 @@ class PlaylistViewModel(
     }
 
     fun refreshScreen() {
+        getNewTracks(TracksCategory.ELECTRONIC, TimeRange.WEEK)
         viewModelScope.launch {
             _playlistState.update { it.copy(isLoading = true) }
             var queryIndex = Random.nextInt(0, list.size)
@@ -100,7 +101,7 @@ class PlaylistViewModel(
                         }
                     }
                     PlayListEnum.REMIX -> {
-                        val items = repository.getPlaylist(index, playlistEnum, queryPlaylist)
+                        val items = repository.getPlaylist(index, playlistEnum, queryPlaylist = queryPlaylist)
                         if (items.size == state.remixPlaylist.size) {
                             state.copy(lastFetchRemix = true)
                         } else {
@@ -108,7 +109,7 @@ class PlaylistViewModel(
                         }
                     }
                     PlayListEnum.HOT -> {
-                        val items = repository.getPlaylist(index, playlistEnum, queryPlaylist)
+                        val items = repository.getPlaylist(index, playlistEnum, queryPlaylist = queryPlaylist)
                         if (items.size == state.hotPlaylist.size) {
                             state.copy(lastFetchHot = true)
                         } else {

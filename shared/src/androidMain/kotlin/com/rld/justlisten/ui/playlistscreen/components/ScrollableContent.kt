@@ -91,7 +91,7 @@ fun ScrollableContent(
                     Text(
                         item.value,
                         onTextLayout = { textLayoutResult ->
-                            tabWidths[selectedTab] =
+                            tabWidths[index] =
                                 with(density) { textLayoutResult.size.width.toDp() }
                         }
                     )
@@ -125,7 +125,7 @@ fun ScrollableContent(
                         Text(
                             item.value,
                             onTextLayout = { textLayoutResult ->
-                                tabWidthsTimeRange[selectedTabTimeRange] =
+                                tabWidthsTimeRange[index] =
                                     with(density) { textLayoutResult.size.width.toDp() }
                             }
                         )
