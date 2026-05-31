@@ -51,14 +51,17 @@ fun PlayBarSwipeActions(
         val width  = widthSize(eased, constraints.maxWidth.value).dp
         val height = heightSize(eased, constraints.maxHeight.value).dp
 
+        val context = LocalPlatformContext.current
         val painter = rememberAsyncImagePainter(
-            model = ImageRequest.Builder(LocalPlatformContext.current)
-                .data(highResIcon.ifEmpty { songIcon })
-                .placeholderMemoryCacheKey(songIcon)
-                .memoryCachePolicy(CachePolicy.ENABLED)
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .crossfade(true)
-                .build()
+            model = remember(highResIcon, songIcon, context) {
+                ImageRequest.Builder(context)
+                    .data(highResIcon.ifEmpty { songIcon })
+                    .placeholderMemoryCacheKey(songIcon)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .crossfade(false)
+                    .build()
+            }
         )
 
         val state by painter.state.collectAsState()

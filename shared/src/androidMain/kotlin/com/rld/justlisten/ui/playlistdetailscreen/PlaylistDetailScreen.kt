@@ -38,10 +38,14 @@ fun PlaylistDetailScreen(
     if (playlistDetailState.isLoading) {
         LoadingScreen()
     } else {
+        val context = LocalPlatformContext.current
+        val placeholderColor = MaterialTheme.colors.secondaryVariant.toArgb()
         val painter = rememberAsyncImagePainter(
-            model = ImageRequest.Builder(context = LocalPlatformContext.current)
-                .placeholder(ColorDrawable(MaterialTheme.colors.secondaryVariant.toArgb()).asImage())
-                .data(playlistDetailState.playlistIcon).build()
+            model = remember(playlistDetailState.playlistIcon, context, placeholderColor) {
+                ImageRequest.Builder(context = context)
+                    .placeholder(ColorDrawable(placeholderColor).asImage())
+                    .data(playlistDetailState.playlistIcon).build()
+            }
         )
 
         val toolbarOffsetHeightPx = remember { mutableStateOf(0f) }

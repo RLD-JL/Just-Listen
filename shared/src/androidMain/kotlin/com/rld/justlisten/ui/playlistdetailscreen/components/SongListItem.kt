@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -24,7 +25,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.SubcomposeAsyncImage
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.collectAsState
+import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.AsyncImagePainter
 import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -49,20 +55,33 @@ fun SongListItem(
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        SubcomposeAsyncImage(model = ImageRequest.Builder(LocalPlatformContext.current)
-            .data(playlistItem.songIconList.songImageURL150px)
-            .memoryCachePolicy(CachePolicy.ENABLED)
-            .diskCachePolicy(CachePolicy.ENABLED)
-            .build(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(55.dp)
-                .padding(4.dp),
-            loading = {
-                AnimatedShimmer(width = 55.dp, height = 55.dp)
+        val context = LocalPlatformContext.current
+        val painter = rememberAsyncImagePainter(
+            model = remember(playlistItem.songIconList.songImageURL150px, context) {
+                ImageRequest.Builder(context)
+                    .data(playlistItem.songIconList.songImageURL150px)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .build()
             }
         )
+        val state by painter.state.collectAsState()
+
+        Box(
+            modifier = Modifier
+                .size(55.dp)
+                .padding(4.dp)
+        ) {
+            Image(
+                painter = painter,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+            if (state is AsyncImagePainter.State.Loading) {
+                AnimatedShimmer(width = 55.dp, height = 55.dp)
+            }
+        }
         Column(
             modifier = Modifier
                 .padding(horizontal = 4.dp)
