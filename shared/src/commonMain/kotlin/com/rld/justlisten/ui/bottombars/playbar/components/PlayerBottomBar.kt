@@ -26,8 +26,7 @@ import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.ui.utils.lerp
 
-// Dark base colour used when collapsed or no artwork colour available
-private val MinibarBackground = Color(0xFF1C1C1E)
+
 
 @Composable
 fun PlayerBottomBar(
@@ -50,10 +49,11 @@ fun PlayerBottomBar(
 ) {
     val playbackState by musicPlayer.playbackState.collectAsState()
 
+    val minibarBackground = androidx.compose.material3.MaterialTheme.colorScheme.background
     val primaryThemeColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
 
     // Dominant color extracted from artwork
-    var targetColor by remember { mutableStateOf(MinibarBackground) }
+    var targetColor by remember(minibarBackground) { mutableStateOf(minibarBackground) }
     val animatedColor by animateColorAsState(
         targetValue = targetColor,
         animationSpec = tween(durationMillis = 800, easing = LinearEasing),
@@ -63,11 +63,11 @@ fun PlayerBottomBar(
     // Ease the fraction for the background blend too
     val eased = FastOutSlowInEasing.transform(currentFraction)
 
-    // Blend: collapsed = MinibarBackground, expanded = dominant color (darkened slightly)
+    // Blend: collapsed = minibarBackground, expanded = dominant color (darkened slightly)
     val blendedBackground = Color(
-        red   = lerp(MinibarBackground.red,   animatedColor.red   * 0.7f, eased).coerceIn(0f, 1f),
-        green = lerp(MinibarBackground.green, animatedColor.green * 0.7f, eased).coerceIn(0f, 1f),
-        blue  = lerp(MinibarBackground.blue,  animatedColor.blue  * 0.7f, eased).coerceIn(0f, 1f),
+        red   = lerp(minibarBackground.red,   animatedColor.red   * 0.7f, eased).coerceIn(0f, 1f),
+        green = lerp(minibarBackground.green, animatedColor.green * 0.7f, eased).coerceIn(0f, 1f),
+        blue  = lerp(minibarBackground.blue,  animatedColor.blue  * 0.7f, eased).coerceIn(0f, 1f),
         alpha = 1f
     )
 
@@ -92,12 +92,11 @@ fun PlayerBottomBar(
                     .fillMaxWidth()
                     .height(1.5.dp)
                     .align(Alignment.TopCenter)
+                    .offset(y = 63.5.dp)
                     .graphicsLayer {
                         alpha = (1f - currentFraction * 4f).coerceIn(0f, 1f)
                     },
-                color = animatedColor.copy(alpha = 0.85f),
-                backgroundColor = Color.White.copy(alpha = 0.15f)
-            )
+                color = animatedColor.copy(alpha = 0.85f))
         }
 
         // ── 2. Album art + minimized controls ───────────────────────────────
