@@ -16,7 +16,7 @@ import androidx.navigation.toRoute
 @Composable
 fun AppNavigation(
     navController: NavHostController,
-    startDestination: Route = Route.Library,
+    startDestination: Route = Route.Playlist,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
@@ -28,7 +28,6 @@ fun AppNavigation(
         popEnterTransition = { fadeIn() + slideInHorizontally(initialOffsetX = { -1000 }) },
         popExitTransition = { fadeOut() + slideOutHorizontally(targetOffsetX = { -1000 }) },
     ) {
-        
         composable<Route.Library> {
             LibraryScreenHost(navController)
         }
