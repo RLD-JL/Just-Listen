@@ -3,6 +3,9 @@ package com.rld.justlisten.ui.bottombars.playbar.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -10,10 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.rld.justlisten.ui.utils.lerp
-import org.jetbrains.compose.resources.painterResource
-import justlisten.shared.generated.resources.Res
-import justlisten.shared.generated.resources.ic_down_arrow_foreground
-import justlisten.shared.generated.resources.ic_more_foreground
 
 @Composable
 fun PlayBarTopSection(
@@ -33,7 +32,7 @@ fun PlayBarTopSection(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(Res.drawable.ic_down_arrow_foreground),
+            imageVector = Icons.Default.ExpandMore,
             modifier = Modifier
                 .size(32.dp)
                 .graphicsLayer {
@@ -46,7 +45,7 @@ fun PlayBarTopSection(
         )
 
         Icon(
-            painter = painterResource(Res.drawable.ic_more_foreground),
+            imageVector = Icons.Default.MoreVert,
             modifier = Modifier
                 .size(32.dp)
                 .graphicsLayer {

@@ -8,6 +8,9 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.TabRowDefaults.Divider
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
@@ -15,10 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.resources.painterResource
-import justlisten.shared.generated.resources.Res
-import justlisten.shared.generated.resources.ic_add_to_playlist_foreground
-import justlisten.shared.generated.resources.ic_down_arrow_foreground
 
 @Composable
 fun PlayBarMoreAction(
@@ -72,8 +71,8 @@ fun MoreOptions(addToPlaylistClicked: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(Res.drawable.ic_add_to_playlist_foreground),
-            contentDescription = "TODO"
+            imageVector = Icons.Default.PlaylistAdd,
+            contentDescription = "Add to playlist"
         )
         Text(textAlign = TextAlign.Center, text = "Add to Playlist")
     }
@@ -86,8 +85,8 @@ fun MoreOptions(addToPlaylistClicked: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(Res.drawable.ic_down_arrow_foreground),
-            contentDescription = "TODO"
+            imageVector = Icons.Default.Download,
+            contentDescription = "Download"
         )
         Text(
             modifier = Modifier,
