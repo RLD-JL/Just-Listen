@@ -33,6 +33,8 @@ import com.rld.justlisten.viewmodel.screens.playlist.*
 import com.rld.justlisten.viewmodel.screens.search.TrackItem
 import java.util.*
 
+import com.rld.justlisten.ui.components.MusicLoadingSpinner
+
 @Composable
 fun ScrollableContent(
     lasItemReached: (Int, PlayListEnum) -> Unit,
@@ -40,6 +42,7 @@ fun ScrollableContent(
     playlistState: PlaylistState,
     onAction: (PlaylistScreenAction) -> Unit
 ) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -175,7 +178,7 @@ fun ScrollableContent(
             contentAlignment = Alignment.Center
         ) {
             if (playlistState.tracksLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                MusicLoadingSpinner(size = 32.dp)
             } else if (playlistState.tracksList.isEmpty()) {
                 Text(
                     text = "No tracks found",

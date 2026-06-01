@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.CircularProgressIndicator
+import com.rld.justlisten.ui.components.MusicLoadingSpinner
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -101,10 +101,9 @@ fun PlayBarActionsMinimized(
                 musicPlayer.play()
         }) {
             if (playbackState.status == PlaybackStatus.BUFFERING) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = Color.White,
-                    strokeWidth = 2.dp
+                MusicLoadingSpinner(
+                    size = 20.dp,
+                    color = Color.White
                 )
             } else {
                 Icon(

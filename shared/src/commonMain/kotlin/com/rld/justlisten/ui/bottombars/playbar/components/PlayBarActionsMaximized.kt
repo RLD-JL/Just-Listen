@@ -38,6 +38,7 @@ import com.rld.justlisten.viewmodel.player.PlayerUiState
 import com.rld.justlisten.ui.actions.PlayerAction
 import com.rld.justlisten.ui.bottombars.playbar.PlayerLayoutInfo
 import com.rld.justlisten.ui.bottombars.playbar.PlayerUiEvent
+import com.rld.justlisten.ui.components.MusicLoadingSpinner
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -185,7 +186,7 @@ fun PlayBarActionsMaximized(
                     contentAlignment = Alignment.Center
                 ) {
                     if (playbackState.status == PlaybackStatus.BUFFERING) {
-                        CircularProgressIndicator(modifier = Modifier.size(40.dp), color = Color.White)
+                        MusicLoadingSpinner(size = 32.dp, color = Color.White)
                     } else {
                         Icon(
                             imageVector = if (playbackState.status == PlaybackStatus.PLAYING) Icons.Default.Pause else Icons.Default.PlayArrow,

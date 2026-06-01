@@ -2,7 +2,10 @@ package com.rld.justlisten.ui.playlistscreen.components
 
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.rld.justlisten.ui.components.MusicLoadingSpinner
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -41,7 +44,10 @@ fun PlaylistRow(
         }
         if (fetchMore.value) {
             item {
-                CircularProgressIndicator()
+                MusicLoadingSpinner(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    size = 32.dp
+                )
             }
         }
     }

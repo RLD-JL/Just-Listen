@@ -29,6 +29,7 @@ import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import com.rld.justlisten.ui.actions.SeeAllAction
 import com.rld.justlisten.ui.components.AnimatedShimmer
+import com.rld.justlisten.ui.components.MusicLoadingSpinner
 import com.rld.justlisten.ui.theme.typography
 import com.rld.justlisten.viewmodel.interfaces.Item
 import com.rld.justlisten.viewmodel.screens.playlist.TimeRange
@@ -146,7 +147,7 @@ fun SeeAllScreen(
                 contentAlignment = Alignment.Center
             ) {
                 if (seeAllState.isLoading && seeAllState.items.isEmpty()) {
-                    CircularProgressIndicator()
+                    MusicLoadingSpinner(size = 40.dp)
                 } else if (seeAllState.items.isEmpty()) {
                     Text(
                         text = "No items found",
@@ -210,7 +211,7 @@ fun SeeAllScreen(
                                         .padding(16.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                    MusicLoadingSpinner(size = 24.dp)
                                 }
                             }
                         }
