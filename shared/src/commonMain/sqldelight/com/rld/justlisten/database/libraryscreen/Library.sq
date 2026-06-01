@@ -53,3 +53,10 @@ upsertLibraryMostPlayed {
     (SELECT favoriteSong FROM Library WHERE id= :id), (SELECT recentIncrement FROM Library WHERE id= :id),
     (SELECT IFNULL(songCounter, 0) +1 FROM Library WHERE id = : id));
 }
+
+getTimeCapsuleSongs:
+SELECT * FROM Library 
+WHERE favoriteSong = 1 OR (songCounter NOT NULL AND songCounter >= 5) 
+ORDER BY IFNULL(recentIncrement, 0) ASC, songCounter DESC 
+LIMIT :limit;
+

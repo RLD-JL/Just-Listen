@@ -69,6 +69,9 @@ actual fun LibraryScreenHost(navController: NavHostController) {
                 )
                 is LibraryScreenAction.DeletePlaylistClicked -> viewModel.deletePlaylist(action.playlistName)
                 is LibraryScreenAction.LastItemReached -> viewModel.loadMoreRecentSongs(action.index)
+                LibraryScreenAction.TimeCapsulePressed -> viewModel.onTimeCapsuleClicked()
+                LibraryScreenAction.ExploreMusicPressed -> viewModel.onExploreMusicClicked()
+                LibraryScreenAction.MusicInsightsPressed -> { /* Handled locally in Composable Dialog */ }
             }
         }
     )

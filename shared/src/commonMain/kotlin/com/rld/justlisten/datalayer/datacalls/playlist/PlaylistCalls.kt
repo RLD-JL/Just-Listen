@@ -5,6 +5,7 @@ import com.rld.justlisten.datalayer.localdb.libraryscreen.getCustomPlaylistSongs
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getFavoritePlaylist
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getFavoritePlaylistWithId
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getMostPlayedSongs
+import com.rld.justlisten.datalayer.localdb.libraryscreen.getTimeCapsuleSongs
 import com.rld.justlisten.datalayer.webservices.apis.playlistcalls.fetchPlaylist
 import com.rld.justlisten.datalayer.webservices.apis.playlistcalls.getTracks
 import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum
@@ -65,6 +66,13 @@ suspend fun Repository.getPlaylist(
         }
         CREATED_BY_USER -> {
             localDb.getCustomPlaylistSongs(songsList).map { playlistModel ->
+                val hasFavorite = localDb.getFavoritePlaylistWithId(playlistModel.id)
+                val isFavorite = !hasFavorite.isNullOrEmpty()
+                PlaylistItem(playlistModel, isFavorite)
+            }.toList()
+        }
+        TIME_CAPSULE -> {
+            localDb.getTimeCapsuleSongs(20).map { playlistModel ->
                 val hasFavorite = localDb.getFavoritePlaylistWithId(playlistModel.id)
                 val isFavorite = !hasFavorite.isNullOrEmpty()
                 PlaylistItem(playlistModel, isFavorite)

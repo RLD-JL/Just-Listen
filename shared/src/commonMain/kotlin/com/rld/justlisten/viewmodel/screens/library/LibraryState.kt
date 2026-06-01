@@ -10,5 +10,9 @@ data class LibraryState(
     val mostPlayedSongs: List<PlaylistItem> = emptyList(),
     val recentSongsItems: List<PlaylistItem> = emptyList(),
     val playlistsCreated: List<AddPlaylist> = emptyList(),
-    var lastIndexReached: Boolean = false
+    var lastIndexReached: Boolean = false,
+    val timeCapsuleSongs: List<PlaylistItem> = emptyList(),
+    val totalPlays: Int = 0,
+    val topArtistName: String = "",
+    val topArtistPlays: Int = 0
 ): ScreenState

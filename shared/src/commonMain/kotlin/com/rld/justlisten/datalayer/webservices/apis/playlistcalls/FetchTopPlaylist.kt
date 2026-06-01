@@ -21,6 +21,7 @@ suspend fun ApiClient.fetchPlaylist(
         FAVORITE       -> TODO()
         CREATED_BY_USER -> TODO()
         MOST_PLAYED    -> TODO()
+        TIME_CAPSULE   -> TODO()
     }
 }
 

@@ -121,3 +121,18 @@ fun LocalDb.getMostPlayedSongs(numberOfSongs: Long): List<PlayListModel> {
             )
         }).executeAsList()
 }
+
+fun LocalDb.getTimeCapsuleSongs(limit: Long): List<PlayListModel> {
+    return libraryQueries.getTimeCapsuleSongs(limit = limit,
+        mapper = { id, title, user, songImgList, _, _, _, _, songCounter ->
+            PlayListModel(
+                id = id,
+                playlistTitle = title,
+                title = title,
+                user = user,
+                songImgList = songImgList,
+                songCounter = songCounter?.toString() ?: "0",
+                isStreamable = true
+            )
+        }).executeAsList()
+}

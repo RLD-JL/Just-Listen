@@ -7,5 +7,6 @@ enum class PlayListEnum {
     CURRENT_PLAYLIST,
     FAVORITE,
     MOST_PLAYED,
-    CREATED_BY_USER
+    CREATED_BY_USER,
+    TIME_CAPSULE
 }

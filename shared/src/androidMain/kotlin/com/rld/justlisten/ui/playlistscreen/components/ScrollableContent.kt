@@ -34,6 +34,9 @@ import com.rld.justlisten.viewmodel.screens.search.TrackItem
 import java.util.*
 
 import com.rld.justlisten.ui.components.MusicLoadingSpinner
+import com.rld.justlisten.ui.LocalMusicPlayer
+import com.rld.justlisten.media.PlaybackStatus
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun ScrollableContent(
@@ -239,6 +242,11 @@ fun TrackCardItem(
     track: TrackItem,
     onClick: () -> Unit
 ) {
+    val musicPlayer = LocalMusicPlayer.current
+    val playbackState by musicPlayer.playbackState.collectAsState()
+    val isPlayingThisTrack = playbackState.status == PlaybackStatus.PLAYING &&
+            playbackState.currentMedia?.id == track.id
+
     val context = LocalPlatformContext.current
     val painter = rememberAsyncImagePainter(
         model = remember(track.songIconList.songImageURL480px, context) {
@@ -265,14 +273,31 @@ fun TrackCardItem(
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painter,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
+            Box(
                 modifier = Modifier
                     .size(56.dp)
                     .clip(RoundedCornerShape(8.dp))
-            )
+            ) {
+                Image(
+                    painter = painter,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+                if (isPlayingThisTrack) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.5f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        MusicLoadingSpinner(
+                            size = 20.dp,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
             Spacer(modifier = Modifier.width(8.dp))
             Column(
                 modifier = Modifier.fillMaxHeight(),

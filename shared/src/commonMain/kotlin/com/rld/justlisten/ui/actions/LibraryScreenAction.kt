@@ -29,4 +29,8 @@ sealed interface LibraryScreenAction {
     data class DeletePlaylistClicked(val playlistName: String) : LibraryScreenAction
 
     data class LastItemReached(val index: Int) : LibraryScreenAction
+
+    data object TimeCapsulePressed : LibraryScreenAction
+    data object MusicInsightsPressed : LibraryScreenAction
+    data object ExploreMusicPressed : LibraryScreenAction
 }

@@ -9,6 +9,7 @@ import com.rld.justlisten.datalayer.localdb.addplaylistscreen.updatePlaylistSong
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getMostPlayedSongs
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getRecentPlayed
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getSongWithId
+import com.rld.justlisten.datalayer.localdb.libraryscreen.getTimeCapsuleSongs
 import com.rld.justlisten.datalayer.localdb.libraryscreen.saveMostPlayedSongs
 import com.rld.justlisten.datalayer.localdb.libraryscreen.saveSongRecentSongs
 import com.rld.justlisten.datalayer.models.PlayListModel
@@ -24,6 +25,7 @@ interface LibraryRepository {
     )
     fun getMostPlayedSongs(numberOfLines: Long): List<PlayListModel>
     fun getRecentSongs(numberOfLines: Long): List<PlayListModel>
+    fun getTimeCapsuleSongs(limit: Long): List<PlayListModel>
     
     // Add Playlist functions
     fun savePlaylist(playlistName: String, playlistDescription: String?)
@@ -54,6 +56,10 @@ class LibraryRepositoryImpl(
 
     override fun getRecentSongs(numberOfLines: Long): List<PlayListModel> {
         return localDb.getRecentPlayed(numberOfLines)
+    }
+
+    override fun getTimeCapsuleSongs(limit: Long): List<PlayListModel> {
+        return localDb.getTimeCapsuleSongs(limit)
     }
 
     override fun savePlaylist(playlistName: String, playlistDescription: String?) {

@@ -37,6 +37,16 @@ class LibraryViewModel(
                 val favorites = favoritesRepository.getFavoritePlaylist().map { PlaylistItem(it, it.isFavorite) }
                 val mostPlayed = libraryRepository.getMostPlayedSongs(20).map { PlaylistItem(it, it.isFavorite) }
                 val playlistsCreated = libraryRepository.getAddPlaylist()
+                val allPlayed = libraryRepository.getMostPlayedSongs(1000)
+                val totalPlays = allPlayed.sumOf { it.songCounter.toIntOrNull() ?: 0 }
+                val topArtistGroup = allPlayed
+                    .groupBy { it.user.username }
+                    .mapValues { entry -> entry.value.sumOf { it.songCounter.toIntOrNull() ?: 0 } }
+                    .maxByOrNull { it.value }
+                val topArtistName = topArtistGroup?.key ?: ""
+                val topArtistPlays = topArtistGroup?.value ?: 0
+                val timeCapsule = libraryRepository.getTimeCapsuleSongs(20).map { PlaylistItem(it, it.isFavorite) }
+                
                 _libraryState.update {
                     it.copy(
                         isLoading = false,
@@ -44,6 +54,10 @@ class LibraryViewModel(
                         favoritePlaylistItems = favorites,
                         mostPlayedSongs = mostPlayed,
                         playlistsCreated = playlistsCreated,
+                        timeCapsuleSongs = timeCapsule,
+                        totalPlays = totalPlays,
+                        topArtistName = topArtistName,
+                        topArtistPlays = topArtistPlays
                     )
                 }
             } catch (e: Exception) {
@@ -84,6 +98,22 @@ class LibraryViewModel(
                 playlistEnum = "MOST_PLAYED",
             ),
         )
+    }
+
+    fun onTimeCapsuleClicked() {
+        navigate(
+            Route.PlaylistDetail(
+                playlistId = "TimeCapsule",
+                playlistIcon = "",
+                playlistTitle = "Time Capsule",
+                playlistCreatedBy = "You",
+                playlistEnum = "TIME_CAPSULE",
+            ),
+        )
+    }
+
+    fun onExploreMusicClicked() {
+        navigate(Route.Playlist)
     }
 
     fun onAddPlaylistClicked() {
