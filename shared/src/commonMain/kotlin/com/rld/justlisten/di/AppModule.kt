@@ -31,5 +31,5 @@ fun appModule() = module {
     viewModel { AddPlaylistViewModel(get()) }
     single { SettingsViewModel(get()) }
     viewModel { DonationViewModel() }
-    viewModel { PlayerViewModel(get(), get()) }
+    viewModel { PlayerViewModel(get(), get(), get()) }
 }

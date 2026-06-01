@@ -35,11 +35,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import org.koin.compose.viewmodel.koinViewModel
 import com.rld.justlisten.viewmodel.player.PlayerViewModel
-import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.navigation.AppNavigation
 import com.rld.justlisten.ui.bottombars.bottombarnav.Level1BottomBar
 import com.rld.justlisten.ui.bottombars.playbar.PlayerBarSheetContent
+import com.rld.justlisten.ui.bottombars.playbar.PlayerLayoutInfo
+import com.rld.justlisten.ui.bottombars.playbar.PlayerUiEvent
 import kotlinx.coroutines.launch
 
 enum class PlayBarState {
@@ -55,9 +56,12 @@ fun JustListenScaffold(
     modifier: Modifier = Modifier,
 ) {
     val viewModel: PlayerViewModel = koinViewModel()
-    val musicPlayer = LocalMusicPlayer.current
-    val addPlaylistList by viewModel.addPlaylistList.collectAsState()
-    val playbackState by musicPlayer.playbackState.collectAsState()
+    val uiState by viewModel.playerUiState.collectAsState()
+    
+    val playbackState = uiState.playbackState ?: com.rld.justlisten.media.PlaybackState(
+        status = PlaybackStatus.IDLE,
+        currentPosition = 0
+    )
     val shouldShowPlayBar = playbackState.status == PlaybackStatus.PLAYING ||
             playbackState.status == PlaybackStatus.PAUSED ||
             playbackState.status == PlaybackStatus.BUFFERING ||
@@ -70,8 +74,6 @@ fun JustListenScaffold(
     val primaryThemeColor = MaterialTheme.colorScheme.primary
 
     val coroutineScope = rememberCoroutineScope()
-
-    var dominantColor by remember { mutableStateOf(Color.Transparent) }
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val maxHeight = this.maxHeight
@@ -164,41 +166,30 @@ fun JustListenScaffold(
                         )
                 ) {
                     PlayerBarSheetContent(
-                        bottomPadding = if (showBottomBar) bottomNavHeight else 0.dp,
-                        currentFraction = currentFraction,
-                        isExtended = anchoredDraggableState.currentValue == PlayBarState.EXPANDED,
-                        onSkipNextPressed = { musicPlayer.skipToNext() },
-                        onCollapsedClicked = {
-                            coroutineScope.launch {
-                                anchoredDraggableState.animateTo(PlayBarState.COLLAPSED)
+                        uiState = uiState,
+                        layoutInfo = PlayerLayoutInfo(
+                            bottomPadding = if (showBottomBar) bottomNavHeight else 0.dp,
+                            currentFraction = currentFraction,
+                            isExtended = anchoredDraggableState.currentValue == PlayBarState.EXPANDED
+                        ),
+                        onAction = { action ->
+                            viewModel.onAction(action)
+                        },
+                        onUiEvent = { uiEvent ->
+                            when (uiEvent) {
+                                PlayerUiEvent.Collapse -> {
+                                    coroutineScope.launch {
+                                        anchoredDraggableState.animateTo(PlayBarState.COLLAPSED)
+                                    }
+                                }
+                                PlayerUiEvent.Expand -> {
+                                    coroutineScope.launch {
+                                        anchoredDraggableState.animateTo(PlayBarState.EXPANDED)
+                                    }
+                                }
+                                else -> Unit
                             }
-                        },
-                        onFavoritePressed = { id, title, user, songIcon, isFavorite ->
-                            viewModel.saveSongToFavorites(
-                                id, title, user, songIcon, isFavorite, musicPlayer
-                            )
-                        },
-                        addPlaylistList = addPlaylistList,
-                        onAddPlaylistClicked = { name, description ->
-                            viewModel.savePlaylist(name, description)
-                        },
-                        getLatestPlaylist = {
-                            viewModel.loadAddPlaylists()
-                        },
-                        clickedToAddSongToPlaylist = { title, description, songs ->
-                            viewModel.updatePlaylistSongs(title, description, songs)
-                        },
-                        newDominantColor = { colorInt ->
-                            // Blend the extracted color with the theme's primary color
-                            val extracted = Color(colorInt)
-                            val blended = lerp(extracted, primaryThemeColor, 0.3f)
-                            dominantColor = blended.copy(alpha = 0.3f)
-                        },
-                        playBarMinimizedClicked = {
-                            coroutineScope.launch {
-                                anchoredDraggableState.animateTo(PlayBarState.EXPANDED)
-                            }
-                        },
+                        }
                     )
                 }
             }

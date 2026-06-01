@@ -3,14 +3,14 @@ package com.rld.justlisten.media
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import com.rld.justlisten.media.exoplayer.MusicServiceConnection
-import com.rld.justlisten.datalayer.datacalls.library.getFavoritePlaylistWithId
+import com.rld.justlisten.datalayer.repositories.FavoritesRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class AndroidMusicPlayer(
     val musicServiceConnection: MusicServiceConnection,
-    private val repository: com.rld.justlisten.datalayer.Repository
+    private val favoritesRepository: FavoritesRepository
 ) : MusicPlayer {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -51,7 +51,7 @@ class AndroidMusicPlayer(
         }
 
         scope.launch {
-            repository.getFavoritePlaylistFlow().collect { favoriteList ->
+            favoritesRepository.getFavoritePlaylistFlow().collect { favoriteList ->
                 val favoriteIds = favoriteList.map { it.id }.toSet()
                 if (favoriteIds.contains(_playbackState.value.currentMedia?.id)) {
                     refreshMetadata()
@@ -183,7 +183,7 @@ class AndroidMusicPlayer(
             duration = musicServiceConnection.mediaController?.duration ?: 0L,
             artworkUrl = metadata.artworkUri?.toString(),
             lowResArtworkUrl = metadata.artworkUri?.toString(),
-            isFavorite = repository.getFavoritePlaylistWithId(id) != null
+            isFavorite = favoritesRepository.getFavoritePlaylistWithId(id) != null
         )
     }
     

@@ -12,6 +12,9 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -23,7 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rld.justlisten.media.MusicPlayer
@@ -32,19 +34,29 @@ import com.rld.justlisten.media.RepeatMode
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.ui.LocalMusicPlayer
+import com.rld.justlisten.viewmodel.player.PlayerUiState
+import com.rld.justlisten.ui.actions.PlayerAction
+import com.rld.justlisten.ui.bottombars.playbar.PlayerLayoutInfo
+import com.rld.justlisten.ui.bottombars.playbar.PlayerUiEvent
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayBarActionsMaximized(
-    bottomPadding: Dp,
-    currentFraction: Float,
-    title: String,
-    onSkipNextPressed: () -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    onSaveClicked: () -> Unit,
+    uiState: PlayerUiState,
+    layoutInfo: PlayerLayoutInfo,
+    onAction: (PlayerAction) -> Unit,
+    onUiEvent: (PlayerUiEvent) -> Unit
 ) {
     val musicPlayer = LocalMusicPlayer.current
-    val playbackState by musicPlayer.playbackState.collectAsState()
+    val playbackState = uiState.playbackState ?: com.rld.justlisten.media.PlaybackState(
+        status = com.rld.justlisten.media.PlaybackStatus.IDLE,
+        currentPosition = 0
+    )
     val artist = playbackState.currentMedia?.artist ?: ""
+    val title = playbackState.currentMedia?.title ?: ""
+
+    val currentFraction = layoutInfo.currentFraction
+    val bottomPadding = layoutInfo.bottomPadding
 
     if (currentFraction > 0.5f) {
         val sliderPosition = if (playbackState.currentMedia?.duration ?: 0L > 0) {
@@ -93,11 +105,20 @@ fun PlayBarActionsMaximized(
             ) {
                 SocialButton(icon = if (playbackState.currentMedia?.isFavorite == true) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder, text = null) {
                     playbackState.currentMedia?.let {
-                        onFavoritePressed(it.id, it.title, UserModel(it.artist), SongIconList(it.artworkUrl ?: "", it.artworkUrl ?: "", it.artworkUrl ?: ""), !it.isFavorite)
+                        onAction(
+                            PlayerAction.ToggleFavorite(
+                                songId = it.id,
+                                title = it.title,
+                                user = UserModel(it.artist),
+                                songIcon = SongIconList(it.artworkUrl ?: "", it.artworkUrl ?: "", it.artworkUrl ?: ""),
+                                isFavorite = !it.isFavorite
+                            )
+                        )
                     }
                 }
                 SocialButton(icon = Icons.Default.Add, text = "Save") {
-                    onSaveClicked()
+                    onAction(PlayerAction.LoadPlaylists)
+                    onUiEvent(PlayerUiEvent.OpenAddPlaylist)
                 }
                 SocialButton(icon = Icons.Outlined.Share, text = "Share")
             }
@@ -106,18 +127,26 @@ fun PlayBarActionsMaximized(
 
             // Slider and Time Labels
             Column(modifier = Modifier.fillMaxWidth()) {
-                Slider(
-                    value = sliderPosition,
-                    onValueChange = {
-                        val newPos = (it * (playbackState.currentMedia?.duration ?: 0L)).toLong()
-                        musicPlayer.seekTo(newPos)
-                    },
-                    colors = SliderDefaults.colors(
-                        thumbColor = Color.White,
-                        activeTrackColor = Color.White,
-                        inactiveTrackColor = Color.White.copy(alpha = 0.2f)
+                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+                    Slider(
+                        value = sliderPosition,
+                        onValueChange = {
+                            val newPos = (it * (playbackState.currentMedia?.duration ?: 0L)).toLong()
+                            musicPlayer.seekTo(newPos)
+                        },
+                        thumb = {
+                            SliderDefaults.Thumb(
+                                interactionSource = remember { MutableInteractionSource() },
+                                colors = SliderDefaults.colors(thumbColor = Color.White),
+                                thumbSize = DpSize(12.dp, 12.dp)
+                            )
+                        },
+                        colors = SliderDefaults.colors(
+                            activeTrackColor = Color.White,
+                            inactiveTrackColor = Color.White.copy(alpha = 0.2f)
+                        )
                     )
-                )
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -167,7 +196,7 @@ fun PlayBarActionsMaximized(
                     }
                 }
 
-                IconButton(onClick = onSkipNextPressed, modifier = Modifier.size(48.dp)) {
+                IconButton(onClick = { onAction(PlayerAction.SkipNext) }, modifier = Modifier.size(48.dp)) {
                     Icon(imageVector = Icons.Default.SkipNext, contentDescription = null, tint = Color.White, modifier = Modifier.size(32.dp))
                 }
                 

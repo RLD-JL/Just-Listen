@@ -12,43 +12,40 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.rld.justlisten.media.MusicPlayer
-import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.ui.extensions.noRippleClickable
 import com.rld.justlisten.datalayer.models.SongIconList
-import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.ui.utils.lerp
-
-
+import com.rld.justlisten.viewmodel.player.PlayerUiState
+import com.rld.justlisten.ui.actions.PlayerAction
+import com.rld.justlisten.ui.bottombars.playbar.PlayerLayoutInfo
+import com.rld.justlisten.ui.bottombars.playbar.PlayerUiEvent
 
 @Composable
 fun PlayerBottomBar(
-    bottomPadding: Dp,
-    currentFraction: Float,
-    isExtended: Boolean,
-    songIcon: String,
-    artworkUrl: String,
-    title: String,
-    onSkipNextPressed: () -> Unit,
-    onCollapsedClicked: () -> Unit,
-    onMoreClicked: () -> Unit,
-    onBackgroundClicked: () -> Unit,
-    painterLoaded: (Painter) -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    onSaveClicked: () -> Unit,
-    newDominantColor: (Int) -> Unit,
-    playBarMinimizedClicked: () -> Unit
+    uiState: PlayerUiState,
+    layoutInfo: PlayerLayoutInfo,
+    onAction: (PlayerAction) -> Unit,
+    onUiEvent: (PlayerUiEvent) -> Unit
 ) {
-    val musicPlayer = LocalMusicPlayer.current
-    val playbackState by musicPlayer.playbackState.collectAsState()
+    val playbackState = uiState.playbackState ?: com.rld.justlisten.media.PlaybackState(
+        status = com.rld.justlisten.media.PlaybackStatus.IDLE,
+        currentPosition = 0
+    )
+
+    val currentMedia = playbackState.currentMedia
+    val songIcon = currentMedia?.lowResArtworkUrl ?: currentMedia?.artworkUrl ?: ""
+    val artworkUrl = currentMedia?.artworkUrl ?: ""
+    val title = currentMedia?.title ?: ""
+
+    val currentFraction = layoutInfo.currentFraction
+    val bottomPadding = layoutInfo.bottomPadding
 
     val minibarBackground = androidx.compose.material3.MaterialTheme.colorScheme.background
     val primaryThemeColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
@@ -76,7 +73,7 @@ fun PlayerBottomBar(
         modifier = Modifier
             .fillMaxSize()
             .background(blendedBackground)
-            .noRippleClickable { onBackgroundClicked() }
+            .noRippleClickable { onUiEvent(PlayerUiEvent.CloseSheet) }
     ) {
         val constraints = this@BoxWithConstraints
 
@@ -88,16 +85,19 @@ fun PlayerBottomBar(
 
         if (!progress.isNaN() && currentFraction < 0.99f) {
             LinearProgressIndicator(
-                progress = progress,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.5.dp)
-                    .align(Alignment.TopCenter)
-                    .offset(y = 63.5.dp)
-                    .graphicsLayer {
-                        alpha = (1f - currentFraction * 4f).coerceIn(0f, 1f)
-                    },
-                color = animatedColor.copy(alpha = 0.85f))
+            progress = { progress },
+            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.5.dp)
+                                .align(Alignment.TopCenter)
+                                .offset(y = 63.5.dp)
+                                .graphicsLayer {
+                                    alpha = (1f - currentFraction * 4f).coerceIn(0f, 1f)
+                                },
+            color = animatedColor.copy(alpha = 0.85f),
+            trackColor = ProgressIndicatorDefaults.linearTrackColor,
+            strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+            )
         }
 
         // ── 2. Album art + minimized controls ───────────────────────────────
@@ -107,15 +107,17 @@ fun PlayerBottomBar(
             currentFraction = currentFraction,
             constraints = constraints,
             title = title,
-            onSkipNextPressed = onSkipNextPressed,
-            painterLoaded = painterLoaded,
-            onFavoritePressed = onFavoritePressed,
+            onSkipNextPressed = { onAction(PlayerAction.SkipNext) },
+            painterLoaded = { onUiEvent(PlayerUiEvent.PainterLoaded(it)) },
+            onFavoritePressed = { songId, songTitle, songUser, songIconList, isFav ->
+                onAction(PlayerAction.ToggleFavorite(songId, songTitle, songUser, songIconList, isFav))
+            },
             newDominantColor = { color ->
                 val extracted = Color(color)
                 targetColor = androidx.compose.ui.graphics.lerp(extracted, primaryThemeColor, 0.3f)
-                newDominantColor(color)
+                onUiEvent(PlayerUiEvent.DominantColorExtracted(color))
             },
-            playBarMinimizedClicked = playBarMinimizedClicked
+            playBarMinimizedClicked = { onUiEvent(PlayerUiEvent.Expand) }
         )
 
         // ── 3. Top section: collapse arrow + more (expanded only) ───────────
@@ -124,7 +126,11 @@ fun PlayerBottomBar(
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
         ) {
-            PlayBarTopSection(currentFraction, onCollapsedClicked, onMoreClicked)
+            PlayBarTopSection(
+                currentFraction = currentFraction,
+                onCollapsedClicked = { onUiEvent(PlayerUiEvent.Collapse) },
+                onMoreClicked = { onUiEvent(PlayerUiEvent.OpenMore) }
+            )
         }
 
         // ── 4. Playback controls + seek bar (fade in after 40% expanded) ────
@@ -142,12 +148,10 @@ fun PlayerBottomBar(
                 .padding(bottom = 56.dp)
         ) {
             PlayBarActionsMaximized(
-                bottomPadding = bottomPadding,
-                currentFraction = currentFraction,
-                title = title,
-                onSkipNextPressed = onSkipNextPressed,
-                onFavoritePressed = onFavoritePressed,
-                onSaveClicked = onSaveClicked
+                uiState = uiState,
+                layoutInfo = layoutInfo,
+                onAction = onAction,
+                onUiEvent = onUiEvent
             )
         }
 

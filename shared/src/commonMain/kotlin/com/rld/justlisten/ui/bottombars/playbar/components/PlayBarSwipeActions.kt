@@ -16,7 +16,6 @@ import coil3.compose.rememberAsyncImagePainter
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.ui.components.AnimatedShimmer
 import com.rld.justlisten.ui.utils.heightSize
 import com.rld.justlisten.ui.utils.lerp

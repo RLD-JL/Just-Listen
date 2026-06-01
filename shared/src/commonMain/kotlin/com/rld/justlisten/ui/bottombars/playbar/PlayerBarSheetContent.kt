@@ -15,56 +15,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.unit.Dp
-import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
-import com.rld.justlisten.datalayer.models.SongIconList
-import com.rld.justlisten.datalayer.models.UserModel
-import com.rld.justlisten.media.MusicPlayer
-import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.ui.bottombars.playbar.components.PlayerBottomBar
 import com.rld.justlisten.ui.bottombars.sheets.BottomSheetScreen
 import com.rld.justlisten.ui.bottombars.sheets.SheetLayout
-import kotlinx.coroutines.delay
+import com.rld.justlisten.viewmodel.player.PlayerUiState
+import com.rld.justlisten.ui.actions.PlayerAction
 
 @ExperimentalMaterial3Api
 @Composable
 fun PlayerBarSheetContent(
-    bottomPadding: Dp,
-    currentFraction: Float,
-    isExtended: Boolean,
-    onSkipNextPressed: () -> Unit,
-    onCollapsedClicked: () -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    addPlaylistList: List<AddPlaylist>,
-    onAddPlaylistClicked: (String, String?) -> Unit,
-    getLatestPlaylist: () -> Unit,
-    clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit,
-    newDominantColor: (Int) -> Unit,
-    playBarMinimizedClicked: () -> Unit,
+    uiState: PlayerUiState,
+    layoutInfo: PlayerLayoutInfo,
+    onAction: (PlayerAction) -> Unit,
+    onUiEvent: (PlayerUiEvent) -> Unit
 ) {
-    val musicPlayer = LocalMusicPlayer.current
-    val playbackState by musicPlayer.playbackState.collectAsState()
-
-    // 1. Create mutable states instead of derived states
-    var songIcon by remember { mutableStateOf("") }
-    var artworkUrl by remember { mutableStateOf("") }
-    var title by remember { mutableStateOf("") }
-
-    // 2. Key the LaunchedEffect to the ID of the current media
-    val currentMediaId = playbackState.currentMedia?.id
-
-    LaunchedEffect(currentMediaId) {
-        // 3. Add a small delay (debounce).
-        // If the ID changes again before 200ms, this coroutine cancels and restarts.
-        delay(200)
-
-        // 4. Update the UI state only after the player has settled
-        songIcon = playbackState.currentMedia?.lowResArtworkUrl
-            ?: playbackState.currentMedia?.artworkUrl
-                    ?: ""
-        artworkUrl = playbackState.currentMedia?.artworkUrl ?: ""
-        title = playbackState.currentMedia?.title ?: ""
-    }
+    val playbackState = uiState.playbackState ?: com.rld.justlisten.media.PlaybackState(
+        status = com.rld.justlisten.media.PlaybackStatus.IDLE,
+        currentPosition = 0
+    )
 
     val mutablePainter = remember { mutableStateOf<Painter?>(null) }
 
@@ -78,21 +46,20 @@ fun PlayerBarSheetContent(
 
         // Main player content
         PlayerBottomBar(
-            onCollapsedClicked = onCollapsedClicked,
-            bottomPadding = bottomPadding,
-            currentFraction = currentFraction,
-            isExtended = isExtended,
-            songIcon = songIcon,
-            artworkUrl = artworkUrl,
-            title = title,
-            onSkipNextPressed = onSkipNextPressed,
-            onMoreClicked = { openSheet(BottomSheetScreen.More) },
-            onBackgroundClicked = { closeSheet() },
-            painterLoaded = { painter -> mutablePainter.value = painter },
-            playBarMinimizedClicked = playBarMinimizedClicked,
-            onFavoritePressed = onFavoritePressed,
-            onSaveClicked = { openSheet(BottomSheetScreen.AddPlaylist) },
-            newDominantColor = newDominantColor
+            uiState = uiState,
+            layoutInfo = layoutInfo,
+            onAction = onAction,
+            onUiEvent = { event ->
+                when (event) {
+                    PlayerUiEvent.OpenMore -> openSheet(BottomSheetScreen.More)
+                    PlayerUiEvent.CloseSheet -> closeSheet()
+                    PlayerUiEvent.OpenAddPlaylist -> openSheet(BottomSheetScreen.AddPlaylist)
+                    is PlayerUiEvent.PainterLoaded -> {
+                        mutablePainter.value = event.painter
+                    }
+                    else -> onUiEvent(event) // Forward visual Collapse, Expand, DominantColor up to Scaffold
+                }
+            }
         )
 
         // Secondary sheet overlay (More / AddPlaylist)
@@ -117,19 +84,23 @@ fun PlayerBarSheetContent(
                     SheetLayout(
                         currentSheet,
                         closeSheet,
-                        title,
+                        playbackState.currentMedia?.title.orEmpty(),
                         mutablePainter,
                         openSheet,
-                        addPlaylistList,
-                        onAddPlaylistClicked,
-                        getLatestPlaylist,
+                        uiState.addPlaylistList,
+                        onAddPlaylistClicked = { name, desc ->
+                            onAction(PlayerAction.CreatePlaylist(name, desc))
+                        },
+                        getLatestPlaylist = {
+                            onAction(PlayerAction.LoadPlaylists)
+                        },
                         clickedToAddSongToPlaylist = { playlistTitle, playlistDescription, songList ->
                             closeSheet()
-                            clickedToAddSongToPlaylist(
+                            onAction(PlayerAction.AddSongToPlaylist(
                                 playlistTitle,
                                 playlistDescription,
                                 songList
-                            )
+                            ))
                         },
                     )
                 }

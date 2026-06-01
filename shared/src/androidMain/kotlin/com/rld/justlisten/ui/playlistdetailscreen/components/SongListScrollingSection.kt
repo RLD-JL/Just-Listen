@@ -12,7 +12,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import com.rld.justlisten.ui.theme.typography
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,6 +61,7 @@ fun SongListScrollingSection(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadedRow() {
     Row(
@@ -72,11 +75,13 @@ fun DownloadedRow() {
             style = typography.titleMedium.copy(fontSize = 14.sp)
         )
         var switched by remember { mutableStateOf(true) }
-        Switch(
-            checked = switched,
-            modifier = Modifier.padding(8.dp),
-            onCheckedChange = { switched = it }
-        )
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+            Switch(
+                checked = switched,
+                modifier = Modifier.padding(8.dp),
+                onCheckedChange = { switched = it }
+            )
+        }
     }
 }
 
