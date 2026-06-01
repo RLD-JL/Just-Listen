@@ -276,6 +276,9 @@ actual fun SettingsScreenHost(navController: NavHostController) {
                 viewModel.onPaletteSelected(updated.palletColor)
             }
         },
+        onNavigateToCustomTheme = {
+            navController.navigate(com.rld.justlisten.navigation.Route.CustomTheme)
+        }
     )
 }
 
@@ -318,6 +321,23 @@ actual fun SeeAllScreenHost(
                 is SeeAllAction.ChangeTimeRange -> viewModel.changeTimeRange(action.timeRange)
                 is SeeAllAction.ChangeGenre -> viewModel.changeGenre(action.genre)
             }
+        }
+    )
+}
+
+@Composable
+actual fun CustomThemeScreenHost(navController: NavHostController) {
+    val viewModel: SettingsViewModel = koinInject()
+    val state by viewModel.settingsState.collectAsState()
+
+    com.rld.justlisten.ui.settingsscreen.CustomThemeScreen(
+        settings = state,
+        onBackPressed = { navController.popBackStack() },
+        onCustomColorsApplied = { primary, secondary, background, surface ->
+            viewModel.updateCustomColors(primary, secondary, background, surface)
+        },
+        onPaletteSelected = { color ->
+            viewModel.onPaletteSelected(color)
         }
     )
 }

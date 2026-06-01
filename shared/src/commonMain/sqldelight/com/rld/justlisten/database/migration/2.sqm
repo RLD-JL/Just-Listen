@@ -1,0 +1,4 @@
+ALTER TABLE SettingsInfo ADD COLUMN customPrimary TEXT;
+ALTER TABLE SettingsInfo ADD COLUMN customSecondary TEXT;
+ALTER TABLE SettingsInfo ADD COLUMN customBackground TEXT;
+ALTER TABLE SettingsInfo ADD COLUMN customSurface TEXT;

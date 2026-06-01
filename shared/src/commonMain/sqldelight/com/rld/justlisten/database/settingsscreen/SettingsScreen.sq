@@ -4,15 +4,19 @@ CREATE TABLE SettingsInfo (
      id INTEGER PRIMARY KEY DEFAULT 1,
      hasNavigationDonationOn INTEGER AS Boolean NOT NULL,
      isDarkThemeOn  INTEGER  AS Boolean  NOT NULL,
-     palletColor  TEXT  NOT NULL
+     palletColor  TEXT  NOT NULL,
+     customPrimary TEXT,
+     customSecondary TEXT,
+     customBackground TEXT,
+     customSurface TEXT
 );
 
-INSERT INTO SettingsInfo(hasNavigationDonationOn, isDarkThemeOn, palletColor) VALUES (0, 1, "Dark");
+INSERT INTO SettingsInfo(hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface) VALUES (0, 1, "Pink", NULL, NULL, NULL, NULL);
 
 getSettingsInfo:
 SELECT * FROM SettingsInfo;
 
 upsertSettingsInfo {
-    REPLACE INTO SettingsInfo(id, hasNavigationDonationOn, isDarkThemeOn, palletColor)
-    VALUES(1, :hasNavigationDonationOn, :isDarkThemeOn, :palletColor) ;
+    REPLACE INTO SettingsInfo(id, hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface)
+    VALUES(1, :hasNavigationDonationOn, :isDarkThemeOn, :palletColor, :customPrimary, :customSecondary, :customBackground, :customSurface) ;
 }

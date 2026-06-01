@@ -76,11 +76,32 @@ class FakeSettingsRepository : SettingsRepository {
         id = 1L,
         hasNavigationDonationOn = true,
         isDarkThemeOn = true,
-        palletColor = "Blue"
+        palletColor = "Blue",
+        customPrimary = null,
+        customSecondary = null,
+        customBackground = null,
+        customSurface = null
     )
 
-    override fun saveSettingsInfo(hasNavigationDonationOn: Boolean, isDarkThemeOn: Boolean, palletColor: String) {
-        info = SettingsInfo(1L, hasNavigationDonationOn, isDarkThemeOn, palletColor)
+    override fun saveSettingsInfo(
+        hasNavigationDonationOn: Boolean,
+        isDarkThemeOn: Boolean,
+        palletColor: String,
+        customPrimary: String?,
+        customSecondary: String?,
+        customBackground: String?,
+        customSurface: String?,
+    ) {
+        info = SettingsInfo(
+            id = 1L,
+            hasNavigationDonationOn = hasNavigationDonationOn,
+            isDarkThemeOn = isDarkThemeOn,
+            palletColor = palletColor,
+            customPrimary = customPrimary,
+            customSecondary = customSecondary,
+            customBackground = customBackground,
+            customSurface = customSurface
+        )
     }
 
     override fun getSettingsInfo(): SettingsInfo = info

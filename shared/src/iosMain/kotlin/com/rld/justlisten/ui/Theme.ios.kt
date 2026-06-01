@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 actual fun JustListenTheme(
     darkTheme: Boolean,
     palletColor: String,
+    customColors: com.rld.justlisten.ui.theme.CustomThemeColors,
     content: @Composable () -> Unit,
 ) {
     // iOS: basic dark/light theme support

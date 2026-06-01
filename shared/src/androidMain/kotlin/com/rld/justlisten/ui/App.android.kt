@@ -28,11 +28,13 @@ fun findActivity(context: Context): Activity? {
 actual fun JustListenTheme(
     darkTheme: Boolean,
     palletColor: String,
+    customColors: com.rld.justlisten.ui.theme.CustomThemeColors,
     content: @Composable () -> Unit,
 ) {
     AndroidJustListenTheme(
         darkTheme = darkTheme,
         colorPallet = getColorPallet(palletColor),
+        customColors = customColors,
         content = content,
     )
 }

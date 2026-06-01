@@ -85,3 +85,10 @@ actual fun MusicInsightsScreenHost(navController: NavHostController) {
     }
 }
 
+@Composable
+actual fun CustomThemeScreenHost(navController: NavHostController) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text("Custom Theme Screen - iOS")
+    }
+}
+

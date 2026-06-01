@@ -26,9 +26,16 @@ fun JustListenApp(
     CompositionLocalProvider(
         LocalMusicPlayer provides musicPlayer
     ) {
+        val customColors = com.rld.justlisten.ui.theme.CustomThemeColors(
+            primary = settingsState.customPrimary,
+            secondary = settingsState.customSecondary,
+            background = settingsState.customBackground,
+            surface = settingsState.customSurface,
+        )
         JustListenTheme(
             darkTheme = settingsState.isDarkThemeOn,
             palletColor = settingsState.palletColor,
+            customColors = customColors,
         ) {
             Surface(
                 modifier = modifier.fillMaxSize(),

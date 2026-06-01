@@ -14,6 +14,8 @@ fun getColorPallet(pallet: String): ColorPallet {
         "Blue" -> ColorPallet.Blue
         "Orange" -> ColorPallet.Orange
         "Pink" -> ColorPallet.Pink
+        "Custom" -> ColorPallet.Custom
+        "Expressive" -> ColorPallet.Expressive
         else -> ColorPallet.Dark
     }
 }

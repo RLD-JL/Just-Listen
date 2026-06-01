@@ -119,6 +119,9 @@ fun Level1BottomBar(
                 is Route.MusicInsights -> {
                     lastActiveRoutes[currentTab] = currentRoute
                 }
+                Route.CustomTheme -> {
+                    // Do not store the transient CustomTheme route as the active tab route
+                }
             }
             }
         }

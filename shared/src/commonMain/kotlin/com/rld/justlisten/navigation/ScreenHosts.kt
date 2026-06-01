@@ -39,3 +39,6 @@ expect fun SeeAllScreenHost(
     navController: NavHostController,
     args: Route.SeeAll,
 )
+
+@Composable
+expect fun CustomThemeScreenHost(navController: NavHostController)

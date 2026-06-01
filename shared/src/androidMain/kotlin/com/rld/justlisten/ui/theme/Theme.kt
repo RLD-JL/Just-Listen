@@ -7,6 +7,12 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
+import android.os.Build
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 
 private val DarkGreenColorPalette = darkColorScheme(
     primary = greenPrimary,
@@ -193,16 +199,76 @@ private val LightPinkColorPalette = lightColorScheme(
 )
 
 enum class ColorPallet {
-    Purple, Green, Orange, Blue, Dark, Pink
+    Purple, Green, Orange, Blue, Dark, Pink, Expressive, Custom
 }
 
+fun parseHexColor(hex: String?, fallback: Color): Color {
+    if (hex.isNullOrBlank()) return fallback
+    val cleaned = hex.trim().replace("#", "")
+    return try {
+        val longVal = cleaned.toLong(16)
+        if (cleaned.length == 6) {
+            Color(longVal or 0xFF000000)
+        } else {
+            Color(longVal)
+        }
+    } catch (_: Exception) {
+        fallback
+    }
+}
+
+private fun createCustomColorScheme(
+    darkTheme: Boolean,
+    customColors: CustomThemeColors
+): ColorScheme {
+    val defaultPrimary = if (darkTheme) primaryDark000 else primaryLightDark000
+    val defaultSecondary = if (darkTheme) secondaryDark else secondaryLightDark
+    val defaultBackground = if (darkTheme) Color.Black else Color.White
+    val defaultSurface = if (darkTheme) Color.DarkGray else Color.LightGray
+
+    val primary = parseHexColor(customColors.primary, defaultPrimary)
+    val secondary = parseHexColor(customColors.secondary, defaultSecondary)
+    val background = parseHexColor(customColors.background, defaultBackground)
+    val surface = parseHexColor(customColors.surface, defaultSurface)
+
+    val primaryLuminance = primary.luminance()
+    val secondaryLuminance = secondary.luminance()
+    val backgroundLuminance = background.luminance()
+    val surfaceLuminance = surface.luminance()
+
+    return if (darkTheme) {
+        darkColorScheme(
+            primary = primary,
+            secondary = secondary,
+            background = background,
+            surface = surface,
+            onPrimary = if (primaryLuminance > 0.5f) Color.Black else Color.White,
+            onSecondary = if (secondaryLuminance > 0.5f) Color.Black else Color.White,
+            onBackground = if (backgroundLuminance > 0.5f) Color.Black else Color.White,
+            onSurface = if (surfaceLuminance > 0.5f) Color.Black else Color.White,
+        )
+    } else {
+        lightColorScheme(
+            primary = primary,
+            secondary = secondary,
+            background = background,
+            surface = surface,
+            onPrimary = if (primaryLuminance > 0.5f) Color.Black else Color.White,
+            onSecondary = if (secondaryLuminance > 0.5f) Color.Black else Color.White,
+            onBackground = if (backgroundLuminance > 0.5f) Color.Black else Color.White,
+            onSurface = if (surfaceLuminance > 0.5f) Color.Black else Color.White,
+        )
+    }
+}
 
 @Composable
 fun JustListenTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     colorPallet: ColorPallet = ColorPallet.Dark,
+    customColors: CustomThemeColors = CustomThemeColors(),
     content: @Composable () -> Unit,
 ) {
+    val context = LocalContext.current
     val colors = when (colorPallet) {
         ColorPallet.Green -> if (darkTheme) DarkGreenColorPalette else LightGreenColorPalette
         ColorPallet.Purple -> if (darkTheme) DarkPurpleColorPalette else LightPurpleColorPalette
@@ -210,6 +276,14 @@ fun JustListenTheme(
         ColorPallet.Blue -> if (darkTheme) DarkBlueColorPalette else LightBlueColorPalette
         ColorPallet.Dark -> if (darkTheme) DarkColorPalette else LightDarkColorPalette
         ColorPallet.Pink -> if (darkTheme) DarkPinkColorPalette else LightPinkColorPalette
+        ColorPallet.Custom -> createCustomColorScheme(darkTheme, customColors)
+        ColorPallet.Expressive -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            } else {
+                if (darkTheme) DarkColorPalette else LightDarkColorPalette
+            }
+        }
     }
 
     MaterialTheme(

@@ -25,6 +25,10 @@ class SettingsViewModel(
                 hasDonationNavigationOn = saved.hasNavigationDonationOn,
                 isDarkThemeOn = saved.isDarkThemeOn,
                 palletColor = saved.palletColor,
+                customPrimary = saved.customPrimary,
+                customSecondary = saved.customSecondary,
+                customBackground = saved.customBackground,
+                customSurface = saved.customSurface,
             )
         } catch (_: Exception) {
             // First run — use defaults
@@ -34,9 +38,13 @@ class SettingsViewModel(
     private fun persistSettings() {
         val state = _settingsState.value
         settingsRepository.saveSettingsInfo(
-            state.hasDonationNavigationOn,
-            state.isDarkThemeOn,
-            state.palletColor
+            hasNavigationDonationOn = state.hasDonationNavigationOn,
+            isDarkThemeOn = state.isDarkThemeOn,
+            palletColor = state.palletColor,
+            customPrimary = state.customPrimary,
+            customSecondary = state.customSecondary,
+            customBackground = state.customBackground,
+            customSurface = state.customSurface,
         )
     }
 
@@ -52,6 +60,17 @@ class SettingsViewModel(
 
     fun onPaletteSelected(color: String) {
         _settingsState.value = _settingsState.value.copy(palletColor = color)
+        persistSettings()
+    }
+
+    fun updateCustomColors(primary: String?, secondary: String?, background: String?, surface: String?) {
+        _settingsState.value = _settingsState.value.copy(
+            customPrimary = primary,
+            customSecondary = secondary,
+            customBackground = background,
+            customSurface = surface,
+            palletColor = "Custom"
+        )
         persistSettings()
     }
 }

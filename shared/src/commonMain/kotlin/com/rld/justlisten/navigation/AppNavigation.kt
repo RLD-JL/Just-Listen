@@ -18,6 +18,7 @@ private fun androidx.navigation.NavBackStackEntry.getTabIndex(): Int {
         routeStr.contains("Search") -> 2
         routeStr.contains("Donation") -> 3
         routeStr.contains("Settings") -> 4
+        routeStr.contains("CustomTheme") -> 4
         else -> -1
     }
 }
@@ -126,6 +127,10 @@ fun AppNavigation(
         
         composable<Route.Donation> {
             DonationScreenHost(navController)
+        }
+
+        composable<Route.CustomTheme> {
+            CustomThemeScreenHost(navController)
         }
     }
 }

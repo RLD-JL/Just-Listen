@@ -190,6 +190,7 @@ class FakeLibraryRepository : LibraryRepository {
     override fun saveSongToMostPlayed(id: String, title: String, user: UserModel, songImgList: SongIconList, playlistName: String) {}
     override fun getMostPlayedSongs(numberOfLines: Long): List<PlayListModel> = emptyList()
     override fun getRecentSongs(numberOfLines: Long): List<PlayListModel> = emptyList()
+    override fun getTimeCapsuleSongs(limit: Long): List<PlayListModel> = emptyList()
 }
 
 class FakeMusicPlayer : MusicPlayer {

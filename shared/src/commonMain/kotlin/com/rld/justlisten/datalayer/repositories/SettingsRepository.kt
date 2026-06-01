@@ -6,7 +6,15 @@ import com.rld.justlisten.datalayer.localdb.settingsscreen.getSettingsInfo
 import com.rld.justlisten.datalayer.localdb.settingsscreen.saveSettingsInfo
 
 interface SettingsRepository {
-    fun saveSettingsInfo(hasNavigationDonationOn: Boolean, isDarkThemeOn: Boolean, palletColor: String)
+    fun saveSettingsInfo(
+        hasNavigationDonationOn: Boolean,
+        isDarkThemeOn: Boolean,
+        palletColor: String,
+        customPrimary: String?,
+        customSecondary: String?,
+        customBackground: String?,
+        customSurface: String?,
+    )
     fun getSettingsInfo(): SettingsInfo
 }
 
@@ -17,9 +25,21 @@ class SettingsRepositoryImpl(
     override fun saveSettingsInfo(
         hasNavigationDonationOn: Boolean,
         isDarkThemeOn: Boolean,
-        palletColor: String
+        palletColor: String,
+        customPrimary: String?,
+        customSecondary: String?,
+        customBackground: String?,
+        customSurface: String?,
     ) {
-        localDb.saveSettingsInfo(hasNavigationDonationOn, isDarkThemeOn, palletColor)
+        localDb.saveSettingsInfo(
+            hasNavigationDonationOn = hasNavigationDonationOn,
+            isDarkThemeOn = isDarkThemeOn,
+            palletColor = palletColor,
+            customPrimary = customPrimary,
+            customSecondary = customSecondary,
+            customBackground = customBackground,
+            customSurface = customSurface,
+        )
     }
 
     override fun getSettingsInfo(): SettingsInfo {
