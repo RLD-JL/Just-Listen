@@ -116,6 +116,14 @@ class LibraryViewModel(
         navigate(Route.Playlist)
     }
 
+    fun onMusicInsightsClicked() {
+        navigate(Route.MusicInsights)
+    }
+
+    fun popBack() {
+        popBackStack()
+    }
+
     fun onAddPlaylistClicked() {
         navigate(Route.AddPlaylist())
     }

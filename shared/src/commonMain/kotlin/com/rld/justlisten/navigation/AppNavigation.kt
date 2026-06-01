@@ -92,6 +92,10 @@ fun AppNavigation(
         composable<Route.Library> {
             LibraryScreenHost(navController)
         }
+
+        composable<Route.MusicInsights> {
+            MusicInsightsScreenHost(navController)
+        }
         
         composable<Route.Playlist> {
             PlaylistScreenHost(navController)

@@ -116,9 +116,12 @@ fun Level1BottomBar(
                 is Route.SeeAll -> {
                     lastActiveRoutes[currentTab] = currentRoute
                 }
+                is Route.MusicInsights -> {
+                    lastActiveRoutes[currentTab] = currentRoute
+                }
+            }
             }
         }
-    }
 
     fun navigateTo(tabName: String, defaultRoute: Route) {
         onItemClick()

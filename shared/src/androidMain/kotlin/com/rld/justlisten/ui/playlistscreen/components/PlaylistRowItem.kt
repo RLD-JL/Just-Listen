@@ -43,7 +43,7 @@ fun PlaylistRowItem(
     val musicPlayer = LocalMusicPlayer.current
     val playbackState by musicPlayer.playbackState.collectAsState()
     val isPlayingThisPlaylist = playbackState.status == PlaybackStatus.PLAYING &&
-            musicPlayer.currentlyPlayingPlaylistId == playlistItem.id
+            (musicPlayer.currentlyPlayingPlaylistId == playlistItem.id || playbackState.currentMedia?.id == playlistItem.id)
 
     Column(
         modifier = Modifier

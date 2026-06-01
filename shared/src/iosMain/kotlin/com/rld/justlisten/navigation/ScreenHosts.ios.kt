@@ -78,3 +78,10 @@ actual fun SeeAllScreenHost(
     }
 }
 
+@Composable
+actual fun MusicInsightsScreenHost(navController: NavHostController) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text("Music Insights Screen - iOS")
+    }
+}
+

@@ -8,6 +8,9 @@ import androidx.navigation.NavBackStackEntry
 expect fun LibraryScreenHost(navController: NavHostController)
 
 @Composable
+expect fun MusicInsightsScreenHost(navController: NavHostController)
+
+@Composable
 expect fun PlaylistScreenHost(navController: NavHostController)
 
 @Composable

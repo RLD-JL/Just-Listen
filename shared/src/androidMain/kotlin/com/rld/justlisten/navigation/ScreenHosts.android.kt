@@ -71,9 +71,26 @@ actual fun LibraryScreenHost(navController: NavHostController) {
                 is LibraryScreenAction.LastItemReached -> viewModel.loadMoreRecentSongs(action.index)
                 LibraryScreenAction.TimeCapsulePressed -> viewModel.onTimeCapsuleClicked()
                 LibraryScreenAction.ExploreMusicPressed -> viewModel.onExploreMusicClicked()
-                LibraryScreenAction.MusicInsightsPressed -> { /* Handled locally in Composable Dialog */ }
+                LibraryScreenAction.MusicInsightsPressed -> viewModel.onMusicInsightsClicked()
             }
         }
+    )
+}
+
+@Composable
+actual fun MusicInsightsScreenHost(navController: NavHostController) {
+    val viewModel: LibraryViewModel = koinViewModel()
+    val musicPlayer = LocalMusicPlayer.current
+    val state by viewModel.libraryState.collectAsState()
+    val repository: LibraryRepository = koinInject()
+
+    CollectNavigationEvents(viewModel, navController)
+
+    com.rld.justlisten.ui.libraryscreen.MusicInsightsScreen(
+        libraryState = state,
+        musicPlayer = musicPlayer,
+        libraryRepository = repository,
+        onBackPressed = { viewModel.popBack() }
     )
 }
 

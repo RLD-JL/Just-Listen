@@ -11,6 +11,9 @@ sealed class Route {
     
     @Serializable
     data object Library : Route()
+
+    @Serializable
+    data object MusicInsights : Route()
     
     @Serializable
     data object Playlist : Route()
@@ -66,6 +69,7 @@ val Route.navigationLevel: NavigationLevel
         Route.Settings,
         Route.Donation -> NavigationLevel.LEVEL_1
         
+        Route.MusicInsights,
         is Route.AddPlaylist,
         is Route.SeeAll,
         is Route.PlaylistDetail -> NavigationLevel.LEVEL_2

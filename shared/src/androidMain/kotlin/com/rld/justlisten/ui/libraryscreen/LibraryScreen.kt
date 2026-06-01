@@ -10,10 +10,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.rld.justlisten.media.MusicPlayer
-import com.rld.justlisten.ui.libraryscreen.components.FavoritePlaylist
-import com.rld.justlisten.ui.libraryscreen.components.MostPlayedSongs
-import com.rld.justlisten.ui.libraryscreen.components.PlaylistView
-import com.rld.justlisten.ui.libraryscreen.components.RowListOfRecentActivity
 import com.rld.justlisten.ui.libraryscreen.components.MyPlaylistRowItem
 import com.rld.justlisten.ui.playlistscreen.components.Header
 import com.rld.justlisten.ui.utils.playMusicFromId
@@ -34,12 +30,23 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.draw.clip
 
 import com.rld.justlisten.ui.actions.LibraryScreenAction
+import com.rld.justlisten.ui.addplaylistscreen.components.AddPlaylistDialog
+import com.rld.justlisten.ui.libraryscreen.components.RowListOfRecentActivity
 
 @Composable
 fun LibraryScreen(
@@ -72,13 +79,287 @@ fun LibraryScreen(
                 lasItemReached = { onAction(LibraryScreenAction.LastItemReached(it)) },
                 lastIndexReached = libraryState.lastIndexReached
             )
-            HorizontalDivider(thickness = 1.dp)
-            PlaylistView { onAction(LibraryScreenAction.PlayListViewClicked) }
             
+            HorizontalDivider(thickness = 1.dp, modifier = Modifier.padding(vertical = 12.dp))
+            
+            Header(text = "My Collection")
+            
+            // Grid layout of four premium cards
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // CARD 1: Favorite Playlist
+                    val favoriteSongIcon = if (libraryState.favoritePlaylistItems.isNotEmpty()) {
+                        libraryState.favoritePlaylistItems[0].songIconList.songImageURL480px
+                    } else ""
+                    
+                    Card(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(95.dp)
+                            .clickable {
+                                onAction(LibraryScreenAction.FavoritePlaylistPressed("Favorite", favoriteSongIcon, "Favorite", "You"))
+                            },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                        ),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            brush = Brush.linearGradient(
+                                colors = listOf(Color(0xFFE91E63).copy(alpha = 0.4f), Color(0xFFE91E63).copy(alpha = 0.05f))
+                            )
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .background(Color(0xFFE91E63).copy(alpha = 0.15f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Favorite,
+                                    contentDescription = null,
+                                    tint = Color(0xFFE91E63),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Favorites",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "${libraryState.favoritePlaylistItems.size} tracks",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                    }
+
+                    // CARD 2: Most Played
+                    val mostPlayedSongIcon = if (libraryState.mostPlayedSongs.isNotEmpty()) {
+                        libraryState.mostPlayedSongs[0].songIconList.songImageURL480px
+                    } else ""
+                    
+                    Card(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(95.dp)
+                            .clickable {
+                                onAction(LibraryScreenAction.MostPlayedPlaylistPressed("Most Played", mostPlayedSongIcon, "Most Played", "You"))
+                            },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                        ),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            brush = Brush.linearGradient(
+                                colors = listOf(Color(0xFFFF9800).copy(alpha = 0.4f), Color(0xFFFF9800).copy(alpha = 0.05f))
+                            )
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .background(Color(0xFFFF9800).copy(alpha = 0.15f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.TrendingUp,
+                                    contentDescription = null,
+                                    tint = Color(0xFFFF9800),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Most Played",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "${libraryState.mostPlayedSongs.size} tracks",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // CARD 3: All Playlists View
+                    Card(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(95.dp)
+                            .clickable {
+                                onAction(LibraryScreenAction.PlayListViewClicked)
+                            },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                        ),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            brush = Brush.linearGradient(
+                                colors = listOf(Color(0xFF9C27B0).copy(alpha = 0.4f), Color(0xFF9C27B0).copy(alpha = 0.05f))
+                            )
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .background(Color(0xFF9C27B0).copy(alpha = 0.15f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.LibraryMusic,
+                                    contentDescription = null,
+                                    tint = Color(0xFF9C27B0),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Playlists",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "${libraryState.playlistsCreated.size} custom",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                    }
+
+                    // CARD 4: Create Playlist (Custom Dash-Border Glowing Card)
+                    val openCreatePlaylistDialog = remember { mutableStateOf(false) }
+                    
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(95.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f))
+                            .drawBehind {
+                                val stroke = Stroke(
+                                    width = 1.5.dp.toPx(),
+                                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 10f), 0f)
+                                )
+                                drawRoundRect(
+                                    brush = Brush.linearGradient(
+                                        colors = listOf(Color(0xFF9C27B0), Color(0xFF00BCD4))
+                                    ),
+                                    style = stroke,
+                                    cornerRadius = CornerRadius(16.dp.toPx())
+                                )
+                            }
+                            .clickable {
+                                openCreatePlaylistDialog.value = true
+                            }
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .background(
+                                        brush = Brush.linearGradient(
+                                            colors = listOf(Color(0xFF9C27B0).copy(alpha = 0.15f), Color(0xFF00BCD4).copy(alpha = 0.15f))
+                                        ),
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    tint = Color(0xFF00BCD4),
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Create Playlist",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "New Collection",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                    }
+
+                    // Dialog to instantly create a playlist
+                    AddPlaylistDialog(openCreatePlaylistDialog) { title, desc ->
+                        onAction(LibraryScreenAction.PlaylistCreatedClicked(title, desc, emptyList()))
+                    }
+                }
+            }
+
+            // Display "My Playlists" row if they have custom playlists
             if (libraryState.playlistsCreated.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(15.dp))
                 Header(text = "My Playlists")
-                LazyRow(modifier = Modifier.fillMaxWidth()) {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 4.dp)
+                ) {
                     items(libraryState.playlistsCreated) { playlist ->
                          MyPlaylistRowItem(
                              playlist, 
@@ -91,32 +372,24 @@ fun LibraryScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
-            FavoritePlaylist(libraryState, onPlaylistPressed = { id, icon, title, createdBy ->
-                onAction(LibraryScreenAction.FavoritePlaylistPressed(id, icon, title, createdBy))
-            })
-            Spacer(modifier = Modifier.height(10.dp))
-            MostPlayedSongs(libraryState, onPlaylistPressed = { id, icon, title, createdBy ->
-                onAction(LibraryScreenAction.MostPlayedPlaylistPressed(id, icon, title, createdBy))
-            })
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(15.dp))
             PremiumLibraryCards(
                 libraryState = libraryState,
                 onTimeCapsuleClicked = { onAction(LibraryScreenAction.TimeCapsulePressed) },
-                onExploreClicked = { onAction(LibraryScreenAction.ExploreMusicPressed) }
+                onMusicInsightsClicked = { onAction(LibraryScreenAction.MusicInsightsPressed) }
             )
         }
     }
 }
 
+
 @Composable
 fun PremiumLibraryCards(
     libraryState: LibraryState,
     onTimeCapsuleClicked: () -> Unit,
-    onExploreClicked: () -> Unit
+    onMusicInsightsClicked: () -> Unit
 ) {
     val context = LocalContext.current
-    var showInsightsDialog by remember { mutableStateOf(false) }
     
     Row(
         modifier = Modifier
@@ -131,7 +404,7 @@ fun PremiumLibraryCards(
             modifier = Modifier
                 .weight(1f)
                 .height(180.dp)
-                .clickable { showInsightsDialog = true },
+                .clickable { onMusicInsightsClicked() },
             shape = RoundedCornerShape(18.dp),
             colors = CardDefaults.cardColors(containerColor = Color.Transparent),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
@@ -277,82 +550,6 @@ fun PremiumLibraryCards(
                 }
             }
         }
-    }
-
-    // --- MUSIC INSIGHTS POPUP DIALOG ---
-    if (showInsightsDialog) {
-        val isNewUser = libraryState.totalPlays == 0
-        AlertDialog(
-            onDismissRequest = { showInsightsDialog = false },
-            title = {
-                Text(
-                    text = if (isNewUser) "Unlock Insights" else "Your Listening Insights 📊",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    if (isNewUser) {
-                        Text(
-                            text = "We collect your play history completely locally and private to your device. Play some tracks from the trending feed to calculate your Top Artists and listening counters!",
-                            fontSize = 14.sp,
-                            lineHeight = 18.sp
-                        )
-                    } else {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(text = "Total Played Tracks", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                                Text(text = "${libraryState.totalPlays}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            }
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(text = "Your Top Artist", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                                Text(text = libraryState.topArtistName, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            }
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(text = "Top Artist Plays", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                                Text(text = "${libraryState.topArtistPlays} plays", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            }
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Text(
-                                text = "⭐ You are a certified super fan! Keep listening to grow your statistics locally.",
-                                fontStyle = FontStyle.Italic,
-                                fontSize = 12.sp,
-                                lineHeight = 16.sp
-                            )
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showInsightsDialog = false
-                        if (isNewUser) {
-                            onExploreClicked()
-                        }
-                    }
-                ) {
-                    Text(text = if (isNewUser) "Explore Music 🎵" else "Cool!")
-                }
-            },
-            dismissButton = {
-                if (isNewUser) {
-                    TextButton(onClick = { showInsightsDialog = false }) {
-                        Text(text = "Not now")
-                    }
-                }
-            }
-        )
     }
 }
 
