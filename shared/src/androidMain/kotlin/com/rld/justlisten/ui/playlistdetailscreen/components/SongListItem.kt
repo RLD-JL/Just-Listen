@@ -1,6 +1,7 @@
 package com.rld.justlisten.ui.playlistdetailscreen.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -35,6 +36,9 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.rld.justlisten.ui.components.AnimatedShimmer
+import com.rld.justlisten.ui.components.MusicLoadingSpinner
+import com.rld.justlisten.ui.LocalMusicPlayer
+import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
@@ -45,6 +49,11 @@ fun SongListItem(
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     playlist: String
 ) {
+    val musicPlayer = LocalMusicPlayer.current
+    val playbackState by musicPlayer.playbackState.collectAsState()
+    val isPlayingThisSong = playbackState.status == PlaybackStatus.PLAYING &&
+            playbackState.currentMedia?.id == playlistItem.id
+
     Row(
         modifier = Modifier
             .padding(8.dp)
@@ -80,6 +89,19 @@ fun SongListItem(
             )
             if (state is AsyncImagePainter.State.Loading) {
                 AnimatedShimmer(width = 55.dp, height = 55.dp)
+            }
+            if (isPlayingThisSong) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    MusicLoadingSpinner(
+                        size = 18.dp,
+                        color = Color.White
+                    )
+                }
             }
         }
         Column(

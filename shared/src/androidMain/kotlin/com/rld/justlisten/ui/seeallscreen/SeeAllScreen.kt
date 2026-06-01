@@ -22,6 +22,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import coil3.compose.AsyncImagePainter
 import coil3.compose.LocalPlatformContext
 import coil3.compose.rememberAsyncImagePainter
@@ -30,6 +31,8 @@ import coil3.request.allowHardware
 import com.rld.justlisten.ui.actions.SeeAllAction
 import com.rld.justlisten.ui.components.AnimatedShimmer
 import com.rld.justlisten.ui.components.MusicLoadingSpinner
+import com.rld.justlisten.ui.LocalMusicPlayer
+import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.ui.theme.typography
 import com.rld.justlisten.viewmodel.interfaces.Item
 import com.rld.justlisten.viewmodel.screens.playlist.TimeRange
@@ -227,6 +230,11 @@ fun SeeAllListItem(
     item: Item,
     onClick: () -> Unit
 ) {
+    val musicPlayer = LocalMusicPlayer.current
+    val playbackState by musicPlayer.playbackState.collectAsState()
+    val isPlayingThisItem = playbackState.status == PlaybackStatus.PLAYING &&
+            (playbackState.currentMedia?.id == item.id || musicPlayer.currentlyPlayingPlaylistId == item.id)
+
     val context = LocalPlatformContext.current
     val painter = rememberAsyncImagePainter(
         model = remember(item.songIconList.songImageURL480px, context) {
@@ -266,6 +274,19 @@ fun SeeAllListItem(
                 )
                 if (state is AsyncImagePainter.State.Loading) {
                     AnimatedShimmer(64.dp, 64.dp)
+                }
+                if (isPlayingThisItem) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.5f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        MusicLoadingSpinner(
+                            size = 20.dp,
+                            color = Color.White
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.width(16.dp))
