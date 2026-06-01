@@ -1,0 +1,200 @@
+package com.rld.justlisten.ui.bottombars.playbar.components.upnext
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.rld.justlisten.media.MediaMetadata
+import com.rld.justlisten.media.PlaybackStatus
+import com.rld.justlisten.ui.LocalMusicPlayer
+import com.rld.justlisten.media.MusicPlayer
+
+@Stable
+class UpNextDragState(
+    private val localPlaylist: MutableState<List<MediaMetadata>>,
+    private val musicPlayer: MusicPlayer
+) {
+    var draggingId by mutableStateOf<String?>(null)
+        private set
+    var draggingStartIndex by mutableStateOf(-1)
+        private set
+    var currentDragIndex by mutableStateOf(-1)
+        private set
+
+    val playlistSize: Int
+        get() = localPlaylist.value.size
+
+    fun startDrag(id: String, index: Int) {
+        draggingId = id
+        draggingStartIndex = index
+        currentDragIndex = index
+    }
+    
+    fun updateDragIndex(index: Int) {
+        currentDragIndex = index
+    }
+    
+    fun endDrag(startIndex: Int, endIndex: Int) {
+        if (startIndex != endIndex) {
+            val mutable = localPlaylist.value.toMutableList()
+            val item = mutable.removeAt(startIndex)
+            mutable.add(endIndex, item)
+            localPlaylist.value = mutable
+            musicPlayer.moveTrack(startIndex, endIndex)
+        }
+        reset()
+    }
+    
+    fun cancelDrag() {
+        reset()
+    }
+    
+    private fun reset() {
+        draggingId = null
+        draggingStartIndex = -1
+        currentDragIndex = -1
+    }
+}
+
+@Composable
+fun rememberUpNextDragState(
+    localPlaylist: MutableState<List<MediaMetadata>>,
+    musicPlayer: MusicPlayer
+): UpNextDragState {
+    return remember(localPlaylist, musicPlayer) {
+        UpNextDragState(localPlaylist, musicPlayer)
+    }
+}
+
+@Composable
+fun UpNextQueueView(
+    playlist: List<MediaMetadata>,
+    modifier: Modifier = Modifier
+) {
+    val musicPlayer = LocalMusicPlayer.current
+    val playbackState by musicPlayer.playbackState.collectAsState()
+    val currentMedia = playbackState.currentMedia
+
+    // We maintain a local list to prevent glitchy drag-and-drop due to state flow delays
+    val localPlaylistState = remember { mutableStateOf(playlist) }
+
+    // Drag state hoisted to the parent so other items can read it without localPlaylist mutations
+    val dragState = rememberUpNextDragState(localPlaylistState, musicPlayer)
+
+    LaunchedEffect(playlist) {
+        if (dragState.draggingId == null) {
+            localPlaylistState.value = playlist
+        }
+    }
+
+    val localPlaylist = localPlaylistState.value
+    val currentIndex = localPlaylist.indexOfFirst { it.id == currentMedia?.id }
+
+    val pastSongs = localPlaylist.take(maxOf(0, currentIndex))
+    val currentSong = localPlaylist.getOrNull(currentIndex)
+    val nextSongs =
+        if (currentIndex >= 0 && currentIndex < localPlaylist.size - 1)
+            localPlaylist.drop(currentIndex + 1)
+        else
+            emptyList()
+
+    val lazyListState = rememberLazyListState()
+    val isPlaying = playbackState.status == PlaybackStatus.PLAYING
+
+    LazyColumn(
+        state = lazyListState,
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        if (pastSongs.isNotEmpty()) {
+            item {
+                Text(
+                    text = "PAST SONGS",
+                    color = Color.White.copy(alpha = 0.5f),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                )
+            }
+            itemsIndexed(pastSongs, key = { _, song -> song.id }) { relativeIndex, song ->
+                val actualIndex = relativeIndex
+                TrackCard(
+                    song = song,
+                    actualIndex = actualIndex,
+                    currentIndex = currentIndex,
+                    canDrag = true,
+                    isPlaying = isPlaying,
+                    dragState = dragState
+                )
+            }
+            item {
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider(
+                    color = Color.White.copy(alpha = 0.1f),
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+            }
+        }
+
+        if (currentSong != null) {
+            item {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "CURRENTLY PLAYING",
+                    color = Color.White.copy(alpha = 0.5f),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                )
+                TrackCard(
+                    song = currentSong,
+                    actualIndex = currentIndex,
+                    currentIndex = currentIndex,
+                    canDrag = false,
+                    isPlaying = isPlaying,
+                    dragState = dragState
+                )
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider(
+                    color = Color.White.copy(alpha = 0.1f),
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+            }
+        }
+
+        if (nextSongs.isNotEmpty()) {
+            item {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "UP NEXT",
+                    color = Color.White.copy(alpha = 0.5f),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                )
+            }
+            itemsIndexed(nextSongs, key = { _, song -> song.id }) { relativeIndex, song ->
+                val actualIndex = (if (currentIndex >= 0) currentIndex + 1 else 0) + relativeIndex
+                TrackCard(
+                    song = song,
+                    actualIndex = actualIndex,
+                    currentIndex = currentIndex,
+                    canDrag = true,
+                    isPlaying = isPlaying,
+                    dragState = dragState
+                )
+            }
+        }
+    }
+}

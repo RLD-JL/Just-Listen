@@ -3,6 +3,7 @@ package com.rld.justlisten.ui
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
@@ -95,11 +96,7 @@ fun JustListenScaffold(
         // FIX 1: Removed `endAnchor` from remember keys so state survives navigation
         val anchoredDraggableState = remember {
             AnchoredDraggableState(
-                initialValue = PlayBarState.COLLAPSED,
-                positionalThreshold = { distance: Float -> distance * 0.3f },
-                velocityThreshold = { with(density) { 100.dp.toPx() } },
-                snapAnimationSpec = spring(stiffness = 300f, dampingRatio = 0.8f),
-                decayAnimationSpec = decayAnimationSpec
+                initialValue = PlayBarState.COLLAPSED
             )
         }
 
@@ -175,7 +172,12 @@ fun JustListenScaffold(
                         }
                         .anchoredDraggable(
                             state = anchoredDraggableState,
-                            orientation = Orientation.Vertical
+                            orientation = Orientation.Vertical,
+                            flingBehavior = AnchoredDraggableDefaults.flingBehavior(
+                                state = anchoredDraggableState,
+                                positionalThreshold = { distance: Float -> distance * 0.3f },
+                                animationSpec = spring(stiffness = 300f, dampingRatio = 0.8f)
+                            )
                         )
                 ) {
                     PlayerBarSheetContent(
