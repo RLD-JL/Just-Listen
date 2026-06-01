@@ -28,6 +28,7 @@ class UpNextDragState(
         private set
     var currentDragIndex by mutableStateOf(-1)
         private set
+    var isPendingPlayerUpdate by mutableStateOf(false)
 
     val playlistSize: Int
         get() = localPlaylist.value.size
@@ -36,6 +37,7 @@ class UpNextDragState(
         draggingId = id
         draggingStartIndex = index
         currentDragIndex = index
+        isPendingPlayerUpdate = false
     }
     
     fun updateDragIndex(index: Int) {
@@ -49,11 +51,13 @@ class UpNextDragState(
             mutable.add(endIndex, item)
             localPlaylist.value = mutable
             musicPlayer.moveTrack(startIndex, endIndex)
+            isPendingPlayerUpdate = true
         }
         reset()
     }
     
     fun cancelDrag() {
+        isPendingPlayerUpdate = false
         reset()
     }
     
@@ -91,7 +95,18 @@ fun UpNextQueueView(
 
     LaunchedEffect(playlist) {
         if (dragState.draggingId == null) {
-            localPlaylistState.value = playlist
+            if (dragState.isPendingPlayerUpdate) {
+                val localIds = localPlaylistState.value.map { it.id }
+                val newIds = playlist.map { it.id }
+                if (localIds.toSet() != newIds.toSet()) {
+                    dragState.isPendingPlayerUpdate = false
+                    localPlaylistState.value = playlist
+                } else if (localIds == newIds) {
+                    dragState.isPendingPlayerUpdate = false
+                }
+            } else {
+                localPlaylistState.value = playlist
+            }
         }
     }
 

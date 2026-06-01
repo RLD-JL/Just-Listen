@@ -86,7 +86,13 @@ fun TrackCard(
     }
 
     val animatedOffset by animateFloatAsState(targetValue = targetOffset)
-    val finalYOffset = if (isBeingDragged) draggingOffset else animatedOffset
+    val finalYOffset = if (dragState.draggingId == null) {
+        0f
+    } else if (isBeingDragged) {
+        draggingOffset
+    } else {
+        animatedOffset
+    }
 
     Box(
         modifier = modifier
