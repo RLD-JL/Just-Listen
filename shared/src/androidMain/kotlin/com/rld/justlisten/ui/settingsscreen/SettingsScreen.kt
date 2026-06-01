@@ -1,7 +1,9 @@
 package com.rld.justlisten.ui.settingsscreen
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,10 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -27,10 +26,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.rld.justlisten.ui.settingsscreen.components.BottomSheetSettings
 import com.rld.justlisten.viewmodel.screens.settings.SettingsState
+import com.rld.justlisten.workers.SleepWorker
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,19 +44,31 @@ fun SettingsScreen(
 ) {
     val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineScope = rememberCoroutineScope()
-
-    val hasTimerSetup = rememberSaveable { mutableStateOf(false) }
-    val hourTime = rememberSaveable { mutableStateOf("") }
-    val minuteTime = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
     val workManager = WorkManager.getInstance(context)
 
+    // Load sleep timer persistently
+    val sharedPrefs = remember { context.getSharedPreferences("sleep_timer_prefs", Context.MODE_PRIVATE) }
+    val activeTimerEndTime = remember { mutableStateOf(sharedPrefs.getLong("sleep_timer_end_time_ms", 0L)) }
+
+    // Ticking countdown logic
+    var remainingTimeMs by remember { mutableStateOf(0L) }
+    LaunchedEffect(activeTimerEndTime.value) {
+        while (activeTimerEndTime.value > System.currentTimeMillis()) {
+            remainingTimeMs = activeTimerEndTime.value - System.currentTimeMillis()
+            kotlinx.coroutines.delay(1000L)
+        }
+        remainingTimeMs = 0L
+    }
+
+    val countdownText = remember(remainingTimeMs) {
+        com.rld.justlisten.util.formatCountdown(remainingTimeMs)
+    }
+
     BottomSheetScaffold(
         sheetContent = {
-            BottomSheetSettings(workManager, scaffoldState, coroutineScope) { hours, minute ->
-                hasTimerSetup.value = true
-                hourTime.value = hours
-                minuteTime.value = minute
+            BottomSheetSettings(workManager, scaffoldState, coroutineScope) { _, _ ->
+                activeTimerEndTime.value = sharedPrefs.getLong("sleep_timer_end_time_ms", 0L)
             }
         },
         sheetPeekHeight = 0.dp,
@@ -190,9 +205,9 @@ fun SettingsScreen(
                 )
             }
 
-            // animated active sleep timer card
+            // Animated Active Sleep Timer Card
             AnimatedVisibility(
-                visible = hasTimerSetup.value,
+                visible = remainingTimeMs > 0,
                 enter = expandVertically() + fadeIn(),
                 exit = shrinkVertically() + fadeOut()
             ) {
@@ -200,43 +215,96 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f)
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.18f)
                     )
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.AccessTime,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error
+                                tint = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "Sleeper active: closes in ${hourTime.value}:${minuteTime.value}",
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                fontSize = 14.sp
+                                text = "Sleeper active: closes in $countdownText",
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontSize = 15.sp
                             )
                         }
-                        Button(
-                            onClick = {
-                                workManager.cancelUniqueWork("SleepWorker")
-                                hasTimerSetup.value = false
-                                Toast.makeText(context, "Sleeper has been canceled", Toast.LENGTH_SHORT).show()
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error
-                            ),
-                            shape = CircleShape,
-                            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp)
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Cancel Sleep Timer", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onError)
+                            Button(
+                                onClick = {
+                                    val newEndTime = activeTimerEndTime.value + 15 * 60 * 1000L
+                                    activeTimerEndTime.value = newEndTime
+                                    
+                                    sharedPrefs.edit()
+                                        .putLong("sleep_timer_end_time_ms", newEndTime)
+                                        .apply()
+
+                                    // Reschedule WorkManager worker
+                                    val currentMinsLeft = (newEndTime - System.currentTimeMillis()) / (60 * 1000)
+                                    val myWorkRequest = OneTimeWorkRequestBuilder<SleepWorker>()
+                                        .setInitialDelay(maxOf(1, currentMinsLeft), TimeUnit.MINUTES)
+                                        .build()
+                                    workManager.beginUniqueWork(
+                                        "SleepWorker",
+                                        ExistingWorkPolicy.REPLACE,
+                                        myWorkRequest
+                                    ).enqueue()
+
+                                    Toast.makeText(context, "Timer extended by 15 minutes", Toast.LENGTH_SHORT).show()
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(40.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary
+                                ),
+                                shape = CircleShape
+                            ) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(imageVector = Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Text("15 Mins", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                }
+                            }
+
+                            OutlinedButton(
+                                onClick = {
+                                    workManager.cancelUniqueWork("SleepWorker")
+                                    
+                                    sharedPrefs.edit()
+                                        .putLong("sleep_timer_end_time_ms", 0L)
+                                        .apply()
+                                    
+                                    activeTimerEndTime.value = 0L
+                                    Toast.makeText(context, "Sleeper has been canceled", Toast.LENGTH_SHORT).show()
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(40.dp),
+                                shape = CircleShape,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
+                                Text("Cancel", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
                         }
                     }
                 }
