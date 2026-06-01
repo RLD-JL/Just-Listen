@@ -12,13 +12,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
@@ -37,7 +32,7 @@ fun AddPlaylistDialog(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    val description: String? = null
 
     if (openDialog.value) {
         AlertDialog(
@@ -103,19 +98,21 @@ fun AddPlaylistDialog(
                         singleLine = true,
                         maxLines = 1,
                         shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onPreviewKeyEvent {
-                                if (it.key == Key.Tab) {
-                                    focusManager.moveFocus(FocusDirection.Down)
-                                    true
-                                } else {
-                                    false
-                                }
-                            },
+                        modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Next
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                if (title.isNotBlank()) {
+                                    focusManager.clearFocus()
+                                    keyboardController?.hide()
+                                    openDialog.value = false
+                                    onAddPlaylistClicked(title, null)
+                                    title = ""
+                                }
+                            }
                         ),
                         supportingText = {
                             Text(
@@ -129,52 +126,6 @@ fun AddPlaylistDialog(
                             focusedBorderColor = Color(0xFF00BCD4),
                             focusedLabelColor = Color(0xFF00BCD4),
                             cursorColor = Color(0xFF00BCD4)
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    // Description Input Field
-                    OutlinedTextField(
-                        value = description,
-                        onValueChange = {
-                            if (it.length <= 144) {
-                                description = it
-                            }
-                        },
-                        label = { Text("Description") },
-                        placeholder = { Text("e.g. The perfect collection of lo-fi and ambient beats...") },
-                        maxLines = 3,
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                if (title.isNotBlank()) {
-                                    focusManager.clearFocus()
-                                    keyboardController?.hide()
-                                    openDialog.value = false
-                                    onAddPlaylistClicked(title, description.takeIf { it.isNotBlank() })
-                                    description = ""
-                                    title = ""
-                                }
-                            }
-                        ),
-                        supportingText = {
-                            Text(
-                                text = "${description.length}/144",
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.End,
-                                fontSize = 10.sp
-                            )
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF9C27B0),
-                            focusedLabelColor = Color(0xFF9C27B0),
-                            cursorColor = Color(0xFF9C27B0)
                         )
                     )
                 }
@@ -195,8 +146,7 @@ fun AddPlaylistDialog(
                                 focusManager.clearFocus()
                                 keyboardController?.hide()
                                 openDialog.value = false
-                                onAddPlaylistClicked(title, description.takeIf { it.isNotBlank() })
-                                description = ""
+                                onAddPlaylistClicked(title, null)
                                 title = ""
                             }
                         },
@@ -231,7 +181,6 @@ fun AddPlaylistDialog(
                     // Cancel Text Button
                     TextButton(
                         onClick = {
-                            description = ""
                             title = ""
                             openDialog.value = false
                         },
