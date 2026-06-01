@@ -126,10 +126,9 @@ fun UpNextQueueView(
                 )
             }
             itemsIndexed(pastSongs, key = { _, song -> song.id }) { relativeIndex, song ->
-                val actualIndex = relativeIndex
                 TrackCard(
                     song = song,
-                    actualIndex = actualIndex,
+                    actualIndex = relativeIndex,
                     currentIndex = currentIndex,
                     canDrag = true,
                     isPlaying = isPlaying,
