@@ -15,41 +15,48 @@ fun lerp(
 }
 
 /**
- * Image width: 49dp when collapsed (fits inside 65dp minibar),
- * 90% of screen width when expanded (matches YT Music large artwork)
+ * Calculate the perfect square artwork size when expanded, capping it
+ * so that it leaves enough room at the bottom for controls and spacing (~340dp).
  */
-fun widthSize(fraction: Float, screenWidth: Float): Float {
-    return lerp(49f, screenWidth * 0.90f, fraction)
+fun expandedArtworkSize(screenWidth: Float, screenHeight: Float): Float {
+    // Increase reserved space to 400dp to fully accommodate all control buttons, slider,
+    // text column heights, bottom sheet padding, and the top bar offset (totaling ~390dp).
+    val reserved = 400f
+    return (screenWidth * 0.85f).coerceAtMost(screenHeight - reserved).coerceAtLeast(180f)
 }
 
 /**
- * Image height: 49dp when collapsed (square thumbnail in minibar),
- * 45% of screen height when expanded (upper half of player)
+ * Image width: 49dp when collapsed, centered square when expanded
  */
-fun heightSize(fraction: Float, screenHeight: Float): Float {
-    return lerp(49f, screenHeight * 0.45f, fraction)
+fun widthSize(fraction: Float, screenWidth: Float, screenHeight: Float): Float {
+    return lerp(49f, expandedArtworkSize(screenWidth, screenHeight), fraction)
+}
+
+/**
+ * Image height: 49dp when collapsed, centered square when expanded
+ */
+fun heightSize(fraction: Float, screenWidth: Float, screenHeight: Float): Float {
+    return lerp(49f, expandedArtworkSize(screenWidth, screenHeight), fraction)
 }
 
 /**
  * Horizontal offset:
- * - Collapsed: 8dp from left edge (small gap so it doesn't touch the screen edge)
+ * - Collapsed: 8dp from left edge
  * - Expanded: centered horizontally
  */
-fun offsetX(fraction: Float, screenWidth: Float): Float {
-    val expandedX = (screenWidth - widthSize(fraction, screenWidth)) / 2f
+fun offsetX(fraction: Float, screenWidth: Float, screenHeight: Float): Float {
+    val expandedX = (screenWidth - expandedArtworkSize(screenWidth, screenHeight)) / 2f
     return lerp(8f, expandedX, fraction)
 }
 
 /**
  * Vertical offset:
- * - Collapsed: 8dp from top of the draggable box, which places it centered
- *   in the 65dp minibar  (8dp top gap + 49dp image = 57dp, centred in 65dp)
- * - Expanded: below the 64dp top section (collapse/more icons),
- *   plus a small margin.  64dp top bar + 8dp margin = 72dp ≈ 11% of a
- *   typical 650dp content area, so we use screenHeight * 0.11f.
+ * - Collapsed: 8dp from top (centered in minibar)
+ * - Expanded: 72dp from top (8dp under the 64dp top bar)
  */
-fun offsetY(fraction: Float, screenHeight: Float, percent: Float = 0.11f): Float {
-    return lerp(8f, screenHeight * percent, fraction)
+fun offsetY(fraction: Float, screenWidth: Float, screenHeight: Float): Float {
+    val expandedY = 72f
+    return lerp(8f, expandedY, fraction)
 }
 
 /**

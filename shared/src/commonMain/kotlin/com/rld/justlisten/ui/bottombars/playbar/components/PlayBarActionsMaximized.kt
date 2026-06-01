@@ -96,7 +96,7 @@ fun PlayBarActionsMaximized(
                 )
             }
             
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(16.dp))
 
             // Social Buttons Row
             Row(
@@ -124,7 +124,7 @@ fun PlayBarActionsMaximized(
                 SocialButton(icon = Icons.Outlined.Share, text = "Share")
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(16.dp))
 
             // Slider and Time Labels
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -157,7 +157,7 @@ fun PlayBarActionsMaximized(
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
             // Playback Controls
             Row(

@@ -46,8 +46,11 @@ fun PlayBarSwipeActions(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopStart   // anchor to top-left so offset math is predictable
     ) {
-        val width  = widthSize(eased, constraints.maxWidth.value).dp
-        val height = heightSize(eased, constraints.maxHeight.value).dp
+        val screenWidth = constraints.maxWidth.value
+        val screenHeight = constraints.maxHeight.value
+
+        val width  = widthSize(eased, screenWidth, screenHeight).dp
+        val height = heightSize(eased, screenWidth, screenHeight).dp
 
         val context = LocalPlatformContext.current
         val painter = rememberAsyncImagePainter(
@@ -80,8 +83,8 @@ fun PlayBarSwipeActions(
             modifier = Modifier
                 .size(width = width, height = height)
                 .offset(
-                    x = offsetX(eased, constraints.maxWidth.value).dp,
-                    y = offsetY(eased, constraints.maxHeight.value).dp
+                    x = offsetX(eased, screenWidth, screenHeight).dp,
+                    y = offsetY(eased, screenWidth, screenHeight).dp
                 )
                 // Slight rounding even when collapsed so it looks polished
                 .clip(RoundedCornerShape(lerp(6f, 16f, eased).dp))

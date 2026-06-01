@@ -122,6 +122,19 @@ fun JustListenScaffold(
             }
         }
 
+        val themeBg = MaterialTheme.colorScheme.background
+        val isDarkTheme = (themeBg.red * 0.299f + themeBg.green * 0.587f + themeBg.blue * 0.114f) < 0.5f
+
+        val statusBarColor = androidx.compose.ui.graphics.lerp(themeBg, Color.Black, currentFraction)
+        val navigationBarColor = androidx.compose.ui.graphics.lerp(themeBg, Color.Black, currentFraction)
+        val darkIcons = if (currentFraction > 0.5f) false else !isDarkTheme
+
+        SetSystemBarsColor(
+            statusBarColor = statusBarColor,
+            navigationBarColor = navigationBarColor,
+            darkIcons = darkIcons
+        )
+
         Box(modifier = Modifier.fillMaxSize()) {
 
             // 1. ── Main scaffold (Without bottomBar passed into it) ──────────

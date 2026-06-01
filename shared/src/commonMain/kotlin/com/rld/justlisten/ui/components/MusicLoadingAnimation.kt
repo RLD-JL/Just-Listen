@@ -198,7 +198,7 @@ fun MusicLoadingScreen(
                             val driftY = centerY - 30.dp.toPx() - (progress * 110.dp.toPx())
                             val horizontalSway = sin(progress * 2 * PI.toFloat()) * 25.dp.toPx() * offsetDirection
                             val noteX = centerX + initialXOffset.dp.toPx() + horizontalSway
-                            val scale = 0.6f + (progress * 0.6f)
+                            val scale = (0.6f + (progress * 0.6f)) * 4f
 
                             drawMusicNote(
                                 position = Offset(noteX, driftY),

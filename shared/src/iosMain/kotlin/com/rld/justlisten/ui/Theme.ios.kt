@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 @Composable
 actual fun JustListenTheme(
@@ -19,3 +20,13 @@ actual fun JustListenTheme(
         content = content,
     )
 }
+
+@Composable
+actual fun SetSystemBarsColor(
+    statusBarColor: Color,
+    navigationBarColor: Color,
+    darkIcons: Boolean
+) {
+    // No-op for iOS
+}
+
