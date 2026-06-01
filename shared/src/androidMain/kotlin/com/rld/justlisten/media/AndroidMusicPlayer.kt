@@ -13,6 +13,8 @@ class AndroidMusicPlayer(
     private val favoritesRepository: FavoritesRepository
 ) : MusicPlayer {
 
+    override var currentlyPlayingPlaylistId: String? = null
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val _playbackState = MutableStateFlow(PlaybackState(PlaybackStatus.IDLE, 0L))
     override val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()

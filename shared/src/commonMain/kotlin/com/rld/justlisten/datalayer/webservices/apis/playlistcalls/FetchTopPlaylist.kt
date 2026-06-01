@@ -29,8 +29,9 @@ suspend fun ApiClient.getTracks(
     category: String,
     timeRange: String
 ): PlayListResponse? {
+    val genreQuery = if (category.isEmpty() || category == "All") "" else "&genre=$category"
     val response: PlayListResponse? =
-        getResponse("/full/tracks/trending?genre=$category&limit=$limit&time=$timeRange")
+        getResponse("/full/tracks/trending?limit=$limit&time=$timeRange$genreQuery")
     return response?.let {
         PlayListResponse(it.data.filter { track -> track.isStreamable })
     }

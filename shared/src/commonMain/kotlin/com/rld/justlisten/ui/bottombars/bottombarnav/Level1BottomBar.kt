@@ -113,6 +113,9 @@ fun Level1BottomBar(
                 is Route.AddPlaylist -> {
                     lastActiveRoutes[currentTab] = currentRoute
                 }
+                is Route.SeeAll -> {
+                    lastActiveRoutes[currentTab] = currentRoute
+                }
             }
         }
     }

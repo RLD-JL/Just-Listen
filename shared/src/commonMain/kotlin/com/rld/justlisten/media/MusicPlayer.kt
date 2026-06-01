@@ -47,4 +47,5 @@ interface MusicPlayer {
     fun refreshMetadata()
     fun removeTrack(index: Int)
     fun moveTrack(fromIndex: Int, toIndex: Int)
+    var currentlyPlayingPlaylistId: String?
 }

@@ -9,6 +9,7 @@ import com.rld.justlisten.viewmodel.playlistdetail.PlaylistDetailViewModel
 import com.rld.justlisten.viewmodel.search.SearchViewModel
 import com.rld.justlisten.viewmodel.settings.SettingsViewModel
 import com.rld.justlisten.viewmodel.player.PlayerViewModel
+import com.rld.justlisten.viewmodel.seeall.SeeAllViewModel
 import org.koin.dsl.module
 import org.koin.core.module.dsl.viewModel
 
@@ -29,6 +30,7 @@ fun appModule() = module {
     viewModel { SearchViewModel(get(), get()) }
     viewModel { PlaylistDetailViewModel(get(), get(), get()) }
     viewModel { AddPlaylistViewModel(get()) }
+    viewModel { SeeAllViewModel(get(), get()) }
     single { SettingsViewModel(get()) }
     viewModel { DonationViewModel() }
     viewModel { PlayerViewModel(get(), get(), get()) }

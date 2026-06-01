@@ -101,6 +101,11 @@ fun AppNavigation(
             val args: Route.PlaylistDetail = backStackEntry.toRoute()
             PlaylistDetailScreenHost(navController, args)
         }
+
+        composable<Route.SeeAll> { backStackEntry ->
+            val args: Route.SeeAll = backStackEntry.toRoute()
+            SeeAllScreenHost(navController, args)
+        }
         
         composable<Route.Search> {
             SearchScreenHost(navController)

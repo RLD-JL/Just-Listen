@@ -1,6 +1,7 @@
 package com.rld.justlisten.viewmodel.screens.playlist
 
 enum class TracksCategory(val value: String) {
+    ALL("All"),
     ELECTRONIC("Electronic"),
     ROCK("Rock"),
     RAP("Rap"),
@@ -25,6 +26,7 @@ enum class TimeRange(val value: String) {
 
 fun getTrackCategory(): List<TracksCategory> {
     return listOf(
+        TracksCategory.ALL,
         TracksCategory.ELECTRONIC,
         TracksCategory.ROCK,
         TracksCategory.RAP,

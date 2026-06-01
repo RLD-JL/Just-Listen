@@ -11,6 +11,8 @@ import com.rld.justlisten.viewmodel.interfaces.Item
  */
 class IOSMusicPlayer : MusicPlayer {
 
+    override var currentlyPlayingPlaylistId: String? = null
+
     private val _playbackState = MutableStateFlow(
         PlaybackState(
             status = PlaybackStatus.IDLE,

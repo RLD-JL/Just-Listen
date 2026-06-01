@@ -59,7 +59,7 @@ class PlaylistViewModel(
     }
 
     fun refreshScreen() {
-        getNewTracks(TracksCategory.ELECTRONIC, TimeRange.WEEK)
+        getNewTracks(TracksCategory.ALL, TimeRange.WEEK)
         viewModelScope.launch {
             _playlistState.update { it.copy(isLoading = true) }
             var queryIndex = Random.nextInt(0, list.size)
@@ -124,13 +124,13 @@ class PlaylistViewModel(
 
     fun getNewTracks(category: TracksCategory, timeRange: TimeRange) {
         viewModelScope.launch {
-            _playlistState.update { it.copy(tracksLoading = true) }
+            _playlistState.update { it.copy(tracksLoading = true, selectedCategory = category, selectedTimeRange = timeRange) }
             val time = when (timeRange) {
                 TimeRange.ALLTIME -> "allTime"
                 TimeRange.MONTH -> TimeRange.MONTH.value.lowercase()
                 TimeRange.WEEK -> TimeRange.WEEK.value.lowercase()
             }
-            val searchCategory = if (category == TracksCategory.RAP) "Hip-Hop/Rap" else category.value
+            val searchCategory = if (category == TracksCategory.ALL) "All" else if (category == TracksCategory.RAP) "Hip-Hop/Rap" else category.value
             val tracks = playlistRepository.getTracks(16, searchCategory, time)
             _playlistState.update { it.copy(tracksList = tracks, tracksLoading = false) }
         }
@@ -156,5 +156,26 @@ class PlaylistViewModel(
 
     fun onSearchClicked() {
         navigate(Route.Search)
+    }
+
+    fun onSeeAllClicked(categoryName: String, playlistEnum: PlayListEnum, queryPlaylist: String) {
+        navigate(
+            Route.SeeAll(
+                categoryName = categoryName,
+                playlistEnum = playlistEnum.name,
+                queryPlaylist = queryPlaylist
+            )
+        )
+    }
+
+    fun onSeeAllTracksClicked(categoryName: String, queryPlaylist: String, selectedTimeRange: TimeRange) {
+        navigate(
+            Route.SeeAll(
+                categoryName = categoryName,
+                playlistEnum = "TRACKS",
+                queryPlaylist = queryPlaylist,
+                selectedTimeRange = selectedTimeRange.name
+            )
+        )
     }
 }

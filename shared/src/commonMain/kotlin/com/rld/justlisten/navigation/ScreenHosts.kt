@@ -30,3 +30,9 @@ expect fun SettingsScreenHost(navController: NavHostController)
 
 @Composable
 expect fun DonationScreenHost(navController: NavHostController)
+
+@Composable
+expect fun SeeAllScreenHost(
+    navController: NavHostController,
+    args: Route.SeeAll,
+)

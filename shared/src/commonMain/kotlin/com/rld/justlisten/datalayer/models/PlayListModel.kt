@@ -13,6 +13,8 @@ data class PlayListModel(
     @SerialName("user") val user: UserModel = UserModel(),
     @SerialName("is_playlist") val isPlaylist: Boolean = false,
     @SerialName("is_streamable") val isStreamable: Boolean = false,
+    @SerialName("repost_count") val repostCount: Int = 0,
+    @SerialName("favorite_count") val favoriteCount: Int = 0,
     @Transient val isFavorite: Boolean = false,
     @Transient val songCounter: String = ""
 )

@@ -10,4 +10,6 @@ interface Item {
     var isFavorite: Boolean
     val songIconList: SongIconList
     val songCounter: String
+    val repostCount: Int
+    val favoriteCount: Int
 }

@@ -29,6 +29,14 @@ sealed class Route {
     data class AddPlaylist(val initialData: String = "") : Route()
     
     @Serializable
+    data class SeeAll(
+        val categoryName: String,
+        val playlistEnum: String,
+        val queryPlaylist: String = "",
+        val selectedTimeRange: String = "WEEK"
+    ) : Route()
+    
+    @Serializable
     data object Search : Route()
     
     @Serializable
@@ -59,6 +67,7 @@ val Route.navigationLevel: NavigationLevel
         Route.Donation -> NavigationLevel.LEVEL_1
         
         is Route.AddPlaylist,
+        is Route.SeeAll,
         is Route.PlaylistDetail -> NavigationLevel.LEVEL_2
     }
 

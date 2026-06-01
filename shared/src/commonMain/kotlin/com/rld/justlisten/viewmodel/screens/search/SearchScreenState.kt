@@ -22,4 +22,6 @@ data class TrackItem(val _data: PlayListModel, override var isFavorite: Boolean 
     override val songIconList = _data.songImgList
     override val songCounter: String
         get() = _data.songCounter
+    override val repostCount = _data.repostCount
+    override val favoriteCount = _data.favoriteCount
 }

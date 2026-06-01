@@ -25,6 +25,9 @@ import com.rld.justlisten.viewmodel.playlistdetail.PlaylistDetailViewModel
 import com.rld.justlisten.viewmodel.search.SearchViewModel
 import com.rld.justlisten.viewmodel.settings.SettingsViewModel
 import com.rld.justlisten.viewmodel.screens.settings.SettingsState
+import com.rld.justlisten.viewmodel.seeall.SeeAllViewModel
+import com.rld.justlisten.ui.seeallscreen.SeeAllScreen
+import com.rld.justlisten.ui.actions.SeeAllAction
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import com.rld.justlisten.ui.actions.LibraryScreenAction
@@ -107,6 +110,20 @@ actual fun PlaylistScreenHost(navController: NavHostController) {
                     action.category,
                     action.timeRange
                 )
+                is PlaylistScreenAction.SeeAllClicked -> {
+                    viewModel.onSeeAllClicked(
+                        categoryName = action.categoryName,
+                        playlistEnum = action.playlistEnum,
+                        queryPlaylist = action.queryPlaylist
+                    )
+                }
+                is PlaylistScreenAction.SeeAllTracksClicked -> {
+                    viewModel.onSeeAllTracksClicked(
+                        categoryName = action.categoryName,
+                        queryPlaylist = action.queryPlaylist,
+                        selectedTimeRange = action.selectedTimeRange
+                    )
+                }
             }
         }
     )
@@ -136,7 +153,8 @@ actual fun PlaylistDetailScreenHost(
                     musicPlayer, 
                     state.songPlaylist, 
                     action.songId, 
-                    repository
+                    repository,
+                    state.playlistId
                 )
                 is PlaylistDetailAction.FavoritePressed -> {
                     viewModel.onFavoritePressed(
@@ -244,4 +262,42 @@ actual fun SettingsScreenHost(navController: NavHostController) {
 @Composable
 actual fun DonationScreenHost(navController: NavHostController) {
     DonationScreen()
+}
+
+@Composable
+actual fun SeeAllScreenHost(
+    navController: NavHostController,
+    args: Route.SeeAll,
+) {
+    val viewModel: SeeAllViewModel = koinViewModel()
+    val musicPlayer = LocalMusicPlayer.current
+    val repository: LibraryRepository = koinInject()
+    val state by viewModel.seeAllState.collectAsState()
+
+    LaunchedEffect(args) { viewModel.load(args) }
+    CollectNavigationEvents(viewModel, navController)
+
+    SeeAllScreen(
+        seeAllState = state,
+        onAction = { action ->
+            when (action) {
+                is SeeAllAction.PlaylistClicked -> viewModel.onPlaylistClicked(
+                    action.playlistId,
+                    action.playlistIcon,
+                    action.createdBy,
+                    action.title
+                )
+                is SeeAllAction.SongPressed -> playMusicFromId(
+                    musicPlayer,
+                    state.items,
+                    action.songId,
+                    repository
+                )
+                SeeAllAction.BackPressed -> viewModel.popBack()
+                is SeeAllAction.LoadMore -> viewModel.fetchItems(action.offset)
+                is SeeAllAction.ChangeTimeRange -> viewModel.changeTimeRange(action.timeRange)
+                is SeeAllAction.ChangeGenre -> viewModel.changeGenre(action.genre)
+            }
+        }
+    )
 }

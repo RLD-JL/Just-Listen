@@ -68,3 +68,13 @@ actual fun DonationScreenHost(navController: NavHostController) {
     }
 }
 
+@Composable
+actual fun SeeAllScreenHost(
+    navController: NavHostController,
+    args: Route.SeeAll,
+) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text("See All Screen - iOS")
+    }
+}
+

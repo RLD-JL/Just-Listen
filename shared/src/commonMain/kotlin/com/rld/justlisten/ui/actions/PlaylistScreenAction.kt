@@ -36,4 +36,16 @@ sealed interface PlaylistScreenAction {
         val category: TracksCategory,
         val timeRange: TimeRange,
     ) : PlaylistScreenAction
+
+    data class SeeAllClicked(
+        val categoryName: String,
+        val playlistEnum: PlayListEnum,
+        val queryPlaylist: String = ""
+    ) : PlaylistScreenAction
+
+    data class SeeAllTracksClicked(
+        val categoryName: String,
+        val queryPlaylist: String,
+        val selectedTimeRange: TimeRange
+    ) : PlaylistScreenAction
 }

@@ -20,7 +20,9 @@ data class PlaylistState(
     val tracksLoading: Boolean = false,
     var tracksList: List<TrackItem> = emptyList(),
     val queryIndex: Int = 0,
-    val queryIndex2: Int = 0
+    val queryIndex2: Int = 0,
+    val selectedCategory: TracksCategory = TracksCategory.ALL,
+    val selectedTimeRange: TimeRange = TimeRange.WEEK
 ): ScreenState
 
 data class PlaylistItem(
@@ -33,5 +35,7 @@ data class PlaylistItem(
     override val id = _data.id
     override val songIconList = _data.songImgList
     override val songCounter = _data.songCounter
+    override val repostCount = _data.repostCount
+    override val favoriteCount = _data.favoriteCount
 }
 

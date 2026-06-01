@@ -23,7 +23,11 @@ fun playMusicFromId(
     playlist: List<Item>,
     songId: String,
     repository: LibraryRepository? = null,
+    playlistId: String? = null
 ) {
+    if (playlistId != null) {
+        musicPlayer.currentlyPlayingPlaylistId = playlistId
+    }
     // Save to recent & most played tracking
     repository?.let { repo ->
         playlist.find { it.id == songId }?.let { song ->
@@ -52,8 +56,12 @@ fun playMusic(
     playlist: List<Item>,
     playFromId: String = "",
     repository: LibraryRepository? = null,
+    playlistId: String? = null
 ) {
     if (playlist.isEmpty()) return
+    if (playlistId != null) {
+        musicPlayer.currentlyPlayingPlaylistId = playlistId
+    }
     musicPlayer.updatePlaylist(playlist)
     val mediaId = playFromId.ifEmpty { playlist.first().id }
     // Save to recent & most played tracking

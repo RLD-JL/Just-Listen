@@ -62,7 +62,6 @@ fun PlaylistScreen(
                     playlistState = playlistState,
                     onAction = onAction,
                 )
-                AnimatedToolBar { onAction(PlaylistScreenAction.SearchClicked) }
             }
         }
     }

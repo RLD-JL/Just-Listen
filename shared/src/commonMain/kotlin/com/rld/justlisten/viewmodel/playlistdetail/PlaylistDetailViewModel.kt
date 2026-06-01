@@ -72,7 +72,8 @@ class PlaylistDetailViewModel(
                     isLoading = true, 
                     playlistName = args.playlistTitle, 
                     playListCreatedBy = args.playlistCreatedBy, 
-                    playlistIcon = args.playlistIcon
+                    playlistIcon = args.playlistIcon,
+                    playlistId = args.playlistId
                 ) 
             }
             val playlistEnum = PlayListEnum.valueOf(args.playlistEnum)
