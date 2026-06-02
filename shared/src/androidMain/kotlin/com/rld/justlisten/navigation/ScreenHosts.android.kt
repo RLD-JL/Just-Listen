@@ -210,11 +210,13 @@ actual fun SearchScreenHost(navController: NavHostController) {
                 is SearchScreenAction.BackPressed -> viewModel.popBack()
                 is SearchScreenAction.SearchPressed -> viewModel.onSearchSubmitted(action.query)
                 is SearchScreenAction.QueryChanged -> viewModel.onSearchQueryChanged(action.query)
+                is SearchScreenAction.SeeAllClicked -> viewModel.onSeeAllClicked(action.type)
+                SearchScreenAction.LoadMoreSeeAll -> viewModel.loadMoreSeeAllItems()
                 is SearchScreenAction.SongPressed -> {
-                    val tracksList = if (state.searchResultTracks.any { it.id == action.songId }) {
-                        state.searchResultTracks
-                    } else {
-                        state.autocompleteTracks
+                    val tracksList = when {
+                        state.searchResultTracks.any { it.id == action.songId } -> state.searchResultTracks
+                        state.seeAllTracks.any { it.id == action.songId } -> state.seeAllTracks
+                        else -> state.autocompleteTracks
                     }
                     playMusicFromId(
                         musicPlayer, 

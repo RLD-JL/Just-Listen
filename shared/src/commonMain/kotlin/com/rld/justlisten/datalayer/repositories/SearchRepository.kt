@@ -6,6 +6,9 @@ import com.rld.justlisten.datalayer.localdb.searchscreen.saveSearchInfo
 import com.rld.justlisten.datalayer.webservices.ApiClient
 import com.rld.justlisten.datalayer.webservices.apis.searchcalls.searchFor
 import com.rld.justlisten.datalayer.webservices.apis.searchcalls.searchAutocomplete
+import com.rld.justlisten.datalayer.webservices.apis.searchcalls.searchForTracksPaginated
+import com.rld.justlisten.datalayer.webservices.apis.searchcalls.searchForPlaylistsPaginated
+import com.rld.justlisten.datalayer.webservices.apis.searchcalls.searchForUsersPaginated
 import com.rld.justlisten.datalayer.webservices.apis.searchcalls.AutocompleteUser
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import com.rld.justlisten.viewmodel.screens.search.SearchEnum
@@ -23,6 +26,9 @@ interface SearchRepository {
     suspend fun searchForPlaylist(search: String, searchEnum: SearchEnum = SearchEnum.PLAYLIST): List<PlaylistItem>
     suspend fun searchForTracks(search: String, searchEnum: SearchEnum = SearchEnum.TRACKS): List<TrackItem>
     suspend fun searchAutocomplete(query: String): AutocompleteSuggestions
+    suspend fun searchForTracksPaginated(query: String, offset: Int, limit: Int): List<TrackItem>
+    suspend fun searchForPlaylistsPaginated(query: String, offset: Int, limit: Int): List<PlaylistItem>
+    suspend fun searchForUsersPaginated(query: String, offset: Int, limit: Int): List<AutocompleteUser>
 }
 
 class SearchRepositoryImpl(
@@ -67,6 +73,18 @@ class SearchRepositoryImpl(
             playlists = combinedPlaylists,
             users = autocompleteData.users
         )
+    }
+
+    override suspend fun searchForTracksPaginated(query: String, offset: Int, limit: Int): List<TrackItem> {
+        return webservices.searchForTracksPaginated(query, offset, limit)?.data?.map { TrackItem(it) } ?: emptyList()
+    }
+
+    override suspend fun searchForPlaylistsPaginated(query: String, offset: Int, limit: Int): List<PlaylistItem> {
+        return webservices.searchForPlaylistsPaginated(query, offset, limit)?.data?.map { PlaylistItem(it) } ?: emptyList()
+    }
+
+    override suspend fun searchForUsersPaginated(query: String, offset: Int, limit: Int): List<AutocompleteUser> {
+        return webservices.searchForUsersPaginated(query, offset, limit)?.data ?: emptyList()
     }
 }
 

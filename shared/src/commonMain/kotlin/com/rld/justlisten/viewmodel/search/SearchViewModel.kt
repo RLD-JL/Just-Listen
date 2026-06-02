@@ -6,6 +6,7 @@ import com.rld.justlisten.datalayer.repositories.FavoritesRepository
 import com.rld.justlisten.navigation.Route
 import com.rld.justlisten.viewmodel.BaseScreenViewModel
 import com.rld.justlisten.viewmodel.screens.search.SearchScreenState
+import com.rld.justlisten.viewmodel.screens.search.SearchSeeAllType
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -53,10 +54,20 @@ class SearchViewModel(
         if (query.isBlank()) {
             _searchState.update {
                 it.copy(
+                    searchResultTracks = emptyList(),
+                    searchResultPlaylist = emptyList(),
+                    searchResultUsers = emptyList(),
                     autocompleteTracks = emptyList(),
                     autocompletePlaylists = emptyList(),
                     autocompleteUsers = emptyList(),
-                    isAutocompleteLoading = false
+                    isAutocompleteLoading = false,
+                    seeAllType = SearchSeeAllType.NONE,
+                    seeAllTracks = emptyList(),
+                    seeAllPlaylists = emptyList(),
+                    seeAllUsers = emptyList(),
+                    seeAllOffset = 0,
+                    seeAllLastItemReached = false,
+                    isSeeAllLoading = false
                 )
             }
             return
@@ -91,7 +102,14 @@ class SearchViewModel(
                     searchFor = query,
                     autocompleteTracks = emptyList(),
                     autocompletePlaylists = emptyList(),
-                    autocompleteUsers = emptyList()
+                    autocompleteUsers = emptyList(),
+                    seeAllType = SearchSeeAllType.NONE,
+                    seeAllTracks = emptyList(),
+                    seeAllPlaylists = emptyList(),
+                    seeAllUsers = emptyList(),
+                    seeAllOffset = 0,
+                    seeAllLastItemReached = false,
+                    isSeeAllLoading = false
                 )
             }
             try {
@@ -108,6 +126,92 @@ class SearchViewModel(
                 }
             } catch (e: Exception) {
                 _searchState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    fun onSeeAllClicked(type: SearchSeeAllType) {
+        if (type == SearchSeeAllType.NONE) {
+            _searchState.update {
+                it.copy(
+                    seeAllType = SearchSeeAllType.NONE,
+                    seeAllTracks = emptyList(),
+                    seeAllPlaylists = emptyList(),
+                    seeAllUsers = emptyList(),
+                    seeAllOffset = 0,
+                    seeAllLastItemReached = false,
+                    isSeeAllLoading = false
+                )
+            }
+            return
+        }
+
+        _searchState.update {
+            it.copy(
+                seeAllType = type,
+                seeAllTracks = emptyList(),
+                seeAllPlaylists = emptyList(),
+                seeAllUsers = emptyList(),
+                isSeeAllLoading = true,
+                seeAllOffset = 0,
+                seeAllLastItemReached = false
+            )
+        }
+        
+        loadMoreSeeAllItems()
+    }
+
+    fun loadMoreSeeAllItems() {
+        val currentState = _searchState.value
+        if (currentState.seeAllLastItemReached || currentState.seeAllType == SearchSeeAllType.NONE) return
+        
+        viewModelScope.launch {
+            _searchState.update { it.copy(isSeeAllLoading = true) }
+            val query = currentState.searchFor
+            val offset = currentState.seeAllOffset
+            val limit = 20
+            
+            try {
+                when (currentState.seeAllType) {
+                    SearchSeeAllType.SONGS -> {
+                        val newTracks = searchRepository.searchForTracksPaginated(query, offset, limit)
+                        _searchState.update { state ->
+                            state.copy(
+                                seeAllTracks = state.seeAllTracks + newTracks,
+                                seeAllOffset = offset + limit,
+                                isSeeAllLoading = false,
+                                seeAllLastItemReached = newTracks.size < limit
+                            )
+                        }
+                    }
+                    SearchSeeAllType.PLAYLISTS -> {
+                        val newPlaylists = searchRepository.searchForPlaylistsPaginated(query, offset, limit)
+                        _searchState.update { state ->
+                            state.copy(
+                                seeAllPlaylists = state.seeAllPlaylists + newPlaylists,
+                                seeAllOffset = offset + limit,
+                                isSeeAllLoading = false,
+                                seeAllLastItemReached = newPlaylists.size < limit
+                            )
+                        }
+                    }
+                    SearchSeeAllType.ARTISTS -> {
+                        val newUsers = searchRepository.searchForUsersPaginated(query, offset, limit)
+                        _searchState.update { state ->
+                            state.copy(
+                                seeAllUsers = state.seeAllUsers + newUsers,
+                                seeAllOffset = offset + limit,
+                                isSeeAllLoading = false,
+                                seeAllLastItemReached = newUsers.size < limit
+                            )
+                        }
+                    }
+                    SearchSeeAllType.NONE -> {
+                        _searchState.update { it.copy(isSeeAllLoading = false) }
+                    }
+                }
+            } catch (e: Exception) {
+                _searchState.update { it.copy(isSeeAllLoading = false) }
             }
         }
     }

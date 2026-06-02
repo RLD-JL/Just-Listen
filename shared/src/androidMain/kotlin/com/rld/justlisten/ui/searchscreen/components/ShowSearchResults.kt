@@ -21,11 +21,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
-import com.rld.justlisten.ui.playlistscreen.components.Header
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.webservices.apis.searchcalls.AutocompleteUser
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import com.rld.justlisten.viewmodel.screens.search.TrackItem
+import com.rld.justlisten.viewmodel.screens.search.SearchSeeAllType
 
 @Composable
 fun ShowSearchResults(
@@ -34,17 +34,21 @@ fun ShowSearchResults(
     searchResultPlaylist: List<PlaylistItem>,
     onSongPressed: (String, String, String, SongIconList) -> Unit,
     onPlaylistPressed: (String, String, String, String, Boolean) -> Unit,
-    onUserPressed: (String) -> Unit
+    onUserPressed: (String) -> Unit,
+    onSeeAllClicked: (SearchSeeAllType) -> Unit
 ) {
     Column(Modifier.fillMaxSize()) {
         if (searchResultUsers.isNotEmpty()) {
-            Header(text = "Artists")
+            SearchHeaderWithSeeAll(
+                text = "Artists",
+                onSeeAllClick = { onSeeAllClicked(SearchSeeAllType.ARTISTS) }
+            )
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                items(searchResultUsers) { user ->
+                items(searchResultUsers.take(8)) { user ->
                     ArtistCard(user = user, onClick = { onUserPressed(user.name) })
                 }
             }
@@ -52,15 +56,47 @@ fun ShowSearchResults(
         }
 
         if (searchResultTracks.isNotEmpty()) {
-            Header(text = "Songs")
-            SearchGridTracks(list = searchResultTracks, onSongPressed)
+            SearchHeaderWithSeeAll(
+                text = "Songs",
+                onSeeAllClick = { onSeeAllClicked(SearchSeeAllType.SONGS) }
+            )
+            SearchGridTracks(list = searchResultTracks.take(4), onSongPressed)
             Spacer(modifier = Modifier.height(16.dp))
         }
 
         if (searchResultPlaylist.isNotEmpty()) {
-            Header(text = "Playlists & Albums")
-            PlaylistResult(playlist = searchResultPlaylist, onPlaylistPressed)
+            SearchHeaderWithSeeAll(
+                text = "Playlists & Albums",
+                onSeeAllClick = { onSeeAllClicked(SearchSeeAllType.PLAYLISTS) }
+            )
+            PlaylistResult(playlist = searchResultPlaylist.take(6), onPlaylistPressed)
         }
+    }
+}
+
+@Composable
+fun SearchHeaderWithSeeAll(
+    text: String,
+    onSeeAllClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Text(
+            text = "See All",
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.clickable(onClick = onSeeAllClick)
+        )
     }
 }
 

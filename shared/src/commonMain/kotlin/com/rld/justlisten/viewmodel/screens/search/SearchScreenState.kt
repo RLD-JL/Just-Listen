@@ -6,6 +6,13 @@ import com.rld.justlisten.datalayer.webservices.apis.searchcalls.AutocompleteUse
 import com.rld.justlisten.viewmodel.interfaces.Item
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 
+enum class SearchSeeAllType {
+    NONE,
+    ARTISTS,
+    SONGS,
+    PLAYLISTS
+}
+
 data class SearchScreenState(
     var isLoading: Boolean = false,
     var searchFor: String = "",
@@ -18,7 +25,16 @@ data class SearchScreenState(
     var isAutocompleteLoading: Boolean = false,
     var autocompleteTracks: List<TrackItem> = emptyList(),
     var autocompletePlaylists: List<PlaylistItem> = emptyList(),
-    var autocompleteUsers: List<AutocompleteUser> = emptyList()
+    var autocompleteUsers: List<AutocompleteUser> = emptyList(),
+
+    // See All paginated states
+    var seeAllType: SearchSeeAllType = SearchSeeAllType.NONE,
+    var seeAllTracks: List<TrackItem> = emptyList(),
+    var seeAllPlaylists: List<PlaylistItem> = emptyList(),
+    var seeAllUsers: List<AutocompleteUser> = emptyList(),
+    var isSeeAllLoading: Boolean = false,
+    var seeAllOffset: Int = 0,
+    var seeAllLastItemReached: Boolean = false
 ) : ScreenState
 
 

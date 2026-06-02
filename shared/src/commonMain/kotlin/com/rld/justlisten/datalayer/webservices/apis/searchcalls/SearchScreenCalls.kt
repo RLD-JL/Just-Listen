@@ -46,3 +46,23 @@ data class AutocompleteUser(
 suspend fun ApiClient.searchAutocomplete(query: String): AutocompleteResponse? {
     return getResponse("/search/autocomplete?query=$query")
 }
+
+@Serializable
+data class UsersResponse(
+    @SerialName("data") val data: List<AutocompleteUser>
+)
+
+suspend fun ApiClient.searchForTracksPaginated(query: String, offset: Int, limit: Int): PlayListResponse? {
+    val response: PlayListResponse? = getResponse("/tracks/search?query=$query&offset=$offset&limit=$limit")
+    return response?.let {
+        PlayListResponse(it.data.filter { track -> track.isStreamable })
+    }
+}
+
+suspend fun ApiClient.searchForPlaylistsPaginated(query: String, offset: Int, limit: Int): PlayListResponse? {
+    return getResponse("/playlists/search?query=$query&offset=$offset&limit=$limit")
+}
+
+suspend fun ApiClient.searchForUsersPaginated(query: String, offset: Int, limit: Int): UsersResponse? {
+    return getResponse("/users/search?query=$query&offset=$offset&limit=$limit")
+}
