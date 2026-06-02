@@ -12,6 +12,7 @@ data class SearchScreenState(
     var listOfSearches: List<String> = emptyList(),
     var searchResultTracks: List<TrackItem> = emptyList(),
     var searchResultPlaylist: List<PlaylistItem> = emptyList(),
+    var searchResultUsers: List<AutocompleteUser> = emptyList(),
     
     // Autocomplete suggestion states
     var isAutocompleteLoading: Boolean = false,

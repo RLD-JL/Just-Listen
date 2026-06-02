@@ -96,13 +96,13 @@ class SearchViewModel(
             }
             try {
                 searchRepository.saveSearch(query)
-                val tracks = searchRepository.searchForTracks(query)
-                val playlists = searchRepository.searchForPlaylist(query)
+                val results = searchRepository.searchAutocomplete(query)
                 _searchState.update {
                     it.copy(
                         isLoading = false,
-                        searchResultTracks = tracks,
-                        searchResultPlaylist = playlists,
+                        searchResultTracks = results.tracks,
+                        searchResultPlaylist = results.playlists,
+                        searchResultUsers = results.users,
                         listOfSearches = searchRepository.getSearchList()
                     )
                 }

@@ -129,15 +129,21 @@ fun SearchScreen(
                         searchScreenState.isLoading -> {
                             LoadingScreen(10.dp)
                         }
-                        searchScreenState.searchResultTracks.isNotEmpty() -> {
+                        searchScreenState.searchResultTracks.isNotEmpty() ||
+                        searchScreenState.searchResultPlaylist.isNotEmpty() ||
+                        searchScreenState.searchResultUsers.isNotEmpty() -> {
                             ShowSearchResults(
-                                searchScreenState.searchResultTracks,
-                                searchScreenState.searchResultPlaylist,
+                                searchResultUsers = searchScreenState.searchResultUsers,
+                                searchResultTracks = searchScreenState.searchResultTracks,
+                                searchResultPlaylist = searchScreenState.searchResultPlaylist,
                                 onSongPressed = { songId, title, user, songIcon ->
                                     onAction(SearchScreenAction.SongPressed(songId, title, user, songIcon))
                                 },
                                 onPlaylistPressed = { id, icon, title, createdBy, isFavorite ->
                                     onAction(SearchScreenAction.PlaylistPressed(id, icon, title, createdBy, isFavorite))
+                                },
+                                onUserPressed = { artistName ->
+                                    onAction(SearchScreenAction.SearchPressed(artistName))
                                 }
                             )
                         }
