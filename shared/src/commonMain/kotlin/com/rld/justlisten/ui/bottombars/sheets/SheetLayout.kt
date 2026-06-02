@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.graphics.painter.Painter
 import com.rld.justlisten.ui.bottombars.playbar.components.addplaylist.AddPlaylistOption
-import com.rld.justlisten.ui.bottombars.playbar.components.more.PlayBarMoreAction
 import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
+
 @Composable
 fun SheetLayout(
     currentScreen: BottomSheetScreen,
@@ -17,24 +17,18 @@ fun SheetLayout(
     onAddPlaylistClicked: (String, String?) -> Unit,
     getLatestPlaylist: () -> Unit,
     clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit,
+    currentSongId: String? = null,
 ) {
     when (currentScreen) {
         BottomSheetScreen.AddPlaylist -> {
             AddPlaylistOption(
-                title,
-                mutablePainter,
-                addPlaylistList,
-                onAddPlaylistClicked,
-                clickedToAddSongToPlaylist,
+                title = title,
+                addPlaylistList = addPlaylistList,
+                onAddPlaylistClicked = onAddPlaylistClicked,
+                clickedToAddSongToPlaylist = clickedToAddSongToPlaylist,
+                currentSongId = currentSongId
             )
             getLatestPlaylist()
-        }
-        BottomSheetScreen.More -> PlayBarMoreAction(
-            title,
-            mutablePainter,
-        ) {
-            onCloseBottomSheet()
-            openSheet(BottomSheetScreen.AddPlaylist)
         }
     }
 }

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,7 +17,6 @@ import com.rld.justlisten.ui.utils.lerp
 fun PlayBarTopSection(
     currentFraction: Float,
     onCollapsedClicked: () -> Unit,
-    onMoreClicked: () -> Unit,
 ) {
     // Height grows from 0dp → 64dp as the player expands.
     // Critically: when collapsed this row has 0 height so it doesn't
@@ -28,7 +26,7 @@ fun PlayBarTopSection(
             .fillMaxWidth()
             .height(lerp(0f, 64f, currentFraction).dp)
             .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -41,18 +39,6 @@ fun PlayBarTopSection(
                 }
                 .clickable(enabled = currentFraction > 0.85f, onClick = onCollapsedClicked),
             contentDescription = "Collapse player",
-            tint = Color.White
-        )
-
-        Icon(
-            imageVector = Icons.Default.MoreVert,
-            modifier = Modifier
-                .size(32.dp)
-                .graphicsLayer {
-                    alpha = ((currentFraction - 0.85f) / 0.15f).coerceIn(0f, 1f)
-                }
-                .clickable(enabled = currentFraction > 0.85f, onClick = onMoreClicked),
-            contentDescription = "More options",
             tint = Color.White
         )
     }

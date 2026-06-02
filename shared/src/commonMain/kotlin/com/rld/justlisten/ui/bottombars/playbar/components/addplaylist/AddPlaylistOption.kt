@@ -1,68 +1,156 @@
 package com.rld.justlisten.ui.bottombars.playbar.components.addplaylist
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.rld.justlisten.ui.addplaylistscreen.components.AddPlaylistDialog
 import com.rld.justlisten.ui.addplaylistscreen.components.PlaylistViewItem
-import com.rld.justlisten.ui.bottombars.playbar.components.more.TopSection
 import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
+import org.jetbrains.compose.resources.painterResource
+import justlisten.shared.generated.resources.Res
+import justlisten.shared.generated.resources.ic_queue_music
+import kotlinx.coroutines.launch
 
 @Composable
 fun AddPlaylistOption(
     title: String,
-    painter: MutableState<Painter?>,
     addPlaylistList: List<AddPlaylist>,
     onAddPlaylistClicked: (String, String?) -> Unit,
     clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit,
+    currentSongId: String? = null,
 ) {
     val openDialog = remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 80.dp)
-        ) {
-            item {
-                TopSection(title, painter)
-                HorizontalDivider(thickness = 2.dp)
-            }
-            itemsIndexed(items = addPlaylistList) { _, playlist ->
-                PlaylistViewItem(playlist, clickedToAddSongToPlaylist)
+        if (addPlaylistList.isEmpty()) {
+            EmptyPlaylistsPlaceholder()
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 80.dp)
+            ) {
+                itemsIndexed(items = addPlaylistList) { _, playlist ->
+                    PlaylistViewItem(
+                        playlist = playlist,
+                        currentSongId = currentSongId,
+                        clickedToAddSongToPlaylist = { playlistName, playlistDescription, updatedSongsList ->
+                            // Add/remove in database
+                            clickedToAddSongToPlaylist(playlistName, playlistDescription, updatedSongsList)
+                            // Trigger Snackbar
+                            coroutineScope.launch {
+                                val isAdded = currentSongId != null && updatedSongsList.contains(currentSongId)
+                                val message = if (isAdded) {
+                                    "\"$title\" added to $playlistName"
+                                } else {
+                                    "\"$title\" removed from $playlistName"
+                                }
+                                snackbarHostState.currentSnackbarData?.dismiss()
+                                snackbarHostState.showSnackbar(
+                                    message = message,
+                                    withDismissAction = true
+                                )
+                            }
+                        }
+                    )
+                }
             }
         }
 
-        ExtendedFloatingActionButton(
-            icon = { Icon(Icons.Default.Add, contentDescription = null, tint = Color.White) },
-            text = { Text("New Playlist", color = Color.White, fontWeight = FontWeight.Bold) },
+        // Floating action button aligned to bottom-right corner
+        FloatingActionButton(
             onClick = { openDialog.value = true },
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 24.dp, end = 24.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "New Playlist",
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
+
+        // SnackbarHost to display the "Song added/removed" messages
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 24.dp)
+                .padding(bottom = 80.dp)
         )
 
         AddPlaylistDialog(openDialog, onAddPlaylistClicked)
+    }
+}
+
+@Composable
+fun EmptyPlaylistsPlaceholder() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Glowing music queue icon with gradient background
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(CircleShape)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFFE91E63).copy(alpha = 0.2f),
+                            Color(0xFF9C27B0).copy(alpha = 0.05f),
+                            Color.Transparent
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(Res.drawable.ic_queue_music),
+                contentDescription = null,
+                tint = Color(0xFFE91E63),
+                modifier = Modifier.size(56.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Create Your First Playlist",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "Save your favorite tracks and build custom collections. Tap the '+' button below to get started.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
     }
 }

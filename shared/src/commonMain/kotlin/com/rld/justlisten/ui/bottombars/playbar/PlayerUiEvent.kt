@@ -12,7 +12,6 @@ data class PlayerLayoutInfo(
 sealed interface PlayerUiEvent {
     data object Collapse : PlayerUiEvent
     data object Expand : PlayerUiEvent
-    data object OpenMore : PlayerUiEvent
     data object OpenAddPlaylist : PlayerUiEvent
     data object CloseSheet : PlayerUiEvent
     data class PainterLoaded(val painter: Painter) : PlayerUiEvent

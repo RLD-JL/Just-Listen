@@ -128,8 +128,7 @@ fun PlayerBottomBar(
         ) {
             PlayBarTopSection(
                 currentFraction = currentFraction,
-                onCollapsedClicked = { onUiEvent(PlayerUiEvent.Collapse) },
-                onMoreClicked = { onUiEvent(PlayerUiEvent.OpenMore) }
+                onCollapsedClicked = { onUiEvent(PlayerUiEvent.Collapse) }
             )
         }
 

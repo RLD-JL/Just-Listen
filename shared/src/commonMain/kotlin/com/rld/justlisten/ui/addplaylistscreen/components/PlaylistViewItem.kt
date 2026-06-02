@@ -7,6 +7,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.painterResource
 import justlisten.shared.generated.resources.Res
@@ -25,24 +28,36 @@ import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
 @Composable
 fun PlaylistViewItem(
     playlist: AddPlaylist,
+    currentSongId: String? = null,
     clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit,
 ) {
+    val isAlreadyInPlaylist = currentSongId != null && playlist.songsList?.contains(currentSongId) == true
+
     Row(
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f))
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f))
             .clickable(onClick = {
+                val updatedSongs = if (currentSongId != null) {
+                    if (isAlreadyInPlaylist) {
+                        playlist.songsList?.filter { it != currentSongId } ?: emptyList()
+                    } else {
+                        (playlist.songsList ?: emptyList()) + currentSongId
+                    }
+                } else {
+                    playlist.songsList ?: emptyList()
+                }
                 clickedToAddSongToPlaylist(
                     playlist.playlistName,
                     playlist.playlistDescription,
-                    playlist.songsList ?: emptyList()
+                    updatedSongs
                 )
             })
-            .padding(12.dp)
+            .padding(14.dp)
     ) {
         val hasSongs = !playlist.songsList.isNullOrEmpty()
         
@@ -53,10 +68,12 @@ fun PlaylistViewItem(
                 .clip(RoundedCornerShape(12.dp))
                 .background(
                     brush = Brush.linearGradient(
-                        colors = if (hasSongs) {
+                        colors = if (isAlreadyInPlaylist) {
+                            listOf(Color(0xFFE91E63), Color(0xFF9C27B0)) // Pink/purple gradient when song is added
+                        } else if (hasSongs) {
                             listOf(Color(0xFF3F51B5), Color(0xFF00BCD4)) // Cool blue/indigo gradient when populated
                         } else {
-                            listOf(Color(0xFF9C27B0), Color(0xFFE91E63)) // Cyber pink/purple gradient when empty
+                            listOf(Color(0xFF888888), Color(0xFF555555)) // Muted gray gradient when empty
                         }
                     )
                 ),
@@ -89,6 +106,15 @@ fun PlaylistViewItem(
                 text = "${playlist.songsList?.size ?: 0} songs",
                 fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+        }
+
+        if (currentSongId != null) {
+            Icon(
+                imageVector = if (isAlreadyInPlaylist) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                contentDescription = if (isAlreadyInPlaylist) "Remove from playlist" else "Add to playlist",
+                tint = if (isAlreadyInPlaylist) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                modifier = Modifier.size(24.dp)
             )
         }
     }
