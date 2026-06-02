@@ -32,7 +32,9 @@ import kotlin.math.sin
 @Composable
 fun MusicLoadingScreen(
     modifier: Modifier = Modifier,
-    padding: Dp = 0.dp
+    padding: Dp = 0.dp,
+    size: Dp = 240.dp,
+    showText: Boolean = true
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.secondary
@@ -148,112 +150,119 @@ fun MusicLoadingScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Box(
-                modifier = Modifier.size(240.dp),
+                modifier = Modifier.size(size),
                 contentAlignment = Alignment.Center
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    val canvasWidth = size.width
-                    val canvasHeight = size.height
+                    val canvasWidth = this.size.width
+                    val canvasHeight = this.size.height
                     val centerX = canvasWidth / 2f
                     val centerY = canvasHeight / 2f
+                    val scaleFactor = this.size.width / 240.dp.toPx()
 
-                    // --- DRAW PULSING SOUNDWAVES ---
-                    val maxWaveRadius = 100.dp.toPx()
-                    val baseWaveRadius = 35.dp.toPx()
+                    withTransform({
+                        scale(scaleX = scaleFactor, scaleY = scaleFactor, pivot = Offset(centerX, centerY))
+                    }) {
+                        // --- DRAW PULSING SOUNDWAVES ---
+                        val maxWaveRadius = 100.dp.toPx()
+                        val baseWaveRadius = 35.dp.toPx()
 
-                    fun drawWave(progress: Float) {
-                        if (progress > 0f) {
-                            val currentRadius = baseWaveRadius + (maxWaveRadius - baseWaveRadius) * progress
-                            val alpha = (1f - progress) * 0.35f
-                            drawCircle(
-                                brush = Brush.radialGradient(
-                                    colors = listOf(primaryColor.copy(alpha = alpha), Color.Transparent),
+                        fun drawWave(progress: Float) {
+                            if (progress > 0f) {
+                                val currentRadius = baseWaveRadius + (maxWaveRadius - baseWaveRadius) * progress
+                                val alpha = (1f - progress) * 0.35f
+                                drawCircle(
+                                    brush = Brush.radialGradient(
+                                        colors = listOf(primaryColor.copy(alpha = alpha), Color.Transparent),
+                                        center = Offset(centerX, centerY),
+                                        radius = currentRadius
+                                    ),
+                                    radius = currentRadius,
+                                    center = Offset(centerX, centerY)
+                                )
+                                drawCircle(
+                                    color = primaryColor.copy(alpha = alpha * 0.5f),
+                                    radius = currentRadius,
                                     center = Offset(centerX, centerY),
-                                    radius = currentRadius
-                                ),
-                                radius = currentRadius,
-                                center = Offset(centerX, centerY)
-                            )
-                            drawCircle(
-                                color = primaryColor.copy(alpha = alpha * 0.5f),
-                                radius = currentRadius,
-                                center = Offset(centerX, centerY),
-                                style = Stroke(width = 2.dp.toPx())
-                            )
-                        }
-                    }
-
-                    drawWave(wave1Progress)
-                    drawWave(wave2Progress)
-
-                    // --- DRAW FLOATING MUSIC NOTES ---
-                    fun drawFloatingNote(progress: Float, offsetDirection: Float, initialXOffset: Float, type: Int) {
-                        if (progress > 0f && progress < 1f) {
-                            val fadeAlpha = if (progress < 0.2f) {
-                                progress / 0.2f
-                            } else {
-                                (1f - progress) / 0.8f
+                                    style = Stroke(width = 2.dp.toPx())
+                                )
                             }
-                            
-                            val driftY = centerY - 30.dp.toPx() - (progress * 110.dp.toPx())
-                            val horizontalSway = sin(progress * 2 * PI.toFloat()) * 25.dp.toPx() * offsetDirection
-                            val noteX = centerX + initialXOffset.dp.toPx() + horizontalSway
-                            val scale = (0.6f + (progress * 0.6f)) * 4f
+                        }
 
-                            drawMusicNote(
-                                position = Offset(noteX, driftY),
-                                scale = scale,
-                                alpha = fadeAlpha,
-                                color = secondaryColor,
-                                type = type
+                        drawWave(wave1Progress)
+                        drawWave(wave2Progress)
+
+                        // --- DRAW FLOATING MUSIC NOTES ---
+                        fun drawFloatingNote(progress: Float, offsetDirection: Float, initialXOffset: Float, type: Int) {
+                            if (progress > 0f && progress < 1f) {
+                                val fadeAlpha = if (progress < 0.2f) {
+                                    progress / 0.2f
+                                } else {
+                                    (1f - progress) / 0.8f
+                                }
+                                
+                                val driftY = centerY - 30.dp.toPx() - (progress * 110.dp.toPx())
+                                val horizontalSway = sin(progress * 2 * PI.toFloat()) * 25.dp.toPx() * offsetDirection
+                                val noteX = centerX + initialXOffset.dp.toPx() + horizontalSway
+                                val scale = (0.6f + (progress * 0.6f)) * 4f
+
+                                drawMusicNote(
+                                    position = Offset(noteX, driftY),
+                                    scale = scale,
+                                    alpha = fadeAlpha,
+                                    color = secondaryColor,
+                                    type = type
+                                )
+                            }
+                        }
+
+                        // Stagger notes by original horizontal starting values, sway directions, and shapes
+                        drawFloatingNote(progress = note1Progress, offsetDirection = -1f, initialXOffset = -25f, type = 0)
+                        drawFloatingNote(progress = note2Progress, offsetDirection = 1f, initialXOffset = 20f, type = 1)
+                        drawFloatingNote(progress = note3Progress, offsetDirection = -0.5f, initialXOffset = 5f, type = 2)
+
+                        // --- DRAW CENTRAL EQUALIZER BARS ---
+                        val barWidth = 6.dp.toPx()
+                        val barSpacing = 6.dp.toPx()
+                        val totalBarsWidth = (5 * barWidth) + (4 * barSpacing)
+                        val startX = centerX - (totalBarsWidth / 2f)
+                        val maxBarHeight = 45.dp.toPx()
+                        val minBarHeight = 8.dp.toPx()
+
+                        val barHeights = listOf(bar1Height, bar2Height, bar3Height, bar4Height, bar5Height)
+                        
+                        for (i in 0 until 5) {
+                            val currentFraction = barHeights[i]
+                            val barHeight = minBarHeight + (maxBarHeight - minBarHeight) * currentFraction
+                            val x = startX + i * (barWidth + barSpacing)
+                            val y = centerY - (barHeight / 2f)
+
+                            drawRoundRect(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(primaryColor, secondaryColor),
+                                    startY = y,
+                                    endY = y + barHeight
+                                ),
+                                topLeft = Offset(x, y),
+                                size = Size(barWidth, barHeight),
+                                cornerRadius = CornerRadius(barWidth / 2f, barWidth / 2f)
                             )
                         }
-                    }
-
-                    // Stagger notes by original horizontal starting values, sway directions, and shapes
-                    drawFloatingNote(progress = note1Progress, offsetDirection = -1f, initialXOffset = -25f, type = 0)
-                    drawFloatingNote(progress = note2Progress, offsetDirection = 1f, initialXOffset = 20f, type = 1)
-                    drawFloatingNote(progress = note3Progress, offsetDirection = -0.5f, initialXOffset = 5f, type = 2)
-
-                    // --- DRAW CENTRAL EQUALIZER BARS ---
-                    val barWidth = 6.dp.toPx()
-                    val barSpacing = 6.dp.toPx()
-                    val totalBarsWidth = (5 * barWidth) + (4 * barSpacing)
-                    val startX = centerX - (totalBarsWidth / 2f)
-                    val maxBarHeight = 45.dp.toPx()
-                    val minBarHeight = 8.dp.toPx()
-
-                    val barHeights = listOf(bar1Height, bar2Height, bar3Height, bar4Height, bar5Height)
-                    
-                    for (i in 0 until 5) {
-                        val currentFraction = barHeights[i]
-                        val barHeight = minBarHeight + (maxBarHeight - minBarHeight) * currentFraction
-                        val x = startX + i * (barWidth + barSpacing)
-                        val y = centerY - (barHeight / 2f)
-
-                        drawRoundRect(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(primaryColor, secondaryColor),
-                                startY = y,
-                                endY = y + barHeight
-                            ),
-                            topLeft = Offset(x, y),
-                            size = Size(barWidth, barHeight),
-                            cornerRadius = CornerRadius(barWidth / 2f, barWidth / 2f)
-                        )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            if (showText) {
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Tuning your experience...",
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 0.5.sp
-            )
+                Text(
+                    text = "Tuning your experience...",
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.5.sp
+                )
+            }
         }
     }
 }

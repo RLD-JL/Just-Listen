@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,6 +50,8 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
 import com.rld.justlisten.ui.extensions.noRippleClickable
 import com.rld.justlisten.ui.loadingscreen.LoadingScreen
+import com.rld.justlisten.ui.components.MusicLoadingSpinner
+import com.rld.justlisten.ui.components.MusicLoadingScreen
 import com.rld.justlisten.ui.searchscreen.components.ShowPreviousSearches
 import com.rld.justlisten.ui.searchscreen.components.ShowSearchResults
 import com.rld.justlisten.ui.searchscreen.components.SearchCategoryDashboard
@@ -157,6 +161,7 @@ fun SearchScreen(
                             searchScreenState.searchResultPlaylist.isNotEmpty() ||
                             searchScreenState.searchResultUsers.isNotEmpty() -> {
                                 ShowSearchResults(
+                                    searchQuery = searchScreenState.searchFor,
                                     searchResultUsers = searchScreenState.searchResultUsers,
                                     searchResultTracks = searchScreenState.searchResultTracks,
                                     searchResultPlaylist = searchScreenState.searchResultPlaylist,
@@ -227,12 +232,21 @@ fun SeeAllSearchContainer(
             )
         }
 
+        val isInitialLoading = searchScreenState.isSeeAllLoading && (
+            (searchScreenState.seeAllType == SearchSeeAllType.SONGS && searchScreenState.seeAllTracks.isEmpty()) ||
+            (searchScreenState.seeAllType == SearchSeeAllType.PLAYLISTS && searchScreenState.seeAllPlaylists.isEmpty()) ||
+            (searchScreenState.seeAllType == SearchSeeAllType.ARTISTS && searchScreenState.seeAllUsers.isEmpty())
+        )
+
         Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
         ) {
-            when (searchScreenState.seeAllType) {
+            if (isInitialLoading) {
+                MusicLoadingScreen(showText = true)
+            } else {
+                when (searchScreenState.seeAllType) {
                 SearchSeeAllType.SONGS -> {
                     val listState = rememberLazyListState()
                     val shouldLoadMore = remember {
@@ -272,10 +286,13 @@ fun SeeAllSearchContainer(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(16.dp),
+                                        .height(66.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    LoadingScreen(10.dp)
+                                    MusicLoadingScreen(
+                                        size = 48.dp,
+                                        showText = false
+                                    )
                                 }
                             }
                         }
@@ -312,14 +329,25 @@ fun SeeAllSearchContainer(
                             )
                         }
                         if (searchScreenState.isSeeAllLoading) {
-                            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                                Box(
+                            item {
+                                Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(16.dp),
-                                    contentAlignment = Alignment.Center
+                                        .height(220.dp)
+                                        .clip(RoundedCornerShape(16.dp)),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                    )
                                 ) {
-                                    LoadingScreen(10.dp)
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        MusicLoadingScreen(
+                                            size = 120.dp,
+                                            showText = false
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -356,14 +384,25 @@ fun SeeAllSearchContainer(
                             )
                         }
                         if (searchScreenState.isSeeAllLoading) {
-                            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                                Box(
+                            item {
+                                Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(16.dp),
-                                    contentAlignment = Alignment.Center
+                                        .height(110.dp)
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                    )
                                 ) {
-                                    LoadingScreen(10.dp)
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        MusicLoadingScreen(
+                                            size = 70.dp,
+                                            showText = false
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -372,6 +411,7 @@ fun SeeAllSearchContainer(
                 else -> {}
             }
         }
+    }
     }
 }
 

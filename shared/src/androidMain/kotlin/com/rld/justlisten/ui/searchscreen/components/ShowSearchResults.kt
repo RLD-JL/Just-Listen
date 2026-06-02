@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
+import com.rld.justlisten.ui.playlistscreen.components.Header
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.webservices.apis.searchcalls.AutocompleteUser
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
@@ -29,6 +30,7 @@ import com.rld.justlisten.viewmodel.screens.search.SearchSeeAllType
 
 @Composable
 fun ShowSearchResults(
+    searchQuery: String,
     searchResultUsers: List<AutocompleteUser>,
     searchResultTracks: List<TrackItem>,
     searchResultPlaylist: List<PlaylistItem>,
@@ -37,8 +39,20 @@ fun ShowSearchResults(
     onUserPressed: (String) -> Unit,
     onSeeAllClicked: (SearchSeeAllType) -> Unit
 ) {
+    val genres = listOf(
+        "Electronic", "Rock", "Rap", "Alternative",
+        "Experimental", "Punk", "Pop", "Folk",
+        "Ambient", "Jazz", "Classical", "Country",
+        "Kids", "Audiobooks"
+    )
+    val trimmedQuery = searchQuery.trim()
+    val isGenreSearch = genres.any { it.equals(trimmedQuery, ignoreCase = true) } ||
+            trimmedQuery.equals("Hip-Hop/Rap", ignoreCase = true) ||
+            trimmedQuery.equals("Hip-Hop", ignoreCase = true) ||
+            trimmedQuery.equals("Rap/Hip-Hop", ignoreCase = true)
+
     Column(Modifier.fillMaxSize()) {
-        if (searchResultUsers.isNotEmpty()) {
+        if (searchResultUsers.isNotEmpty() && !isGenreSearch) {
             SearchHeaderWithSeeAll(
                 text = "Artists",
                 onSeeAllClick = { onSeeAllClicked(SearchSeeAllType.ARTISTS) }

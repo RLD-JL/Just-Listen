@@ -31,6 +31,7 @@ import coil3.request.allowHardware
 import com.rld.justlisten.ui.actions.SeeAllAction
 import com.rld.justlisten.ui.components.AnimatedShimmer
 import com.rld.justlisten.ui.components.MusicLoadingSpinner
+import com.rld.justlisten.ui.components.MusicLoadingScreen
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.ui.theme.typography
@@ -150,7 +151,7 @@ fun SeeAllScreen(
                 contentAlignment = Alignment.Center
             ) {
                 if (seeAllState.isLoading && seeAllState.items.isEmpty()) {
-                    MusicLoadingSpinner(size = 40.dp)
+                    MusicLoadingScreen(showText = true)
                 } else if (seeAllState.items.isEmpty()) {
                     Text(
                         text = "No items found",
@@ -208,13 +209,25 @@ fun SeeAllScreen(
                         
                         if (seeAllState.isLoading) {
                             item {
-                                Box(
+                                Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(16.dp),
-                                    contentAlignment = Alignment.Center
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                    )
                                 ) {
-                                    MusicLoadingSpinner(size = 24.dp)
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(88.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        MusicLoadingScreen(
+                                            size = 64.dp,
+                                            showText = false
+                                        )
+                                    }
                                 }
                             }
                         }
