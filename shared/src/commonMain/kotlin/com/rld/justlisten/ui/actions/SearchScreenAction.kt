@@ -10,6 +10,8 @@ sealed interface SearchScreenAction {
 
     data class SearchPressed(val query: String) : SearchScreenAction
 
+    data class QueryChanged(val query: String) : SearchScreenAction
+
     data class SongPressed(
         val songId: String,
         val title: String,

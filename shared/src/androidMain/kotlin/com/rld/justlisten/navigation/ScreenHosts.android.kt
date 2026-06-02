@@ -209,12 +209,20 @@ actual fun SearchScreenHost(navController: NavHostController) {
             when (action) {
                 is SearchScreenAction.BackPressed -> viewModel.popBack()
                 is SearchScreenAction.SearchPressed -> viewModel.onSearchSubmitted(action.query)
-                is SearchScreenAction.SongPressed -> playMusicFromId(
-                    musicPlayer, 
-                    state.searchResultTracks, 
-                    action.songId, 
-                    repository
-                )
+                is SearchScreenAction.QueryChanged -> viewModel.onSearchQueryChanged(action.query)
+                is SearchScreenAction.SongPressed -> {
+                    val tracksList = if (state.searchResultTracks.any { it.id == action.songId }) {
+                        state.searchResultTracks
+                    } else {
+                        state.autocompleteTracks
+                    }
+                    playMusicFromId(
+                        musicPlayer, 
+                        tracksList, 
+                        action.songId, 
+                        repository
+                    )
+                }
                 is SearchScreenAction.PlaylistPressed -> viewModel.onPlaylistPressed(
                     action.playlistId,
                     action.playlistIcon,

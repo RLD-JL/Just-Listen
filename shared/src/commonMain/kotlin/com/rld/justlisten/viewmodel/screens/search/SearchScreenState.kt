@@ -2,6 +2,7 @@ package com.rld.justlisten.viewmodel.screens.search
 
 import com.rld.justlisten.ScreenState
 import com.rld.justlisten.datalayer.models.PlayListModel
+import com.rld.justlisten.datalayer.webservices.apis.searchcalls.AutocompleteUser
 import com.rld.justlisten.viewmodel.interfaces.Item
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 
@@ -10,7 +11,13 @@ data class SearchScreenState(
     var searchFor: String = "",
     var listOfSearches: List<String> = emptyList(),
     var searchResultTracks: List<TrackItem> = emptyList(),
-    var searchResultPlaylist: List<PlaylistItem> = emptyList()
+    var searchResultPlaylist: List<PlaylistItem> = emptyList(),
+    
+    // Autocomplete suggestion states
+    var isAutocompleteLoading: Boolean = false,
+    var autocompleteTracks: List<TrackItem> = emptyList(),
+    var autocompletePlaylists: List<PlaylistItem> = emptyList(),
+    var autocompleteUsers: List<AutocompleteUser> = emptyList()
 ) : ScreenState
 
 

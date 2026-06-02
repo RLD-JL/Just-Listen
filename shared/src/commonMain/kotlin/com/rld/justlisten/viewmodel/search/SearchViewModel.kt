@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 
 class SearchViewModel(
     private val searchRepository: SearchRepository,
@@ -19,6 +21,8 @@ class SearchViewModel(
     
     private val _searchState = MutableStateFlow(SearchScreenState())
     val searchState: StateFlow<SearchScreenState> = _searchState.asStateFlow()
+
+    private var autocompleteJob: Job? = null
 
     init {
         loadSearchHistory()
@@ -43,13 +47,53 @@ class SearchViewModel(
     }
     
     fun onSearchQueryChanged(query: String) {
-        _searchState.value = _searchState.value.copy(searchFor = query)
+        _searchState.update { it.copy(searchFor = query) }
+        
+        autocompleteJob?.cancel()
+        if (query.isBlank()) {
+            _searchState.update {
+                it.copy(
+                    autocompleteTracks = emptyList(),
+                    autocompletePlaylists = emptyList(),
+                    autocompleteUsers = emptyList(),
+                    isAutocompleteLoading = false
+                )
+            }
+            return
+        }
+        
+        autocompleteJob = viewModelScope.launch {
+            delay(300)
+            _searchState.update { it.copy(isAutocompleteLoading = true) }
+            try {
+                val suggestions = searchRepository.searchAutocomplete(query)
+                _searchState.update {
+                    it.copy(
+                        autocompleteTracks = suggestions.tracks,
+                        autocompletePlaylists = suggestions.playlists,
+                        autocompleteUsers = suggestions.users,
+                        isAutocompleteLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _searchState.update { it.copy(isAutocompleteLoading = false) }
+            }
+        }
     }
     
     fun onSearchSubmitted(query: String) {
         if (query.isBlank()) return
+        autocompleteJob?.cancel()
         viewModelScope.launch {
-            _searchState.update { it.copy(isLoading = true, searchFor = query) }
+            _searchState.update {
+                it.copy(
+                    isLoading = true,
+                    searchFor = query,
+                    autocompleteTracks = emptyList(),
+                    autocompletePlaylists = emptyList(),
+                    autocompleteUsers = emptyList()
+                )
+            }
             try {
                 searchRepository.saveSearch(query)
                 val tracks = searchRepository.searchForTracks(query)
