@@ -16,5 +16,6 @@ data class PlayListModel(
     @SerialName("repost_count") val repostCount: Int = 0,
     @SerialName("favorite_count") val favoriteCount: Int = 0,
     @Transient val isFavorite: Boolean = false,
-    @Transient val songCounter: String = ""
+    @Transient val songCounter: String = "",
+    @Transient val durationPlayedSec: Long = 0L
 )

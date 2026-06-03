@@ -17,10 +17,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 
+import com.rld.justlisten.media.PlayHistoryTracker
+
 class PlayerViewModel(
     private val favoritesRepository: FavoritesRepository,
     private val libraryRepository: LibraryRepository,
     private val musicPlayer: MusicPlayer,
+    private val playHistoryTracker: PlayHistoryTracker,
 ) : BaseScreenViewModel() {
 
     private val _addPlaylistList = MutableStateFlow(emptyList<AddPlaylist>())
@@ -92,6 +95,7 @@ class PlayerViewModel(
     fun updatePlaylistSongs(title: String, description: String?, songs: List<String>) {
         viewModelScope.launch {
             libraryRepository.updatePlaylistSongs(title, description, songs)
+            loadAddPlaylists()
         }
     }
 }

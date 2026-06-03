@@ -11,9 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.runtime.Composable
-import org.jetbrains.compose.resources.painterResource
-import justlisten.shared.generated.resources.Res
-import justlisten.shared.generated.resources.ic_queue_music
+import com.rld.justlisten.ui.components.CustomPlaceholderIcon
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -79,11 +77,11 @@ fun PlaylistViewItem(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                painter = painterResource(Res.drawable.ic_queue_music),
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(26.dp)
+            CustomPlaceholderIcon(
+                modifier = Modifier.fillMaxSize(0.5f),
+                noteColor = Color.White,
+                lineColor = Color.White.copy(alpha = 0.8f),
+                dotColor = Color.White.copy(alpha = 0.9f)
             )
         }
 

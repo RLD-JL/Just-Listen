@@ -365,8 +365,7 @@ fun LibraryScreen(
                              playlist, 
                              onPlaylistClicked = { title, desc, songs ->
                                  onAction(LibraryScreenAction.PlaylistCreatedClicked(title, desc, songs))
-                             },
-                             onDeleteClicked = { onAction(LibraryScreenAction.DeletePlaylistClicked(it)) }
+                             }
                          )
                     }
                 }

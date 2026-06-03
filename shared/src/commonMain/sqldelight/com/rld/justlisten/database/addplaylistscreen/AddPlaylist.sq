@@ -11,11 +11,11 @@ getAddPlaylist:
 SELECT * FROM AddPlaylist;
 
 upsertAddPlaylist {
-    INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription)
-    VALUES(:playlistName, :playlistDescription);
+    INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription, songsList)
+    VALUES(:playlistName, :playlistDescription, (SELECT songsList FROM AddPlaylist WHERE playlistName = :playlistName));
 }
 
-upserAddPlaylistWithSongs {
+upsertAddPlaylistWithSongs {
     INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription, songsList)
     VALUES (:playlistName, :playlistDescription,:songsList);
 }
@@ -23,3 +23,9 @@ upserAddPlaylistWithSongs {
 deletePlaylist:
 DELETE FROM AddPlaylist
 WHERE playlistName = :playlistName;
+
+updatePlaylistName:
+UPDATE AddPlaylist
+SET playlistName = :newPlaylistName
+WHERE playlistName = :oldPlaylistName;
+

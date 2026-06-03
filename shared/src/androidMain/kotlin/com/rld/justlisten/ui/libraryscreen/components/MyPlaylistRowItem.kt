@@ -12,9 +12,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
-import org.jetbrains.compose.resources.painterResource
-import justlisten.shared.generated.resources.Res
-import justlisten.shared.generated.resources.ic_queue_music
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import com.rld.justlisten.ui.components.CustomPlaceholderIcon
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,12 +25,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
+import com.rld.justlisten.ui.addplaylistscreen.components.ConfirmDeletePlaylistDialog
 
 @Composable
 fun MyPlaylistRowItem(
     playlist: AddPlaylist,
-    onPlaylistClicked: (String, String?, List<String>) -> Unit,
-    onDeleteClicked: (String) -> Unit
+    onPlaylistClicked: (String, String?, List<String>) -> Unit
 ) {
     val hasSongs = !playlist.songsList.isNullOrEmpty()
 
@@ -63,34 +63,12 @@ fun MyPlaylistRowItem(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                painter = painterResource(Res.drawable.ic_queue_music),
-                contentDescription = null,
-                tint = Color.White.copy(alpha = 0.9f),
-                modifier = Modifier.size(52.dp)
+            CustomPlaceholderIcon(
+                modifier = Modifier.fillMaxSize(0.45f),
+                noteColor = Color.White,
+                lineColor = Color.White.copy(alpha = 0.8f),
+                dotColor = Color.White.copy(alpha = 0.9f)
             )
-            
-            // Delete button overlay
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp),
-                contentAlignment = Alignment.TopEnd
-            ) {
-                IconButton(
-                    onClick = { onDeleteClicked(playlist.playlistName) },
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete Playlist",
-                        tint = Color.White,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
         }
         
         Spacer(modifier = Modifier.height(8.dp))
@@ -113,3 +91,4 @@ fun MyPlaylistRowItem(
         )
     }
 }
+

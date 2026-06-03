@@ -41,7 +41,8 @@ fun MusicInsightsScreen(
     libraryState: LibraryState,
     musicPlayer: MusicPlayer,
     libraryRepository: LibraryRepository,
-    onBackPressed: () -> Unit
+    onBackPressed: () -> Unit,
+    onLoadMoreMostPlayed: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val totalPlays = libraryState.totalPlays
@@ -68,14 +69,8 @@ fun MusicInsightsScreen(
         }
     }
 
-    // Calculate hours listened (approx. 3.5 minutes per play)
-    val hoursListened = remember(totalPlays) {
-        val totalMinutes = totalPlays * 3.5
-        (totalMinutes / 60.0).let { hours ->
-            // Round to 1 decimal place
-            (hours * 10).toInt() / 10.0
-        }
-    }
+    // Get exact hours listened from state
+    val hoursListened = libraryState.hoursPlayed
 
     Scaffold(
         topBar = {
@@ -283,7 +278,7 @@ fun MusicInsightsScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = "${libraryState.mostPlayedSongs.size}",
+                                    text = "${libraryState.uniquePlays}",
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = Color(0xFF6B11CB)
@@ -357,7 +352,7 @@ fun MusicInsightsScreen(
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = "With a total of $topArtistPlays plays in your history!",
+                                        text = "With a total of $topArtistPlays plays • ${libraryState.topArtistHours} hrs in your history!",
                                         fontSize = 12.sp,
                                         color = Color.White.copy(alpha = 0.9f)
                                     )
@@ -380,6 +375,12 @@ fun MusicInsightsScreen(
                 // 4. Playable list of top tracks
                 itemsIndexed(displayedTracks) { index, track ->
                     val isPlayingThis = isPlayingAny && currentMediaId == track.id
+                    
+                    LaunchedEffect(index) {
+                        if (index >= displayedTracks.lastIndex - 3 && !libraryState.lastMostPlayedIndexReached) {
+                            onLoadMoreMostPlayed(displayedTracks.size)
+                        }
+                    }
                     
                     Card(
                         modifier = Modifier
@@ -478,7 +479,23 @@ fun MusicInsightsScreen(
 
                             Spacer(modifier = Modifier.width(8.dp))
 
-                            // Dynamic playing badge & counter
+                            // Dynamic playing badge & counter with listening duration
+                            val trackHours = remember(track.durationPlayedSec) {
+                                ((track.durationPlayedSec / 3600.0) * 10).toInt() / 10.0
+                            }
+                            val badgeText = remember(track.songCounter, trackHours, track.durationPlayedSec) {
+                                if (trackHours > 0.0) {
+                                    "${track.songCounter} plays • $trackHours hrs"
+                                } else {
+                                    val trackMins = ((track.durationPlayedSec / 60.0) * 10).toInt() / 10.0
+                                    if (trackMins > 0.0) {
+                                        "${track.songCounter} plays • $trackMins mins"
+                                    } else {
+                                        "${track.songCounter} plays • <1 min"
+                                    }
+                                }
+                            }
+
                             Box(
                                 modifier = Modifier
                                     .background(
@@ -489,7 +506,7 @@ fun MusicInsightsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "${track.songCounter} plays",
+                                    text = badgeText,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isPlayingThis) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary

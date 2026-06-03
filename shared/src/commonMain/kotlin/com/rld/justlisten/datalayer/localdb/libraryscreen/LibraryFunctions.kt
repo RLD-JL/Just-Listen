@@ -136,3 +136,59 @@ fun LocalDb.getTimeCapsuleSongs(limit: Long): List<PlayListModel> {
             )
         }).executeAsList()
 }
+
+fun LocalDb.insertPlayLog(songId: String, timestamp: Long, durationPlayedSec: Long, completed: Boolean) {
+    libraryQueries.transaction {
+        libraryQueries.insertPlayLog(
+            songId = songId,
+            timestamp = timestamp,
+            durationPlayedSec = durationPlayedSec,
+            completed = if (completed) 1L else 0L
+        )
+    }
+}
+
+fun LocalDb.getTotalPlaysFromHistory(): Long {
+    return libraryQueries.getTotalPlays().executeAsOne()
+}
+
+fun LocalDb.getUniquePlayedCountFromHistory(): Long {
+    return libraryQueries.getUniquePlayedCount().executeAsOne()
+}
+
+fun LocalDb.getTotalDurationPlayedFromHistory(): Long {
+    return libraryQueries.getTotalDurationPlayed().executeAsOne()
+}
+
+fun LocalDb.getDurationPlayedForSongFromHistory(songId: String): Long {
+    return libraryQueries.getDurationPlayedForSong(songId).executeAsOne()
+}
+
+fun LocalDb.getDurationPlayedForArtistFromHistory(user: UserModel): Long {
+    return libraryQueries.getDurationPlayedForArtist(user).executeAsOne()
+}
+
+fun LocalDb.getMostPlayedSongsFromHistory(limit: Long, offset: Long): List<PlayListModel> {
+    return libraryQueries.getMostPlayedFromHistory(
+        limit = limit,
+        offset = offset,
+        mapper = { id, title, user, songImgList, _, songCounter, durationPlayedSec ->
+            PlayListModel(
+                id = id,
+                playlistTitle = title,
+                title = title,
+                user = user,
+                songImgList = songImgList,
+                songCounter = songCounter.toString(),
+                durationPlayedSec = durationPlayedSec,
+                isStreamable = true
+            )
+        }
+    ).executeAsList()
+}
+
+fun LocalDb.getTopArtistFromHistory(): Triple<UserModel, Long, Long>? {
+    return libraryQueries.getTopArtistFromHistory(mapper = { user, plays, totalDurationSec ->
+        Triple(user, plays, totalDurationSec)
+    }).executeAsOneOrNull()
+}

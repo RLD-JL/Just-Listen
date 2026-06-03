@@ -99,6 +99,16 @@ class PlaylistDetailViewModel(
         }
     }
 
+    fun editPlaylistTitle(oldName: String, newName: String) {
+        viewModelScope.launch {
+            libraryRepository.updatePlaylistName(oldName, newName)
+            _playlistDetailState.update {
+                it.copy(playlistName = newName)
+            }
+        }
+    }
+
+
     fun popBack() {
         popBackStack()
     }

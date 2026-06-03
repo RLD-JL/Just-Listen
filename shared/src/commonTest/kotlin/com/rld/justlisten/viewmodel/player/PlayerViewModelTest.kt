@@ -15,6 +15,7 @@ import com.rld.justlisten.ui.actions.PlayerAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
+import com.rld.justlisten.media.PlayHistoryTracker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,7 +45,8 @@ class PlayerViewModelTest {
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = PlayerViewModel(fakeFavoritesRepo, fakeLibraryRepo, fakeMusicPlayer)
+        val playHistoryTracker = PlayHistoryTracker(fakeLibraryRepo, fakeMusicPlayer, kotlinx.coroutines.CoroutineScope(testDispatcher))
+        viewModel = PlayerViewModel(fakeFavoritesRepo, fakeLibraryRepo, fakeMusicPlayer, playHistoryTracker)
     }
 
     @AfterTest
@@ -124,6 +126,39 @@ class PlayerViewModelTest {
 
         assertTrue(fakeMusicPlayer.skipToNextCalled)
     }
+
+    @Test
+    fun testAddSongToPlaylist() = runTest(testDispatcher) {
+        val collectJob = launch { viewModel.playerUiState.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // 1. Create a playlist in the repo first
+        val dummyPlaylist = AddPlaylist(
+            playlistName = "Running Mix",
+            playlistDescription = "Workout tracks",
+            songsList = emptyList()
+        )
+        fakeLibraryRepo.addPlaylist(dummyPlaylist)
+        viewModel.onAction(PlayerAction.LoadPlaylists)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // 2. Add a song to the playlist
+        val action = PlayerAction.AddSongToPlaylist(
+            playlistTitle = "Running Mix",
+            playlistDescription = "Workout tracks",
+            songs = listOf("song123")
+        )
+        viewModel.onAction(action)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // 3. Verify that the UI state contains the updated playlist with the song!
+        val playlists = viewModel.playerUiState.value.addPlaylistList
+        assertEquals(1, playlists.size)
+        assertEquals("Running Mix", playlists[0].playlistName)
+        assertEquals(listOf("song123"), playlists[0].songsList)
+
+        collectJob.cancel()
+    }
 }
 
 // ── FAKES IMPLEMENTATION ───────────────────────────────────────────
@@ -163,27 +198,47 @@ class FakeFavoritesRepository : FavoritesRepository {
 
 class FakeLibraryRepository : LibraryRepository {
     private val playlists = mutableListOf<AddPlaylist>()
+    private val playlistsFlow = MutableStateFlow<List<AddPlaylist>>(emptyList())
+
+    private fun updateFlow() {
+        playlistsFlow.value = playlists.toList()
+    }
 
     fun addPlaylist(playlist: AddPlaylist) {
         playlists.add(playlist)
+        updateFlow()
     }
 
     override fun savePlaylist(playlistName: String, playlistDescription: String?) {
         playlists.add(AddPlaylist(playlistName, playlistDescription ?: "", songsList = emptyList()))
+        updateFlow()
     }
 
     override fun getAddPlaylist(): List<AddPlaylist> = playlists
+
+    override fun getAddPlaylistFlow(): Flow<List<AddPlaylist>> = playlistsFlow
 
     override fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>) {
         val index = playlists.indexOfFirst { it.playlistName == playlistName }
         if (index >= 0) {
             playlists[index] = AddPlaylist(playlistName, playlistDescription ?: "", songsList = songList)
         }
+        updateFlow()
     }
 
     override fun deletePlaylist(playlistName: String) {
         playlists.removeAll { it.playlistName == playlistName }
+        updateFlow()
     }
+
+    override fun updatePlaylistName(oldName: String, newName: String) {
+        val index = playlists.indexOfFirst { it.playlistName == oldName }
+        if (index >= 0) {
+            playlists[index] = playlists[index].copy(playlistName = newName)
+        }
+        updateFlow()
+    }
+
 
     // Unused by PlayerViewModel in tests
     override fun saveSongToRecent(id: String, title: String, user: UserModel, songImgList: SongIconList, playlistName: String) {}
@@ -191,6 +246,16 @@ class FakeLibraryRepository : LibraryRepository {
     override fun getMostPlayedSongs(numberOfLines: Long): List<PlayListModel> = emptyList()
     override fun getRecentSongs(numberOfLines: Long): List<PlayListModel> = emptyList()
     override fun getTimeCapsuleSongs(limit: Long): List<PlayListModel> = emptyList()
+
+    override fun insertPlayLog(songId: String, timestamp: Long, durationPlayedSec: Long, completed: Boolean) {}
+    override fun getTotalPlays(): Long = 0L
+    override fun getUniquePlays(): Long = 0L
+    override fun getTotalDurationPlayed(): Long = 0L
+    override fun getDurationPlayedForSong(songId: String): Long = 0L
+    override fun getDurationPlayedForArtist(user: UserModel): Long = 0L
+    override fun getMostPlayedSongsFromHistory(limit: Long, offset: Long): List<PlayListModel> = emptyList()
+    override fun getTopArtistFromHistory(): Triple<UserModel, Long, Long>? = null
+    override fun getPlayHistoryFlow(): Flow<Unit> = flowOf(Unit)
 }
 
 class FakeMusicPlayer : MusicPlayer {

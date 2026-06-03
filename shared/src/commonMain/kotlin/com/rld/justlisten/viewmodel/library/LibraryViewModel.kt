@@ -28,6 +28,16 @@ class LibraryViewModel(
                 loadLibraryData()
             }
         }
+        viewModelScope.launch {
+            libraryRepository.getAddPlaylistFlow().collect {
+                loadLibraryData()
+            }
+        }
+        viewModelScope.launch {
+            libraryRepository.getPlayHistoryFlow().collect {
+                loadLibraryData()
+            }
+        }
     }
 
     private fun loadLibraryData() {
@@ -35,16 +45,28 @@ class LibraryViewModel(
             try {
                 val recent = libraryRepository.getRecentSongs(20).map { PlaylistItem(it, it.isFavorite) }
                 val favorites = favoritesRepository.getFavoritePlaylist().map { PlaylistItem(it, it.isFavorite) }
-                val mostPlayed = libraryRepository.getMostPlayedSongs(20).map { PlaylistItem(it, it.isFavorite) }
+                
+                // Fetch top played songs from history
+                val mostPlayed = libraryRepository.getMostPlayedSongsFromHistory(20, 0)
+                    .map { PlaylistItem(it, it.isFavorite) }
+                
                 val playlistsCreated = libraryRepository.getAddPlaylist()
-                val allPlayed = libraryRepository.getMostPlayedSongs(1000)
-                val totalPlays = allPlayed.sumOf { it.songCounter.toIntOrNull() ?: 0 }
-                val topArtistGroup = allPlayed
-                    .groupBy { it.user.username }
-                    .mapValues { entry -> entry.value.sumOf { it.songCounter.toIntOrNull() ?: 0 } }
-                    .maxByOrNull { it.value }
-                val topArtistName = topArtistGroup?.key ?: ""
-                val topArtistPlays = topArtistGroup?.value ?: 0
+                
+                // Fetch total play and unique plays count directly
+                val totalPlays = libraryRepository.getTotalPlays().toInt()
+                val uniquePlays = libraryRepository.getUniquePlays().toInt()
+                
+                // Fetch total duration and calculate hours
+                val totalDurationSeconds = libraryRepository.getTotalDurationPlayed()
+                val hoursPlayed = ((totalDurationSeconds / 3600.0) * 10).toInt() / 10.0
+                
+                // Fetch top artist from history
+                val topArtistGroup = libraryRepository.getTopArtistFromHistory()
+                val topArtistName = topArtistGroup?.first?.username ?: ""
+                val topArtistPlays = topArtistGroup?.second?.toInt() ?: 0
+                val topArtistDurationSec = topArtistGroup?.third ?: 0L
+                val topArtistHours = ((topArtistDurationSec / 3600.0) * 10).toInt() / 10.0
+                
                 val timeCapsule = libraryRepository.getTimeCapsuleSongs(20).map { PlaylistItem(it, it.isFavorite) }
                 
                 _libraryState.update {
@@ -56,12 +78,38 @@ class LibraryViewModel(
                         playlistsCreated = playlistsCreated,
                         timeCapsuleSongs = timeCapsule,
                         totalPlays = totalPlays,
+                        uniquePlays = uniquePlays,
+                        hoursPlayed = hoursPlayed,
                         topArtistName = topArtistName,
-                        topArtistPlays = topArtistPlays
+                        topArtistPlays = topArtistPlays,
+                        topArtistHours = topArtistHours,
+                        lastMostPlayedIndexReached = mostPlayed.size < 20
                     )
                 }
             } catch (e: Exception) {
                 _libraryState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    fun loadMoreMostPlayedSongs(currentCount: Int) {
+        viewModelScope.launch {
+            try {
+                val morePlayed = libraryRepository.getMostPlayedSongsFromHistory(20, currentCount.toLong())
+                    .map { PlaylistItem(it, it.isFavorite) }
+                if (morePlayed.isEmpty()) {
+                    _libraryState.update { it.copy(lastMostPlayedIndexReached = true) }
+                } else {
+                    _libraryState.update { state ->
+                        val combined = (state.mostPlayedSongs + morePlayed).distinctBy { it.id }
+                        state.copy(
+                            mostPlayedSongs = combined,
+                            lastMostPlayedIndexReached = morePlayed.size < 20
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                // Ignore pagination load errors
             }
         }
     }
@@ -129,16 +177,22 @@ class LibraryViewModel(
     }
 
     fun onPlaylistCreatedClicked(title: String, description: String?, songs: List<String>) {
-        navigate(
-            Route.PlaylistDetail(
-                playlistId = "",
-                playlistIcon = "",
-                playlistTitle = title,
-                playlistCreatedBy = "ME",
-                playlistEnum = "CREATED_BY_USER",
-                songsList = songs
-            ),
-        )
+        viewModelScope.launch {
+            val exists = _libraryState.value.playlistsCreated.any { it.playlistName == title }
+            if (!exists) {
+                libraryRepository.savePlaylist(title, description)
+            }
+            navigate(
+                Route.PlaylistDetail(
+                    playlistId = "",
+                    playlistIcon = "",
+                    playlistTitle = title,
+                    playlistCreatedBy = "ME",
+                    playlistEnum = "CREATED_BY_USER",
+                    songsList = songs
+                ),
+            )
+        }
     }
 
     fun deletePlaylist(playlistName: String) {

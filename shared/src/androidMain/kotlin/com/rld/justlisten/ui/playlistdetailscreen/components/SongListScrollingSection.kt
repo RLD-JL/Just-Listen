@@ -7,6 +7,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Button
@@ -79,7 +86,14 @@ fun DownloadedRow() {
             Switch(
                 checked = switched,
                 modifier = Modifier.padding(8.dp),
-                onCheckedChange = { switched = it }
+                onCheckedChange = { switched = it },
+                enabled = false,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = Color(0xFFE91E63),
+                    disabledCheckedThumbColor = Color.White.copy(alpha = 0.5f),
+                    disabledCheckedTrackColor = Color(0xFFE91E63).copy(alpha = 0.4f)
+                )
             )
         }
     }
@@ -89,16 +103,27 @@ fun DownloadedRow() {
 fun ShuffleButton(onShuffleClicked: () -> Unit) {
     Button(
         onClick = { onShuffleClicked() },
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+        contentPadding = PaddingValues(0.dp),
+        shape = CircleShape,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp, horizontal = 100.dp)
-            .clip(CircleShape),
+            .padding(vertical = 12.dp, horizontal = 48.dp)
+            .height(48.dp)
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(Color(0xFFE91E63), Color(0xFF9C27B0))
+                ),
+                shape = CircleShape
+            ),
     ) {
         Text(
             text = "SHUFFLE PLAY",
-            style = typography.titleMedium.copy(fontSize = 14.sp),
-            modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
+            style = typography.titleMedium.copy(
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
         )
     }
 }

@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.rld.justlisten.ui.components.CustomPlaceholderIcon
 import com.rld.justlisten.ui.addplaylistscreen.components.AddPlaylistDialog
 import com.rld.justlisten.ui.addplaylistscreen.components.PlaylistViewItem
 import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
@@ -61,10 +62,16 @@ fun AddPlaylistOption(
                                     "\"$title\" removed from $playlistName"
                                 }
                                 snackbarHostState.currentSnackbarData?.dismiss()
-                                snackbarHostState.showSnackbar(
-                                    message = message,
-                                    withDismissAction = true
-                                )
+                                val snackbarJob = launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = message,
+                                        withDismissAction = true,
+                                        duration = SnackbarDuration.Indefinite
+                                    )
+                                }
+                                kotlinx.coroutines.delay(1000L)
+                                snackbarJob.cancel()
+                                snackbarHostState.currentSnackbarData?.dismiss()
                             }
                         }
                     )
@@ -154,75 +161,3 @@ fun EmptyPlaylistsPlaceholder() {
     }
 }
 
-@Composable
-fun CustomPlaceholderIcon(modifier: Modifier = Modifier) {
-    // Colors mapped statically from the theme values
-    val noteColor = MaterialTheme.colorScheme.error      // Vibrant red/pink
-    val lineColor = MaterialTheme.colorScheme.primary    // Deep themed blue/indigo
-    val dotColor = MaterialTheme.colorScheme.secondary  // Complementary secondary teal/green
-
-    androidx.compose.foundation.Canvas(modifier = modifier) {
-        val w = size.width
-        val h = size.height
-
-        // Define positions relative to Canvas size (to scale perfectly)
-        val noteHead1 = Offset(w * 0.22f, h * 0.76f)
-        val noteHead2 = Offset(w * 0.50f, h * 0.58f)
-        val headRadius = w * 0.09f
-
-        // Stems
-        val stem1Start = Offset(w * 0.30f, h * 0.76f)
-        val stem1End = Offset(w * 0.30f, h * 0.32f)
-        val stem2Start = Offset(w * 0.58f, h * 0.58f)
-        val stem2End = Offset(w * 0.58f, h * 0.14f)
-        val stemWidth = w * 0.045f
-
-        // 1. Draw Note Heads (filled circles representing musical notes)
-        drawCircle(color = noteColor, radius = headRadius, center = noteHead1)
-        drawCircle(color = noteColor, radius = headRadius, center = noteHead2)
-
-        // 2. Draw Stems (vertical lines extending from note heads)
-        drawLine(color = noteColor, start = stem1Start, end = stem1End, strokeWidth = stemWidth)
-        drawLine(color = noteColor, start = stem2Start, end = stem2End, strokeWidth = stemWidth)
-
-        // 3. Draw Beam (connecting the top of stems with slanted line)
-        drawLine(
-            color = noteColor,
-            start = stem1End,
-            end = stem2End,
-            strokeWidth = stemWidth * 1.8f,
-            cap = StrokeCap.Square
-        )
-
-        // 4. Draw Horizontal Lines and Circular Endpoints
-        val lineEndsX = w * 0.88f
-        val lineStartXShort = w * 0.68f
-        val lineStartXLong = w * 0.35f
-        val lineWidth = w * 0.035f
-        val dotRadius = w * 0.045f
-
-        val lineYPositions = listOf(
-            h * 0.18f,
-            h * 0.33f,
-            h * 0.48f,
-            h * 0.63f,
-            h * 0.78f
-        )
-
-        lineYPositions.forEachIndexed { index, y ->
-            val startX = if (index == 4) lineStartXLong else lineStartXShort
-            drawLine(
-                color = lineColor,
-                start = Offset(startX, y),
-                end = Offset(lineEndsX, y),
-                strokeWidth = lineWidth,
-                cap = StrokeCap.Round
-            )
-            drawCircle(
-                color = dotColor,
-                radius = dotRadius,
-                center = Offset(lineEndsX, y)
-            )
-        }
-    }
-}

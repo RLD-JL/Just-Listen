@@ -90,7 +90,8 @@ actual fun MusicInsightsScreenHost(navController: NavHostController) {
         libraryState = state,
         musicPlayer = musicPlayer,
         libraryRepository = repository,
-        onBackPressed = { viewModel.popBack() }
+        onBackPressed = { viewModel.popBack() },
+        onLoadMoreMostPlayed = { currentCount -> viewModel.loadMoreMostPlayedSongs(currentCount) }
     )
 }
 
@@ -187,6 +188,7 @@ actual fun PlaylistDetailScreenHost(
                     musicPlayer.refreshMetadata()
                 }
                 is PlaylistDetailAction.DeletePlaylistClicked -> viewModel.deletePlaylist(action.playlistName)
+                is PlaylistDetailAction.EditPlaylistTitleClicked -> viewModel.editPlaylistTitle(action.oldName, action.newName)
             }
         }
     )

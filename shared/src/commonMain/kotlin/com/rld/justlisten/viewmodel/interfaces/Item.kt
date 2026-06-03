@@ -12,4 +12,6 @@ interface Item {
     val songCounter: String
     val repostCount: Int
     val favoriteCount: Int
+    val durationPlayedSec: Long
+        get() = 0L
 }

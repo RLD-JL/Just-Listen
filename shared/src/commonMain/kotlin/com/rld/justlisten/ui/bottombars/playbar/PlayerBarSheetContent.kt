@@ -204,7 +204,6 @@ fun PlayerBarSheetContent(
                                     onAction(PlayerAction.LoadPlaylists)
                                 },
                                 clickedToAddSongToPlaylist = { playlistTitle, playlistDescription, songList ->
-                                    closeSheet()
                                     onAction(PlayerAction.AddSongToPlaylist(
                                         playlistTitle,
                                         playlistDescription,

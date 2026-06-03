@@ -1,8 +1,6 @@
 package com.rld.justlisten.di
 
-import com.rld.justlisten.datalayer.Repository
 import com.rld.justlisten.viewmodel.addplaylist.AddPlaylistViewModel
-import com.rld.justlisten.viewmodel.donation.DonationViewModel
 import com.rld.justlisten.viewmodel.library.LibraryViewModel
 import com.rld.justlisten.viewmodel.playlist.PlaylistViewModel
 import com.rld.justlisten.viewmodel.playlistdetail.PlaylistDetailViewModel
@@ -13,16 +11,17 @@ import com.rld.justlisten.viewmodel.seeall.SeeAllViewModel
 import org.koin.dsl.module
 import org.koin.core.module.dsl.viewModel
 
+import com.rld.justlisten.media.PlayHistoryTracker
 import com.rld.justlisten.datalayer.repositories.*
 
 fun appModule() = module {
     // Single instances
-    single { Repository(get(), get()) }
     single<FavoritesRepository> { FavoritesRepositoryImpl(get()) }
     single<LibraryRepository> { LibraryRepositoryImpl(get()) }
     single<PlaylistRepository> { PlaylistRepositoryImpl(get(), get()) }
     single<SearchRepository> { SearchRepositoryImpl(get(), get()) }
     single<SettingsRepository> { SettingsRepositoryImpl(get()) }
+    single { PlayHistoryTracker(get(), get()) }
     
     // ViewModels
     viewModel { LibraryViewModel(get(), get()) }
@@ -32,6 +31,5 @@ fun appModule() = module {
     viewModel { AddPlaylistViewModel(get()) }
     viewModel { SeeAllViewModel(get(), get()) }
     single { SettingsViewModel(get()) }
-    viewModel { DonationViewModel() }
-    viewModel { PlayerViewModel(get(), get(), get()) }
+    viewModel { PlayerViewModel(get(), get(), get(), get()) }
 }

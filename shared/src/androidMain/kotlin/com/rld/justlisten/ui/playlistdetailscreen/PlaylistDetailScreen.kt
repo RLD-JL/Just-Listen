@@ -28,6 +28,8 @@ import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailState
 
 import com.rld.justlisten.ui.actions.PlaylistDetailAction
+import com.rld.justlisten.ui.addplaylistscreen.components.ConfirmDeletePlaylistDialog
+import com.rld.justlisten.ui.addplaylistscreen.components.EditPlaylistDialog
 
 @Composable
 fun PlaylistDetailScreen(
@@ -39,16 +41,38 @@ fun PlaylistDetailScreen(
         LoadingScreen()
     } else {
         val context = LocalPlatformContext.current
+        val toolbarOffsetHeightPx = remember { mutableStateOf(0f) }
+        val showDeleteConfirm = remember { mutableStateOf(false) }
+        val showEditDetails = remember { mutableStateOf(false) }
+
+        val imageUrl = if (playlistDetailState.playlistIcon.isNotBlank()) {
+            playlistDetailState.playlistIcon
+        } else {
+            playlistDetailState.songPlaylist.firstOrNull()?.songIconList?.songImageURL480px.orEmpty()
+        }
+
         val placeholderColor = MaterialTheme.colorScheme.secondaryContainer.toArgb()
         val painter = rememberAsyncImagePainter(
-            model = remember(playlistDetailState.playlistIcon, context, placeholderColor) {
+            model = remember(imageUrl, context, placeholderColor) {
                 ImageRequest.Builder(context = context)
                     .placeholder(ColorDrawable(placeholderColor).asImage())
-                    .data(playlistDetailState.playlistIcon).build()
+                    .data(imageUrl).build()
             }
         )
 
-        val toolbarOffsetHeightPx = remember { mutableStateOf(0f) }
+        ConfirmDeletePlaylistDialog(
+            playlistName = playlistDetailState.playlistName,
+            openDialog = showDeleteConfirm,
+            onConfirmDelete = { onAction(PlaylistDetailAction.DeletePlaylistClicked(playlistDetailState.playlistName)) }
+        )
+
+        EditPlaylistDialog(
+            openDialog = showEditDetails,
+            initialTitle = playlistDetailState.playlistName,
+            onEditPlaylistClicked = { newName ->
+                onAction(PlaylistDetailAction.EditPlaylistTitleClicked(playlistDetailState.playlistName, newName))
+            }
+        )
 
         val nestedScrollConnection = remember {
             object : NestedScrollConnection {
@@ -78,7 +102,11 @@ fun PlaylistDetailScreen(
                 scrollState = toolbarOffsetHeightPx,
                 playlist = playlistDetailState.songPlaylist,
                 onShuffleClicked = {
-                    playMusic(musicPlayer, playlistDetailState.songPlaylist)
+                    musicPlayer.setShuffleModeEnabled(true)
+                    val randomSong = playlistDetailState.songPlaylist.randomOrNull()
+                    if (randomSong != null) {
+                        playMusic(musicPlayer, playlistDetailState.songPlaylist, randomSong.id)
+                    }
                 },
                 onSongClicked = { onAction(PlaylistDetailAction.SongPressed(it)) },
                 onFavoritePressed = { id, title, user, icon, isFav -> 
@@ -87,10 +115,11 @@ fun PlaylistDetailScreen(
                 painter = painter
             )
             AnimatedToolBar(
-                playlistDetailState, 
-                toolbarOffsetHeightPx, 
+                playlistDetailState = playlistDetailState, 
+                scrollState = toolbarOffsetHeightPx, 
                 onBackButtonPressed = { onAction(PlaylistDetailAction.BackPressed(it)) }, 
-                onDeletePlaylistClicked = { onAction(PlaylistDetailAction.DeletePlaylistClicked(it)) }
+                onDeletePlaylistClicked = { showDeleteConfirm.value = true },
+                onEditPlaylistClicked = { showEditDetails.value = true }
             )
         }
     }

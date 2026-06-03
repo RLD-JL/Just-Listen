@@ -37,5 +37,6 @@ data class PlaylistItem(
     override val songCounter = _data.songCounter
     override val repostCount = _data.repostCount
     override val favoriteCount = _data.favoriteCount
+    override val durationPlayedSec = _data.durationPlayedSec
 }
 

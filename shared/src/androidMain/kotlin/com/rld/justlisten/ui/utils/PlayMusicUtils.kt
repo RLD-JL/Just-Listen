@@ -28,15 +28,10 @@ fun playMusicFromId(
     playlistId: String? = null
 ) {
     musicPlayer.currentlyPlayingPlaylistId = playlistId
-    // Save to recent & most played tracking
+    // Save to recent tracking
     repository?.let { repo ->
         playlist.find { it.id == songId }?.let { song ->
             repo.saveSongToRecent(
-                song.id, song.title,
-                UserModel(song.user),
-                song.songIconList, song.playlistTitle
-            )
-            repo.saveSongToMostPlayed(
                 song.id, song.title,
                 UserModel(song.user),
                 song.songIconList, song.playlistTitle
@@ -62,15 +57,10 @@ fun playMusic(
     musicPlayer.currentlyPlayingPlaylistId = playlistId
     musicPlayer.updatePlaylist(playlist)
     val mediaId = playFromId.ifEmpty { playlist.first().id }
-    // Save to recent & most played tracking
+    // Save to recent tracking
     repository?.let { repo ->
         playlist.find { it.id == mediaId }?.let { song ->
             repo.saveSongToRecent(
-                song.id, song.title,
-                UserModel(song.user),
-                song.songIconList, song.playlistTitle
-            )
-            repo.saveSongToMostPlayed(
                 song.id, song.title,
                 UserModel(song.user),
                 song.songIconList, song.playlistTitle
