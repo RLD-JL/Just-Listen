@@ -91,19 +91,20 @@ JOIN Library L ON P.songId = L.id
 WHERE L.user = :user;
 
 getMostPlayedFromHistory:
-SELECT L.id, L.title, L.user, L.songImgList, L.playlistName, COUNT(P.id) AS songCounter, IFNULL(SUM(P.durationPlayedSec), 0) AS durationPlayedSec
+SELECT L.id, L.title, L.user, L.songImgList, L.playlistName, IFNULL(SUM(P.completed), 0) AS songCounter, IFNULL(SUM(P.durationPlayedSec), 0) AS durationPlayedSec
 FROM Library L
 JOIN PlayHistory P ON L.id = P.songId
-WHERE P.completed = 1
 GROUP BY L.id
+HAVING songCounter > 0
 ORDER BY songCounter DESC, durationPlayedSec DESC
 LIMIT :limit OFFSET :offset;
 
 getTopArtistFromHistory:
-SELECT L.user, COUNT(P.id) AS plays, IFNULL(SUM(P.durationPlayedSec), 0) AS totalDurationSec
+SELECT L.user, IFNULL(SUM(P.completed), 0) AS plays, IFNULL(SUM(P.durationPlayedSec), 0) AS totalDurationSec
 FROM Library L
 JOIN PlayHistory P ON L.id = P.songId
-WHERE P.completed = 1
 GROUP BY L.user
+HAVING plays > 0
 ORDER BY plays DESC, totalDurationSec DESC
 LIMIT 1;
+
