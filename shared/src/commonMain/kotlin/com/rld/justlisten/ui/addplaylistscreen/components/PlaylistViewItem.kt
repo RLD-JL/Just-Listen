@@ -42,7 +42,7 @@ fun PlaylistViewItem(
             .clickable(onClick = {
                 val updatedSongs = if (currentSongId != null) {
                     if (isAlreadyInPlaylist) {
-                        playlist.songsList?.filter { it != currentSongId } ?: emptyList()
+                        playlist.songsList.filter { it != currentSongId }
                     } else {
                         (playlist.songsList ?: emptyList()) + currentSongId
                     }

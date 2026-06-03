@@ -10,6 +10,8 @@ import com.rld.justlisten.media.AndroidMusicPlayer
 import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.media.exoplayer.MusicServiceConnection
 import com.rld.justlisten.media.exoplayer.MusicSource
+import com.rld.justlisten.ui.utils.SleepTimerService
+import com.rld.justlisten.ui.utils.AndroidSleepTimerService
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import androidx.media3.common.AudioAttributes
@@ -26,6 +28,8 @@ import java.io.File
 
 @OptIn(UnstableApi::class)
 fun androidModule(apiKey: String = "") = module {
+
+    single<SleepTimerService> { AndroidSleepTimerService(androidContext()) }
 
     single { ApiClient(apiKey = apiKey) }
 

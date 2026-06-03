@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -81,11 +84,12 @@ fun JustListenScaffold(
         val minibarHeight = 65.dp
         val bottomNavHeight = 80.dp
         val density = LocalDensity.current
+        val bottomSafeArea = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding()
 
         // Calculate endAnchor based on whether the nav bar is showing
         val endAnchor = with(density) {
             (maxHeight
-                    - (if (showBottomBar) bottomNavHeight else 0.dp)
+                    - (if (showBottomBar) bottomNavHeight + bottomSafeArea else bottomSafeArea)
                     - minibarHeight
                     ).toPx()
         }
@@ -183,7 +187,7 @@ fun JustListenScaffold(
                     PlayerBarSheetContent(
                         uiState = uiState,
                         layoutInfo = PlayerLayoutInfo(
-                            bottomPadding = if (showBottomBar) bottomNavHeight else 0.dp,
+                            bottomPadding = (if (showBottomBar) bottomNavHeight else 0.dp) + bottomSafeArea,
                             currentFraction = currentFraction,
                             isExtended = anchoredDraggableState.currentValue == PlayBarState.EXPANDED
                         ),
@@ -224,7 +228,7 @@ fun JustListenScaffold(
                             else 0f
                             IntOffset(
                                 x = 0,
-                                y = (bottomNavHeight.toPx() * progress).toInt()
+                                y = ((bottomNavHeight + bottomSafeArea).toPx() * progress).toInt()
                             )
                         },
                     onItemClick = {

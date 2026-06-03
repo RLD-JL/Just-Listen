@@ -46,6 +46,7 @@ fun PlayerBottomBar(
 
     val currentFraction = layoutInfo.currentFraction
     val bottomPadding = layoutInfo.bottomPadding
+    val bottomSafeArea = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding()
 
     val minibarBackground = androidx.compose.material3.MaterialTheme.colorScheme.background
     val primaryThemeColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
@@ -144,7 +145,7 @@ fun PlayerBottomBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 56.dp)
+                .padding(bottom = 56.dp + bottomSafeArea)
         ) {
             PlayBarActionsMaximized(
                 uiState = uiState,

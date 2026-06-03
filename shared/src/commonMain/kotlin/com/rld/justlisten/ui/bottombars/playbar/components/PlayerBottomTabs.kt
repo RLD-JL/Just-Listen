@@ -51,8 +51,9 @@ fun PlayerBottomTabs(
 
     if (currentFraction > 0.8f) {
         val density = LocalDensity.current
+        val bottomSafeArea = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding()
         val startAnchor = with(density) { 120.dp.toPx() }
-        val endAnchor = with(density) { (maxHeight - 56.dp).toPx() }
+        val endAnchor = with(density) { (maxHeight - 56.dp - bottomSafeArea).toPx() }
         val decayAnimationSpec = rememberSplineBasedDecay<Float>()
 
         val anchoredDraggableState = remember(endAnchor) {
@@ -68,7 +69,7 @@ fun PlayerBottomTabs(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(maxHeight - 120.dp)
+                .height(maxHeight - 120.dp - bottomSafeArea)
                 .offset {
                     IntOffset(
                         0,

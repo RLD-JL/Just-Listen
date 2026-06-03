@@ -33,6 +33,7 @@ kotlin {
             framework {
                 baseName = "shared"
                 isStatic = true
+                linkerOpts("-lsqlite3")
             }
         }
     }
