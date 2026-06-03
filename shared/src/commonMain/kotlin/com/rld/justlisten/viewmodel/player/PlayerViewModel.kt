@@ -66,6 +66,9 @@ class PlayerViewModel(
             PlayerAction.SkipNext -> {
                 musicPlayer.skipToNext()
             }
+            PlayerAction.SkipPrevious -> {
+                musicPlayer.skipToPrevious()
+            }
             else -> Unit
         }
     }

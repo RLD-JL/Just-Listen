@@ -128,6 +128,14 @@ class PlayerViewModelTest {
     }
 
     @Test
+    fun testSkipPrevious() = runTest(testDispatcher) {
+        viewModel.onAction(PlayerAction.SkipPrevious)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(fakeMusicPlayer.skipToPreviousCalled)
+    }
+
+    @Test
     fun testAddSongToPlaylist() = runTest(testDispatcher) {
         val collectJob = launch { viewModel.playerUiState.collect {} }
         testDispatcher.scheduler.advanceUntilIdle()
@@ -261,6 +269,7 @@ class FakeLibraryRepository : LibraryRepository {
 class FakeMusicPlayer : MusicPlayer {
     override var currentlyPlayingPlaylistId: String? = null
     var skipToNextCalled = false
+    var skipToPreviousCalled = false
     var refreshMetadataCalled = false
 
     private val _playbackState = MutableStateFlow(
@@ -293,7 +302,9 @@ class FakeMusicPlayer : MusicPlayer {
         skipToNextCalled = true
     }
 
-    override fun skipToPrevious() {}
+    override fun skipToPrevious() {
+        skipToPreviousCalled = true
+    }
 
     override fun refreshMetadata() {
         refreshMetadataCalled = true

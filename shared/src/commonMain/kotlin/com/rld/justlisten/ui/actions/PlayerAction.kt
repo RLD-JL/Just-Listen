@@ -17,6 +17,7 @@ sealed interface PlayerAction {
     ) : PlayerAction
 
     data object SkipNext : PlayerAction
+    data object SkipPrevious : PlayerAction
     data object Collapse : PlayerAction
     data object ExpandMinibar : PlayerAction
     data class CreatePlaylist(val name: String, val description: String?) : PlayerAction

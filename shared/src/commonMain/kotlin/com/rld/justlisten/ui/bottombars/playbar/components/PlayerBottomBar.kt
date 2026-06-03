@@ -109,6 +109,7 @@ fun PlayerBottomBar(
             constraints = constraints,
             title = title,
             onSkipNextPressed = { onAction(PlayerAction.SkipNext) },
+            onSkipPreviousPressed = { onAction(PlayerAction.SkipPrevious) },
             painterLoaded = { onUiEvent(PlayerUiEvent.PainterLoaded(it)) },
             onFavoritePressed = { songId, songTitle, songUser, songIconList, isFav ->
                 onAction(PlayerAction.ToggleFavorite(songId, songTitle, songUser, songIconList, isFav))

@@ -32,11 +32,8 @@ import com.rld.justlisten.ui.LocalMusicPlayer
 @Composable
 fun PlayBarActionsMinimized(
     currentFraction: Float,
-    title: String,
     onSkipNextPressed: () -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    songIcon: String,
-    playBarMinimizedClicked: () -> Unit
+    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit
 ) {
     val musicPlayer = LocalMusicPlayer.current
     val playbackState by musicPlayer.playbackState.collectAsState()
@@ -49,26 +46,10 @@ fun PlayBarActionsMinimized(
             .graphicsLayer {
                 // Fade out fast so it's gone before the image reaches mid-expansion
                 alpha = (1f - currentFraction * 3f).coerceIn(0f, 1f)
-            }
-            .clickable(
-                enabled = currentFraction < 0.1f,
-                onClick = playBarMinimizedClicked
-            ),
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 8dp left margin + 49dp image + 8dp gap = 65dp before text starts
-        Spacer(Modifier.width(65.dp))
-
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 14.sp),
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 6.dp),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            color = Color.White
-        )
+        Spacer(Modifier.weight(1f))
 
         IconButton(onClick = {
             playbackState.currentMedia?.let { media ->

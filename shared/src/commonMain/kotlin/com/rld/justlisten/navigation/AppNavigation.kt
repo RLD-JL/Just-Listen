@@ -12,9 +12,10 @@ import androidx.navigation.toRoute
 private fun androidx.navigation.NavBackStackEntry.getTabIndex(): Int {
     val routeStr = destination.route.orEmpty()
     return when {
-        routeStr.contains("AddPlaylist") -> 0
-        routeStr.contains("Library") -> 0
-        routeStr.contains("Playlist") -> 1
+        routeStr.contains("AddPlaylist") -> 1
+        routeStr.contains("MusicInsights") -> 1
+        routeStr.contains("Library") -> 1
+        routeStr.contains("Playlist") -> 0
         routeStr.contains("Search") -> 2
         routeStr.contains("Donation") -> 3
         routeStr.contains("Settings") -> 4
