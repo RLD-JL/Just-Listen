@@ -39,6 +39,9 @@ import com.rld.justlisten.ui.actions.PlayerAction
 import com.rld.justlisten.ui.bottombars.playbar.PlayerLayoutInfo
 import com.rld.justlisten.ui.bottombars.playbar.PlayerUiEvent
 import com.rld.justlisten.ui.components.MusicLoadingSpinner
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +59,15 @@ fun PlayBarActionsMaximized(
     val artist = playbackState.currentMedia?.artist ?: ""
     val title = playbackState.currentMedia?.title ?: ""
 
+    val coroutineScope = rememberCoroutineScope()
+    var dragPosition by remember { mutableStateOf<Float?>(null) }
+    var seekJob by remember { mutableStateOf<Job?>(null) }
+
+    LaunchedEffect(playbackState.currentMedia?.id) {
+        seekJob?.cancel()
+        dragPosition = null
+    }
+
     val currentFraction = layoutInfo.currentFraction
     val bottomPadding = layoutInfo.bottomPadding
 
@@ -63,6 +75,14 @@ fun PlayBarActionsMaximized(
         val sliderPosition = if (playbackState.currentMedia?.duration ?: 0L > 0) {
             playbackState.currentPosition.toFloat() / playbackState.currentMedia!!.duration.toFloat()
         } else 0f
+
+        val displayPosition = dragPosition ?: sliderPosition
+        val duration = playbackState.currentMedia?.duration ?: 0L
+        val displayPositionMs = if (dragPosition != null) {
+            (dragPosition!! * duration).toLong()
+        } else {
+            playbackState.currentPosition
+        }
         
         Column(
             Modifier
@@ -130,10 +150,20 @@ fun PlayBarActionsMaximized(
             Column(modifier = Modifier.fillMaxWidth()) {
                 CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
                     Slider(
-                        value = sliderPosition,
+                        value = displayPosition,
                         onValueChange = {
-                            val newPos = (it * (playbackState.currentMedia?.duration ?: 0L)).toLong()
-                            musicPlayer.seekTo(newPos)
+                            seekJob?.cancel()
+                            dragPosition = it
+                        },
+                        onValueChangeFinished = {
+                            dragPosition?.let { pos ->
+                                val newPos = (pos * duration).toLong()
+                                musicPlayer.seekTo(newPos)
+                                seekJob = coroutineScope.launch {
+                                    delay(500)
+                                    dragPosition = null
+                                }
+                            }
                         },
                         thumb = {
                             SliderDefaults.Thumb(
@@ -152,8 +182,8 @@ fun PlayBarActionsMaximized(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = formatTime(playbackState.currentPosition), color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
-                    Text(text = formatTime(playbackState.currentMedia?.duration ?: 0L), color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
+                    Text(text = formatTime(displayPositionMs), color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
+                    Text(text = formatTime(duration), color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
                 }
             }
 
