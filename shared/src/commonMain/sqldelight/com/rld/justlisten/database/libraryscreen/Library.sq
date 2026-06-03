@@ -95,7 +95,7 @@ SELECT L.id, L.title, L.user, L.songImgList, L.playlistName, IFNULL(SUM(P.comple
 FROM Library L
 JOIN PlayHistory P ON L.id = P.songId
 GROUP BY L.id
-HAVING songCounter > 0
+HAVING IFNULL(SUM(P.completed), 0) > 0
 ORDER BY songCounter DESC, durationPlayedSec DESC
 LIMIT :limit OFFSET :offset;
 

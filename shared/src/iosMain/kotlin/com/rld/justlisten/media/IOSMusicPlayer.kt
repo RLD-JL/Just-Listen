@@ -15,11 +15,18 @@ import com.rld.justlisten.viewmodel.interfaces.Item
 import com.rld.justlisten.datalayer.repositories.FavoritesRepository
 import platform.AVFoundation.*
 import platform.AVFAudio.*
-import platform.Foundation.NSURL
-import platform.Foundation.NSNotificationCenter
-import platform.darwin.NSObject
+import platform.Foundation.*
+import platform.MediaPlayer.*
+import platform.SystemConfiguration.*
+import platform.posix.sockaddr_in
+import platform.posix.AF_INET
+import platform.darwin.dispatch_async
+import platform.darwin.dispatch_get_main_queue
 import platform.CoreMedia.CMTimeMake
 import platform.CoreMedia.CMTimeGetSeconds
+import kotlinx.cinterop.*
+import platform.UIKit.UIImage
+
 
 class IOSMusicPlayer(
     private val favoritesRepository: FavoritesRepository
@@ -28,6 +35,21 @@ class IOSMusicPlayer(
     private var playlistItems = mutableListOf<MediaMetadata>()
     private var currentIndex = -1
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    
+    private var shuffledIndices = listOf<Int>()
+    private var isShuffleEnabled = false
+    private var repeatMode = RepeatMode.NONE
+    
+    private var lastLoadedArtworkUrl: String? = null
+    private var lastLoadedArtwork: UIImage? = null
+
+
+    // Public property to allow volume fading from Sleep Timer
+    var volume: Float
+        get() = avPlayer?.volume ?: 1.0f
+        set(value) {
+            avPlayer?.volume = value
+        }
 
     init {
         try {
@@ -35,16 +57,19 @@ class IOSMusicPlayer(
             audioSession.setCategory(AVAudioSessionCategoryPlayback, error = null)
             audioSession.setActive(true, error = null)
         } catch (e: Exception) {
-            // Ignore session activation errors
+            println("Audio session category set error: ${e.message}")
         }
 
+        // Periodically update progress and monitor network
         scope.launch {
             while (isActive) {
                 updateProgress()
+                monitorNetwork()
                 delay(250L)
             }
         }
 
+        // Collect favorite tracks list changes to update metadata dynamically
         scope.launch {
             favoritesRepository.getFavoritePlaylistFlow().collect { favoriteList ->
                 val favoriteIds = favoriteList.map { it.id }.toSet()
@@ -69,6 +94,9 @@ class IOSMusicPlayer(
                 _currentPlaylist.value = playlistItems
             }
         }
+
+        setupAudioObservers()
+        setupRemoteCommandCenter()
     }
 
     override var currentlyPlayingPlaylistId: String? = null
@@ -90,17 +118,20 @@ class IOSMusicPlayer(
     override fun play() {
         avPlayer?.play()
         updateState(PlaybackStatus.PLAYING)
+        updateNowPlayingInfo(_playbackState.value.currentMedia, _playbackState.value.currentPosition)
     }
 
     override fun pause() {
         avPlayer?.pause()
         updateState(PlaybackStatus.PAUSED)
+        updateNowPlayingInfo(_playbackState.value.currentMedia, _playbackState.value.currentPosition)
     }
 
     override fun stop() {
         avPlayer?.pause()
         avPlayer = null
         updateState(PlaybackStatus.STOPPED)
+        updateNowPlayingInfo(null, 0L)
     }
 
     override fun playMedia(mediaId: String) {
@@ -112,14 +143,14 @@ class IOSMusicPlayer(
     }
 
     private fun playTrack(metadata: MediaMetadata) {
-        // Audius streaming URL format (using Audius API)
         val streamUrl = "https://api.audius.co/v1/tracks/${metadata.id}/stream?app_name=JustListen"
         val nsUrl = NSURL.URLWithString(streamUrl)
         if (nsUrl != null) {
             val playerItem = AVPlayerItem.playerItemWithURL(nsUrl)
             avPlayer = AVPlayer.playerWithPlayerItem(playerItem)
             avPlayer?.play()
-            updateState(PlaybackStatus.PLAYING, metadata)
+            updateState(PlaybackStatus.BUFFERING, metadata)
+            updateNowPlayingInfo(metadata, 0L)
         } else {
             updateState(PlaybackStatus.ERROR)
         }
@@ -135,22 +166,58 @@ class IOSMusicPlayer(
     }
 
     override fun skipToNext() {
-        if (currentIndex < playlistItems.size - 1) {
-            currentIndex++
-            playTrack(playlistItems[currentIndex])
+        if (playlistItems.isEmpty()) return
+        if (isShuffleEnabled) {
+            val currentShuffledPos = shuffledIndices.indexOf(currentIndex)
+            if (currentShuffledPos != -1 && currentShuffledPos < shuffledIndices.size - 1) {
+                currentIndex = shuffledIndices[currentShuffledPos + 1]
+                playTrack(playlistItems[currentIndex])
+            } else if (repeatMode == RepeatMode.ALL) {
+                shuffledIndices = playlistItems.indices.shuffled()
+                currentIndex = shuffledIndices.first()
+                playTrack(playlistItems[currentIndex])
+            } else {
+                stop()
+            }
+        } else {
+            if (currentIndex < playlistItems.size - 1) {
+                currentIndex++
+                playTrack(playlistItems[currentIndex])
+            } else if (repeatMode == RepeatMode.ALL) {
+                currentIndex = 0
+                playTrack(playlistItems[currentIndex])
+            } else {
+                stop()
+            }
         }
     }
 
     override fun skipToPrevious() {
-        if (currentIndex > 0) {
-            currentIndex--
-            playTrack(playlistItems[currentIndex])
+        if (playlistItems.isEmpty()) return
+        if (isShuffleEnabled) {
+            val currentShuffledPos = shuffledIndices.indexOf(currentIndex)
+            if (currentShuffledPos > 0) {
+                currentIndex = shuffledIndices[currentShuffledPos - 1]
+                playTrack(playlistItems[currentIndex])
+            } else if (repeatMode == RepeatMode.ALL) {
+                currentIndex = shuffledIndices.last()
+                playTrack(playlistItems[currentIndex])
+            }
+        } else {
+            if (currentIndex > 0) {
+                currentIndex--
+                playTrack(playlistItems[currentIndex])
+            } else if (repeatMode == RepeatMode.ALL) {
+                currentIndex = playlistItems.size - 1
+                playTrack(playlistItems[currentIndex])
+            }
         }
     }
 
     override fun seekTo(position: Long) {
         val time = CMTimeMake(position, 1000)
         avPlayer?.seekToTime(time)
+        updateNowPlayingInfo(_playbackState.value.currentMedia, position)
     }
 
     override fun updatePlaylist(list: List<Item>) {
@@ -166,10 +233,26 @@ class IOSMusicPlayer(
             )
         }.toMutableList()
         _currentPlaylist.value = playlistItems
+        
+        // Regenerate shuffled indices matching new playlist size
+        if (isShuffleEnabled) {
+            shuffledIndices = playlistItems.indices.shuffled()
+        }
     }
 
-    override fun setShuffleModeEnabled(enabled: Boolean) {}
-    override fun setRepeatMode(repeatMode: RepeatMode) {}
+    override fun setShuffleModeEnabled(enabled: Boolean) {
+        isShuffleEnabled = enabled
+        if (enabled) {
+            shuffledIndices = playlistItems.indices.shuffled()
+        }
+        _playbackState.update { it.copy(isShuffleModeEnabled = enabled) }
+    }
+
+    override fun setRepeatMode(repeatMode: RepeatMode) {
+        this.repeatMode = repeatMode
+        _playbackState.update { it.copy(repeatMode = repeatMode) }
+    }
+
     override fun refreshMetadata() {
         _playbackState.update { state ->
             val currentMedia = state.currentMedia
@@ -183,13 +266,34 @@ class IOSMusicPlayer(
             }
         }
     }
+
     override fun removeTrack(index: Int) {
         if (index in playlistItems.indices) {
             playlistItems.removeAt(index)
-            _currentPlaylist.value = playlistItems
+            _currentPlaylist.value = playlistItems.toList()
+            if (isShuffleEnabled) {
+                shuffledIndices = playlistItems.indices.shuffled()
+            }
         }
     }
-    override fun moveTrack(fromIndex: Int, toIndex: Int) {}
+
+    override fun moveTrack(fromIndex: Int, toIndex: Int) {
+        if (fromIndex in playlistItems.indices && toIndex in playlistItems.indices) {
+            val item = playlistItems.removeAt(fromIndex)
+            playlistItems.add(toIndex, item)
+            
+            // Adjust currentIndex based on list movement
+            if (currentIndex == fromIndex) {
+                currentIndex = toIndex
+            } else if (currentIndex in (fromIndex + 1)..toIndex) {
+                currentIndex--
+            } else if (currentIndex in toIndex until fromIndex) {
+                currentIndex++
+            }
+            
+            _currentPlaylist.value = playlistItems.toList()
+        }
+    }
 
     private fun updateProgress() {
         val player = avPlayer ?: return
@@ -211,12 +315,233 @@ class IOSMusicPlayer(
             0L
         }
 
+        val currentStatus = when (player.timeControlStatus) {
+            AVPlayerTimeControlStatusPlaying -> PlaybackStatus.PLAYING
+            AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate -> PlaybackStatus.BUFFERING
+            AVPlayerTimeControlStatusPaused -> PlaybackStatus.PAUSED
+            else -> PlaybackStatus.IDLE
+        }
+
         _playbackState.update { state ->
             val updatedMedia = state.currentMedia?.copy(duration = durationMs)
             state.copy(
+                status = currentStatus,
                 currentPosition = currentMs,
                 currentMedia = updatedMedia
             )
+        }
+
+        // Keep system now playing progress slider synchronized
+        if (currentStatus == PlaybackStatus.PLAYING) {
+            updateNowPlayingInfo(_playbackState.value.currentMedia, currentMs)
+        }
+    }
+
+    // --- System Media Integration (Now Playing & Remote Commands) ---
+
+    private fun setupRemoteCommandCenter() {
+        val commandCenter = MPRemoteCommandCenter.sharedCommandCenter()
+        
+        commandCenter.playCommand.enabled = true
+        commandCenter.playCommand.addTargetWithHandler { _ ->
+            play()
+            MPRemoteCommandHandlerStatusSuccess
+        }
+        
+        commandCenter.pauseCommand.enabled = true
+        commandCenter.pauseCommand.addTargetWithHandler { _ ->
+            pause()
+            MPRemoteCommandHandlerStatusSuccess
+        }
+        
+        commandCenter.togglePlayPauseCommand.enabled = true
+        commandCenter.togglePlayPauseCommand.addTargetWithHandler { _ ->
+            val state = _playbackState.value.status
+            if (state == PlaybackStatus.PLAYING) pause() else play()
+            MPRemoteCommandHandlerStatusSuccess
+        }
+        
+        commandCenter.nextTrackCommand.enabled = true
+        commandCenter.nextTrackCommand.addTargetWithHandler { _ ->
+            skipToNext()
+            MPRemoteCommandHandlerStatusSuccess
+        }
+        
+        commandCenter.previousTrackCommand.enabled = true
+        commandCenter.previousTrackCommand.addTargetWithHandler { _ ->
+            skipToPrevious()
+            MPRemoteCommandHandlerStatusSuccess
+        }
+        
+        commandCenter.changePlaybackPositionCommand.enabled = true
+        commandCenter.changePlaybackPositionCommand.addTargetWithHandler { event ->
+            val posEvent = event as? MPChangePlaybackPositionCommandEvent
+            if (posEvent != null) {
+                seekTo((posEvent.positionTime * 1000).toLong())
+                MPRemoteCommandHandlerStatusSuccess
+            } else {
+                MPRemoteCommandHandlerStatusCommandFailed
+            }
+        }
+    }
+
+    private fun updateNowPlayingInfo(metadata: MediaMetadata?, positionMs: Long) {
+        val nowPlayingInfoCenter = MPNowPlayingInfoCenter.defaultCenter()
+        if (metadata == null) {
+            nowPlayingInfoCenter.nowPlayingInfo = null
+            lastLoadedArtworkUrl = null
+            lastLoadedArtwork = null
+            return
+        }
+        
+        val title = metadata.title
+        val artist = metadata.artist
+        val duration = metadata.duration
+        val artworkUrl = metadata.artworkUrl
+        val isPlaying = _playbackState.value.status == PlaybackStatus.PLAYING
+        val rate = if (isPlaying) 1.0 else 0.0
+
+        if (!artworkUrl.isNullOrEmpty() && artworkUrl != lastLoadedArtworkUrl) {
+            lastLoadedArtworkUrl = artworkUrl
+            lastLoadedArtwork = null
+            
+            scope.launch(Dispatchers.Default) {
+                try {
+                    val nsUrl = NSURL.URLWithString(artworkUrl)
+                    if (nsUrl != null) {
+                        val data = NSData.dataWithContentsOfURL(nsUrl)
+                        if (data != null) {
+                            val uiImage = UIImage.imageWithData(data)
+                            if (uiImage != null) {
+                                dispatch_async(dispatch_get_main_queue()) {
+                                    if (lastLoadedArtworkUrl == artworkUrl) {
+                                        lastLoadedArtwork = uiImage
+                                        updateNowPlayingInfo(metadata, positionMs)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    println("Error loading lockscreen artwork: ${e.message}")
+                }
+            }
+        }
+        
+        // Define metadata map to be converted automatically to NSDictionary
+        val info = mutableMapOf<Any?, Any?>().apply {
+            put(MPMediaItemPropertyTitle, title)
+            put(MPMediaItemPropertyArtist, artist)
+            put(MPMediaItemPropertyPlaybackDuration, duration / 1000.0)
+            put(MPNowPlayingInfoPropertyElapsedPlaybackTime, positionMs / 1000.0)
+            put(MPNowPlayingInfoPropertyPlaybackRate, rate)
+            
+            val loadedArt = lastLoadedArtwork
+            if (loadedArt != null) {
+                val artwork = MPMediaItemArtwork(loadedArt.size) { _ ->
+                    loadedArt
+                }
+                put(MPMediaItemPropertyArtwork, artwork)
+            }
+        }
+        
+        nowPlayingInfoCenter.nowPlayingInfo = info as Map<Any?, *>?
+    }
+
+    // --- Audio Interruptions and Route Changes ---
+
+    private fun setupAudioObservers() {
+        val notificationCenter = NSNotificationCenter.defaultCenter
+        
+        // 1. Listen to Audio Interruption Notifications (phone call, alarm)
+        notificationCenter.addObserverForName(
+            name = AVAudioSessionInterruptionNotification,
+            `object` = null,
+            queue = null
+        ) { notification ->
+            val userInfo = notification?.userInfo
+            if (userInfo != null) {
+                val typeNum = userInfo[AVAudioSessionInterruptionTypeKey] as? NSNumber
+                if (typeNum != null) {
+                    val type = typeNum.unsignedLongValue
+                    dispatch_async(dispatch_get_main_queue()) {
+                        if (type == AVAudioSessionInterruptionTypeBegan) {
+                            pause()
+                        } else if (type == AVAudioSessionInterruptionTypeEnded) {
+                            val optionsNum = userInfo[AVAudioSessionInterruptionOptionKey] as? NSNumber
+                            val options = optionsNum?.unsignedLongValue ?: 0UL
+                            if ((options and AVAudioSessionInterruptionOptionShouldResume) != 0UL) {
+                                play()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 2. Listen to Audio Route Change Notifications (headphones unplugged)
+        notificationCenter.addObserverForName(
+            name = AVAudioSessionRouteChangeNotification,
+            `object` = null,
+            queue = null
+        ) { notification ->
+            val userInfo = notification?.userInfo
+            if (userInfo != null) {
+                val reasonNum = userInfo[AVAudioSessionRouteChangeReasonKey] as? NSNumber
+                if (reasonNum != null) {
+                    val reason = reasonNum.unsignedLongValue
+                    if (reason == AVAudioSessionRouteChangeReasonOldDeviceUnavailable) {
+                        dispatch_async(dispatch_get_main_queue()) {
+                            pause()
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Listen to Track Finished Notification
+        notificationCenter.addObserverForName(
+            name = AVPlayerItemDidPlayToEndTimeNotification,
+            `object` = null,
+            queue = null
+        ) { _ ->
+            dispatch_async(dispatch_get_main_queue()) {
+                if (repeatMode == RepeatMode.ONE) {
+                    seekTo(0L)
+                    play()
+                } else {
+                    skipToNext()
+                }
+            }
+        }
+    }
+
+    // --- Network Monitor using SCNetworkReachability ---
+
+    private fun monitorNetwork() {
+        val reachability = memScoped {
+            val zeroAddress = alloc<sockaddr_in>()
+            zeroAddress.sin_len = sizeOf<sockaddr_in>().toUByte()
+            zeroAddress.sin_family = AF_INET.toUByte()
+            SCNetworkReachabilityCreateWithAddress(null, zeroAddress.ptr.reinterpret())
+        } ?: return
+        
+        val flags = memScoped {
+            val flagsVar = alloc<kotlinx.cinterop.UIntVar>()
+            if (SCNetworkReachabilityGetFlags(reachability, flagsVar.ptr)) {
+                flagsVar.value
+            } else {
+                0u
+            }
+        }
+        
+        val isReachable = (flags and kSCNetworkReachabilityFlagsReachable) != 0u
+        val needsConnection = (flags and kSCNetworkReachabilityFlagsConnectionRequired) != 0u
+        val active = isReachable && !needsConnection
+        
+        if (_isConnected.value != active) {
+            _isConnected.value = active
+            _networkError.value = !active
         }
     }
 }

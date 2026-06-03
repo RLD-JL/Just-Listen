@@ -1,13 +1,15 @@
 package com.rld.justlisten.media
 
 import com.rld.justlisten.datalayer.repositories.LibraryRepository
+import com.rld.justlisten.datalayer.models.UserModel
+import com.rld.justlisten.datalayer.models.SongIconList
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
 
 class PlayHistoryTracker(
     private val libraryRepository: LibraryRepository,
     private val musicPlayer: MusicPlayer,
-    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 ) {
     private var job: Job? = null
 
@@ -36,6 +38,21 @@ class PlayHistoryTracker(
                         if (activeSongId != null && currentSongPlayTimeMs > 0) {
                             saveIncrementalDuration(activeSongId, currentSongPlayTimeMs, playCompletedLogged)
                         }
+                        
+                        // Automatically upsert the new song into Library recents to guarantee metadata exists for JOIN queries
+                        if (media != null) {
+                            libraryRepository.saveSongToRecent(
+                                id = media.id,
+                                title = media.title,
+                                user = UserModel(media.artist),
+                                songImgList = SongIconList(
+                                    songImageURL150px = media.lowResArtworkUrl ?: "",
+                                    songImageURL480px = media.artworkUrl ?: ""
+                                ),
+                                playlistName = ""
+                            )
+                        }
+                        
                         lastActiveSongId = songId
                         currentSongPlayTimeMs = 0L
                         playCompletedLogged = false
