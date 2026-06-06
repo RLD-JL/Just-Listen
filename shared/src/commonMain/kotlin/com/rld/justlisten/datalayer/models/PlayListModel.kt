@@ -4,11 +4,31 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.nullable
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+
+object NullableSongIconListSerializer : KSerializer<SongIconList> {
+    private val delegate = SongIconList.serializer().nullable
+    override val descriptor: SerialDescriptor = delegate.descriptor
+
+    override fun serialize(encoder: Encoder, value: SongIconList) {
+        encoder.encodeSerializableValue(delegate, value)
+    }
+
+    override fun deserialize(decoder: Decoder): SongIconList {
+        return decoder.decodeSerializableValue(delegate) ?: SongIconList()
+    }
+}
+
 @Serializable
 data class PlayListModel(
     @SerialName("id") val id: String = "",
     @SerialName("title") val title: String = "",
     @SerialName("playlist_name") val playlistTitle: String = "",
+    @Serializable(with = NullableSongIconListSerializer::class)
     @SerialName("artwork") val songImgList: SongIconList = SongIconList(),
     @SerialName("user") val user: UserModel = UserModel(),
     @SerialName("is_playlist") val isPlaylist: Boolean = false,

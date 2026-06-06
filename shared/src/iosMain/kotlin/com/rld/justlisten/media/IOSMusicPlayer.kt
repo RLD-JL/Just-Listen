@@ -143,7 +143,9 @@ class IOSMusicPlayer(
     }
 
     private fun playTrack(metadata: MediaMetadata) {
-        val streamUrl = "https://api.audius.co/v1/tracks/${metadata.id}/stream?app_name=JustListen"
+        val baseUrl = com.rld.justlisten.datalayer.utils.Constants.BASEURL
+        val appName = com.rld.justlisten.datalayer.utils.Constants.appName.replace(" ", "%20")
+        val streamUrl = "$baseUrl/v1/tracks/${metadata.id}/stream?app_name=$appName"
         val nsUrl = NSURL.URLWithString(streamUrl)
         if (nsUrl != null) {
             val playerItem = AVPlayerItem.playerItemWithURL(nsUrl)

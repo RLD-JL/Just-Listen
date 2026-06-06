@@ -32,13 +32,15 @@ class LibraryViewModelTest {
 
     private val fakeFavoritesRepo = FakeFavoritesRepository()
     private val fakeLibraryRepo = FakeLibraryRepository()
+    private val fakeAuthRepo = FakeAuthRepository()
+    private val fakeSyncRepo = FakeSyncRepository()
 
     private lateinit var viewModel: LibraryViewModel
 
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = LibraryViewModel(fakeLibraryRepo, fakeFavoritesRepo)
+        viewModel = LibraryViewModel(fakeLibraryRepo, fakeFavoritesRepo, fakeAuthRepo, fakeSyncRepo)
     }
 
     @AfterTest
@@ -106,6 +108,23 @@ class LibraryViewModelTest {
         override fun getFavoritePlaylistFlow(): Flow<List<PlayListModel>> = flowOf(emptyList())
     }
 
+    class FakeAuthRepository : com.rld.justlisten.datalayer.repositories.AuthRepository {
+        override val sessionState = MutableStateFlow<com.rld.justlisten.datalayer.repositories.SessionState>(com.rld.justlisten.datalayer.repositories.SessionState.Guest)
+        override fun getAuthUrl(redirectUri: String): String = ""
+        override suspend fun loginWithCode(code: String, redirectUri: String): Boolean = false
+        override fun logout() {}
+        override suspend fun refreshSession(): Boolean = false
+    }
+
+    class FakeSyncRepository : com.rld.justlisten.datalayer.repositories.SyncRepository {
+        override val syncState = MutableStateFlow<com.rld.justlisten.datalayer.repositories.SyncState>(com.rld.justlisten.datalayer.repositories.SyncState.Synced)
+        override fun enqueueFavoriteTask(trackId: String, isFavorite: Boolean) {}
+        override fun enqueuePlaylistCreateTask(name: String, description: String?, isPrivate: Boolean) {}
+        override fun triggerSync() {}
+        override fun clearQueue() {}
+        override suspend fun performInboundSync(userId: String) {}
+    }
+
     class FakeLibraryRepository : LibraryRepository {
         private val playlists = mutableListOf<AddPlaylist>()
         private val playlistsFlow = MutableStateFlow<List<AddPlaylist>>(emptyList())
@@ -115,10 +134,10 @@ class LibraryViewModelTest {
             playlistsFlow.value = playlists.toList()
         }
 
-        override fun savePlaylist(playlistName: String, playlistDescription: String?) {
+        override fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean, isPrivate: Boolean) {
             savePlaylistCalledWith.add(playlistName)
             if (playlists.none { it.playlistName == playlistName }) {
-                playlists.add(AddPlaylist(playlistName, playlistDescription ?: "", songsList = emptyList()))
+                playlists.add(AddPlaylist(playlistName, playlistDescription ?: "", songsList = emptyList(), isRemote = isRemote, isPrivate = isPrivate))
                 updateFlow()
             }
         }
@@ -127,10 +146,10 @@ class LibraryViewModelTest {
 
         override fun getAddPlaylistFlow(): Flow<List<AddPlaylist>> = playlistsFlow
 
-        override fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>) {
+        override fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean, isPrivate: Boolean) {
             val index = playlists.indexOfFirst { it.playlistName == playlistName }
             if (index >= 0) {
-                playlists[index] = AddPlaylist(playlistName, playlistDescription ?: "", songsList = songList)
+                playlists[index] = AddPlaylist(playlistName, playlistDescription ?: "", songsList = songList, isRemote = isRemote, isPrivate = isPrivate)
             }
             updateFlow()
         }

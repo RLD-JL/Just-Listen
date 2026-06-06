@@ -12,6 +12,10 @@ import com.rld.justlisten.media.exoplayer.MusicServiceConnection
 import com.rld.justlisten.media.exoplayer.MusicSource
 import com.rld.justlisten.ui.utils.SleepTimerService
 import com.rld.justlisten.ui.utils.AndroidSleepTimerService
+import com.rld.justlisten.util.SecureStorage
+import com.rld.justlisten.util.AndroidSecureStorage
+import com.rld.justlisten.util.PkceCrypto
+import com.rld.justlisten.util.AndroidPkceCrypto
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import androidx.media3.common.AudioAttributes
@@ -31,7 +35,11 @@ fun androidModule(apiKey: String = "") = module {
 
     single<SleepTimerService> { AndroidSleepTimerService(androidContext()) }
 
-    single { ApiClient(apiKey = apiKey) }
+    single<SecureStorage> { AndroidSecureStorage(androidContext()) }
+
+    single<PkceCrypto> { AndroidPkceCrypto() }
+
+    single { ApiClient(apiKey = apiKey, secureStorage = get()) }
 
     single<SqlDriver> {
         AndroidSqliteDriver(LocalDb.Schema, androidContext(), "Local.db")
@@ -41,7 +49,8 @@ fun androidModule(apiKey: String = "") = module {
             get(),
             Repository.addPlaylistAdapter,
             Repository.libraryAdapter,
-            Repository.playlistDetailAdapter
+            Repository.playlistDetailAdapter,
+            Repository.syncQueueAdapter
         )
     }
     single { MusicSource() }

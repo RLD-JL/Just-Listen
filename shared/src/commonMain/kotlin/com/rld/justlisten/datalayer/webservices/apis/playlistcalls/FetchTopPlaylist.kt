@@ -18,10 +18,7 @@ suspend fun ApiClient.fetchPlaylist(
         REMIX          -> getResponse("/playlists/search?query=$queryPlaylist&limit=$index")
         CURRENT_PLAYLIST -> getResponse("/playlists/$playlistId/tracks")
         HOT            -> getResponse("/playlists/search?query=$queryPlaylist&limit=$index")
-        FAVORITE       -> TODO()
-        CREATED_BY_USER -> TODO()
-        MOST_PLAYED    -> TODO()
-        TIME_CAPSULE   -> TODO()
+        FAVORITE, CREATED_BY_USER, MOST_PLAYED, TIME_CAPSULE -> null
     }
 }
 

@@ -3,6 +3,7 @@ package com.rld.justlisten.viewmodel.screens.library
 import com.rld.justlisten.ScreenState
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
+import com.rld.justlisten.datalayer.repositories.SessionState
 
 data class LibraryState(
     val isLoading: Boolean = false,
@@ -18,5 +19,6 @@ data class LibraryState(
     val topArtistName: String = "",
     val topArtistPlays: Int = 0,
     val topArtistHours: Double = 0.0,
-    val lastMostPlayedIndexReached: Boolean = false
+    val lastMostPlayedIndexReached: Boolean = false,
+    val sessionState: SessionState = SessionState.Guest
 ): ScreenState

@@ -65,7 +65,9 @@ actual fun LibraryScreenHost(navController: NavHostController) {
                 is LibraryScreenAction.PlaylistCreatedClicked -> viewModel.onPlaylistCreatedClicked(
                     action.title,
                     action.description,
-                    action.songs
+                    action.songs,
+                    action.isRemote,
+                    action.isPrivate
                 )
                 is LibraryScreenAction.DeletePlaylistClicked -> viewModel.deletePlaylist(action.playlistName)
                 is LibraryScreenAction.LastItemReached -> viewModel.loadMoreRecentSongs(action.index)
@@ -272,6 +274,7 @@ actual fun AddPlaylistScreenHost(
 actual fun SettingsScreenHost(navController: NavHostController) {
     val viewModel: SettingsViewModel = koinInject()
     val state by viewModel.settingsState.collectAsState()
+    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
 
     CollectNavigationEvents(viewModel, navController)
 
@@ -290,6 +293,24 @@ actual fun SettingsScreenHost(navController: NavHostController) {
         },
         onNavigateToCustomTheme = {
             navController.navigate(com.rld.justlisten.navigation.Route.CustomTheme)
+        },
+        onLogin = { redirectUri ->
+            val authUrl = viewModel.getAuthUrl(redirectUri)
+            if (authUrl.isNotBlank()) {
+                uriHandler.openUri(authUrl)
+            }
+        },
+        onLogout = {
+            viewModel.logout()
+        },
+        onRetrySync = {
+            viewModel.retryFailedSync()
+        },
+        onClearSync = {
+            viewModel.clearFailedSync()
+        },
+        onFetchLibraryContent = {
+            viewModel.fetchLibraryContent()
         }
     )
 }

@@ -122,6 +122,9 @@ fun Level1BottomBar(
                 Route.CustomTheme -> {
                     // Do not store the transient CustomTheme route as the active tab route
                 }
+                is Route.Onboarding -> {
+                    // Do not store the onboarding route as the active tab route
+                }
             }
             }
         }

@@ -1,23 +1,31 @@
 import kotlin.collections.List;
 import kotlin.String;
+import kotlin.Boolean;
 
 CREATE TABLE AddPlaylist  (
        playlistName TEXT NOT NULL PRIMARY KEY ,
        playlistDescription TEXT,
-       songsList TEXT AS List<String>
+       songsList TEXT AS List<String>,
+       isRemote INTEGER AS Boolean NOT NULL DEFAULT 0,
+       isPrivate INTEGER AS Boolean NOT NULL DEFAULT 0
 );
 
 getAddPlaylist:
 SELECT * FROM AddPlaylist;
 
 upsertAddPlaylist {
-    INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription, songsList)
-    VALUES(:playlistName, :playlistDescription, (SELECT songsList FROM AddPlaylist WHERE playlistName = :playlistName));
+    INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription, songsList, isRemote, isPrivate)
+    VALUES(:playlistName, :playlistDescription, 
+           (SELECT songsList FROM AddPlaylist WHERE playlistName = :playlistName), 
+           COALESCE((SELECT isRemote FROM AddPlaylist WHERE playlistName = :playlistName), :isRemote), 
+           COALESCE((SELECT isPrivate FROM AddPlaylist WHERE playlistName = :playlistName), :isPrivate));
 }
 
 upsertAddPlaylistWithSongs {
-    INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription, songsList)
-    VALUES (:playlistName, :playlistDescription,:songsList);
+    INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription, songsList, isRemote, isPrivate)
+    VALUES (:playlistName, :playlistDescription,:songsList, 
+            COALESCE((SELECT isRemote FROM AddPlaylist WHERE playlistName = :playlistName), :isRemote), 
+            COALESCE((SELECT isPrivate FROM AddPlaylist WHERE playlistName = :playlistName), :isPrivate));
 }
 
 deletePlaylist:

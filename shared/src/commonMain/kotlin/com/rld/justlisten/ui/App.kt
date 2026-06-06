@@ -41,9 +41,15 @@ fun JustListenApp(
                 modifier = modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background,
             ) {
+                val startDestination = if (settingsState.isFirstLaunch) {
+                    com.rld.justlisten.navigation.Route.Onboarding
+                } else {
+                    com.rld.justlisten.navigation.Route.Playlist
+                }
                 JustListenScaffold(
                     navController = navController,
                     showDonationTab = settingsState.hasDonationNavigationOn,
+                    startDestination = startDestination,
                     modifier = Modifier.fillMaxSize(),
                 )
             }

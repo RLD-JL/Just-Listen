@@ -8,15 +8,16 @@ CREATE TABLE SettingsInfo (
      customPrimary TEXT,
      customSecondary TEXT,
      customBackground TEXT,
-     customSurface TEXT
+     customSurface TEXT,
+     isFirstLaunch INTEGER AS Boolean NOT NULL DEFAULT 1
 );
 
-INSERT INTO SettingsInfo(hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface) VALUES (0, 1, "Pink", NULL, NULL, NULL, NULL);
+INSERT INTO SettingsInfo(hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch) VALUES (0, 1, "Pink", NULL, NULL, NULL, NULL, 1);
 
 getSettingsInfo:
 SELECT * FROM SettingsInfo;
 
 upsertSettingsInfo {
-    REPLACE INTO SettingsInfo(id, hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface)
-    VALUES(1, :hasNavigationDonationOn, :isDarkThemeOn, :palletColor, :customPrimary, :customSecondary, :customBackground, :customSurface) ;
+    REPLACE INTO SettingsInfo(id, hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch)
+    VALUES(1, :hasNavigationDonationOn, :isDarkThemeOn, :palletColor, :customPrimary, :customSecondary, :customBackground, :customSurface, :isFirstLaunch) ;
 }

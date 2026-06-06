@@ -52,7 +52,7 @@ actual fun LibraryScreenHost(navController: NavHostController) {
                 is LibraryScreenAction.FavoritePlaylistPressed -> viewModel.onFavoritePlaylistClicked(action.playlistId, action.playlistIcon, action.playlistTitle, action.playlistCreatedBy)
                 is LibraryScreenAction.MostPlayedPlaylistPressed -> viewModel.onMostPlayedPlaylistClicked(action.playlistId, action.playlistIcon, action.playlistTitle, action.playlistCreatedBy)
                 LibraryScreenAction.PlayListViewClicked -> viewModel.onAddPlaylistClicked()
-                is LibraryScreenAction.PlaylistCreatedClicked -> viewModel.onPlaylistCreatedClicked(action.title, action.description, action.songs)
+                is LibraryScreenAction.PlaylistCreatedClicked -> viewModel.onPlaylistCreatedClicked(action.title, action.description, action.songs, action.isRemote, action.isPrivate)
                 is LibraryScreenAction.DeletePlaylistClicked -> viewModel.deletePlaylist(action.playlistName)
                 is LibraryScreenAction.LastItemReached -> viewModel.loadMoreRecentSongs(action.index)
                 LibraryScreenAction.TimeCapsulePressed -> viewModel.onTimeCapsuleClicked()
@@ -164,6 +164,7 @@ actual fun AddPlaylistScreenHost(navController: NavHostController, args: Route.A
 actual fun SettingsScreenHost(navController: NavHostController) {
     val viewModel: SettingsViewModel = koinInject()
     val state by viewModel.settingsState.collectAsState()
+    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
     CollectNavigationEvents(viewModel, navController)
     SettingsScreen(
         settings = state,
@@ -174,6 +175,24 @@ actual fun SettingsScreenHost(navController: NavHostController) {
         },
         onNavigateToCustomTheme = {
             navController.navigate(Route.CustomTheme)
+        },
+        onLogin = { redirectUri ->
+            val authUrl = viewModel.getAuthUrl(redirectUri)
+            if (authUrl.isNotBlank()) {
+                uriHandler.openUri(authUrl)
+            }
+        },
+        onLogout = {
+            viewModel.logout()
+        },
+        onRetrySync = {
+            viewModel.retryFailedSync()
+        },
+        onClearSync = {
+            viewModel.clearFailedSync()
+        },
+        onFetchLibraryContent = {
+            viewModel.fetchLibraryContent()
         }
     )
 }

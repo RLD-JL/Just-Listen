@@ -39,9 +39,12 @@ fun AddPlaylistScreen(
             item { AddPlaylistRow(openDialog) }
             item { HorizontalDivider(thickness = 2.dp) }
             item { 
-                AddPlaylistDialog(openDialog) { title, desc -> 
-                    onAction(AddPlaylistAction.AddPlaylistClicked(title, desc)) 
-                } 
+                AddPlaylistDialog(
+                    openDialog = openDialog,
+                    onAddPlaylistClicked = { title, desc -> 
+                        onAction(AddPlaylistAction.AddPlaylistClicked(title, desc)) 
+                    }
+                ) 
             }
             itemsIndexed(addPlaylistState.playlistsCreated) { _, playlist ->
                 PlaylistViewItem(playlist) { title, desc, songs ->

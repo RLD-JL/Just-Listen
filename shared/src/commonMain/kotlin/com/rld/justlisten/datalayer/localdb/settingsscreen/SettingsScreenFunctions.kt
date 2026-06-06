@@ -11,7 +11,8 @@ fun LocalDb.saveSettingsInfo(
     customPrimary: String?,
     customSecondary: String?,
     customBackground: String?,
-    customSurface: String?
+    customSurface: String?,
+    isFirstLaunch: Boolean
 ) {
     settingsScreenQueries.transaction {
         settingsScreenQueries.upsertSettingsInfo(
@@ -21,7 +22,8 @@ fun LocalDb.saveSettingsInfo(
             customPrimary = customPrimary,
             customSecondary = customSecondary,
             customBackground = customBackground,
-            customSurface = customSurface
+            customSurface = customSurface,
+            isFirstLaunch = isFirstLaunch
         )
     }
 }

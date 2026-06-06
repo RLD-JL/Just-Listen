@@ -102,7 +102,10 @@ fun AddPlaylistOption(
                 .padding(bottom = 80.dp)
         )
 
-        AddPlaylistDialog(openDialog, onAddPlaylistClicked)
+        AddPlaylistDialog(
+            openDialog = openDialog,
+            onAddPlaylistClicked = onAddPlaylistClicked
+        )
     }
 }
 

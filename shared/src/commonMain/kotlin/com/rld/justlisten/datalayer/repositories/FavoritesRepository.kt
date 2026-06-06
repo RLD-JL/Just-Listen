@@ -25,7 +25,9 @@ interface FavoritesRepository {
 }
 
 class FavoritesRepositoryImpl(
-    private val localDb: LocalDb
+    private val localDb: LocalDb,
+    private val authRepository: AuthRepository,
+    private val syncRepository: SyncRepository
 ) : FavoritesRepository {
 
     override fun saveSongToFavorites(
@@ -37,6 +39,9 @@ class FavoritesRepositoryImpl(
         isFavorite: Boolean
     ) {
         localDb.saveSongToFavorites(id, title, user, songImgList, playlistName, isFavorite)
+        if (authRepository.sessionState.value is SessionState.Authenticated) {
+            syncRepository.enqueueFavoriteTask(id, isFavorite)
+        }
     }
 
     override fun getFavoritePlaylist(): List<PlayListModel> {

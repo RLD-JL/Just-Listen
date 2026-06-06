@@ -70,6 +70,9 @@ class PlayHistoryTrackerTest {
         // Assert duration is logged as 1 second
         assertEquals(1, fakeLibraryRepo.durationLogs.size)
         assertEquals(1L, fakeLibraryRepo.durationLogs[songId])
+
+        // Cancel the tracker scope to stop the background delay loop and prevent test hang
+        scope.cancel()
     }
 
     class FakeLibraryRepo : LibraryRepository {
@@ -100,10 +103,10 @@ class PlayHistoryTrackerTest {
         override fun getTopArtistFromHistory(): Triple<UserModel, Long, Long>? = null
         override fun getPlayHistoryFlow(): Flow<Unit> = flowOf(Unit)
 
-        override fun savePlaylist(playlistName: String, playlistDescription: String?) {}
+        override fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean, isPrivate: Boolean) {}
         override fun getAddPlaylist(): List<AddPlaylist> = emptyList()
         override fun getAddPlaylistFlow(): Flow<List<AddPlaylist>> = flowOf(emptyList())
-        override fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>) {}
+        override fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean, isPrivate: Boolean) {}
         override fun deletePlaylist(playlistName: String) {}
         override fun updatePlaylistName(oldName: String, newName: String) {}
     }

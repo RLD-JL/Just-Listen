@@ -12,7 +12,12 @@ class RepositoryTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testRepositoryInitialization() = runTest {
-        val repository = Repository(null, ApiClient(), false)
+        val fakeSecureStorage = object : com.rld.justlisten.util.SecureStorage {
+            override fun saveToken(key: String, value: String) {}
+            override fun getToken(key: String): String? = null
+            override fun clear() {}
+        }
+        val repository = Repository(null, ApiClient(secureStorage = fakeSecureStorage), false)
         assertNotNull(repository.webservices)
     }
 }

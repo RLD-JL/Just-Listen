@@ -344,28 +344,56 @@ fun LibraryScreen(
                     }
 
                     // Dialog to instantly create a playlist
-                    AddPlaylistDialog(openCreatePlaylistDialog) { title, desc ->
-                        onAction(LibraryScreenAction.PlaylistCreatedClicked(title, desc, emptyList()))
-                    }
+                    val isUserLoggedIn = libraryState.sessionState is com.rld.justlisten.datalayer.repositories.SessionState.Authenticated
+                    AddPlaylistDialog(
+                        openDialog = openCreatePlaylistDialog,
+                        isUserLoggedIn = isUserLoggedIn,
+                        onAddPlaylistClickedFull = { title, desc, isRemote, isPrivate ->
+                            onAction(LibraryScreenAction.PlaylistCreatedClicked(title, desc, emptyList(), isRemote, isPrivate))
+                        }
+                    )
                 }
             }
 
-            // Display "My Playlists" row if they have custom playlists
-            if (libraryState.playlistsCreated.isNotEmpty()) {
+            val localPlaylists = libraryState.playlistsCreated.filter { !it.isRemote }
+            val remotePlaylists = libraryState.playlistsCreated.filter { it.isRemote }
+
+            // Display "My Local Playlists" row if they have local custom playlists
+            if (localPlaylists.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(15.dp))
-                Header(text = "My Playlists")
+                Header(text = "My Local Playlists")
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(vertical = 4.dp)
                 ) {
-                    items(libraryState.playlistsCreated) { playlist ->
+                    items(localPlaylists) { playlist ->
                          MyPlaylistRowItem(
                              playlist, 
                              onPlaylistClicked = { title, desc, songs ->
-                                 onAction(LibraryScreenAction.PlaylistCreatedClicked(title, desc, songs))
-                             }
-                         )
+                                  onAction(LibraryScreenAction.PlaylistCreatedClicked(title, desc, songs, isRemote = false))
+                              }
+                          )
+                    }
+                }
+            }
+
+            // Display "My Audius Playlists" row if they have remote custom playlists
+            if (remotePlaylists.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(15.dp))
+                Header(text = "My Audius Playlists")
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 4.dp)
+                ) {
+                    items(remotePlaylists) { playlist ->
+                         MyPlaylistRowItem(
+                             playlist, 
+                             onPlaylistClicked = { title, desc, songs ->
+                                  onAction(LibraryScreenAction.PlaylistCreatedClicked(title, desc, songs, isRemote = true, isPrivate = playlist.isPrivate))
+                              }
+                          )
                     }
                 }
             }

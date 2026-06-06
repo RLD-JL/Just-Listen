@@ -8,7 +8,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.work.WorkManager
 import com.rld.justlisten.ui.JustListenApp
 import org.koin.compose.KoinContext
-import org.koin.mp.KoinPlatform.stopKoin
 
 class MainActivity : ComponentActivity() {
 
@@ -23,14 +22,29 @@ class MainActivity : ComponentActivity() {
         setContent {
             JustListenAppContent()
         }
+
+        handleIntent(intent)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        // Clean up Koin to prevent memory leaks
-        // Only stop if this is not a configuration change
-        if (isFinishing) {
-            stopKoin()
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: android.content.Intent?) {
+        val data: android.net.Uri? = intent?.data
+        if (data != null && data.scheme == "justlisten" && data.host == "oauth") {
+            val code = data.getQueryParameter("code")
+            if (code != null) {
+                val redirectUri = "justlisten://oauth/callback"
+                try {
+                    val settingsViewModel = org.koin.mp.KoinPlatform.getKoin().get<com.rld.justlisten.viewmodel.settings.SettingsViewModel>()
+                    settingsViewModel.loginWithCode(code, redirectUri)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
         }
     }
 }

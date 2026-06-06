@@ -11,6 +11,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.rounded.CloudQueue
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,6 +71,29 @@ fun MyPlaylistRowItem(
                 lineColor = Color.White.copy(alpha = 0.8f),
                 dotColor = Color.White.copy(alpha = 0.9f)
             )
+            
+            if (playlist.isRemote) {
+                Icon(
+                    imageVector = Icons.Rounded.CloudQueue,
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.85f),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .size(18.dp)
+                )
+            }
+            if (playlist.isPrivate) {
+                Icon(
+                    imageVector = Icons.Rounded.Lock,
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.85f),
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(8.dp)
+                        .size(18.dp)
+                )
+            }
         }
         
         Spacer(modifier = Modifier.height(8.dp))

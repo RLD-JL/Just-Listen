@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -46,6 +47,7 @@ import com.rld.justlisten.ui.bottombars.playbar.PlayerBarSheetContent
 import com.rld.justlisten.ui.bottombars.playbar.PlayerLayoutInfo
 import com.rld.justlisten.ui.bottombars.playbar.PlayerUiEvent
 import kotlinx.coroutines.launch
+import com.rld.justlisten.navigation.Route
 
 enum class PlayBarState {
     COLLAPSED,
@@ -57,8 +59,12 @@ enum class PlayBarState {
 fun JustListenScaffold(
     navController: NavHostController,
     showDonationTab: Boolean,
+    startDestination: Route = Route.Playlist,
     modifier: Modifier = Modifier,
 ) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val routeLabel = navBackStackEntry?.destination?.route.orEmpty()
+
     val viewModel: PlayerViewModel = koinViewModel()
     val uiState by viewModel.playerUiState.collectAsState()
     
@@ -66,14 +72,13 @@ fun JustListenScaffold(
         status = PlaybackStatus.IDLE,
         currentPosition = 0
     )
-    val shouldShowPlayBar = playbackState.status == PlaybackStatus.PLAYING ||
+    val isKeyboardVisible = WindowInsets.ime.asPaddingValues().calculateBottomPadding() > 20.dp
+    val shouldShowPlayBar = (playbackState.status == PlaybackStatus.PLAYING ||
             playbackState.status == PlaybackStatus.PAUSED ||
             playbackState.status == PlaybackStatus.BUFFERING ||
-            playbackState.currentMedia != null
+            playbackState.currentMedia != null) && !isKeyboardVisible && !routeLabel.contains("Onboarding")
 
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val routeLabel = navBackStackEntry?.destination?.route.orEmpty()
-    val showBottomBar = !routeLabel.contains("AddPlaylist")
+    val showBottomBar = !routeLabel.contains("AddPlaylist") && !routeLabel.contains("Onboarding") && !isKeyboardVisible
 
     val primaryThemeColor = MaterialTheme.colorScheme.primary
 
@@ -157,7 +162,10 @@ fun JustListenScaffold(
                             bottom = innerPadding.calculateBottomPadding() + navBarPadding + extraBottom,
                         )
                 ) {
-                    AppNavigation(navController = navController)
+                    AppNavigation(
+                        navController = navController,
+                        startDestination = startDestination
+                    )
                 }
             }
 

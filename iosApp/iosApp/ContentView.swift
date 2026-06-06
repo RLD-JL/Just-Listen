@@ -11,7 +11,22 @@ struct ComposeView: UIViewControllerRepresentable {
 
 struct ContentView: View {
     var body: some View {
-        ComposeView().ignoresSafeArea(.all)
+        ComposeView()
+            .ignoresSafeArea(.all)
+            .onOpenURL { url in
+                handleDeepLink(url)
+            }
+    }
+    
+    private func handleDeepLink(_ url: URL) {
+        guard url.scheme == "justlisten" && url.host == "oauth" else { return }
+        
+        if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
+           let queryItems = components.queryItems,
+           let code = queryItems.first(where: { $0.name == "code" })?.value {
+            let redirectUri = "justlisten://oauth/callback"
+            IOSModuleKt.loginWithCode(code: code, redirectUri: redirectUri)
+        }
     }
 }
 

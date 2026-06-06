@@ -23,7 +23,9 @@ sealed interface LibraryScreenAction {
     data class PlaylistCreatedClicked(
         val title: String,
         val description: String?,
-        val songs: List<String>
+        val songs: List<String>,
+        val isRemote: Boolean = false,
+        val isPrivate: Boolean = false
     ) : LibraryScreenAction
 
     data class DeletePlaylistClicked(val playlistName: String) : LibraryScreenAction

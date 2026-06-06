@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.rld.justlisten.viewmodel.settings.SettingsViewModel
 
 
 private fun androidx.navigation.NavBackStackEntry.getTabIndex(): Int {
@@ -120,6 +121,23 @@ fun AppNavigation(
         composable<Route.AddPlaylist> { backStackEntry ->
             val args: Route.AddPlaylist = backStackEntry.toRoute()
             AddPlaylistScreenHost(navController, args)
+        }
+
+        composable<Route.Onboarding> {
+            val viewModel: SettingsViewModel = org.koin.compose.koinInject()
+            com.rld.justlisten.ui.onboardingscreen.OnboardingScreen(
+                onProceedAsGuest = {
+                    viewModel.completeOnboarding()
+                    navController.navigate(Route.Playlist) {
+                        popUpTo(Route.Onboarding) { inclusive = true }
+                    }
+                },
+                onAuthenticatePressed = {
+                    val redirectUri = "justlisten://oauth/callback"
+                    val authUrl = viewModel.getAuthUrl(redirectUri)
+                    return@OnboardingScreen authUrl
+                }
+            )
         }
         
         composable<Route.Settings> {

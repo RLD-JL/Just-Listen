@@ -16,6 +16,8 @@ import kotlinx.coroutines.launch
 class LibraryViewModel(
     private val libraryRepository: LibraryRepository,
     private val favoritesRepository: FavoritesRepository,
+    private val authRepository: com.rld.justlisten.datalayer.repositories.AuthRepository,
+    private val syncRepository: com.rld.justlisten.datalayer.repositories.SyncRepository
 ) : BaseScreenViewModel() {
 
     private val _libraryState = MutableStateFlow(LibraryState(isLoading = true))
@@ -23,6 +25,13 @@ class LibraryViewModel(
 
     init {
         loadLibraryData()
+        
+        viewModelScope.launch {
+            authRepository.sessionState.collect { session ->
+                _libraryState.update { it.copy(sessionState = session) }
+            }
+        }
+        
         viewModelScope.launch {
             favoritesRepository.getFavoritePlaylistFlow().collect {
                 loadLibraryData()
@@ -83,7 +92,8 @@ class LibraryViewModel(
                         topArtistName = topArtistName,
                         topArtistPlays = topArtistPlays,
                         topArtistHours = topArtistHours,
-                        lastMostPlayedIndexReached = mostPlayed.size < 20
+                        lastMostPlayedIndexReached = mostPlayed.size < 20,
+                        sessionState = it.sessionState
                     )
                 }
             } catch (e: Exception) {
@@ -176,18 +186,27 @@ class LibraryViewModel(
         navigate(Route.AddPlaylist())
     }
 
-    fun onPlaylistCreatedClicked(title: String, description: String?, songs: List<String>) {
+    fun onPlaylistCreatedClicked(
+        title: String, 
+        description: String?, 
+        songs: List<String>, 
+        isRemote: Boolean = false, 
+        isPrivate: Boolean = false
+    ) {
         viewModelScope.launch {
             val exists = _libraryState.value.playlistsCreated.any { it.playlistName == title }
             if (!exists) {
-                libraryRepository.savePlaylist(title, description)
+                libraryRepository.savePlaylist(title, description, isRemote, isPrivate)
+                if (isRemote) {
+                    syncRepository.enqueuePlaylistCreateTask(title, description, isPrivate)
+                }
             }
             navigate(
                 Route.PlaylistDetail(
                     playlistId = "",
                     playlistIcon = "",
                     playlistTitle = title,
-                    playlistCreatedBy = "ME",
+                    playlistCreatedBy = if (isRemote) "ME (Audius)" else "ME",
                     playlistEnum = "CREATED_BY_USER",
                     songsList = songs
                 ),

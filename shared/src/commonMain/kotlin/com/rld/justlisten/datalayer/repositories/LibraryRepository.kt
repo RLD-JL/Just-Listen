@@ -37,10 +37,10 @@ interface LibraryRepository {
     fun getPlayHistoryFlow(): Flow<Unit>
     
     // Add Playlist functions
-    fun savePlaylist(playlistName: String, playlistDescription: String?)
+    fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean = false, isPrivate: Boolean = false)
     fun getAddPlaylist(): List<AddPlaylist>
     fun getAddPlaylistFlow(): Flow<List<AddPlaylist>>
-    fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>)
+    fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean = false, isPrivate: Boolean = false)
     fun deletePlaylist(playlistName: String)
     fun updatePlaylistName(oldName: String, newName: String)
 }
@@ -109,8 +109,8 @@ class LibraryRepositoryImpl(
         return localDb.getTopArtistFromHistory()
     }
 
-    override fun savePlaylist(playlistName: String, playlistDescription: String?) {
-        localDb.savePlaylist(playlistName, playlistDescription)
+    override fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean, isPrivate: Boolean) {
+        localDb.savePlaylist(playlistName, playlistDescription, isRemote, isPrivate)
     }
 
     override fun getAddPlaylist(): List<AddPlaylist> {
@@ -124,9 +124,11 @@ class LibraryRepositoryImpl(
     override fun updatePlaylistSongs(
         playlistName: String,
         playlistDescription: String?,
-        songList: List<String>
+        songList: List<String>,
+        isRemote: Boolean,
+        isPrivate: Boolean
     ) {
-        localDb.updatePlaylistSongs(playlistName, playlistDescription, songList)
+        localDb.updatePlaylistSongs(playlistName, playlistDescription, songList, isRemote, isPrivate)
     }
 
     override fun deletePlaylist(playlistName: String) {

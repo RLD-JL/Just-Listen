@@ -74,7 +74,9 @@ class PlayerViewModelTest {
         val dummyPlaylist = AddPlaylist(
             playlistName = "My Playlist",
             playlistDescription = "Test desc",
-            songsList = emptyList()
+            songsList = emptyList(),
+            isRemote = false,
+            isPrivate = false
         )
         fakeLibraryRepo.addPlaylist(dummyPlaylist)
 
@@ -144,7 +146,9 @@ class PlayerViewModelTest {
         val dummyPlaylist = AddPlaylist(
             playlistName = "Running Mix",
             playlistDescription = "Workout tracks",
-            songsList = emptyList()
+            songsList = emptyList(),
+            isRemote = false,
+            isPrivate = false
         )
         fakeLibraryRepo.addPlaylist(dummyPlaylist)
         viewModel.onAction(PlayerAction.LoadPlaylists)
@@ -217,8 +221,8 @@ class FakeLibraryRepository : LibraryRepository {
         updateFlow()
     }
 
-    override fun savePlaylist(playlistName: String, playlistDescription: String?) {
-        playlists.add(AddPlaylist(playlistName, playlistDescription ?: "", songsList = emptyList()))
+    override fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean, isPrivate: Boolean) {
+        playlists.add(AddPlaylist(playlistName, playlistDescription ?: "", songsList = emptyList(), isRemote = isRemote, isPrivate = isPrivate))
         updateFlow()
     }
 
@@ -226,10 +230,10 @@ class FakeLibraryRepository : LibraryRepository {
 
     override fun getAddPlaylistFlow(): Flow<List<AddPlaylist>> = playlistsFlow
 
-    override fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>) {
+    override fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean, isPrivate: Boolean) {
         val index = playlists.indexOfFirst { it.playlistName == playlistName }
         if (index >= 0) {
-            playlists[index] = AddPlaylist(playlistName, playlistDescription ?: "", songsList = songList)
+            playlists[index] = AddPlaylist(playlistName, playlistDescription ?: "", songsList = songList, isRemote = isRemote, isPrivate = isPrivate)
         }
         updateFlow()
     }

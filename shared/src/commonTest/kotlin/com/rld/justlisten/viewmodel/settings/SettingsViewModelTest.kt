@@ -2,6 +2,8 @@ package com.rld.justlisten.viewmodel.settings
 
 import com.rld.justlisten.database.settingsscreen.SettingsInfo
 import com.rld.justlisten.datalayer.repositories.SettingsRepository
+import com.rld.justlisten.datalayer.webservices.ApiClient
+import com.rld.justlisten.util.SecureStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -19,12 +21,16 @@ class SettingsViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val fakeSettingsRepo = FakeSettingsRepository()
+    private val fakeAuthRepo = FakeAuthRepository()
+    private val fakeSyncRepo = FakeSyncRepository()
     private lateinit var viewModel: SettingsViewModel
+    private val fakeSecureStorage = FakeSecureStorage()
+    private val apiClient = ApiClient(apiKey = "", secureStorage = fakeSecureStorage)
 
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = SettingsViewModel(fakeSettingsRepo)
+        viewModel = SettingsViewModel(fakeSettingsRepo, fakeAuthRepo, fakeSyncRepo, apiClient)
     }
 
     @AfterTest
@@ -80,7 +86,8 @@ class FakeSettingsRepository : SettingsRepository {
         customPrimary = null,
         customSecondary = null,
         customBackground = null,
-        customSurface = null
+        customSurface = null,
+        isFirstLaunch = true
     )
 
     override fun saveSettingsInfo(
@@ -91,6 +98,7 @@ class FakeSettingsRepository : SettingsRepository {
         customSecondary: String?,
         customBackground: String?,
         customSurface: String?,
+        isFirstLaunch: Boolean
     ) {
         info = SettingsInfo(
             id = 1L,
@@ -100,9 +108,33 @@ class FakeSettingsRepository : SettingsRepository {
             customPrimary = customPrimary,
             customSecondary = customSecondary,
             customBackground = customBackground,
-            customSurface = customSurface
+            customSurface = customSurface,
+            isFirstLaunch = isFirstLaunch
         )
     }
 
     override fun getSettingsInfo(): SettingsInfo = info
+}
+
+class FakeAuthRepository : com.rld.justlisten.datalayer.repositories.AuthRepository {
+    override val sessionState = kotlinx.coroutines.flow.MutableStateFlow<com.rld.justlisten.datalayer.repositories.SessionState>(com.rld.justlisten.datalayer.repositories.SessionState.Guest)
+    override fun getAuthUrl(redirectUri: String): String = ""
+    override suspend fun loginWithCode(code: String, redirectUri: String): Boolean = false
+    override fun logout() {}
+    override suspend fun refreshSession(): Boolean = false
+}
+
+class FakeSyncRepository : com.rld.justlisten.datalayer.repositories.SyncRepository {
+    override val syncState = kotlinx.coroutines.flow.MutableStateFlow<com.rld.justlisten.datalayer.repositories.SyncState>(com.rld.justlisten.datalayer.repositories.SyncState.Synced)
+    override fun enqueueFavoriteTask(trackId: String, isFavorite: Boolean) {}
+    override fun enqueuePlaylistCreateTask(name: String, description: String?, isPrivate: Boolean) {}
+    override fun triggerSync() {}
+    override fun clearQueue() {}
+    override suspend fun performInboundSync(userId: String) {}
+}
+
+class FakeSecureStorage : SecureStorage {
+    override fun saveToken(key: String, value: String) {}
+    override fun getToken(key: String): String? = null
+    override fun clear() {}
 }

@@ -9,6 +9,10 @@ import com.rld.justlisten.media.IOSMusicPlayer
 import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.ui.utils.SleepTimerService
 import com.rld.justlisten.ui.utils.IosSleepTimerService
+import com.rld.justlisten.util.SecureStorage
+import com.rld.justlisten.util.IosSecureStorage
+import com.rld.justlisten.util.PkceCrypto
+import com.rld.justlisten.util.IosPkceCrypto
 import org.koin.dsl.module
 import org.koin.core.context.startKoin
 
@@ -20,12 +24,21 @@ fun iosModule() = module {
         NativeSqliteDriver(LocalDb.Schema, "Local.db")
     }
     
+    single<SecureStorage> {
+        IosSecureStorage()
+    }
+    
+    single<PkceCrypto> {
+        IosPkceCrypto()
+    }
+    
     single {
         LocalDb(
             get(),
             Repository.addPlaylistAdapter,
             Repository.libraryAdapter,
-            Repository.playlistDetailAdapter
+            Repository.playlistDetailAdapter,
+            Repository.syncQueueAdapter
         )
     }
     
@@ -45,7 +58,16 @@ fun initKoin(apiKey: String = "") {
         modules(
             iosModule(),
             appModule(),
-            module { single { ApiClient(apiKey) } }
+            module { single { ApiClient(apiKey = apiKey, secureStorage = get()) } }
         )
+    }
+}
+
+fun loginWithCode(code: String, redirectUri: String) {
+    try {
+        val settingsViewModel = org.koin.mp.KoinPlatform.getKoin().get<com.rld.justlisten.viewmodel.settings.SettingsViewModel>()
+        settingsViewModel.loginWithCode(code, redirectUri)
+    } catch (e: Exception) {
+        // Log or handle error
     }
 }

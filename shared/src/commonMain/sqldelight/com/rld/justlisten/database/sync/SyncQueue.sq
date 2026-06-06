@@ -1,0 +1,23 @@
+import kotlin.Int;
+
+CREATE TABLE SyncQueue (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    actionType TEXT NOT NULL,
+    targetId TEXT NOT NULL,
+    payload TEXT,
+    errorMessage TEXT,
+    retryCount INTEGER AS Int NOT NULL DEFAULT 0
+);
+
+getPendingTasks:
+SELECT * FROM SyncQueue ORDER BY id ASC;
+
+insertTask:
+INSERT INTO SyncQueue(actionType, targetId, payload, errorMessage, retryCount)
+VALUES (:actionType, :targetId, :payload, :errorMessage, :retryCount);
+
+deleteTask:
+DELETE FROM SyncQueue WHERE id = :id;
+
+updateTaskError:
+UPDATE SyncQueue SET errorMessage = :errorMessage, retryCount = :retryCount WHERE id = :id;

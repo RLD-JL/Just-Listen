@@ -74,6 +74,12 @@ class Repository(
         val playlistDetailAdapter = PlaylistDetail.Adapter(listOfStringsAdapter, userModelAdapter)
         val libraryAdapter = Library.Adapter(userModelAdapter, listOfStringsAdapter)
         val addPlaylistAdapter = AddPlaylist.Adapter(playlistAdapter)
+        
+        val intAdapter = object : ColumnAdapter<Int, Long> {
+            override fun decode(databaseValue: Long): Int = databaseValue.toInt()
+            override fun encode(value: Int): Long = value.toLong()
+        }
+        val syncQueueAdapter = com.rld.justlisten.database.sync.SyncQueue.Adapter(intAdapter)
     }
 
     fun getFavoritePlaylistFlow(): Flow<List<PlayListModel>> {

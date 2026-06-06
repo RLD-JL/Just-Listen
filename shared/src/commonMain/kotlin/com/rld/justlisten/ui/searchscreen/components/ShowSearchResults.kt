@@ -120,7 +120,7 @@ fun ArtistCard(user: AutocompleteUser, onClick: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .width(80.dp)
-            .clickable(onClick = onClick)
+            .clickable(enabled = false, onClick = onClick)
     ) {
         val imageUrl = user.profilePicture?.songImageURL150px
         val painter = rememberAsyncImagePainter(imageUrl)

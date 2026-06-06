@@ -26,13 +26,16 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun AddPlaylistDialog(
     openDialog: MutableState<Boolean>,
-    onAddPlaylistClicked: (String, String?) -> Unit
+    isUserLoggedIn: Boolean = false,
+    onAddPlaylistClicked: (String, String?) -> Unit = { _, _ -> },
+    onAddPlaylistClickedFull: ((String, String?, Boolean, Boolean) -> Unit)? = null
 ) {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
     var title by remember { mutableStateOf("") }
-    val description: String? = null
+    var isRemote by remember { mutableStateOf(false) }
+    var isPrivate by remember { mutableStateOf(false) }
 
     if (openDialog.value) {
         AlertDialog(
@@ -109,8 +112,14 @@ fun AddPlaylistDialog(
                                     focusManager.clearFocus()
                                     keyboardController?.hide()
                                     openDialog.value = false
-                                    onAddPlaylistClicked(title, null)
+                                    if (onAddPlaylistClickedFull != null) {
+                                        onAddPlaylistClickedFull(title, null, isRemote, isPrivate)
+                                    } else {
+                                        onAddPlaylistClicked(title, null)
+                                    }
                                     title = ""
+                                    isRemote = false
+                                    isPrivate = false
                                 }
                             }
                         ),
@@ -128,6 +137,56 @@ fun AddPlaylistDialog(
                             cursorColor = Color(0xFF00BCD4)
                         )
                     )
+
+                    if (isUserLoggedIn) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Save to Audius Cloud",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Switch(
+                                checked = isRemote,
+                                onCheckedChange = { isRemote = it },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                )
+                            )
+                        }
+                        
+                        if (isRemote) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Private Playlist",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Switch(
+                                    checked = isPrivate,
+                                    onCheckedChange = { isPrivate = it },
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = MaterialTheme.colorScheme.primary,
+                                        checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                    )
+                                )
+                            }
+                        }
+                    }
                 }
             },
             confirmButton = {
@@ -146,8 +205,14 @@ fun AddPlaylistDialog(
                                 focusManager.clearFocus()
                                 keyboardController?.hide()
                                 openDialog.value = false
-                                onAddPlaylistClicked(title, null)
+                                if (onAddPlaylistClickedFull != null) {
+                                    onAddPlaylistClickedFull(title, null, isRemote, isPrivate)
+                                } else {
+                                    onAddPlaylistClicked(title, null)
+                                }
                                 title = ""
+                                isRemote = false
+                                isPrivate = false
                             }
                         },
                         enabled = isEnabled,
@@ -182,6 +247,8 @@ fun AddPlaylistDialog(
                     TextButton(
                         onClick = {
                             title = ""
+                            isRemote = false
+                            isPrivate = false
                             openDialog.value = false
                         },
                         modifier = Modifier.fillMaxWidth()

@@ -22,6 +22,10 @@ CREATE TABLE PlayHistory (
      completed INTEGER NOT NULL DEFAULT 0
 );
 
+CREATE INDEX idx_playhistory_songid ON PlayHistory(songId);
+CREATE INDEX idx_library_favoriteSong ON Library(favoriteSong) WHERE favoriteSong = 1;
+CREATE INDEX idx_library_recentPlayed ON Library(recentPlayed, recentIncrement) WHERE recentPlayed = 1;
+
 getFavoritePlaylist:
 SELECT * FROM Library WHERE favoriteSong = 1;
 

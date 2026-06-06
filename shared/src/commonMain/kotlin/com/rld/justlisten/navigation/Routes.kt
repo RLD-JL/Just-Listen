@@ -50,6 +50,9 @@ sealed class Route {
 
     @Serializable
     data object CustomTheme : Route()
+
+    @Serializable
+    data object Onboarding : Route()
 }
 
 /**
@@ -72,6 +75,7 @@ val Route.navigationLevel: NavigationLevel
         Route.Settings,
         Route.Donation -> NavigationLevel.LEVEL_1
         
+        Route.Onboarding,
         Route.MusicInsights,
         is Route.AddPlaylist,
         is Route.SeeAll,
