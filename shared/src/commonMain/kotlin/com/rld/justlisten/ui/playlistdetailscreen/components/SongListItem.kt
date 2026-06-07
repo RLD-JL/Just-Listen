@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +48,7 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.rld.justlisten.ui.components.AnimatedShimmer
+import com.rld.justlisten.ui.components.ConfirmDialog
 import com.rld.justlisten.ui.components.MusicLoadingSpinner
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.media.PlaybackStatus
@@ -72,16 +74,25 @@ fun SongListItem(
     onDelete: () -> Unit = {}
 ) {
     if (canDelete) {
+        val showConfirmDialog = remember { mutableStateOf(false) }
+
         val dismissState = rememberSwipeToDismissBoxState(
             confirmValueChange = { dismissValue ->
-                if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                    onDelete()
-                    true
-                } else {
-                    false
-                }
+                dismissValue == SwipeToDismissBoxValue.EndToStart
             }
         )
+
+        LaunchedEffect(dismissState.settledValue) {
+            if (dismissState.settledValue == SwipeToDismissBoxValue.EndToStart) {
+                showConfirmDialog.value = true
+            }
+        }
+
+        LaunchedEffect(showConfirmDialog.value) {
+            if (!showConfirmDialog.value && dismissState.settledValue == SwipeToDismissBoxValue.EndToStart) {
+                dismissState.snapTo(SwipeToDismissBoxValue.Settled)
+            }
+        }
 
         SwipeToDismissBox(
             state = dismissState,
@@ -118,6 +129,15 @@ fun SongListItem(
                     isPlaying = isPlaying
                 )
             }
+        )
+
+        ConfirmDialog(
+            title = "Delete Song",
+            description = "Are you sure you want to delete \"${playlistItem.title.ifBlank { playlistItem.playlistTitle }}\" from this playlist?",
+            confirmText = "Yes, Delete",
+            cancelText = "Cancel",
+            openDialog = showConfirmDialog,
+            onConfirm = onDelete
         )
     } else {
         SongListItemContent(

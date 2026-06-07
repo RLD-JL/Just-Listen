@@ -54,14 +54,24 @@ fun Modifier.shimmerEffect(): Modifier = composed {
 
 @Composable
 fun AnimatedShimmer(
-    width: Dp = 55.dp,
-    height: Dp = 55.dp,
+    modifier: Modifier = Modifier,
     cornerRadius: Dp = 8.dp
 ) {
     Box(
-        modifier = Modifier
-            .size(width = width, height = height)
+        modifier = modifier
             .clip(RoundedCornerShape(cornerRadius))
             .shimmerEffect()
+    )
+}
+
+@Composable
+fun AnimatedShimmer(
+    width: Dp,
+    height: Dp,
+    cornerRadius: Dp = 8.dp
+) {
+    AnimatedShimmer(
+        modifier = Modifier.size(width = width, height = height),
+        cornerRadius = cornerRadius
     )
 }

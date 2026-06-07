@@ -16,6 +16,9 @@ import com.rld.justlisten.media.MediaMetadata
 import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.media.MusicPlayer
+import com.rld.justlisten.viewmodel.player.PlayerUiState
+import com.rld.justlisten.ui.actions.PlayerAction
+import androidx.compose.ui.Alignment
 
 @Stable
 class UpNextDragState(
@@ -81,6 +84,8 @@ fun rememberUpNextDragState(
 @Composable
 fun UpNextQueueView(
     playlist: List<MediaMetadata>,
+    uiState: PlayerUiState,
+    onAction: (PlayerAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val musicPlayer = LocalMusicPlayer.current
@@ -145,7 +150,7 @@ fun UpNextQueueView(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                 )
             }
-            itemsIndexed(pastSongs, key = { _, song -> song.id }) { relativeIndex, song ->
+            itemsIndexed(pastSongs, key = { index, song -> "past_${song.id}_$index" }) { relativeIndex, song ->
                 TrackCard(
                     song = song,
                     actualIndex = relativeIndex,
@@ -203,7 +208,7 @@ fun UpNextQueueView(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                 )
             }
-            itemsIndexed(nextSongs, key = { _, song -> song.id }) { relativeIndex, song ->
+            itemsIndexed(nextSongs, key = { index, song -> "next_${song.id}_$index" }) { relativeIndex, song ->
                 val actualIndex = (if (currentIndex >= 0) currentIndex + 1 else 0) + relativeIndex
                 TrackCard(
                     song = song,
@@ -212,6 +217,90 @@ fun UpNextQueueView(
                     canDrag = true,
                     isPlaying = isPlaying,
                     dragState = dragState
+                )
+            }
+        }
+
+        // ── Autoplay Toggle Section ──
+        item {
+            Spacer(Modifier.height(16.dp))
+            HorizontalDivider(
+                color = Color.White.copy(alpha = 0.1f),
+                thickness = 1.dp,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+            Spacer(Modifier.height(8.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Autoplay",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Play similar songs when your queue ends",
+                        color = Color.White.copy(alpha = 0.6f),
+                        fontSize = 11.sp
+                    )
+                }
+                androidx.compose.material3.Switch(
+                    checked = uiState.isAutoplayEnabled,
+                    onCheckedChange = { enabled ->
+                        onAction(PlayerAction.ToggleAutoplay(enabled))
+                    },
+                    colors = androidx.compose.material3.SwitchDefaults.colors(
+                        checkedThumbColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                        checkedTrackColor = androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                    )
+                )
+            }
+        }
+
+        // ── Autoplay Recommended Songs ──
+        if (uiState.isAutoplayEnabled && uiState.recommendedSongs.isNotEmpty()) {
+            item {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "RECOMMENDED SONGS",
+                    color = Color.White.copy(alpha = 0.5f),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                )
+            }
+            itemsIndexed(uiState.recommendedSongs, key = { index, song -> "rec_${song.id}_$index" }) { index, song ->
+                val mediaMetadata = MediaMetadata(
+                    id = song.id,
+                    title = song.title,
+                    artist = song.user,
+                    duration = 0L,
+                    artworkUrl = song.songIconList.songImageURL480px,
+                    lowResArtworkUrl = song.songIconList.songImageURL150px,
+                    isFavorite = song.isFavorite,
+                    isReposted = song.isReposted,
+                    repostCount = song.repostCount,
+                    favoriteCount = song.favoriteCount,
+                    commentCount = song.commentCount,
+                    playCount = song.playCount,
+                    artistId = song.userId
+                )
+                TrackCard(
+                    song = mediaMetadata,
+                    actualIndex = index,
+                    currentIndex = -1,
+                    canDrag = false,
+                    isPlaying = false,
+                    dragState = dragState,
+                    onTrackClicked = {
+                        onAction(PlayerAction.PlayRecommendedTrack(song.id))
+                    }
                 )
             }
         }

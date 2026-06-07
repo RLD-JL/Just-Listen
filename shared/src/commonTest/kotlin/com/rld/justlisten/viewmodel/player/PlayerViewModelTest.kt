@@ -243,6 +243,170 @@ class PlayerViewModelTest {
 
         collectJob.cancel()
     }
+
+    @Test
+    fun testToggleAutoplay() = runTest(testDispatcher) {
+        val collectJob = launch { viewModel.playerUiState.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Toggle OFF
+        viewModel.onAction(PlayerAction.ToggleAutoplay(false))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertFalse(viewModel.playerUiState.value.isAutoplayEnabled)
+        assertFalse(fakeSettingsRepo.getSettingsInfo().isOngoingStreamEnabled)
+
+        // Toggle ON
+        viewModel.onAction(PlayerAction.ToggleAutoplay(true))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(viewModel.playerUiState.value.isAutoplayEnabled)
+        assertTrue(fakeSettingsRepo.getSettingsInfo().isOngoingStreamEnabled)
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun testAutoplayTriggersAtQueueEnd() = runTest(testDispatcher) {
+        val collectJob = launch { viewModel.playerUiState.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // 1. Enable autoplay
+        viewModel.onAction(PlayerAction.ToggleAutoplay(true))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // 2. Set up recommendations in repository
+        val mockData = com.rld.justlisten.datalayer.models.PlayListModel(
+            id = "rec123",
+            title = "Recommended Song",
+            user = UserModel("Rec Artist"),
+            songImgList = SongIconList("img", "img", "img")
+        )
+        val mockTrack = TrackItem(mockData, isFavorite = false, isReposted = false)
+        fakePlaylistRepo.mockTracks = listOf(mockTrack)
+
+        // 3. Set up queue with 1 song and start playing it
+        val activeSong = MediaMetadata("song1", "Song 1", "Artist 1", 1000L)
+        fakeMusicPlayer.setCurrentPlaylist(listOf(activeSong))
+        fakeMusicPlayer.playMedia("song1")
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Verify recommendations got fetched
+        assertEquals(1, viewModel.playerUiState.value.recommendedSongs.size)
+        assertEquals("rec123", viewModel.playerUiState.value.recommendedSongs[0].id)
+
+        // 4. Simulate queue finishing (STOPPED status while song1 was active)
+        fakeMusicPlayer.stop()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Verify recommended song got added to queue and started playing
+        assertEquals("rec123", fakeMusicPlayer.playMediaCalledWithId)
+        assertTrue(fakeMusicPlayer.addedTracksToQueue.any { it.id == "rec123" })
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun testPlayRecommendedTrackAction() = runTest(testDispatcher) {
+        val collectJob = launch { viewModel.playerUiState.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // 1. Set up recommendations in repository
+        val mockData = com.rld.justlisten.datalayer.models.PlayListModel(
+            id = "rec123",
+            title = "Recommended Song",
+            user = UserModel("Rec Artist"),
+            songImgList = SongIconList("img", "img", "img")
+        )
+        val mockTrack = TrackItem(mockData, isFavorite = false, isReposted = false)
+        fakePlaylistRepo.mockTracks = listOf(mockTrack)
+
+        // Set active track to load recommendations
+        val activeSong = MediaMetadata("song1", "Song 1", "Artist 1", 1000L)
+        fakeMusicPlayer.setCurrentPlaylist(listOf(activeSong))
+        fakeMusicPlayer.playMedia("song1")
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // 2. Play recommended track
+        viewModel.onAction(PlayerAction.PlayRecommendedTrack("rec123"))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Verify it was queued and played
+        assertEquals("rec123", fakeMusicPlayer.playMediaCalledWithId)
+        assertTrue(fakeMusicPlayer.currentPlaylist.value.any { it.id == "rec123" })
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun testAutoplayPaginationAndReset() = runTest(testDispatcher) {
+        val collectJob = launch { viewModel.playerUiState.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // 1. Enable autoplay
+        viewModel.onAction(PlayerAction.ToggleAutoplay(true))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // 2. Mock 50 trending tracks for pagination
+        val mockDataList = (1..50).map { i ->
+            TrackItem(
+                PlayListModel(
+                    id = "rec_$i",
+                    title = "Recommended Song $i",
+                    user = UserModel("Rec Artist $i"),
+                    songImgList = SongIconList("img", "img", "img")
+                ),
+                isFavorite = false,
+                isReposted = false
+            )
+        }
+        fakePlaylistRepo.mockTracks = mockDataList
+
+        // Set active track to load recommendations
+        val activeSong = MediaMetadata("song1", "Song 1", "Artist 1", 1000L)
+        fakeMusicPlayer.setCurrentPlaylist(listOf(activeSong))
+        fakeMusicPlayer.playMedia("song1")
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Initially recommendations are loaded from offset 0
+        var recommended = viewModel.playerUiState.value.recommendedSongs
+        assertEquals(10, recommended.size)
+        assertEquals("rec_1", recommended[0].id)
+
+        // 3. Play recommended track "rec_1"
+        viewModel.onAction(PlayerAction.PlayRecommendedTrack("rec_1"))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Now offset should have incremented by 10, so next recommendations should start from rec_11
+        recommended = viewModel.playerUiState.value.recommendedSongs
+        assertEquals(10, recommended.size)
+        assertEquals("rec_11", recommended[0].id)
+
+        // 4. Simulate queue finishing (STOPPED status while rec_1 was active)
+        fakeMusicPlayer.stop()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Verify next autoplay song started playing ("rec_11")
+        assertEquals("rec_11", fakeMusicPlayer.playMediaCalledWithId)
+        
+        // Offset should have incremented by another 10 (offset = 20), so recommendations start from rec_21
+        recommended = viewModel.playerUiState.value.recommendedSongs
+        assertEquals(10, recommended.size)
+        assertEquals("rec_21", recommended[0].id)
+
+        // 5. Play a manual track ("manualSong")
+        val manualSong = MediaMetadata("manualSong", "Manual", "Artist", 1000L)
+        fakeMusicPlayer.setCurrentPlaylist(listOf(manualSong))
+        fakeMusicPlayer.playMedia("manualSong")
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Offset should reset to 0, so recommendations should start from rec_1 again!
+        recommended = viewModel.playerUiState.value.recommendedSongs
+        assertEquals(10, recommended.size)
+        assertEquals("rec_1", recommended[0].id)
+
+        collectJob.cancel()
+    }
 }
 
 // ── FAKES IMPLEMENTATION ───────────────────────────────────────────
@@ -348,6 +512,8 @@ class FakeMusicPlayer : MusicPlayer {
     var skipToNextCalled = false
     var skipToPreviousCalled = false
     var refreshMetadataCalled = false
+    var playMediaCalledWithId: String? = null
+    val addedTracksToQueue = mutableListOf<com.rld.justlisten.viewmodel.interfaces.Item>()
 
     private val _playbackState = MutableStateFlow(
         PlaybackState(
@@ -366,15 +532,48 @@ class FakeMusicPlayer : MusicPlayer {
 
     override fun play() {}
     override fun pause() {}
-    override fun stop() {}
+    override fun stop() {
+        setPlaybackStatus(PlaybackStatus.STOPPED)
+    }
     override fun seekTo(position: Long) {}
     override fun setShuffleModeEnabled(enabled: Boolean) {}
     override fun setRepeatMode(repeatMode: RepeatMode) {}
-    override fun playMedia(mediaId: String) {}
-    override fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>) {}
+    override fun playMedia(mediaId: String) {
+        playMediaCalledWithId = mediaId
+        val song = _currentPlaylist.value.find { it.id == mediaId }
+        _playbackState.value = _playbackState.value.copy(
+            status = PlaybackStatus.PLAYING,
+            currentMedia = song
+        )
+    }
+    override fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>) {
+        _currentPlaylist.value = list.map {
+            MediaMetadata(
+                id = it.id,
+                title = it.title,
+                artist = it.user,
+                duration = 0L,
+                artworkUrl = it.songIconList.songImageURL480px,
+                lowResArtworkUrl = it.songIconList.songImageURL150px
+            )
+        }
+    }
     override fun removeTrack(index: Int) {}
     override fun moveTrack(fromIndex: Int, toIndex: Int) {}
-    override fun addTracksToQueue(tracks: List<com.rld.justlisten.viewmodel.interfaces.Item>) {}
+    override fun addTracksToQueue(tracks: List<com.rld.justlisten.viewmodel.interfaces.Item>) {
+        addedTracksToQueue.addAll(tracks)
+        val newMeta = tracks.map {
+            MediaMetadata(
+                id = it.id,
+                title = it.title,
+                artist = it.user,
+                duration = 0L,
+                artworkUrl = it.songIconList.songImageURL480px,
+                lowResArtworkUrl = it.songIconList.songImageURL150px
+            )
+        }
+        _currentPlaylist.value = _currentPlaylist.value + newMeta
+    }
 
     override fun skipToNext() {
         skipToNextCalled = true
@@ -396,6 +595,18 @@ class FakeMusicPlayer : MusicPlayer {
         playCount: Int,
         artistId: String
     ) {}
+
+    fun setPlaybackStatus(status: PlaybackStatus) {
+        _playbackState.value = _playbackState.value.copy(status = status)
+    }
+
+    fun setPlaybackMedia(media: MediaMetadata?) {
+        _playbackState.value = _playbackState.value.copy(currentMedia = media)
+    }
+
+    fun setCurrentPlaylist(list: List<MediaMetadata>) {
+        _currentPlaylist.value = list
+    }
 }
 
 class FakePlaylistRepository : PlaylistRepository {
@@ -404,6 +615,8 @@ class FakePlaylistRepository : PlaylistRepository {
 
     private val _repostedPlaylistIds = MutableStateFlow<Set<String>>(emptySet())
     override val repostedPlaylistIdsFlow = _repostedPlaylistIds.asStateFlow()
+
+    var mockTracks: List<TrackItem> = emptyList()
 
     override fun isTrackReposted(id: String): Boolean = _repostedTrackIds.value.contains(id)
     override fun setTrackReposted(id: String, reposted: Boolean) {
@@ -439,7 +652,7 @@ class FakePlaylistRepository : PlaylistRepository {
         queryPlaylist: String
     ): List<PlaylistItem> = emptyList()
 
-    override suspend fun getTracks(limit: Int, category: String, timeRange: String): List<TrackItem> = emptyList()
+    override suspend fun getTracks(limit: Int, category: String, timeRange: String): List<TrackItem> = mockTracks
     
     override fun getSongWithId(songId: String): PlayListModel? {
         return PlayListModel(id = songId)

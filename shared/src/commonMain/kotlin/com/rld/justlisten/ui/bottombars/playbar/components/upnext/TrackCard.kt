@@ -39,6 +39,7 @@ import coil3.request.ImageRequest
 import com.rld.justlisten.media.MediaMetadata
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.ui.components.MusicLoadingSpinner
+import com.rld.justlisten.ui.components.ConfirmDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +50,8 @@ fun TrackCard(
     canDrag: Boolean,
     isPlaying: Boolean,
     dragState: UpNextDragState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onTrackClicked: (() -> Unit)? = null
 ) {
     val currentActualIndex by rememberUpdatedState(actualIndex)
     val currentCurrentIndex by rememberUpdatedState(currentIndex)
@@ -58,8 +60,9 @@ fun TrackCard(
     val musicPlayer = LocalMusicPlayer.current
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
+    val showConfirmDialog = remember { mutableStateOf(false) }
 
-    val isBeingDragged = dragState.draggingId == song.id
+    val isBeingDragged = dragState.draggingId == song.id && dragState.draggingStartIndex == actualIndex
     var draggingOffset by remember { mutableStateOf(0f) }
 
     val itemHeightPx = remember(density) {
@@ -99,19 +102,26 @@ fun TrackCard(
 
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { dismissValue ->
-            if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                musicPlayer.removeTrack(actualIndex)
-                true
-            } else {
-                false
-            }
+            dismissValue == SwipeToDismissBoxValue.EndToStart
         }
     )
+
+    LaunchedEffect(dismissState.settledValue) {
+        if (dismissState.settledValue == SwipeToDismissBoxValue.EndToStart) {
+            showConfirmDialog.value = true
+        }
+    }
+
+    LaunchedEffect(showConfirmDialog.value) {
+        if (!showConfirmDialog.value && dismissState.settledValue == SwipeToDismissBoxValue.EndToStart) {
+            dismissState.snapTo(SwipeToDismissBoxValue.Settled)
+        }
+    }
 
     SwipeToDismissBox(
         state = dismissState,
         enableDismissFromStartToEnd = false,
-        enableDismissFromEndToStart = true,
+        enableDismissFromEndToStart = canDrag,
         backgroundContent = {
             val color = when (dismissState.dismissDirection) {
                 SwipeToDismissBoxValue.EndToStart -> Color(0xFFE91E63)
@@ -140,8 +150,12 @@ fun TrackCard(
                         if (actualIndex == currentIndex) Color(0xFF2C2C2C) else Color(0xFF1E1E1E)
                     )
                     .clickable {
-                        if (actualIndex != currentIndex) {
-                            musicPlayer.playMedia(song.id)
+                        if (onTrackClicked != null) {
+                            onTrackClicked()
+                        } else {
+                            if (actualIndex != currentIndex) {
+                                musicPlayer.playMedia(song.id)
+                            }
                         }
                     }
                     .padding(horizontal = 12.dp),
@@ -159,7 +173,7 @@ fun TrackCard(
                             tint = Color.White.copy(alpha = 0.5f),
                             modifier = Modifier
                                 .size(28.dp)
-                                .pointerInput(song.id) {
+                                .pointerInput(song.id, actualIndex) {
                                     var localStartIdx = -1
                                     var localCurrentDragIdx = -1
                                     detectDragGestures(
@@ -331,5 +345,16 @@ fun TrackCard(
             }
             .clip(RoundedCornerShape(12.dp))
             .height(72.dp)
+    )
+
+    ConfirmDialog(
+        title = "Remove Song",
+        description = "Are you sure you want to remove \"${song.title}\" from Up Next?",
+        confirmText = "Yes, Remove",
+        cancelText = "Cancel",
+        openDialog = showConfirmDialog,
+        onConfirm = {
+            musicPlayer.removeTrack(actualIndex)
+        }
     )
 }

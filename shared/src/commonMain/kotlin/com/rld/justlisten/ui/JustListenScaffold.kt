@@ -265,10 +265,12 @@ private fun SystemBarsColorController(
     themeBg: Color,
     isDarkTheme: Boolean
 ) {
-    val currentFraction = currentFractionProvider()
-    val statusBarColor = androidx.compose.ui.graphics.lerp(themeBg, Color.Black, currentFraction)
-    val navigationBarColor = androidx.compose.ui.graphics.lerp(themeBg, Color.Black, currentFraction)
-    val darkIcons = if (currentFraction > 0.5f) false else !isDarkTheme
+    val isExpanded by remember(currentFractionProvider) {
+        derivedStateOf { currentFractionProvider() > 0.9f }
+    }
+    val statusBarColor = if (isExpanded) Color.Black else themeBg
+    val navigationBarColor = if (isExpanded) Color.Black else themeBg
+    val darkIcons = if (isExpanded) false else !isDarkTheme
 
     SetSystemBarsColor(
         statusBarColor = statusBarColor,

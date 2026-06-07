@@ -19,7 +19,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.IntOffset
@@ -58,18 +60,24 @@ fun PlayBarSwipeActions(
     newDominantColor: (Int) -> Unit,
     playBarMinimizedClicked: () -> Unit
 ) {
-    val currentFraction = currentFractionProvider()
-    // Ease the fraction — image decelerates as it reaches its destination
-    val eased = FastOutSlowInEasing.transform(currentFraction)
-
     var swipeOffset by remember { mutableStateOf(0f) }
     val animatableOffset = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
 
+    val isMinimized = remember(currentFractionProvider) {
+        derivedStateOf { currentFractionProvider() < 0.15f }
+    }
+    val isClickable = remember(currentFractionProvider) {
+        derivedStateOf { currentFractionProvider() < 0.1f }
+    }
+    val isExpandedOrExpanding = remember(currentFractionProvider) {
+        derivedStateOf { currentFractionProvider() > 0.15f }
+    }
+
     // Reset swipeOffset if user starts expanding the player
-    LaunchedEffect(currentFraction) {
-        if (currentFraction > 0.15f && swipeOffset != 0f) {
+    LaunchedEffect(isExpandedOrExpanding.value) {
+        if (isExpandedOrExpanding.value && swipeOffset != 0f) {
             swipeOffset = 0f
         }
     }
@@ -107,67 +115,62 @@ fun PlayBarSwipeActions(
     }
 
     // Horizontal drag modifier to support swiping left/right to skip next/back
-    val dragModifier = if (currentFraction < 0.15f) {
-        Modifier.pointerInput(Unit) {
-            detectHorizontalDragGestures(
-                onDragEnd = {
-                    val swipeableWidthPx = with(density) { swipeableWidth.dp.toPx() }
-                    val thresholdPx = swipeableWidthPx * 0.30f
-                    val currentOffset = swipeOffset
-                    coroutineScope.launch {
-                        if (currentOffset > thresholdPx) {
-                            // Swipe right -> Previous song
-                            // Animate remaining distance to fully center the previous track
-                            animatableOffset.snapTo(currentOffset)
-                            animatableOffset.animateTo(swipeableWidthPx, spring()) {
-                                swipeOffset = this.value
-                            }
-                            // Perform track transition and reset offset instantly
-                            onSkipPreviousPressed()
-                            swipeOffset = 0f
-                        } else if (currentOffset < -thresholdPx) {
-                            // Swipe left -> Next song
-                            // Animate remaining distance to fully center the next track
-                            animatableOffset.snapTo(currentOffset)
-                            animatableOffset.animateTo(-swipeableWidthPx, spring()) {
-                                swipeOffset = this.value
-                            }
-                            // Perform track transition and reset offset instantly
-                            onSkipNextPressed()
-                            swipeOffset = 0f
-                        } else {
-                            animatableOffset.snapTo(currentOffset)
-                            animatableOffset.animateTo(0f, spring()) {
-                                swipeOffset = this.value
-                            }
+    val dragModifier = Modifier.pointerInput(Unit) {
+        detectHorizontalDragGestures(
+            onDragEnd = {
+                val swipeableWidthPx = with(density) { swipeableWidth.dp.toPx() }
+                val thresholdPx = swipeableWidthPx * 0.30f
+                val currentOffset = swipeOffset
+                coroutineScope.launch {
+                    if (currentOffset > thresholdPx) {
+                        // Swipe right -> Previous song
+                        // Animate remaining distance to fully center the previous track
+                        animatableOffset.snapTo(currentOffset)
+                        animatableOffset.animateTo(swipeableWidthPx, spring()) {
+                            swipeOffset = this.value
                         }
-                    }
-                },
-                onDragCancel = {
-                    coroutineScope.launch {
-                        animatableOffset.snapTo(swipeOffset)
+                        // Perform track transition and reset offset instantly
+                        onSkipPreviousPressed()
+                        swipeOffset = 0f
+                    } else if (currentOffset < -thresholdPx) {
+                        // Swipe left -> Next song
+                        // Animate remaining distance to fully center the next track
+                        animatableOffset.snapTo(currentOffset)
+                        animatableOffset.animateTo(-swipeableWidthPx, spring()) {
+                            swipeOffset = this.value
+                        }
+                        // Perform track transition and reset offset instantly
+                        onSkipNextPressed()
+                        swipeOffset = 0f
+                    } else {
+                        animatableOffset.snapTo(currentOffset)
                         animatableOffset.animateTo(0f, spring()) {
                             swipeOffset = this.value
                         }
                     }
-                },
-                onHorizontalDrag = { change, dragAmount ->
+                }
+            },
+            onDragCancel = {
+                coroutineScope.launch {
+                    animatableOffset.snapTo(swipeOffset)
+                    animatableOffset.animateTo(0f, spring()) {
+                        swipeOffset = this.value
+                    }
+                }
+            },
+            onHorizontalDrag = { change, dragAmount ->
+                if (currentFractionProvider() < 0.15f) {
                     change.consume()
                     swipeOffset += dragAmount
                 }
-            )
-        }
-    } else {
-        Modifier
+            }
+        )
     }
 
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopStart   // anchor to top-left so offset math is predictable
     ) {
-        val width  = widthSize(eased, screenWidth, screenHeight).dp
-        val height = heightSize(eased, screenWidth, screenHeight).dp
-
         val context = LocalPlatformContext.current
         val painter = rememberAsyncImagePainter(
             model = remember(highResIcon, songIcon, context) {
@@ -195,23 +198,29 @@ fun PlayBarSwipeActions(
             }
         }
 
-        // Interpolate container bounds to clip artwork and text when minimized
-        val containerWidth = lerp(swipeableWidth, screenWidth, eased).dp
-        val containerHeight = lerp(65f, screenHeight, eased).dp
-
         Box(
             modifier = Modifier
-                .width(containerWidth)
-                .height(containerHeight)
+                .layout { measurable, constraints ->
+                    val fraction = currentFractionProvider()
+                    val eased = FastOutSlowInEasing.transform(fraction)
+                    val widthPx = lerp(swipeableWidth, screenWidth, eased).dp.toPx().toInt()
+                    val heightPx = lerp(65f, screenHeight, eased).dp.toPx().toInt()
+                    val placeable = measurable.measure(
+                        Constraints.fixed(widthPx, heightPx)
+                    )
+                    layout(widthPx, heightPx) {
+                        placeable.place(0, 0)
+                    }
+                }
                 .clickable(
-                    enabled = currentFraction < 0.1f,
+                    enabled = isClickable.value,
                     onClick = playBarMinimizedClicked
                 )
                 .then(dragModifier)
                 .clipToBounds()
         ) {
             // Next and Previous tracks are only visible and layout-computed when minimized
-            if (currentFraction < 0.15f) {
+            if (isMinimized.value) {
                 if (prevSong != null) {
                     MinibarTrackRow(
                         title = prevSong.title,
@@ -252,16 +261,28 @@ fun PlayBarSwipeActions(
             // Current Track artwork image
             Box(
                 modifier = Modifier
-                    .size(width = width, height = height)
-                    .offset(
-                        x = offsetX(eased, screenWidth, screenHeight).dp,
-                        y = offsetY(eased, screenWidth, screenHeight).dp
-                    )
-                    .graphicsLayer {
-                        translationX = swipeOffset * (1f - currentFraction).coerceIn(0f, 1f)
+                    .layout { measurable, constraints ->
+                        val fraction = currentFractionProvider()
+                        val eased = FastOutSlowInEasing.transform(fraction)
+                        val w = widthSize(eased, screenWidth, screenHeight).dp.toPx().toInt()
+                        val h = heightSize(eased, screenWidth, screenHeight).dp.toPx().toInt()
+                        val placeable = measurable.measure(
+                            Constraints.fixed(w, h)
+                        )
+                        val x = offsetX(eased, screenWidth, screenHeight).dp.toPx().toInt()
+                        val y = offsetY(eased, screenWidth, screenHeight).dp.toPx().toInt()
+                        layout(w, h) {
+                            placeable.place(x, y)
+                        }
                     }
-                    // Slight rounding even when collapsed so it looks polished
-                    .clip(RoundedCornerShape(lerp(6f, 16f, eased).dp))
+                    .graphicsLayer {
+                        val fraction = currentFractionProvider()
+                        val eased = FastOutSlowInEasing.transform(fraction)
+                        val cornerRadiusPx = lerp(6f, 16f, eased).dp.toPx()
+                        shape = RoundedCornerShape(cornerRadiusPx)
+                        clip = true
+                        translationX = swipeOffset * (1f - fraction).coerceIn(0f, 1f)
+                    }
             ) {
                 Image(
                     painter = painter,
@@ -270,12 +291,12 @@ fun PlayBarSwipeActions(
                     modifier = Modifier.fillMaxSize()
                 )
                 if (state is coil3.compose.AsyncImagePainter.State.Loading) {
-                    AnimatedShimmer(width = width, height = height)
+                    AnimatedShimmer(modifier = Modifier.fillMaxSize())
                 }
             }
 
             // Current Track text metadata (only shown when minimized, slides with swipeOffset)
-            if (currentFraction < 0.15f) {
+            if (isMinimized.value) {
                 Column(
                     modifier = Modifier
                         .width((swipeableWidth - 65f).dp)
@@ -287,8 +308,8 @@ fun PlayBarSwipeActions(
                             )
                         }
                         .graphicsLayer {
-                            // Fade out text as the player expands
-                            alpha = (1f - currentFraction * 3f).coerceIn(0f, 1f)
+                            val fraction = currentFractionProvider()
+                            alpha = (1f - fraction * 3f).coerceIn(0f, 1f)
                         },
                     verticalArrangement = Arrangement.Center
                 ) {

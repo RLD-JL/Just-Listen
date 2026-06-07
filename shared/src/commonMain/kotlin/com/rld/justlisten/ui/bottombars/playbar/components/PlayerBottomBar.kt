@@ -184,7 +184,9 @@ fun PlayerBottomBar(
         ) {
             PlayerBottomTabs(
                 maxHeight = constraints.maxHeight,
-                bottomPadding = bottomPadding
+                bottomPadding = bottomPadding,
+                uiState = uiState,
+                onAction = onAction
             )
         }
     }

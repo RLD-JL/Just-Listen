@@ -31,4 +31,6 @@ sealed interface PlayerAction {
     data class ToggleRepost(val songId: String, val isRepost: Boolean) : PlayerAction
     data object DismissConnectPrompt : PlayerAction
     data object ConnectAudiusPressed : PlayerAction
+    data class ToggleAutoplay(val enabled: Boolean) : PlayerAction
+    data class PlayRecommendedTrack(val songId: String) : PlayerAction
 }

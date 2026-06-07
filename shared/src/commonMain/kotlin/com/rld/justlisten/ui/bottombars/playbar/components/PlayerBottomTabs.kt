@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.ui.bottombars.playbar.components.upnext.UpNextQueueView
+import com.rld.justlisten.viewmodel.player.PlayerUiState
+import com.rld.justlisten.ui.actions.PlayerAction
 import kotlinx.coroutines.launch
 
 enum class TabsSheetState {
@@ -45,7 +47,9 @@ enum class TabsSheetState {
 @Composable
 fun PlayerBottomTabs(
     maxHeight: Dp,
-    bottomPadding: Dp
+    bottomPadding: Dp,
+    uiState: PlayerUiState,
+    onAction: (PlayerAction) -> Unit
 ) {
     val musicPlayer = LocalMusicPlayer.current
     var selectedTab by remember { mutableStateOf(0) }
@@ -203,7 +207,11 @@ fun PlayerBottomTabs(
             Box(modifier = Modifier.weight(1f)) {
                 when (selectedTab) {
                     0 -> { // UP NEXT
-                        UpNextQueueView(playlist = playlist)
+                        UpNextQueueView(
+                            playlist = playlist,
+                            uiState = uiState,
+                            onAction = onAction
+                        )
                     }
 
                     1 -> { // LYRICS
