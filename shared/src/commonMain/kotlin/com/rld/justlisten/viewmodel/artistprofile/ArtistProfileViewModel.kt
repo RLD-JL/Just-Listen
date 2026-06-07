@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class ArtistProfileViewModel(
@@ -28,9 +29,12 @@ class ArtistProfileViewModel(
     private val _artistProfileState = MutableStateFlow(ArtistProfileState())
     val artistProfileState: StateFlow<ArtistProfileState> = _artistProfileState.asStateFlow()
 
+    private var loadJob: kotlinx.coroutines.Job? = null
+
     fun load(args: Route.ArtistProfile) {
         val artistId = args.artistId
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _artistProfileState.update { 
                 it.copy(
                     isLoading = true, 
@@ -41,18 +45,21 @@ class ArtistProfileViewModel(
                 ) 
             }
             try {
-                // Fetch profile details
-                val profile = apiClient.getUserProfile(artistId)
-                
-                // Fetch artist uploads
-                val tracksResponse = apiClient.getResponse<com.rld.justlisten.datalayer.webservices.apis.playlistcalls.PlayListResponse>("/users/$artistId/tracks")
+                // Fetch profile, tracks, and playlists concurrently
+                val profileDeferred = async { apiClient.getUserProfile(artistId) }
+                val tracksDeferred = async { 
+                    apiClient.getResponse<com.rld.justlisten.datalayer.webservices.apis.playlistcalls.PlayListResponse>("/users/$artistId/tracks") 
+                }
+                val playlistsDeferred = async { apiClient.getUserPlaylists(artistId) }
+
+                val profile = profileDeferred.await()
+                val tracksResponse = tracksDeferred.await()
+                val playlists = playlistsDeferred.await()
+
                 val favoriteIds = favoritesRepository.getFavoritePlaylist().map { it.id }.toSet()
                 val playlistItems = tracksResponse?.data?.map { track ->
                     PlaylistItem(track, favoriteIds.contains(track.id))
                 } ?: emptyList()
-
-                // Fetch artist playlists
-                val playlists = apiClient.getUserPlaylists(artistId)
 
                 _artistProfileState.update {
                     it.copy(
@@ -63,8 +70,10 @@ class ArtistProfileViewModel(
                     )
                 }
             } catch (e: Exception) {
-                println("ArtistProfileViewModel: Error loading profile: ${e.message}")
-                _artistProfileState.update { it.copy(isLoading = false) }
+                if (e !is kotlinx.coroutines.CancellationException) {
+                    println("ArtistProfileViewModel: Error loading profile: ${e.message}")
+                    _artistProfileState.update { it.copy(isLoading = false) }
+                }
             }
         }
     }

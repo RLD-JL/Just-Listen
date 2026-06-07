@@ -18,6 +18,9 @@ import com.rld.justlisten.media.PlaybackState
 import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.media.RepeatMode
 import com.rld.justlisten.ui.actions.PlayerAction
+import com.rld.justlisten.datalayer.repositories.FeedRepository
+import com.rld.justlisten.datalayer.repositories.SettingsRepository
+import com.rld.justlisten.database.settingsscreen.SettingsInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -48,6 +51,8 @@ class PlayerViewModelTest {
     private val fakeMusicPlayer = FakeMusicPlayer()
     private val fakePlaylistRepo = FakePlaylistRepository()
     private val fakeAuthRepo = FakeAuthRepository()
+    private val fakeFeedRepo = FakeFeedRepository()
+    private val fakeSettingsRepo = FakeSettingsRepository()
 
     private lateinit var viewModel: PlayerViewModel
 
@@ -61,7 +66,9 @@ class PlayerViewModelTest {
             playlistRepository = fakePlaylistRepo,
             musicPlayer = fakeMusicPlayer,
             playHistoryTracker = playHistoryTracker,
-            authRepository = fakeAuthRepo
+            authRepository = fakeAuthRepo,
+            feedRepository = fakeFeedRepo,
+            settingsRepository = fakeSettingsRepo
         )
     }
 
@@ -337,6 +344,7 @@ class FakeLibraryRepository : LibraryRepository {
 
 class FakeMusicPlayer : MusicPlayer {
     override var currentlyPlayingPlaylistId: String? = null
+    override fun release() {}
     var skipToNextCalled = false
     var skipToPreviousCalled = false
     var refreshMetadataCalled = false
@@ -366,6 +374,7 @@ class FakeMusicPlayer : MusicPlayer {
     override fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>) {}
     override fun removeTrack(index: Int) {}
     override fun moveTrack(fromIndex: Int, toIndex: Int) {}
+    override fun addTracksToQueue(tracks: List<com.rld.justlisten.viewmodel.interfaces.Item>) {}
 
     override fun skipToNext() {
         skipToNextCalled = true
@@ -378,6 +387,15 @@ class FakeMusicPlayer : MusicPlayer {
     override fun refreshMetadata() {
         refreshMetadataCalled = true
     }
+
+    override fun updateTrackMetadata(
+        songId: String,
+        repostCount: Int,
+        favoriteCount: Int,
+        commentCount: Int,
+        playCount: Int,
+        artistId: String
+    ) {}
 }
 
 class FakePlaylistRepository : PlaylistRepository {
@@ -423,9 +441,11 @@ class FakePlaylistRepository : PlaylistRepository {
 
     override suspend fun getTracks(limit: Int, category: String, timeRange: String): List<TrackItem> = emptyList()
     
-    override fun getSongWithId(songId: String): PlayListModel {
+    override fun getSongWithId(songId: String): PlayListModel? {
         return PlayListModel(id = songId)
     }
+
+    override suspend fun fetchTrackDetails(trackId: String): PlayListModel? = null
 }
 
 class FakeAuthRepository : AuthRepository {
@@ -440,4 +460,54 @@ class FakeAuthRepository : AuthRepository {
     override suspend fun loginWithCode(code: String, redirectUri: String): Boolean = true
     override suspend fun refreshSession(): Boolean = true
     override fun logout() {}
+}
+
+class FakeFeedRepository : FeedRepository {
+    override suspend fun getUserFeed(
+        userId: String,
+        limit: Int,
+        offset: Int,
+        filter: String,
+        tracksOnly: Boolean?
+    ): List<PlaylistItem> = emptyList()
+}
+
+class FakeSettingsRepository : SettingsRepository {
+    private var info = SettingsInfo(
+        id = 1L,
+        hasNavigationDonationOn = true,
+        isDarkThemeOn = true,
+        palletColor = "Pink",
+        customPrimary = null,
+        customSecondary = null,
+        customBackground = null,
+        customSurface = null,
+        isFirstLaunch = true,
+        isOngoingStreamEnabled = false
+    )
+    override fun saveSettingsInfo(
+        hasNavigationDonationOn: Boolean,
+        isDarkThemeOn: Boolean,
+        palletColor: String,
+        customPrimary: String?,
+        customSecondary: String?,
+        customBackground: String?,
+        customSurface: String?,
+        isFirstLaunch: Boolean,
+        isOngoingStreamEnabled: Boolean
+    ) {
+        info = SettingsInfo(
+            id = 1L,
+            hasNavigationDonationOn = hasNavigationDonationOn,
+            isDarkThemeOn = isDarkThemeOn,
+            palletColor = palletColor,
+            customPrimary = customPrimary,
+            customSecondary = customSecondary,
+            customBackground = customBackground,
+            customSurface = customSurface,
+            isFirstLaunch = isFirstLaunch,
+            isOngoingStreamEnabled = isOngoingStreamEnabled
+        )
+    }
+    override fun getSettingsInfo(): SettingsInfo = info
 }

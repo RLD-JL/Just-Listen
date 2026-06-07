@@ -9,15 +9,16 @@ CREATE TABLE SettingsInfo (
      customSecondary TEXT,
      customBackground TEXT,
      customSurface TEXT,
-     isFirstLaunch INTEGER AS Boolean NOT NULL DEFAULT 1
+     isFirstLaunch INTEGER AS Boolean NOT NULL DEFAULT 1,
+     isOngoingStreamEnabled INTEGER AS Boolean NOT NULL DEFAULT 1
 );
 
-INSERT INTO SettingsInfo(hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch) VALUES (0, 1, "Pink", NULL, NULL, NULL, NULL, 1);
+INSERT INTO SettingsInfo(hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch, isOngoingStreamEnabled) VALUES (0, 1, "Pink", NULL, NULL, NULL, NULL, 1, 1);
 
 getSettingsInfo:
 SELECT * FROM SettingsInfo;
 
 upsertSettingsInfo {
-    REPLACE INTO SettingsInfo(id, hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch)
-    VALUES(1, :hasNavigationDonationOn, :isDarkThemeOn, :palletColor, :customPrimary, :customSecondary, :customBackground, :customSurface, :isFirstLaunch) ;
+    REPLACE INTO SettingsInfo(id, hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch, isOngoingStreamEnabled)
+    VALUES(1, :hasNavigationDonationOn, :isDarkThemeOn, :palletColor, :customPrimary, :customSecondary, :customBackground, :customSurface, :isFirstLaunch, :isOngoingStreamEnabled) ;
 }

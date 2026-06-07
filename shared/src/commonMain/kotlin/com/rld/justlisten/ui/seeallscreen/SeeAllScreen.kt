@@ -40,7 +40,7 @@ import com.rld.justlisten.viewmodel.screens.playlist.TracksCategory
 import com.rld.justlisten.viewmodel.screens.playlist.getTrackCategory
 import com.rld.justlisten.viewmodel.seeall.SeeAllState
 import androidx.compose.ui.text.TextStyle
-import com.rld.justlisten.ui.components.SmartMarqueeText
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,72 +79,6 @@ fun SeeAllScreen(
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // 1. Dynamic Themed Genre Filter Pills (Only for See All Tracks) - Genre on Top
-            if (seeAllState.playlistEnum == "TRACKS") {
-                val genres = getTrackCategory()
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    items(genres) { genre ->
-                        val isSelected = genre.value == seeAllState.queryPlaylist
-                        val containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh
-                        val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-                        
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(containerColor)
-                                .clickable {
-                                    onAction(SeeAllAction.ChangeGenre(genre))
-                                }
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Text(
-                                text = genre.value,
-                                style = typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                color = contentColor
-                            )
-                        }
-                    }
-                }
-            }
-
-            // 1b. Time Filters Row ("All", "This Week", "This Month") - Period Under
-            if (seeAllState.playlistEnum == "TRACKS") {
-                val timeRanges = listOf(TimeRange.ALLTIME, TimeRange.WEEK, TimeRange.MONTH)
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                ) {
-                    items(timeRanges) { item ->
-                        val isSelected = item == seeAllState.selectedTimeRange
-                        val label = when (item) {
-                            TimeRange.ALLTIME -> "All"
-                            TimeRange.WEEK -> "This Week"
-                            TimeRange.MONTH -> "This Month"
-                        }
-                        val containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh
-                        val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-                        
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(containerColor)
-                                .clickable {
-                                    onAction(SeeAllAction.ChangeTimeRange(item))
-                                }
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Text(
-                                text = label,
-                                style = typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                color = contentColor
-                            )
-                        }
-                    }
-                }
-            }
 
             // 2. Vertical list of playlists/items
             Box(
@@ -185,25 +119,14 @@ fun SeeAllScreen(
                             SeeAllListItem(
                                 item = item,
                                 onClick = {
-                                    if (seeAllState.playlistEnum == "TRACKS") {
-                                        onAction(
-                                            SeeAllAction.SongPressed(
-                                                songId = item.id,
-                                                title = item.playlistTitle,
-                                                user = item.user,
-                                                songIconList = item.songIconList
-                                            )
+                                    onAction(
+                                        SeeAllAction.PlaylistClicked(
+                                            playlistId = item.id,
+                                            playlistIcon = item.songIconList.songImageURL480px,
+                                            createdBy = item.user,
+                                            title = item.playlistTitle
                                         )
-                                    } else {
-                                        onAction(
-                                            SeeAllAction.PlaylistClicked(
-                                                playlistId = item.id,
-                                                playlistIcon = item.songIconList.songImageURL480px,
-                                                createdBy = item.user,
-                                                title = item.playlistTitle
-                                            )
-                                        )
-                                    }
+                                    )
                                 },
                                 onArtistClicked = { id, name ->
                                     onAction(SeeAllAction.ArtistClicked(id, name))
@@ -311,10 +234,12 @@ fun SeeAllListItem(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
-                SmartMarqueeText(
+                Text(
                     text = item.playlistTitle,
                     style = typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 val artistId = when (item) {
@@ -326,11 +251,19 @@ fun SeeAllListItem(
                     { onArtistClicked(artistId, item.user) }
                 } else null
 
-                SmartMarqueeText(
+                Text(
                     text = item.user,
                     style = typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
-                    onClick = artistClickAction
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.then(
+                        if (artistClickAction != null) {
+                            Modifier.clickable(onClick = artistClickAction)
+                        } else {
+                            Modifier
+                        }
+                    )
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 

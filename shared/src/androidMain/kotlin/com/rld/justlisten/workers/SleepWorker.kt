@@ -1,7 +1,7 @@
 package com.rld.justlisten.workers
 
 import android.content.Context
-import androidx.media3.exoplayer.ExoPlayer
+import com.rld.justlisten.media.exoplayer.MusicServiceConnection
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +13,7 @@ import kotlin.system.exitProcess
 class SleepWorker(val context: Context, parameters: WorkerParameters) : 
     CoroutineWorker(context, parameters), KoinComponent {
 
-    private val exoPlayer: ExoPlayer by inject()
+    private val musicServiceConnection: MusicServiceConnection by inject()
 
     override suspend fun doWork(): Result {
         val sharedPrefs = context.getSharedPreferences("sleep_timer_prefs", Context.MODE_PRIVATE)
@@ -23,12 +23,13 @@ class SleepWorker(val context: Context, parameters: WorkerParameters) :
             // Volume changes on ExoPlayer must occur on the Main dispatcher
             withContext(Dispatchers.Main) {
                 runCatching {
-                    if (exoPlayer.isPlaying) {
-                        val startVolume = exoPlayer.volume
+                    val controller = musicServiceConnection.mediaController
+                    if (controller != null && controller.isPlaying) {
+                        val startVolume = controller.volume
                         val steps = 10
                         val delayStepMs = 1500L // 15 seconds total fade out duration
                         for (i in steps downTo 0) {
-                            exoPlayer.volume = startVolume * (i.toFloat() / steps)
+                            controller.volume = startVolume * (i.toFloat() / steps)
                             kotlinx.coroutines.delay(delayStepMs)
                         }
                     }

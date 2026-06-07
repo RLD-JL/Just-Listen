@@ -12,7 +12,8 @@ fun LocalDb.saveSettingsInfo(
     customSecondary: String?,
     customBackground: String?,
     customSurface: String?,
-    isFirstLaunch: Boolean
+    isFirstLaunch: Boolean,
+    isOngoingStreamEnabled: Boolean
 ) {
     settingsScreenQueries.transaction {
         settingsScreenQueries.upsertSettingsInfo(
@@ -23,7 +24,8 @@ fun LocalDb.saveSettingsInfo(
             customSecondary = customSecondary,
             customBackground = customBackground,
             customSurface = customSurface,
-            isFirstLaunch = isFirstLaunch
+            isFirstLaunch = isFirstLaunch,
+            isOngoingStreamEnabled = isOngoingStreamEnabled
         )
     }
 }

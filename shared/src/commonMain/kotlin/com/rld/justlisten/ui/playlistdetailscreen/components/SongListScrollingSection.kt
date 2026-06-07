@@ -43,7 +43,9 @@ fun SongListScrollingSection(
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     onRepostPressed: (String, Boolean) -> Unit,
     painter: AsyncImagePainter,
-    onArtistClicked: (String, String) -> Unit
+    onArtistClicked: (String, String) -> Unit,
+    onDeleteSong: (String) -> Unit,
+    currentPlayingSongId: String? = null
 ) {
     LazyColumn(Modifier.padding(top = 25.dp)) {
         item {
@@ -58,15 +60,19 @@ fun SongListScrollingSection(
             ShuffleButton(onShuffleClicked)
             DownloadedRow()
         }
-        itemsIndexed(playlist) { index, playlistItem ->
-
+        itemsIndexed(playlist, key = { _, item -> item.id }) { index, playlistItem ->
+            val isUserPlaylist = playlistDetailState.playlistEnum == "CREATED_BY_USER"
+            val isPlaying = playlistItem.id == currentPlayingSongId
             SongListItem(
                 playlist = playlistDetailState.playlistName,
                 playlistItem = playlistItem,
                 onSongClicked = onSongClicked,
                 onFavoritePressed = onFavoritePressed,
                 onRepostPressed = onRepostPressed,
-                onArtistClicked = onArtistClicked
+                onArtistClicked = onArtistClicked,
+                canDelete = isUserPlaylist,
+                onDelete = { onDeleteSong(playlistItem.id) },
+                isPlaying = isPlaying
             )
         }
     }

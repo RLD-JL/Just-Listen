@@ -66,22 +66,12 @@ class SeeAllViewModel(
         val currentState = _seeAllState.value
         viewModelScope.launch {
             val limit = offset
-            val items = if (currentState.playlistEnum == "TRACKS") {
-                val time = when (currentState.selectedTimeRange) {
-                    TimeRange.ALLTIME -> "allTime"
-                    TimeRange.MONTH -> "month"
-                    TimeRange.WEEK -> "week"
-                }
-                val searchCategory = if (currentState.queryPlaylist == "All") "" else if (currentState.queryPlaylist == "Rap") "Hip-Hop/Rap" else currentState.queryPlaylist
-                playlistRepository.getTracks(limit, searchCategory, time)
-            } else {
-                val playListEnum = PlayListEnum.valueOf(currentState.playlistEnum)
-                playlistRepository.getPlaylist(
-                    index = limit,
-                    playListEnum = playListEnum,
-                    queryPlaylist = currentState.queryPlaylist
-                )
-            }
+            val playListEnum = PlayListEnum.valueOf(currentState.playlistEnum)
+            val items = playlistRepository.getPlaylist(
+                index = limit,
+                playListEnum = playListEnum,
+                queryPlaylist = currentState.queryPlaylist
+            )
             
             val favoriteList = favoritesRepository.getFavoritePlaylist()
             val favoriteIds = favoriteList.map { it.id }.toSet()
@@ -108,30 +98,7 @@ class SeeAllViewModel(
         }
     }
 
-    fun changeTimeRange(timeRange: TimeRange) {
-        _seeAllState.update {
-            it.copy(
-                isLoading = true,
-                selectedTimeRange = timeRange,
-                items = emptyList(),
-                lastItemReached = false
-            )
-        }
-        fetchItems(offset = 20)
-    }
 
-    fun changeGenre(category: TracksCategory) {
-        _seeAllState.update {
-            it.copy(
-                isLoading = true,
-                title = "${category.value} Trending",
-                queryPlaylist = category.value,
-                items = emptyList(),
-                lastItemReached = false
-            )
-        }
-        fetchItems(offset = 20)
-    }
 
     fun onPlaylistClicked(
         playlistId: String,

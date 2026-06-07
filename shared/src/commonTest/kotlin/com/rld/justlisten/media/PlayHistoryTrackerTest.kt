@@ -113,6 +113,7 @@ class PlayHistoryTrackerTest {
 
     class FakeMusicPlayer : MusicPlayer {
         override var currentlyPlayingPlaylistId: String? = null
+        override fun release() {}
         
         private val _playbackState = MutableStateFlow(PlaybackState(PlaybackStatus.IDLE, 0L))
         override val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
@@ -142,7 +143,16 @@ class PlayHistoryTrackerTest {
         override fun playMedia(mediaId: String) {}
         override fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>) {}
         override fun refreshMetadata() {}
+        override fun updateTrackMetadata(
+            songId: String,
+            repostCount: Int,
+            favoriteCount: Int,
+            commentCount: Int,
+            playCount: Int,
+            artistId: String
+        ) {}
         override fun removeTrack(index: Int) {}
         override fun moveTrack(fromIndex: Int, toIndex: Int) {}
+        override fun addTracksToQueue(tracks: List<com.rld.justlisten.viewmodel.interfaces.Item>) {}
     }
 }

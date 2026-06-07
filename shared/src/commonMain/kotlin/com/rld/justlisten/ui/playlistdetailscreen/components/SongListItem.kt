@@ -8,14 +8,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import com.rld.justlisten.ui.theme.typography
 import androidx.compose.material3.Text
-import com.rld.justlisten.ui.components.SmartMarqueeText
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.fillMaxHeight
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,21 +58,94 @@ import org.jetbrains.compose.resources.painterResource
 import justlisten.shared.generated.resources.Res
 import justlisten.shared.generated.resources.ic_repost
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SongListItem(
-    playlistItem: PlaylistItem, onSongClicked: (String) -> Unit,
+    playlistItem: PlaylistItem,
+    onSongClicked: (String) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     onRepostPressed: (String, Boolean) -> Unit,
     playlist: String,
-    onArtistClicked: (String, String) -> Unit
+    onArtistClicked: (String, String) -> Unit,
+    isPlaying: Boolean = false,
+    canDelete: Boolean = false,
+    onDelete: () -> Unit = {}
 ) {
-    val musicPlayer = LocalMusicPlayer.current
-    val playbackState by musicPlayer.playbackState.collectAsState()
-    val isPlayingThisSong = playbackState.status == PlaybackStatus.PLAYING &&
-            playbackState.currentMedia?.id == playlistItem.id
+    if (canDelete) {
+        val dismissState = rememberSwipeToDismissBoxState(
+            confirmValueChange = { dismissValue ->
+                if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                    onDelete()
+                    true
+                } else {
+                    false
+                }
+            }
+        )
 
+        SwipeToDismissBox(
+            state = dismissState,
+            enableDismissFromStartToEnd = false,
+            enableDismissFromEndToStart = true,
+            backgroundContent = {
+                val color = when (dismissState.dismissDirection) {
+                    SwipeToDismissBoxValue.EndToStart -> Color(0xFFE91E63)
+                    else -> Color.Transparent
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color)
+                        .padding(horizontal = 20.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            },
+            content = {
+                SongListItemContent(
+                    playlistItem = playlistItem,
+                    onSongClicked = onSongClicked,
+                    onFavoritePressed = onFavoritePressed,
+                    onRepostPressed = onRepostPressed,
+                    playlist = playlist,
+                    onArtistClicked = onArtistClicked,
+                    isPlaying = isPlaying
+                )
+            }
+        )
+    } else {
+        SongListItemContent(
+            playlistItem = playlistItem,
+            onSongClicked = onSongClicked,
+            onFavoritePressed = onFavoritePressed,
+            onRepostPressed = onRepostPressed,
+            playlist = playlist,
+            onArtistClicked = onArtistClicked,
+            isPlaying = isPlaying
+        )
+    }
+}
+
+@Composable
+private fun SongListItemContent(
+    playlistItem: PlaylistItem,
+    onSongClicked: (String) -> Unit,
+    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
+    onRepostPressed: (String, Boolean) -> Unit,
+    playlist: String,
+    onArtistClicked: (String, String) -> Unit,
+    isPlaying: Boolean
+) {
     Row(
         modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
             .padding(8.dp)
             .clickable(
                 onClick = {
@@ -100,7 +180,7 @@ fun SongListItem(
             if (state is AsyncImagePainter.State.Loading) {
                 AnimatedShimmer(width = 55.dp, height = 55.dp)
             }
-            if (isPlayingThisSong) {
+            if (isPlaying) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -119,9 +199,11 @@ fun SongListItem(
                 .padding(horizontal = 4.dp)
                 .weight(1f)
         ) {
-            SmartMarqueeText(
+            Text(
                 text = playlistItem.title.ifBlank { playlistItem.playlistTitle },
-                style = typography.titleMedium.copy(fontSize = 16.sp)
+                style = typography.titleMedium.copy(fontSize = 16.sp),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val artistId = playlistItem._data.user.id
@@ -130,12 +212,21 @@ fun SongListItem(
                     { onArtistClicked(artistId, playlistItem.user) }
                 } else null
 
-                SmartMarqueeText(
+                Text(
                     text = "by ${playlistItem.user}",
                     style = typography.titleSmall,
                     color = artistColor,
-                    onClick = artistClickAction,
-                    modifier = Modifier.weight(1f, fill = false)
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .then(
+                            if (artistClickAction != null) {
+                                Modifier.clickable(onClick = artistClickAction)
+                            } else {
+                                Modifier
+                            }
+                        )
                 )
                 Text(
                     text = " • ${formatDuration(playlistItem.duration)}",
@@ -167,7 +258,7 @@ fun SongListItem(
                     .clickable {
                         onFavoritePressed(
                             playlistItem.id, playlistItem.title,
-                            UserModel(playlistItem.user), playlistItem.songIconList,
+                            playlistItem._data.user, playlistItem.songIconList,
                             !isFavorite
                         )
                     }

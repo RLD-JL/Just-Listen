@@ -5,6 +5,8 @@ import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.viewmodel.interfaces.Item
 import com.rld.justlisten.datalayer.repositories.LibraryRepository
 import com.rld.justlisten.datalayer.models.UserModel
+import com.rld.justlisten.viewmodel.screens.search.TrackItem
+import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 
 fun getColorPallet(pallet: String): ColorPallet {
     return when (pallet) {
@@ -31,9 +33,14 @@ fun playMusicFromId(
     // Save to recent tracking
     repository?.let { repo ->
         playlist.find { it.id == songId }?.let { song ->
+            val userModel = when (song) {
+                is TrackItem -> song._data.user
+                is PlaylistItem -> song._data.user
+                else -> UserModel(username = song.user, id = song.userId)
+            }
             repo.saveSongToRecent(
                 song.id, song.title,
-                UserModel(song.user),
+                userModel,
                 song.songIconList, song.playlistTitle
             )
         }
@@ -60,9 +67,14 @@ fun playMusic(
     // Save to recent tracking
     repository?.let { repo ->
         playlist.find { it.id == mediaId }?.let { song ->
+            val userModel = when (song) {
+                is TrackItem -> song._data.user
+                is PlaylistItem -> song._data.user
+                else -> UserModel(username = song.user, id = song.userId)
+            }
             repo.saveSongToRecent(
                 song.id, song.title,
-                UserModel(song.user),
+                userModel,
                 song.songIconList, song.playlistTitle
             )
         }

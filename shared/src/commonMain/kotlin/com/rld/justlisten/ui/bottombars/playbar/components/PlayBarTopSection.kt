@@ -15,9 +15,10 @@ import com.rld.justlisten.ui.utils.lerp
 
 @Composable
 fun PlayBarTopSection(
-    currentFraction: Float,
+    currentFractionProvider: () -> Float,
     onCollapsedClicked: () -> Unit,
 ) {
+    val currentFraction = currentFractionProvider()
     // Height grows from 0dp → 64dp as the player expands.
     // Critically: when collapsed this row has 0 height so it doesn't
     // push the image or steal touch events from the minibar.

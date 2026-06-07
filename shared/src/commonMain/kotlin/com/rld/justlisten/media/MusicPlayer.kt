@@ -51,7 +51,17 @@ interface MusicPlayer {
     fun playMedia(mediaId: String)
     fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>)
     fun refreshMetadata()
+    fun updateTrackMetadata(
+        songId: String,
+        repostCount: Int,
+        favoriteCount: Int,
+        commentCount: Int,
+        playCount: Int,
+        artistId: String
+    )
     fun removeTrack(index: Int)
     fun moveTrack(fromIndex: Int, toIndex: Int)
     var currentlyPlayingPlaylistId: String?
+    fun addTracksToQueue(tracks: List<com.rld.justlisten.viewmodel.interfaces.Item>)
+    fun release()
 }

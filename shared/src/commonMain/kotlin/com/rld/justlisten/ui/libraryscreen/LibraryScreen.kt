@@ -61,19 +61,8 @@ fun LibraryScreen(
             Header(text = "Last Played")
             RowListOfRecentActivity(
                 libraryState,
-                onPlaylistClicked = { id, songIcon, user, playlistTitle, isFavorite ->
-                    run {
-                        val playlistModel = PlayListModel(
-                            id,
-                            playlistTitle,
-                            playlistTitle,
-                            SongIconList(songIcon, songIcon, songIcon),
-                            UserModel(user),
-                            false
-                        )
-                        val item = TrackItem(playlistModel, isFavorite)
-                        playMusicFromId(musicPlayer, listOf(item), id)
-                    }
+                onSongClicked = { item ->
+                    playMusicFromId(musicPlayer, libraryState.recentSongsItems, item.id)
                 },
                 lasItemReached = { onAction(LibraryScreenAction.LastItemReached(it)) },
                 lastIndexReached = libraryState.lastIndexReached,

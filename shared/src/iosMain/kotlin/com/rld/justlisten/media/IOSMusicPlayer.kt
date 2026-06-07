@@ -46,6 +46,11 @@ class IOSMusicPlayer(
     
     private var lastLoadedArtworkUrl: String? = null
     private var lastLoadedArtwork: UIImage? = null
+    
+    private var interruptionObserver: Any? = null
+    private var routeChangeObserver: Any? = null
+    private var playToEndObserver: Any? = null
+    private val artworkCache = mutableMapOf<String, UIImage>()
 
 
     // Public property to allow volume fading from Sleep Timer
@@ -274,6 +279,32 @@ class IOSMusicPlayer(
         }
     }
 
+    override fun addTracksToQueue(tracks: List<Item>) {
+        val newMetadata = tracks.map {
+            MediaMetadata(
+                id = it.id,
+                title = it.title,
+                artist = it.user,
+                duration = 0L,
+                artworkUrl = it.songIconList.songImageURL480px,
+                lowResArtworkUrl = it.songIconList.songImageURL150px,
+                isFavorite = favoritesRepository.getFavoritePlaylistWithId(it.id) != null,
+                repostCount = it.repostCount,
+                favoriteCount = it.favoriteCount,
+                commentCount = it.commentCount,
+                playCount = it.playCount,
+                artistId = it.userId
+            )
+        }
+        playlistItems.addAll(newMetadata)
+        _currentPlaylist.value = playlistItems.toList()
+        
+        if (isShuffleEnabled) {
+            shuffledIndices = playlistItems.indices.shuffled()
+        }
+        preloadNextTrack()
+    }
+
     override fun setShuffleModeEnabled(enabled: Boolean) {
         isShuffleEnabled = enabled
         if (enabled) {
@@ -299,6 +330,46 @@ class IOSMusicPlayer(
                 )
             } else {
                 state
+            }
+        }
+    }
+
+    override fun updateTrackMetadata(
+        songId: String,
+        repostCount: Int,
+        favoriteCount: Int,
+        commentCount: Int,
+        playCount: Int,
+        artistId: String
+    ) {
+        val index = playlistItems.indexOfFirst { it.id == songId }
+        if (index != -1) {
+            val song = playlistItems[index]
+            val updated = song.copy(
+                repostCount = repostCount,
+                favoriteCount = favoriteCount,
+                commentCount = commentCount,
+                playCount = playCount,
+                artistId = artistId
+            )
+            playlistItems[index] = updated
+            _currentPlaylist.value = playlistItems.toList()
+            
+            // Also update currentMedia in playbackState if it matches
+            val currentMedia = _playbackState.value.currentMedia
+            if (currentMedia != null && currentMedia.id == songId) {
+                _playbackState.update { state ->
+                    state.copy(
+                        currentMedia = currentMedia.copy(
+                            repostCount = repostCount,
+                            favoriteCount = favoriteCount,
+                            commentCount = commentCount,
+                            playCount = playCount,
+                            artistId = artistId
+                        )
+                    )
+                }
+                updateNowPlayingInfo(_playbackState.value.currentMedia, _playbackState.value.currentPosition)
             }
         }
     }
@@ -368,9 +439,9 @@ class IOSMusicPlayer(
         }
 
         // Keep system now playing progress slider synchronized
-        if (currentStatus == PlaybackStatus.PLAYING) {
-            updateNowPlayingInfo(_playbackState.value.currentMedia, currentMs)
-        }
+        // if (currentStatus == PlaybackStatus.PLAYING) {
+        //     updateNowPlayingInfo(_playbackState.value.currentMedia, currentMs)
+        // }
     }
 
     // --- System Media Integration (Now Playing & Remote Commands) ---
@@ -437,7 +508,11 @@ class IOSMusicPlayer(
         val isPlaying = _playbackState.value.status == PlaybackStatus.PLAYING
         val rate = if (isPlaying) 1.0 else 0.0
 
-        if (!artworkUrl.isNullOrEmpty() && artworkUrl != lastLoadedArtworkUrl) {
+        val cachedImage = if (!artworkUrl.isNullOrEmpty()) artworkCache[artworkUrl] else null
+        if (cachedImage != null) {
+            lastLoadedArtworkUrl = artworkUrl
+            lastLoadedArtwork = cachedImage
+        } else if (!artworkUrl.isNullOrEmpty() && artworkUrl != lastLoadedArtworkUrl) {
             lastLoadedArtworkUrl = artworkUrl
             lastLoadedArtwork = null
             
@@ -451,6 +526,10 @@ class IOSMusicPlayer(
                             if (uiImage != null) {
                                 dispatch_async(dispatch_get_main_queue()) {
                                     if (lastLoadedArtworkUrl == artworkUrl) {
+                                        if (artworkCache.size >= 15) {
+                                            artworkCache.clear()
+                                        }
+                                        artworkCache[artworkUrl] = uiImage
                                         lastLoadedArtwork = uiImage
                                         updateNowPlayingInfo(metadata, positionMs)
                                     }
@@ -490,7 +569,7 @@ class IOSMusicPlayer(
         val notificationCenter = NSNotificationCenter.defaultCenter
         
         // 1. Listen to Audio Interruption Notifications (phone call, alarm)
-        notificationCenter.addObserverForName(
+        interruptionObserver = notificationCenter.addObserverForName(
             name = AVAudioSessionInterruptionNotification,
             `object` = null,
             queue = null
@@ -516,7 +595,7 @@ class IOSMusicPlayer(
         }
         
         // 2. Listen to Audio Route Change Notifications (headphones unplugged)
-        notificationCenter.addObserverForName(
+        routeChangeObserver = notificationCenter.addObserverForName(
             name = AVAudioSessionRouteChangeNotification,
             `object` = null,
             queue = null
@@ -534,19 +613,22 @@ class IOSMusicPlayer(
                 }
             }
         }
-
+ 
         // 3. Listen to Track Finished Notification
-        notificationCenter.addObserverForName(
+        playToEndObserver = notificationCenter.addObserverForName(
             name = AVPlayerItemDidPlayToEndTimeNotification,
             `object` = null,
             queue = null
-        ) { _ ->
+        ) { notification ->
             dispatch_async(dispatch_get_main_queue()) {
-                if (repeatMode == RepeatMode.ONE) {
-                    seekTo(0L)
-                    play()
-                } else {
-                    skipToNext()
+                val currentItem = avPlayer.currentItem
+                if (currentItem != null && notification?.`object` == currentItem) {
+                    if (repeatMode == RepeatMode.ONE) {
+                        seekTo(0L)
+                        play()
+                    } else {
+                        skipToNext()
+                    }
                 }
             }
         }
@@ -579,5 +661,40 @@ class IOSMusicPlayer(
             _isConnected.value = active
             _networkError.value = !active
         }
+        CFRelease(reachability)
+    }
+
+    override fun release() {
+        scope.cancel()
+        preloadJob?.cancel()
+        
+        val notificationCenter = NSNotificationCenter.defaultCenter
+        interruptionObserver?.let { notificationCenter.removeObserver(it) }
+        routeChangeObserver?.let { notificationCenter.removeObserver(it) }
+        playToEndObserver?.let { notificationCenter.removeObserver(it) }
+        
+        interruptionObserver = null
+        routeChangeObserver = null
+        playToEndObserver = null
+        
+        val commandCenter = MPRemoteCommandCenter.sharedCommandCenter()
+        commandCenter.playCommand.enabled = false
+        commandCenter.playCommand.removeTarget(null)
+        commandCenter.pauseCommand.enabled = false
+        commandCenter.pauseCommand.removeTarget(null)
+        commandCenter.togglePlayPauseCommand.enabled = false
+        commandCenter.togglePlayPauseCommand.removeTarget(null)
+        commandCenter.nextTrackCommand.enabled = false
+        commandCenter.nextTrackCommand.removeTarget(null)
+        commandCenter.previousTrackCommand.enabled = false
+        commandCenter.previousTrackCommand.removeTarget(null)
+        commandCenter.changePlaybackPositionCommand.enabled = false
+        commandCenter.changePlaybackPositionCommand.removeTarget(null)
+
+        avPlayer.pause()
+        avPlayer.replaceCurrentItemWithPlayerItem(null)
+        
+        artworkCache.clear()
+        lastLoadedArtwork = null
     }
 }

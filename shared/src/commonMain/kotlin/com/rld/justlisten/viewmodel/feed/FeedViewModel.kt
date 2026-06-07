@@ -50,10 +50,24 @@ class FeedViewModel(
                 val favoriteIds = favoriteList.map { it.id }.toSet()
                 _feedState.update { state ->
                     val updatedRaw = state.rawItems.map { item ->
-                        item.copy(isFavorite = favoriteIds.contains(item.id))
+                        val isFav = favoriteIds.contains(item.id)
+                        val favDiff = if (isFav != item.isFavorite) {
+                            if (isFav) 1 else -1
+                        } else 0
+                        item.copy(
+                            isFavorite = isFav,
+                            favoriteCount = (item.favoriteCount + favDiff).coerceAtLeast(0)
+                        )
                     }
                     val updatedItems = state.items.map { item ->
-                        item.copy(isFavorite = favoriteIds.contains(item.id))
+                        val isFav = favoriteIds.contains(item.id)
+                        val favDiff = if (isFav != item.isFavorite) {
+                            if (isFav) 1 else -1
+                        } else 0
+                        item.copy(
+                            isFavorite = isFav,
+                            favoriteCount = (item.favoriteCount + favDiff).coerceAtLeast(0)
+                        )
                     }
                     state.copy(rawItems = updatedRaw, items = updatedItems)
                 }
@@ -65,10 +79,24 @@ class FeedViewModel(
             playlistRepository.repostedTrackIdsFlow.collect { repostedIds ->
                 _feedState.update { state ->
                     val updatedRaw = state.rawItems.map { item ->
-                        item.copy(isReposted = repostedIds.contains(item.id))
+                        val isRep = repostedIds.contains(item.id)
+                        val repDiff = if (isRep != item.isReposted) {
+                            if (isRep) 1 else -1
+                        } else 0
+                        item.copy(
+                            isReposted = isRep,
+                            repostCount = (item.repostCount + repDiff).coerceAtLeast(0)
+                        )
                     }
                     val updatedItems = state.items.map { item ->
-                        item.copy(isReposted = repostedIds.contains(item.id))
+                        val isRep = repostedIds.contains(item.id)
+                        val repDiff = if (isRep != item.isReposted) {
+                            if (isRep) 1 else -1
+                        } else 0
+                        item.copy(
+                            isReposted = isRep,
+                            repostCount = (item.repostCount + repDiff).coerceAtLeast(0)
+                        )
                     }
                     state.copy(rawItems = updatedRaw, items = updatedItems)
                 }
@@ -104,11 +132,12 @@ class FeedViewModel(
                         rawItems = feedItems,
                         items = filteredItems,
                         isLoading = false,
+                        isRefreshing = false,
                         lastItemReached = feedItems.size < 20
                     ) 
                 }
             } catch (e: Exception) {
-                _feedState.update { it.copy(isLoading = false) }
+                _feedState.update { it.copy(isLoading = false, isRefreshing = false) }
             }
         }
     }
@@ -132,11 +161,12 @@ class FeedViewModel(
                         rawItems = playlistItems,
                         items = playlistItems,
                         isLoading = false,
+                        isRefreshing = false,
                         lastItemReached = true
                     ) 
                 }
             } catch (e: Exception) {
-                _feedState.update { it.copy(isLoading = false) }
+                _feedState.update { it.copy(isLoading = false, isRefreshing = false) }
             }
         }
     }
@@ -170,6 +200,20 @@ class FeedViewModel(
     fun setTrendingTimeRange(timeRange: TimeRange) {
         _feedState.update { it.copy(trendingTimeRange = timeRange) }
         fetchTrending(_feedState.value.trendingCategory, timeRange)
+    }
+
+    fun loadTrendingWithFilters(categoryName: String?, timeRangeName: String?) {
+        val category = com.rld.justlisten.viewmodel.screens.playlist.getTrackCategory().firstOrNull { it.value == categoryName || it.name == categoryName } ?: TracksCategory.ALL
+        val timeRange = com.rld.justlisten.viewmodel.screens.playlist.getTimeRange().firstOrNull { it.value == timeRangeName || it.name == timeRangeName } ?: TimeRange.WEEK
+        
+        _feedState.update {
+            it.copy(
+                selectedTab = FeedTab.TRENDING,
+                trendingCategory = category,
+                trendingTimeRange = timeRange
+            )
+        }
+        fetchTrending(category, timeRange)
     }
 
     fun refreshActiveTab() {
@@ -235,6 +279,23 @@ class FeedViewModel(
         songIcon: com.rld.justlisten.datalayer.models.SongIconList,
         isFavorite: Boolean
     ) {
+        // Optimistically update counts and states instantly
+        _feedState.update { state ->
+            val updateItem = { item: PlaylistItem ->
+                if (item.id == songId) {
+                    val currentFavorite = item.isFavorite
+                    if (currentFavorite != isFavorite) {
+                        val diff = if (isFavorite) 1 else -1
+                        val newCount = (item.favoriteCount + diff).coerceAtLeast(0)
+                        item.copy(isFavorite = isFavorite, favoriteCount = newCount)
+                    } else item
+                } else item
+            }
+            val updatedRaw = state.rawItems.map(updateItem)
+            val updatedItems = state.items.map(updateItem)
+            state.copy(rawItems = updatedRaw, items = updatedItems)
+        }
+
         viewModelScope.launch {
             favoritesRepository.saveSongToFavorites(songId, title, user, songIcon, "Favorite", isFavorite)
         }
@@ -244,6 +305,23 @@ class FeedViewModel(
         if (authRepository.sessionState.value is SessionState.Guest) {
             _feedState.update { it.copy(showConnectPrompt = true) }
             return
+        }
+
+        // Optimistically update counts and states instantly
+        _feedState.update { state ->
+            val updateItem = { item: PlaylistItem ->
+                if (item.id == itemId) {
+                    val currentRepost = item.isReposted
+                    if (currentRepost != isRepost) {
+                        val diff = if (isRepost) 1 else -1
+                        val newCount = (item.repostCount + diff).coerceAtLeast(0)
+                        item.copy(isReposted = isRepost, repostCount = newCount)
+                    } else item
+                } else item
+            }
+            val updatedRaw = state.rawItems.map(updateItem)
+            val updatedItems = state.items.map(updateItem)
+            state.copy(rawItems = updatedRaw, items = updatedItems)
         }
 
         viewModelScope.launch {
@@ -261,14 +339,14 @@ class FeedViewModel(
                 }
             }
 
-            if (success) {
-                // Instantly update local UI counts
+            if (!success) {
+                // Revert optimistic update on failure
                 _feedState.update { state ->
                     val updateItem = { item: PlaylistItem ->
                         if (item.id == itemId) {
-                            val newCount = if (isRepost) item.repostCount + 1 else (item.repostCount - 1).coerceAtLeast(0)
-                            val updatedData = item._data.copy(repostCount = newCount)
-                            item.copy(_data = updatedData, isReposted = isRepost)
+                            val diff = if (isRepost) -1 else 1
+                            val newCount = (item.repostCount + diff).coerceAtLeast(0)
+                            item.copy(isReposted = !isRepost, repostCount = newCount)
                         } else item
                     }
                     val updatedRaw = state.rawItems.map(updateItem)
@@ -284,6 +362,7 @@ class FeedViewModel(
     }
 
     fun refreshFeed() {
+        _feedState.update { it.copy(isRefreshing = true) }
         refreshActiveTab()
     }
 

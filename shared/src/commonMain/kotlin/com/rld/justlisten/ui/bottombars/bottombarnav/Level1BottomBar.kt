@@ -54,7 +54,7 @@ fun Level1BottomBar(
         mutableMapOf<String, Route>(
             "Playlist" to Route.Playlist,
             "Library" to Route.Library,
-            "Feed" to Route.Feed,
+            "Feed" to Route.Feed(),
             "Search" to Route.Search,
             "Settings" to Route.Settings,
             "Donation" to Route.Donation
@@ -83,7 +83,13 @@ fun Level1BottomBar(
             }
             routeStr.contains("Playlist") -> Route.Playlist
             routeStr.contains("Library") -> Route.Library
-            routeStr.contains("Feed") -> Route.Feed
+            routeStr.contains("Feed") -> {
+                try {
+                    entry.toRoute<Route.Feed>()
+                } catch (e: Exception) {
+                    Route.Feed()
+                }
+            }
             routeStr.contains("Search") -> Route.Search
             routeStr.contains("Settings") -> Route.Settings
             routeStr.contains("Donation") -> Route.Donation
@@ -105,7 +111,7 @@ fun Level1BottomBar(
                 }
                 is Route.Feed -> {
                     currentTab = "Feed"
-                    lastActiveRoutes["Feed"] = Route.Feed
+                    lastActiveRoutes["Feed"] = currentRoute
                 }
                 is Route.Search -> {
                     currentTab = "Search"
@@ -170,10 +176,10 @@ fun Level1BottomBar(
             selected = currentTab == "Playlist",
             onClick = {
                 if (currentTab == "Playlist") {
-                    val isAtRoot = currentDestination?.route?.split('/')?.firstOrNull() == Route.Playlist::class.qualifiedName
+                    val isAtRoot = currentDestination?.route?.substringBefore('?') ?.substringBefore('/') == Route.Playlist::class.qualifiedName
                     if (!isAtRoot) {
                         navController.navigate(Route.Playlist) {
-                            popUpTo(Route.Playlist) { inclusive = true }
+                            popUpTo(Route.Playlist) { inclusive = false }
                         }
                     }
                 } else {
@@ -199,10 +205,10 @@ fun Level1BottomBar(
             selected = currentTab == "Library",
             onClick = {
                 if (currentTab == "Library") {
-                    val isAtRoot = currentDestination?.route?.split('/')?.firstOrNull() == Route.Library::class.qualifiedName
+                    val isAtRoot = currentDestination?.route?.substringBefore('?') ?.substringBefore('/') == Route.Library::class.qualifiedName
                     if (!isAtRoot) {
                         navController.navigate(Route.Library) {
-                            popUpTo(Route.Library) { inclusive = true }
+                            popUpTo(Route.Library) { inclusive = false }
                         }
                     }
                 } else {
@@ -229,14 +235,14 @@ fun Level1BottomBar(
             selected = currentTab == "Feed",
             onClick = {
                 if (currentTab == "Feed") {
-                    val isAtRoot = currentDestination?.route?.split('/')?.firstOrNull() == Route.Feed::class.qualifiedName
+                    val isAtRoot = currentDestination?.route?.substringBefore('?') ?.substringBefore('/') == Route.Feed::class.qualifiedName
                     if (!isAtRoot) {
-                        navController.navigate(Route.Feed) {
-                            popUpTo(Route.Feed) { inclusive = true }
+                        navController.navigate(Route.Feed()) {
+                            popUpTo(Route.Feed::class) { inclusive = false }
                         }
                     }
                 } else {
-                    navigateTo("Feed", Route.Feed)
+                    navigateTo("Feed", Route.Feed())
                 }
             },
             colors = NavigationBarItemDefaults.colors(
@@ -259,10 +265,10 @@ fun Level1BottomBar(
                 selected = currentTab == "Donation",
                 onClick = {
                     if (currentTab == "Donation") {
-                        val isAtRoot = currentDestination?.route?.split('/')?.firstOrNull() == Route.Donation::class.qualifiedName
+                        val isAtRoot = currentDestination?.route?.substringBefore('?') ?.substringBefore('/') == Route.Donation::class.qualifiedName
                         if (!isAtRoot) {
                             navController.navigate(Route.Donation) {
-                                popUpTo(Route.Donation) { inclusive = true }
+                                popUpTo(Route.Donation) { inclusive = false }
                             }
                         }
                     } else {
@@ -289,10 +295,10 @@ fun Level1BottomBar(
             selected = currentTab == "Settings",
             onClick = {
                 if (currentTab == "Settings") {
-                    val isAtRoot = currentDestination?.route?.split('/')?.firstOrNull() == Route.Settings::class.qualifiedName
+                    val isAtRoot = currentDestination?.route?.substringBefore('?') ?.substringBefore('/') == Route.Settings::class.qualifiedName
                     if (!isAtRoot) {
                         navController.navigate(Route.Settings) {
-                            popUpTo(Route.Settings) { inclusive = true }
+                            popUpTo(Route.Settings) { inclusive = false }
                         }
                     }
                 } else {

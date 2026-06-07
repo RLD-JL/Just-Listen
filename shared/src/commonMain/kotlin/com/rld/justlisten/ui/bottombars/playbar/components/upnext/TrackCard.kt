@@ -5,7 +5,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,6 +13,10 @@ import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,9 +29,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import coil3.compose.LocalPlatformContext
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.CachePolicy
@@ -37,6 +40,7 @@ import com.rld.justlisten.media.MediaMetadata
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.ui.components.MusicLoadingSpinner
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrackCard(
     song: MediaMetadata,
@@ -52,9 +56,8 @@ fun TrackCard(
     val currentPlaylistSize by rememberUpdatedState(dragState.playlistSize)
 
     val musicPlayer = LocalMusicPlayer.current
-    var swipeOffset by remember { mutableStateOf(0f) }
-    val swipeOffsetAnim by animateFloatAsState(targetValue = swipeOffset)
     val density = LocalDensity.current
+    val coroutineScope = rememberCoroutineScope()
 
     val isBeingDragged = dragState.draggingId == song.id
     var draggingOffset by remember { mutableStateOf(0f) }
@@ -94,7 +97,231 @@ fun TrackCard(
         animatedOffset
     }
 
-    Box(
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { dismissValue ->
+            if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                musicPlayer.removeTrack(actualIndex)
+                true
+            } else {
+                false
+            }
+        }
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false,
+        enableDismissFromEndToStart = true,
+        backgroundContent = {
+            val color = when (dismissState.dismissDirection) {
+                SwipeToDismissBoxValue.EndToStart -> Color(0xFFE91E63)
+                else -> Color.Transparent
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color)
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete track",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        },
+        content = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        if (actualIndex == currentIndex) Color(0xFF2C2C2C) else Color(0xFF1E1E1E)
+                    )
+                    .clickable {
+                        if (actualIndex != currentIndex) {
+                            musicPlayer.playMedia(song.id)
+                        }
+                    }
+                    .padding(horizontal = 12.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Drag Handle on the left
+                    if (canDrag) {
+                        Icon(
+                            imageVector = Icons.Default.DragHandle,
+                            contentDescription = "Drag to reorder",
+                            tint = Color.White.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .size(28.dp)
+                                .pointerInput(song.id) {
+                                    var localStartIdx = -1
+                                    var localCurrentDragIdx = -1
+                                    detectDragGestures(
+                                        onDragStart = {
+                                            coroutineScope.launch {
+                                                dismissState.snapTo(SwipeToDismissBoxValue.Settled)
+                                            }
+                                            draggingOffset = 0f
+                                            localStartIdx = currentActualIndex
+                                            localCurrentDragIdx = localStartIdx
+                                            dragState.startDrag(song.id, localStartIdx)
+                                        },
+                                        onDrag = { change, dragAmount ->
+                                            change.consume()
+                                            if (localStartIdx == -1) return@detectDragGestures
+
+                                            draggingOffset += dragAmount.y
+                                            
+                                            val itemHeightPx = 72.dp.toPx() + 8.dp.toPx()
+                                            val slots = if (draggingOffset > 0) {
+                                                ((draggingOffset + itemHeightPx / 2) / itemHeightPx).toInt()
+                                            } else {
+                                                ((draggingOffset - itemHeightPx / 2) / itemHeightPx).toInt()
+                                            }
+                                            
+                                            val cIndex = currentCurrentIndex
+                                            val pSize = currentPlaylistSize
+
+                                            var newDragIndex = localStartIdx + slots
+                                            if (localStartIdx > cIndex) {
+                                                val minIdx = if (cIndex >= 0) cIndex + 1 else 0
+                                                val maxIdx = maxOf(minIdx, pSize - 1)
+                                                newDragIndex = newDragIndex.coerceIn(minIdx, maxIdx)
+                                            } else if (localStartIdx < cIndex) {
+                                                val maxIdx = maxOf(0, cIndex - 1)
+                                                newDragIndex = newDragIndex.coerceIn(0, maxIdx)
+                                            } else {
+                                                newDragIndex = localStartIdx
+                                            }
+                                            
+                                            if (newDragIndex != localCurrentDragIdx) {
+                                                localCurrentDragIdx = newDragIndex
+                                                dragState.updateDragIndex(newDragIndex)
+                                            }
+                                        },
+                                        onDragEnd = {
+                                            draggingOffset = 0f
+                                            dragState.endDrag(localStartIdx, localCurrentDragIdx)
+                                            localStartIdx = -1
+                                            localCurrentDragIdx = -1
+                                        },
+                                        onDragCancel = {
+                                            draggingOffset = 0f
+                                            dragState.cancelDrag()
+                                            localStartIdx = -1
+                                            localCurrentDragIdx = -1
+                                        }
+                                    )
+                                }
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .padding(4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MusicNote,
+                                contentDescription = "Current song",
+                                tint = Color(0xFFE91E63),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Song Cover Art Image using Coil
+                    val context = LocalPlatformContext.current
+                    val painter = rememberAsyncImagePainter(
+                        model = remember(song.artworkUrl, song.lowResArtworkUrl, context) {
+                            ImageRequest.Builder(context)
+                                .data(song.artworkUrl ?: song.lowResArtworkUrl ?: "")
+                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .build()
+                        }
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White.copy(alpha = 0.1f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (!song.artworkUrl.isNullOrEmpty() || !song.lowResArtworkUrl.isNullOrEmpty()) {
+                            Image(
+                                painter = painter,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            // Premium default placeholder
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        brush = Brush.linearGradient(
+                                            colors = listOf(Color(0xFF9C27B0), Color(0xFF00BCD4))
+                                        )
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.MusicNote,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                        // Loading overlay for current track
+                        if (actualIndex == currentIndex && isPlaying) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.6f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                MusicLoadingSpinner(color = Color(0xFFE91E63), size = 20.dp)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    // Title & Artist Column
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = song.title,
+                            color = if (actualIndex == currentIndex) Color(0xFFE91E63) else Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = song.artist,
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontSize = 12.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+        },
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
@@ -104,233 +331,5 @@ fun TrackCard(
             }
             .clip(RoundedCornerShape(12.dp))
             .height(72.dp)
-    ) {
-        // Background: Red Swipe-to-Delete Action Panel
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .align(Alignment.CenterEnd)
-                .width(80.dp)
-                .background(Color(0xFFE91E63))
-                .clickable {
-                    swipeOffset = 0f
-                    musicPlayer.removeTrack(actualIndex)
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "Delete track",
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-
-        // Foreground: The actual track card content
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .offset { IntOffset(swipeOffsetAnim.toInt(), 0) }
-                .background(
-                    if (actualIndex == currentIndex) Color(0xFF2C2C2C) else Color(0xFF1E1E1E)
-                )
-                .clickable {
-                    if (actualIndex != currentIndex) {
-                        musicPlayer.playMedia(song.id)
-                    }
-                }
-                .pointerInput(Unit) {
-                    detectHorizontalDragGestures(
-                        onDragEnd = {
-                            val threshold = with(density) { -40.dp.toPx() }
-                            swipeOffset =
-                                if (swipeOffset < threshold) with(density) { -80.dp.toPx() } else 0f
-                        },
-                        onDragCancel = {
-                            swipeOffset = 0f
-                        },
-                        onHorizontalDrag = { change, dragAmount ->
-                            change.consume()
-                            val newOffset = swipeOffset + dragAmount
-                            val limit = with(density) { -80.dp.toPx() }
-                            swipeOffset = newOffset.coerceIn(limit, 0f)
-                        }
-                    )
-                }
-                .padding(horizontal = 12.dp),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Drag Handle on the left
-                if (canDrag) {
-                    Icon(
-                        imageVector = Icons.Default.DragHandle,
-                        contentDescription = "Drag to reorder",
-                        tint = Color.White.copy(alpha = 0.5f),
-                        modifier = Modifier
-                            .size(28.dp)
-                            .pointerInput(song.id) {
-                                var localStartIdx = -1
-                                var localCurrentDragIdx = -1
-                                detectDragGestures(
-                                    onDragStart = {
-                                        swipeOffset = 0f
-                                        draggingOffset = 0f
-                                        localStartIdx = currentActualIndex
-                                        localCurrentDragIdx = localStartIdx
-                                        dragState.startDrag(song.id, localStartIdx)
-                                    },
-                                    onDrag = { change, dragAmount ->
-                                        change.consume()
-                                        if (localStartIdx == -1) return@detectDragGestures
-
-                                        draggingOffset += dragAmount.y
-                                        
-                                        val itemHeightPx = 72.dp.toPx() + 8.dp.toPx()
-                                        val slots = if (draggingOffset > 0) {
-                                            ((draggingOffset + itemHeightPx / 2) / itemHeightPx).toInt()
-                                        } else {
-                                            ((draggingOffset - itemHeightPx / 2) / itemHeightPx).toInt()
-                                        }
-                                        
-                                        val cIndex = currentCurrentIndex
-                                        val pSize = currentPlaylistSize
-
-                                        var newDragIndex = localStartIdx + slots
-                                        if (localStartIdx > cIndex) {
-                                            val minIdx = if (cIndex >= 0) cIndex + 1 else 0
-                                            val maxIdx = maxOf(minIdx, pSize - 1)
-                                            newDragIndex = newDragIndex.coerceIn(minIdx, maxIdx)
-                                        } else if (localStartIdx < cIndex) {
-                                            val maxIdx = maxOf(0, cIndex - 1)
-                                            newDragIndex = newDragIndex.coerceIn(0, maxIdx)
-                                        } else {
-                                            newDragIndex = localStartIdx
-                                        }
-                                        
-                                        if (newDragIndex != localCurrentDragIdx) {
-                                            localCurrentDragIdx = newDragIndex
-                                            dragState.updateDragIndex(newDragIndex)
-                                        }
-                                    },
-                                    onDragEnd = {
-                                        draggingOffset = 0f
-                                        dragState.endDrag(localStartIdx, localCurrentDragIdx)
-                                        localStartIdx = -1
-                                        localCurrentDragIdx = -1
-                                    },
-                                    onDragCancel = {
-                                        draggingOffset = 0f
-                                        dragState.cancelDrag()
-                                        localStartIdx = -1
-                                        localCurrentDragIdx = -1
-                                    }
-                                )
-                            }
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .padding(4.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MusicNote,
-                            contentDescription = "Current song",
-                            tint = Color(0xFFE91E63),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // Song Cover Art Image using Coil
-                val context = LocalPlatformContext.current
-                val painter = rememberAsyncImagePainter(
-                    model = remember(song.artworkUrl, song.lowResArtworkUrl, context) {
-                        ImageRequest.Builder(context)
-                            .data(song.artworkUrl ?: song.lowResArtworkUrl ?: "")
-                            .memoryCachePolicy(CachePolicy.ENABLED)
-                            .diskCachePolicy(CachePolicy.ENABLED)
-                            .build()
-                    }
-                )
-
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.White.copy(alpha = 0.1f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (!song.artworkUrl.isNullOrEmpty() || !song.lowResArtworkUrl.isNullOrEmpty()) {
-                        Image(
-                            painter = painter,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        // Premium default placeholder
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    brush = Brush.linearGradient(
-                                        colors = listOf(Color(0xFF9C27B0), Color(0xFF00BCD4))
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.MusicNote,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-
-                    // Loading overlay for current track
-                    if (actualIndex == currentIndex && isPlaying) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.Black.copy(alpha = 0.6f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            MusicLoadingSpinner(color = Color(0xFFE91E63), size = 20.dp)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                // Title & Artist Column
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = song.title,
-                        color = if (actualIndex == currentIndex) Color(0xFFE91E63) else Color.White,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = song.artist,
-                        color = Color.White.copy(alpha = 0.6f),
-                        fontSize = 12.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-        }
-    }
+    )
 }

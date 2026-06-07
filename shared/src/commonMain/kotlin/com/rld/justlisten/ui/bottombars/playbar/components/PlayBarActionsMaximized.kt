@@ -76,10 +76,14 @@ fun PlayBarActionsMaximized(
         dragPosition = null
     }
 
-    val currentFraction = layoutInfo.currentFraction
     val bottomPadding = layoutInfo.bottomPadding
+    val isVisible by remember(layoutInfo) {
+        derivedStateOf {
+            layoutInfo.currentFractionProvider() > 0.5f
+        }
+    }
 
-    if (currentFraction > 0.5f) {
+    if (isVisible) {
         val sliderPosition = if (playbackState.currentMedia?.duration ?: 0L > 0) {
             playbackState.currentPosition.toFloat() / playbackState.currentMedia!!.duration.toFloat()
         } else 0f
@@ -96,7 +100,8 @@ fun PlayBarActionsMaximized(
             Modifier
                 .fillMaxWidth()
                 .graphicsLayer {
-                    alpha = ((currentFraction - 0.5f) * 2f).coerceIn(0f, 1f)
+                    val fraction = layoutInfo.currentFractionProvider()
+                    alpha = ((fraction - 0.5f) * 2f).coerceIn(0f, 1f)
                 }
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 16.dp),
@@ -147,13 +152,13 @@ fun PlayBarActionsMaximized(
                     ) {
                         playbackState.currentMedia?.let {
                             onAction(
-                                PlayerAction.ToggleFavorite(
-                                    songId = it.id,
-                                    title = it.title,
-                                    user = UserModel(it.artist),
-                                    songIcon = SongIconList(it.artworkUrl ?: "", it.artworkUrl ?: "", it.artworkUrl ?: ""),
-                                    isFavorite = !it.isFavorite
-                                )
+                                 PlayerAction.ToggleFavorite(
+                                     songId = it.id,
+                                     title = it.title,
+                                     user = UserModel(username = it.artist, id = it.artistId),
+                                     songIcon = SongIconList(it.artworkUrl ?: "", it.artworkUrl ?: "", it.artworkUrl ?: ""),
+                                     isFavorite = !it.isFavorite
+                                 )
                             )
                         }
                     }

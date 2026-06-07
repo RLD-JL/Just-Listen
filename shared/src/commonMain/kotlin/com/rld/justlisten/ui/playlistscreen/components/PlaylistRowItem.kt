@@ -38,12 +38,10 @@ import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 fun PlaylistRowItem(
     playlistItem: PlaylistItem,
     onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
-    onArtistClicked: ((String, String) -> Unit)? = null
+    onArtistClicked: ((String, String) -> Unit)? = null,
+    isPlaying: Boolean = false
 ) {
-    val musicPlayer = LocalMusicPlayer.current
-    val playbackState by musicPlayer.playbackState.collectAsState()
-    val isPlayingThisPlaylist = playbackState.status == PlaybackStatus.PLAYING &&
-            (musicPlayer.currentlyPlayingPlaylistId == playlistItem.id || playbackState.currentMedia?.id == playlistItem.id)
+
 
     Column(
         modifier = Modifier
@@ -85,7 +83,7 @@ fun PlaylistRowItem(
                 AnimatedShimmer(180.dp, 160.dp)
             }
             
-            if (isPlayingThisPlaylist) {
+            if (isPlaying) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)

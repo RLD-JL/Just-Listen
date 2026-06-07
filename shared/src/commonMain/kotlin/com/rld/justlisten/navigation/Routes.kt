@@ -19,7 +19,10 @@ sealed class Route {
     data object Playlist : Route()
 
     @Serializable
-    data object Feed : Route()
+    data class Feed(
+        val category: String? = null,
+        val timeRange: String? = null
+    ) : Route()
     
     @Serializable
     data class PlaylistDetail(
@@ -80,7 +83,7 @@ val Route.navigationLevel: NavigationLevel
     get() = when (this) {
         Route.Library,
         Route.Playlist,
-        Route.Feed,
+        is Route.Feed,
         Route.Search,
         Route.Settings,
         Route.Donation -> NavigationLevel.LEVEL_1
@@ -100,7 +103,7 @@ val Route.navigationLevel: NavigationLevel
 val BOTTOM_BAR_ROUTES = listOf(
     Route.Library,
     Route.Playlist,
-    Route.Feed,
+    Route.Feed(),
     Route.Settings,
     Route.Donation,
 )
@@ -111,7 +114,7 @@ val BOTTOM_BAR_ROUTES = listOf(
 fun Route.getBottomBarLabel(): String = when (this) {
     Route.Library -> "Library"
     Route.Playlist -> "Playlists"
-    Route.Feed -> "Feed"
+    is Route.Feed -> "Feed"
     Route.Settings -> "Settings"
     Route.Donation -> "Donate"
     else -> ""
@@ -123,7 +126,7 @@ fun Route.getBottomBarLabel(): String = when (this) {
 fun Route.getBottomBarIcon(): String = when (this) {
     Route.Library -> "library"
     Route.Playlist -> "playlist"
-    Route.Feed -> "feed"
+    is Route.Feed -> "feed"
     Route.Settings -> "settings"
     Route.Donation -> "favorite"
     else -> ""

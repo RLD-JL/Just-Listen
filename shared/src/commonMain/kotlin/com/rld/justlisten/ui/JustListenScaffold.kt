@@ -120,7 +120,7 @@ fun JustListenScaffold(
             )
         }
 
-        val currentFraction by remember {
+        val currentFractionState = remember(endAnchor) {
             derivedStateOf {
                 val fullRange = endAnchor - startAnchor
                 val currentOffset = anchoredDraggableState.offset
@@ -132,14 +132,10 @@ fun JustListenScaffold(
         val themeBg = MaterialTheme.colorScheme.background
         val isDarkTheme = (themeBg.red * 0.299f + themeBg.green * 0.587f + themeBg.blue * 0.114f) < 0.5f
 
-        val statusBarColor = androidx.compose.ui.graphics.lerp(themeBg, Color.Black, currentFraction)
-        val navigationBarColor = androidx.compose.ui.graphics.lerp(themeBg, Color.Black, currentFraction)
-        val darkIcons = if (currentFraction > 0.5f) false else !isDarkTheme
-
-        SetSystemBarsColor(
-            statusBarColor = statusBarColor,
-            navigationBarColor = navigationBarColor,
-            darkIcons = darkIcons
+        SystemBarsColorController(
+            currentFractionProvider = { currentFractionState.value },
+            themeBg = themeBg,
+            isDarkTheme = isDarkTheme
         )
 
         Box(modifier = Modifier.fillMaxSize()) {
@@ -193,13 +189,13 @@ fun JustListenScaffold(
                             )
                         )
                 ) {
-                    PlayerBarSheetContent(
+                    PlayerSheetWrapper(
                         uiState = uiState,
-                        layoutInfo = PlayerLayoutInfo(
-                            bottomPadding = (if (showBottomBar) bottomNavHeight else 0.dp) + bottomSafeArea,
-                            currentFraction = currentFraction,
-                            isExtended = anchoredDraggableState.currentValue == PlayBarState.EXPANDED
-                        ),
+                        anchoredDraggableState = anchoredDraggableState,
+                        showBottomBar = showBottomBar,
+                        bottomNavHeight = bottomNavHeight,
+                        bottomSafeArea = bottomSafeArea,
+                        currentFractionProvider = { currentFractionState.value },
                         onAction = { action ->
                             if (action is PlayerAction.ConnectAudiusPressed) {
                                 viewModel.onAction(PlayerAction.DismissConnectPrompt)
@@ -243,8 +239,9 @@ fun JustListenScaffold(
                         .align(Alignment.BottomCenter)
                         .offset {
                             // Slide the nav bar down out of frame as the player fully expands
-                            val progress = if (currentFraction > 0.8f)
-                                (currentFraction - 0.8f) / 0.2f
+                            val fraction = currentFractionState.value
+                            val progress = if (fraction > 0.8f)
+                                (fraction - 0.8f) / 0.2f
                             else 0f
                             IntOffset(
                                 x = 0,
@@ -260,4 +257,51 @@ fun JustListenScaffold(
             }
         }
     }
+}
+
+@Composable
+private fun SystemBarsColorController(
+    currentFractionProvider: () -> Float,
+    themeBg: Color,
+    isDarkTheme: Boolean
+) {
+    val currentFraction = currentFractionProvider()
+    val statusBarColor = androidx.compose.ui.graphics.lerp(themeBg, Color.Black, currentFraction)
+    val navigationBarColor = androidx.compose.ui.graphics.lerp(themeBg, Color.Black, currentFraction)
+    val darkIcons = if (currentFraction > 0.5f) false else !isDarkTheme
+
+    SetSystemBarsColor(
+        statusBarColor = statusBarColor,
+        navigationBarColor = navigationBarColor,
+        darkIcons = darkIcons
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun PlayerSheetWrapper(
+    uiState: com.rld.justlisten.viewmodel.player.PlayerUiState,
+    anchoredDraggableState: AnchoredDraggableState<PlayBarState>,
+    showBottomBar: Boolean,
+    bottomNavHeight: androidx.compose.ui.unit.Dp,
+    bottomSafeArea: androidx.compose.ui.unit.Dp,
+    currentFractionProvider: () -> Float,
+    onAction: (PlayerAction) -> Unit,
+    onUiEvent: (PlayerUiEvent) -> Unit
+) {
+    val isExtended = anchoredDraggableState.currentValue == PlayBarState.EXPANDED
+    val layoutInfo = remember(showBottomBar, bottomNavHeight, bottomSafeArea, isExtended) {
+        PlayerLayoutInfo(
+            bottomPadding = (if (showBottomBar) bottomNavHeight else 0.dp) + bottomSafeArea,
+            currentFractionProvider = currentFractionProvider,
+            isExtended = isExtended
+        )
+    }
+
+    PlayerBarSheetContent(
+        uiState = uiState,
+        layoutInfo = layoutInfo,
+        onAction = onAction,
+        onUiEvent = onUiEvent
+    )
 }

@@ -17,8 +17,10 @@ fun BottomScrollableContent(
     onShuffleClicked: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     onRepostPressed: (String, Boolean) -> Unit,
+    onDeleteSong: (String) -> Unit,
     painter: AsyncImagePainter,
-    onArtistClicked: (String, String) -> Unit
+    onArtistClicked: (String, String) -> Unit,
+    currentPlayingSongId: String? = null
 ) {
     SongListScrollingSection(
         painter = painter,
@@ -29,6 +31,8 @@ fun BottomScrollableContent(
         onShuffleClicked = onShuffleClicked,
         onFavoritePressed = onFavoritePressed,
         onRepostPressed = onRepostPressed,
-        onArtistClicked = onArtistClicked
+        onArtistClicked = onArtistClicked,
+        onDeleteSong = onDeleteSong,
+        currentPlayingSongId = currentPlayingSongId
     )
 }

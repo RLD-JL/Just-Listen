@@ -56,4 +56,9 @@ class MusicPreloader(
     fun cancel() {
         preloadJob?.cancel()
     }
+
+    fun release() {
+        preloadJob?.cancel()
+        scope.cancel()
+    }
 }

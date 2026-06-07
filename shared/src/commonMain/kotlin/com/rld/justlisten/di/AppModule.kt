@@ -32,13 +32,13 @@ fun appModule() = module {
     
     // ViewModels
     viewModel { LibraryViewModel(get(), get(), get(), get()) }
-    viewModel { PlaylistViewModel(get(), get()) }
+    viewModel { PlaylistViewModel(get(), get(), get()) }
     viewModel { SearchViewModel(get(), get()) }
     viewModel { PlaylistDetailViewModel(get(), get(), get(), get()) }
     viewModel { AddPlaylistViewModel(get()) }
     viewModel { SeeAllViewModel(get(), get()) }
     viewModel { ArtistProfileViewModel(get(), get(), get()) }
     viewModel { FeedViewModel(get(), get(), get(), get()) }
-    single { SettingsViewModel(get(), get(), get(), get()) }
-    viewModel { PlayerViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get(), get()) }
+    viewModel { PlayerViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
 }

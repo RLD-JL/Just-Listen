@@ -4,7 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import com.rld.justlisten.ui.components.SmartMarqueeText
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -81,6 +81,9 @@ fun FeedScreen(
     libraryRepository: LibraryRepository,
     onAction: (FeedAction) -> Unit
 ) {
+    val playbackState by musicPlayer.playbackState.collectAsState()
+    val currentPlayingSongId = playbackState.currentMedia?.id
+    val isPlaying = playbackState.status == PlaybackStatus.PLAYING
     if (feedState.showConnectPrompt) {
         ConnectPromptDialog(
             onDismissRequest = { onAction(FeedAction.DismissConnectPrompt) },
@@ -166,7 +169,7 @@ fun FeedScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(FeedFormat.values().toList()) { format ->
+                        items(FeedFormat.values().toList(), key = { it.name }) { format ->
                             val isSelected = feedState.personalFormat == format
                             val label = when (format) {
                                 FeedFormat.ALL -> "All Formats"
@@ -195,7 +198,7 @@ fun FeedScreen(
                         contentPadding = PaddingValues(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(genres) { genre ->
+                        items(genres, key = { it.name }) { genre ->
                             val isSelected = feedState.trendingCategory == genre
                             FilterPill(
                                 text = genre.value,
@@ -244,36 +247,10 @@ fun FeedScreen(
                 } else {
                     val pullState = rememberPullToRefreshState()
                     PullToRefreshBox(
-                        isRefreshing = feedState.isLoading,
+                        isRefreshing = feedState.isRefreshing,
                         onRefresh = { onAction(FeedAction.Refresh) },
                         state = pullState,
-                        modifier = Modifier.fillMaxSize(),
-                        indicator = {
-                            if (feedState.items.isNotEmpty() && (pullState.distanceFraction > 0f || feedState.isLoading)) {
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.TopCenter)
-                                        .graphicsLayer {
-                                            val pullOffset = (pullState.distanceFraction * 56.dp.toPx()).coerceAtMost(80.dp.toPx())
-                                            translationY = pullOffset - 40.dp.toPx()
-                                        }
-                                        .size(40.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f))
-                                        .border(
-                                            width = 1.dp,
-                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                                            shape = CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    MusicLoadingSpinner(
-                                        size = 20.dp,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-                        }
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         if (feedState.isLoading && feedState.items.isEmpty()) {
                             MusicLoadingScreen(showText = true)
@@ -300,13 +277,14 @@ fun FeedScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentPadding = PaddingValues(top = 8.dp, bottom = 80.dp)
                             ) {
-                                itemsIndexed(feedState.items) { index, item ->
+                                itemsIndexed(feedState.items, key = { _, item -> item.id }) { index, item ->
+                                    val isPlayingThisSong = isPlaying && item.id == currentPlayingSongId
                                     FeedTimelineRow(
                                         playlistItem = item,
-                                        musicPlayer = musicPlayer,
                                         onAction = onAction,
                                         isLast = index == feedState.items.size - 1,
-                                        feedState = feedState
+                                        feedState = feedState,
+                                        isPlaying = isPlayingThisSong
                                     )
                                 }
                                 if (feedState.isLoading && feedState.items.isNotEmpty()) {
@@ -405,10 +383,10 @@ fun EmptyFeedScreen() {
 @Composable
 fun FeedTimelineRow(
     playlistItem: PlaylistItem,
-    musicPlayer: MusicPlayer,
     onAction: (FeedAction) -> Unit,
     isLast: Boolean,
-    feedState: FeedState
+    feedState: FeedState,
+    isPlaying: Boolean = false
 ) {
     val isPlaylist = playlistItem._data.isPlaylist
     val isRepostActivity = playlistItem.isReposted || 
@@ -506,13 +484,9 @@ fun FeedTimelineRow(
             )
             val imageState by imagePainter.state.collectAsState()
 
-            val playbackState by musicPlayer.playbackState.collectAsState()
-            val isPlayingThisSong = playbackState.status == PlaybackStatus.PLAYING &&
-                    playbackState.currentMedia?.id == playlistItem.id
-
             Column(modifier = Modifier.padding(12.dp)) {
                 // 1. Activity Header (Artist Name + activity detail on left / Date on top right)
-                val formattedDate = formatDate(playlistItem.releaseDate)
+                val formattedDate = remember(playlistItem.releaseDate) { formatDate(playlistItem.releaseDate) }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -536,11 +510,20 @@ fun FeedTimelineRow(
                         { onAction(FeedAction.ArtistClicked(artistId, playlistItem.user)) }
                     } else null
 
-                    SmartMarqueeText(
-                        annotatedText = annotatedText,
+                    Text(
+                        text = annotatedText,
                         style = typography.bodyMedium,
-                        onClick = artistClickAction,
-                        modifier = Modifier.weight(1f)
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(
+                                if (artistClickAction != null) {
+                                    Modifier.clickable(onClick = artistClickAction)
+                                } else {
+                                    Modifier
+                                }
+                            )
                     )
 
                     if (formattedDate.isNotEmpty()) {
@@ -571,7 +554,7 @@ fun FeedTimelineRow(
                         if (imageState is AsyncImagePainter.State.Loading) {
                             AnimatedShimmer(60.dp, 60.dp)
                         }
-                        if (isPlayingThisSong) {
+                        if (isPlaying) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -589,16 +572,20 @@ fun FeedTimelineRow(
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Column(modifier = Modifier.weight(1f)) {
-                        SmartMarqueeText(
+                        Text(
                             text = playlistItem.playlistTitle.ifBlank { playlistItem.title },
                             style = typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Spacer(modifier = Modifier.height(2.dp))
-                        SmartMarqueeText(
+                        Text(
                             text = "by ${playlistItem.user}",
                             style = typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -649,7 +636,7 @@ fun FeedTimelineRow(
                                     FeedAction.FavoritePressed(
                                         playlistItem.id,
                                         playlistItem.title,
-                                        UserModel(playlistItem.user),
+                                        playlistItem._data.user,
                                         playlistItem.songIconList,
                                         !playlistItem.isFavorite
                                     )

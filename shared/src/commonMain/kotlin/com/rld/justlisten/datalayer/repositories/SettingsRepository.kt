@@ -14,7 +14,8 @@ interface SettingsRepository {
         customSecondary: String?,
         customBackground: String?,
         customSurface: String?,
-        isFirstLaunch: Boolean
+        isFirstLaunch: Boolean,
+        isOngoingStreamEnabled: Boolean
     )
     fun getSettingsInfo(): SettingsInfo
 }
@@ -31,7 +32,8 @@ class SettingsRepositoryImpl(
         customSecondary: String?,
         customBackground: String?,
         customSurface: String?,
-        isFirstLaunch: Boolean
+        isFirstLaunch: Boolean,
+        isOngoingStreamEnabled: Boolean
     ) {
         localDb.saveSettingsInfo(
             hasNavigationDonationOn = hasNavigationDonationOn,
@@ -41,7 +43,8 @@ class SettingsRepositoryImpl(
             customSecondary = customSecondary,
             customBackground = customBackground,
             customSurface = customSurface,
-            isFirstLaunch = isFirstLaunch
+            isFirstLaunch = isFirstLaunch,
+            isOngoingStreamEnabled = isOngoingStreamEnabled
         )
     }
 

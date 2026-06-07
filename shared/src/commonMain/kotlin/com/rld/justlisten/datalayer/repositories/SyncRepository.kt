@@ -6,6 +6,7 @@ import com.rld.justlisten.datalayer.localdb.libraryscreen.saveSongToFavorites
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getFavoritePlaylist
 import com.rld.justlisten.datalayer.webservices.ApiClient
 import com.rld.justlisten.datalayer.webservices.apis.authcalls.getUserFavorites
+import com.rld.justlisten.datalayer.webservices.apis.authcalls.getUserFavoriteTracks
 import com.rld.justlisten.datalayer.webservices.apis.authcalls.getUserPlaylists
 import com.rld.justlisten.datalayer.webservices.apis.authcalls.getTrackDetails
 import com.rld.justlisten.datalayer.localdb.addplaylistscreen.updatePlaylistSongs
@@ -184,11 +185,11 @@ class SyncRepositoryImpl(
                 when (task.actionType) {
                     "FAVORITE" -> {
                         val response = apiClient.favoriteTrack(task.targetId)
-                        response?.error == null
+                        response != null && response.error == null
                     }
                     "UNFAVORITE" -> {
                         val response = apiClient.unfavoriteTrack(task.targetId)
-                        response?.error == null
+                        response != null && response.error == null
                     }
                     "PLAYLIST_CREATE" -> {
                         val payload = Json.decodeFromString(
@@ -206,7 +207,7 @@ class SyncRepositoryImpl(
                                 playlistName = payload.name
                             )
                         }
-                        response?.error == null
+                        response != null && response.error == null
                     }
                     "PLAYLIST_UPDATE" -> {
                         val payload = Json.decodeFromString(
@@ -217,13 +218,13 @@ class SyncRepositoryImpl(
                             playlistId = task.targetId,
                             songList = payload.songs
                         )
-                        response?.error == null
+                        response != null && response.error == null
                     }
                     "PLAYLIST_DELETE" -> {
                         val response = apiClient.deletePlaylist(
                             playlistId = task.targetId
                         )
-                        response?.error == null
+                        response != null && response.error == null
                     }
                     "PLAYLIST_DETAILS_UPDATE" -> {
                         val payload = Json.decodeFromString(
@@ -235,11 +236,12 @@ class SyncRepositoryImpl(
                             name = payload.name,
                             description = payload.description
                         )
-                        response?.error == null
+                        response != null && response.error == null
                     }
                     else -> true
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 false
             }
 
@@ -261,53 +263,58 @@ class SyncRepositoryImpl(
     override suspend fun performInboundSync(userId: String) {
         withContext(Dispatchers.IO) {
             try {
-                // 1. Get cloud favorites
-                val cloudFavorites = apiClient.getUserFavorites(userId)
-                    .filter { it.type == "SaveType.track" || it.type == "track" }
+                // 1. Cheap check: fetch lightweight favorites list (single request, numeric IDs)
+                val cloudFavoritesList = apiClient.getUserFavorites(userId)
+                val cloudNumericIds = cloudFavoritesList
+                    .filter { it.type.equals("SaveType.track", ignoreCase = true) || it.type.equals("track", ignoreCase = true) }
                     .map { it.itemId }
                     .toSet()
 
-                // 2. Get local favorites
+                // 2. Get local favorites (base58 IDs)
                 val localFavorites = localDb.getFavoritePlaylist().map { it.id }.toSet()
 
-                // 3. Cloud -> Local (Download missing favorites)
-                val missingLocally = cloudFavorites - localFavorites
-                if (missingLocally.isNotEmpty()) {
-                    _syncState.value = SyncState.Syncing(missingLocally.size)
-                    
-                    val fetchedTracks = mutableListOf<PlayListModel>()
-                    for (trackId in missingLocally) {
-                        try {
-                            val track = apiClient.getTrackDetails(trackId)
-                            if (track != null) {
-                                fetchedTracks.add(track)
+                // 3. Quick comparison: if cloud count matches local count and no pending
+                //    outbound tasks, skip expensive per-track fetches entirely
+                val pendingFavTasks = localDb.syncQueueQueries.getPendingTasks().executeAsList()
+                    .filter { it.actionType == "FAVORITE" || it.actionType == "UNFAVORITE" }
+                val hasPendingFavChanges = pendingFavTasks.isNotEmpty()
+
+                if (cloudNumericIds.size == localFavorites.size && !hasPendingFavChanges) {
+                    println("SyncRepository: Favorites in sync (${localFavorites.size} local, ${cloudNumericIds.size} cloud). Skipping track fetches.")
+                } else {
+                    println("SyncRepository: Favorites differ (${localFavorites.size} local, ${cloudNumericIds.size} cloud). Fetching track details...")
+                    // Expensive path: fetch full track details to get base58 IDs
+                    val cloudFavoriteTracks = apiClient.getUserFavoriteTracks(userId)
+                    val cloudFavorites = cloudFavoriteTracks.map { it.id }.toSet()
+
+                    // Cloud -> Local (Download missing favorites)
+                    val missingLocally = cloudFavorites - localFavorites
+                    if (missingLocally.isNotEmpty()) {
+                        _syncState.value = SyncState.Syncing(missingLocally.size)
+
+                        val fetchedTracks = cloudFavoriteTracks.filter { it.id in missingLocally }
+
+                        if (fetchedTracks.isNotEmpty()) {
+                            localDb.transaction {
+                                for (track in fetchedTracks) {
+                                    localDb.saveSongToFavorites(
+                                        id = track.id,
+                                        title = track.title,
+                                        user = track.user,
+                                        songImgList = track.songImgList,
+                                        playlistName = "Favorite",
+                                        isFavorite = true
+                                    )
+                                }
                             }
-                            delay(100L) // rate-limiting friendly
-                        } catch (e: Exception) {
-                            println("Error fetching track details for $trackId: ${e.message}")
                         }
                     }
 
-                    if (fetchedTracks.isNotEmpty()) {
-                        localDb.transaction {
-                            for (track in fetchedTracks) {
-                                localDb.saveSongToFavorites(
-                                    id = track.id,
-                                    title = track.title,
-                                    user = track.user,
-                                    songImgList = track.songImgList,
-                                    playlistName = "Favorite",
-                                    isFavorite = true
-                                )
-                            }
-                        }
+                    // Local -> Cloud (Upload missing favorites)
+                    val missingInCloud = localFavorites - cloudFavorites
+                    for (trackId in missingInCloud) {
+                        enqueueFavoriteTask(trackId, isFavorite = true)
                     }
-                }
-
-                // 4. Local -> Cloud (Upload missing favorites)
-                val missingInCloud = localFavorites - cloudFavorites
-                for (trackId in missingInCloud) {
-                    enqueueFavoriteTask(trackId, isFavorite = true)
                 }
 
                 // 5. Get cloud playlists and sync them
@@ -351,15 +358,18 @@ class SyncRepositoryImpl(
                             }
                             delay(100L) // rate-limiting friendly
                         } catch (e: Exception) {
+                            if (e is CancellationException) throw e
                             println("Error syncing playlist ${playlist.id}: ${e.message}")
                         }
                     }
                 } catch (e: Exception) {
+                    if (e is CancellationException) throw e
                     println("Error fetching user playlists: ${e.message}")
                 }
 
                 _syncState.value = SyncState.Synced
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 println("Error in performInboundSync: ${e.message}")
                 _syncState.value = SyncState.SyncFailed("Inbound sync failed: ${e.message}")
             }

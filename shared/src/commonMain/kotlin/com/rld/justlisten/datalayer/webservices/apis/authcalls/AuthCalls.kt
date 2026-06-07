@@ -5,6 +5,9 @@ import com.rld.justlisten.datalayer.webservices.TokenResponse
 import com.rld.justlisten.datalayer.models.PlayListModel
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 
 @Serializable
@@ -75,23 +78,22 @@ suspend fun ApiClient.getTrackDetails(trackId: String): PlayListModel? {
     return response?.data
 }
 
-suspend fun ApiClient.getUserFavoriteTracks(userId: String): List<PlayListModel> {
+suspend fun ApiClient.getUserFavoriteTracks(userId: String): List<PlayListModel> = coroutineScope {
     println("ApiClient: Requesting GET /users/$userId/favorites for tracks")
     val favorites = getUserFavorites(userId)
-    val trackIds = favorites.filter { it.type == "SaveType.track" || it.type == "track" }.map { it.itemId }
-    val tracks = mutableListOf<PlayListModel>()
-    for (trackId in trackIds) {
-        try {
-            val track = getTrackDetails(trackId)
-            if (track != null) {
-                tracks.add(track)
+    val trackIds = favorites.filter { it.type.equals("SaveType.track", ignoreCase = true) || it.type.equals("track", ignoreCase = true) }.map { it.itemId }
+    
+    val deferredTracks = trackIds.map { trackId ->
+        async {
+            try {
+                getTrackDetails(trackId)
+            } catch (e: Exception) {
+                println("ApiClient: Error fetching track details for favorite $trackId: ${e.message}")
+                null
             }
-            kotlinx.coroutines.delay(100L)
-        } catch (e: Exception) {
-            println("ApiClient: Error fetching track details for favorite $trackId: ${e.message}")
         }
     }
-    return tracks
+    deferredTracks.awaitAll().filterNotNull()
 }
 
 suspend fun ApiClient.getUserPlaylists(userId: String): List<PlayListModel> {
@@ -100,24 +102,28 @@ suspend fun ApiClient.getUserPlaylists(userId: String): List<PlayListModel> {
     return response?.data ?: emptyList()
 }
 
-suspend fun ApiClient.getUserFavoritePlaylists(userId: String): List<PlayListModel> {
+suspend fun ApiClient.getUserFavoritePlaylists(userId: String): List<PlayListModel> = coroutineScope {
     println("ApiClient: Requesting GET /users/$userId/favorites for playlists")
     val favorites = getUserFavorites(userId)
-    val playlistIds = favorites.filter { it.type == "SaveType.playlist" || it.type == "SaveType.album" || it.type == "playlist" || it.type == "album" }.map { it.itemId }
-    val playlists = mutableListOf<PlayListModel>()
-    for (playlistId in playlistIds) {
-        try {
-            val response: com.rld.justlisten.datalayer.webservices.apis.playlistcalls.PlayListResponse? = getResponse("/playlists/$playlistId")
-            val playlist = response?.data?.firstOrNull()
-            if (playlist != null) {
-                playlists.add(playlist)
+    val playlistIds = favorites.filter {
+        it.type.equals("SaveType.playlist", ignoreCase = true) ||
+        it.type.equals("SaveType.album", ignoreCase = true) ||
+        it.type.equals("playlist", ignoreCase = true) ||
+        it.type.equals("album", ignoreCase = true)
+    }.map { it.itemId }
+    
+    val deferredPlaylists = playlistIds.map { playlistId ->
+        async {
+            try {
+                val response: com.rld.justlisten.datalayer.webservices.apis.playlistcalls.PlayListResponse? = getResponse("/playlists/$playlistId")
+                response?.data?.firstOrNull()
+            } catch (e: Exception) {
+                println("ApiClient: Error fetching playlist details for favorite $playlistId: ${e.message}")
+                null
             }
-            kotlinx.coroutines.delay(100L)
-        } catch (e: Exception) {
-            println("ApiClient: Error fetching playlist details for favorite $playlistId: ${e.message}")
         }
     }
-    return playlists
+    deferredPlaylists.awaitAll().filterNotNull()
 }
 
 @Serializable

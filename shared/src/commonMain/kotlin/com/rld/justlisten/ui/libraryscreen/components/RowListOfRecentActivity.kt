@@ -8,11 +8,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.rld.justlisten.ui.playlistscreen.components.PlaylistRowItem
 import com.rld.justlisten.viewmodel.screens.library.LibraryState
+import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 
 @Composable
 fun RowListOfRecentActivity(
     libraryState: LibraryState,
-    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
+    onSongClicked: (PlaylistItem) -> Unit,
     lastIndexReached: Boolean,
     lasItemReached: (Int) -> Unit,
     onArtistClicked: (String, String) -> Unit
@@ -35,7 +36,7 @@ fun RowListOfRecentActivity(
 
             PlaylistRowItem(
                 playlistItem = playlistItem,
-                onPlaylistClicked = onPlaylistClicked,
+                onPlaylistClicked = { _, _, _, _, _ -> onSongClicked(playlistItem) },
                 onArtistClicked = onArtistClicked
             )
         }

@@ -22,6 +22,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import coil3.compose.LocalPlatformContext
@@ -41,13 +42,13 @@ import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.ui.LocalMusicPlayer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import com.rld.justlisten.ui.components.SmartMarqueeText
+
 
 @Composable
 fun PlayBarSwipeActions(
     songIcon: String,
     highResIcon: String,
-    currentFraction: Float,
+    currentFractionProvider: () -> Float,
     constraints: BoxWithConstraintsScope,
     title: String,
     onSkipNextPressed: () -> Unit,
@@ -57,17 +58,19 @@ fun PlayBarSwipeActions(
     newDominantColor: (Int) -> Unit,
     playBarMinimizedClicked: () -> Unit
 ) {
+    val currentFraction = currentFractionProvider()
     // Ease the fraction — image decelerates as it reaches its destination
     val eased = FastOutSlowInEasing.transform(currentFraction)
 
-    val swipeOffset = remember { Animatable(0f) }
+    var swipeOffset by remember { mutableStateOf(0f) }
+    val animatableOffset = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
 
     // Reset swipeOffset if user starts expanding the player
     LaunchedEffect(currentFraction) {
-        if (currentFraction > 0.15f && swipeOffset.value != 0f) {
-            swipeOffset.snapTo(0f)
+        if (currentFraction > 0.15f && swipeOffset != 0f) {
+            swipeOffset = 0f
         }
     }
 
@@ -103,8 +106,6 @@ fun PlayBarSwipeActions(
         }
     }
 
-    val swipeOffsetDp = with(density) { swipeOffset.value.toDp() }
-
     // Horizontal drag modifier to support swiping left/right to skip next/back
     val dragModifier = if (currentFraction < 0.15f) {
         Modifier.pointerInput(Unit) {
@@ -112,37 +113,47 @@ fun PlayBarSwipeActions(
                 onDragEnd = {
                     val swipeableWidthPx = with(density) { swipeableWidth.dp.toPx() }
                     val thresholdPx = swipeableWidthPx * 0.30f
-                    val currentOffset = swipeOffset.value
+                    val currentOffset = swipeOffset
                     coroutineScope.launch {
                         if (currentOffset > thresholdPx) {
                             // Swipe right -> Previous song
                             // Animate remaining distance to fully center the previous track
-                            swipeOffset.animateTo(swipeableWidthPx, spring())
+                            animatableOffset.snapTo(currentOffset)
+                            animatableOffset.animateTo(swipeableWidthPx, spring()) {
+                                swipeOffset = this.value
+                            }
                             // Perform track transition and reset offset instantly
                             onSkipPreviousPressed()
-                            swipeOffset.snapTo(0f)
+                            swipeOffset = 0f
                         } else if (currentOffset < -thresholdPx) {
                             // Swipe left -> Next song
                             // Animate remaining distance to fully center the next track
-                            swipeOffset.animateTo(-swipeableWidthPx, spring())
+                            animatableOffset.snapTo(currentOffset)
+                            animatableOffset.animateTo(-swipeableWidthPx, spring()) {
+                                swipeOffset = this.value
+                            }
                             // Perform track transition and reset offset instantly
                             onSkipNextPressed()
-                            swipeOffset.snapTo(0f)
+                            swipeOffset = 0f
                         } else {
-                            swipeOffset.animateTo(0f, spring())
+                            animatableOffset.snapTo(currentOffset)
+                            animatableOffset.animateTo(0f, spring()) {
+                                swipeOffset = this.value
+                            }
                         }
                     }
                 },
                 onDragCancel = {
                     coroutineScope.launch {
-                        swipeOffset.animateTo(0f, spring())
+                        animatableOffset.snapTo(swipeOffset)
+                        animatableOffset.animateTo(0f, spring()) {
+                            swipeOffset = this.value
+                        }
                     }
                 },
                 onHorizontalDrag = { change, dragAmount ->
                     change.consume()
-                    coroutineScope.launch {
-                        swipeOffset.snapTo(swipeOffset.value + dragAmount)
-                    }
+                    swipeOffset += dragAmount
                 }
             )
         }
@@ -210,7 +221,12 @@ fun PlayBarSwipeActions(
                         modifier = Modifier
                             .width(swipeableWidth.dp)
                             .fillMaxHeight()
-                            .offset(x = -swipeableWidth.dp + swipeOffsetDp)
+                            .offset {
+                                IntOffset(
+                                    x = -swipeableWidth.dp.roundToPx() + swipeOffset.toInt(),
+                                    y = 0
+                                )
+                            }
                     )
                 }
 
@@ -223,7 +239,12 @@ fun PlayBarSwipeActions(
                         modifier = Modifier
                             .width(swipeableWidth.dp)
                             .fillMaxHeight()
-                            .offset(x = swipeableWidth.dp + swipeOffsetDp)
+                            .offset {
+                                IntOffset(
+                                    x = swipeableWidth.dp.roundToPx() + swipeOffset.toInt(),
+                                    y = 0
+                                )
+                            }
                     )
                 }
             }
@@ -237,7 +258,7 @@ fun PlayBarSwipeActions(
                         y = offsetY(eased, screenWidth, screenHeight).dp
                     )
                     .graphicsLayer {
-                        translationX = swipeOffset.value * (1f - currentFraction).coerceIn(0f, 1f)
+                        translationX = swipeOffset * (1f - currentFraction).coerceIn(0f, 1f)
                     }
                     // Slight rounding even when collapsed so it looks polished
                     .clip(RoundedCornerShape(lerp(6f, 16f, eased).dp))
@@ -259,7 +280,12 @@ fun PlayBarSwipeActions(
                     modifier = Modifier
                         .width((swipeableWidth - 65f).dp)
                         .fillMaxHeight()
-                        .offset(x = 65.dp + swipeOffsetDp)
+                        .offset {
+                            IntOffset(
+                                x = 65.dp.roundToPx() + swipeOffset.toInt(),
+                                y = 0
+                            )
+                        }
                         .graphicsLayer {
                             // Fade out text as the player expands
                             alpha = (1f - currentFraction * 3f).coerceIn(0f, 1f)
@@ -268,16 +294,20 @@ fun PlayBarSwipeActions(
                 ) {
                     val currentTitle = currentMedia?.title ?: title
                     val currentArtist = currentMedia?.artist ?: ""
-                    SmartMarqueeText(
+                    Text(
                         text = currentTitle,
                         style = MaterialTheme.typography.bodyLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
-                        color = Color.White
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     if (currentArtist.isNotEmpty()) {
-                        SmartMarqueeText(
+                        Text(
                             text = currentArtist,
                             style = MaterialTheme.typography.bodyMedium.copy(fontSize = 11.sp),
-                            color = Color.White.copy(alpha = 0.7f)
+                            color = Color.White.copy(alpha = 0.7f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -286,7 +316,7 @@ fun PlayBarSwipeActions(
 
         // Fixed Minimized controls (Favorite, Play/Pause, SkipNext)
         PlayBarActionsMinimized(
-            currentFraction = currentFraction,
+            currentFractionProvider = currentFractionProvider,
             onSkipNextPressed = onSkipNextPressed,
             onFavoritePressed = onFavoritePressed
         )
@@ -336,16 +366,20 @@ fun MinibarTrackRow(
                 .padding(end = 8.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            SmartMarqueeText(
+            Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
-                color = Color.White
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             if (artist.isNotEmpty()) {
-                SmartMarqueeText(
+                Text(
                     text = artist,
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 11.sp),
-                    color = Color.White.copy(alpha = 0.7f)
+                    color = Color.White.copy(alpha = 0.7f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

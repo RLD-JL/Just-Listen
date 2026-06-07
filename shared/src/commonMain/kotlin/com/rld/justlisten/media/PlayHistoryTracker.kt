@@ -41,16 +41,18 @@ class PlayHistoryTracker(
                         
                         // Automatically upsert the new song into Library recents to guarantee metadata exists for JOIN queries
                         if (media != null) {
-                            libraryRepository.saveSongToRecent(
-                                id = media.id,
-                                title = media.title,
-                                user = UserModel(media.artist),
-                                songImgList = SongIconList(
-                                    songImageURL150px = media.lowResArtworkUrl ?: "",
-                                    songImageURL480px = media.artworkUrl ?: ""
-                                ),
-                                playlistName = ""
-                            )
+                            launch(Dispatchers.IO) {
+                                libraryRepository.saveSongToRecent(
+                                    id = media.id,
+                                    title = media.title,
+                                    user = UserModel(username = media.artist, id = media.artistId),
+                                    songImgList = SongIconList(
+                                        songImageURL150px = media.lowResArtworkUrl ?: "",
+                                        songImageURL480px = media.artworkUrl ?: ""
+                                    ),
+                                    playlistName = ""
+                                )
+                            }
                         }
                         
                         lastActiveSongId = songId
@@ -99,28 +101,36 @@ class PlayHistoryTracker(
 
     private fun savePlaySession(songId: String, completed: Boolean) {
         val timestamp = clockNowSeconds()
-        libraryRepository.insertPlayLog(
-            songId = songId,
-            timestamp = timestamp,
-            durationPlayedSec = 0L,
-            completed = completed
-        )
+        scope.launch(Dispatchers.IO) {
+            libraryRepository.insertPlayLog(
+                songId = songId,
+                timestamp = timestamp,
+                durationPlayedSec = 0L,
+                completed = completed
+            )
+        }
     }
 
     private fun saveIncrementalDuration(songId: String, playTimeMs: Long, completed: Boolean) {
         val durationSec = playTimeMs / 1000L
         if (durationSec > 0) {
             val timestamp = clockNowSeconds()
-            libraryRepository.insertPlayLog(
-                songId = songId,
-                timestamp = timestamp,
-                durationPlayedSec = durationSec,
-                completed = false // Only log completion when threshold is crossed in savePlaySession
-            )
+            scope.launch(Dispatchers.IO) {
+                libraryRepository.insertPlayLog(
+                    songId = songId,
+                    timestamp = timestamp,
+                    durationPlayedSec = durationSec,
+                    completed = false // Only log completion when threshold is crossed in savePlaySession
+                )
+            }
         }
     }
 
     private fun clockNowSeconds(): Long {
         return kotlin.time.Clock.System.now().epochSeconds
+    }
+
+    fun release() {
+        scope.cancel()
     }
 }

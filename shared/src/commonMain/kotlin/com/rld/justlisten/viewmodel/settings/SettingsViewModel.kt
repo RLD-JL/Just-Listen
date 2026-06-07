@@ -50,35 +50,48 @@ class SettingsViewModel(
     }
 
     private fun loadSettings() {
-        try {
-            val saved = settingsRepository.getSettingsInfo()
-            _settingsState.value = SettingsState(
-                hasDonationNavigationOn = saved.hasNavigationDonationOn,
-                isDarkThemeOn = saved.isDarkThemeOn,
-                palletColor = saved.palletColor,
-                customPrimary = saved.customPrimary,
-                customSecondary = saved.customSecondary,
-                customBackground = saved.customBackground,
-                customSurface = saved.customSurface,
-                isFirstLaunch = saved.isFirstLaunch,
-            )
-        } catch (_: Exception) {
-            // First run — use defaults
+        viewModelScope.launch {
+            try {
+                val saved = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    settingsRepository.getSettingsInfo()
+                }
+                _settingsState.value = SettingsState(
+                    hasDonationNavigationOn = saved.hasNavigationDonationOn,
+                    isDarkThemeOn = saved.isDarkThemeOn,
+                    palletColor = saved.palletColor,
+                    customPrimary = saved.customPrimary,
+                    customSecondary = saved.customSecondary,
+                    customBackground = saved.customBackground,
+                    customSurface = saved.customSurface,
+                    isFirstLaunch = saved.isFirstLaunch,
+                    isOngoingStreamEnabled = saved.isOngoingStreamEnabled
+                )
+            } catch (_: Exception) {
+                // First run — use defaults
+            }
         }
     }
 
     private fun persistSettings() {
         val state = _settingsState.value
-        settingsRepository.saveSettingsInfo(
-            hasNavigationDonationOn = state.hasDonationNavigationOn,
-            isDarkThemeOn = state.isDarkThemeOn,
-            palletColor = state.palletColor,
-            customPrimary = state.customPrimary,
-            customSecondary = state.customSecondary,
-            customBackground = state.customBackground,
-            customSurface = state.customSurface,
-            isFirstLaunch = state.isFirstLaunch
-        )
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            settingsRepository.saveSettingsInfo(
+                hasNavigationDonationOn = state.hasDonationNavigationOn,
+                isDarkThemeOn = state.isDarkThemeOn,
+                palletColor = state.palletColor,
+                customPrimary = state.customPrimary,
+                customSecondary = state.customSecondary,
+                customBackground = state.customBackground,
+                customSurface = state.customSurface,
+                isFirstLaunch = state.isFirstLaunch,
+                isOngoingStreamEnabled = state.isOngoingStreamEnabled
+            )
+        }
+    }
+
+    fun onOngoingStreamToggled(enabled: Boolean) {
+        _settingsState.value = _settingsState.value.copy(isOngoingStreamEnabled = enabled)
+        persistSettings()
     }
 
     fun getAuthUrl(redirectUri: String): String {
@@ -140,58 +153,4 @@ class SettingsViewModel(
         persistSettings()
     }
 
-    fun fetchLibraryContent() {
-        println("SettingsViewModel: fetchLibraryContent called")
-        val session = _settingsState.value.sessionState
-        println("SettingsViewModel: session = $session")
-        if (session !is SessionState.Authenticated) {
-            _settingsState.value = _settingsState.value.copy(
-                libraryError = "User is not logged in."
-            )
-            return
-        }
-        val userId = session.userProfile.userId
-        println("SettingsViewModel: userId = $userId")
-        if (userId == null) {
-            _settingsState.value = _settingsState.value.copy(
-                libraryError = "User ID is null."
-            )
-            return
-        }
-
-        viewModelScope.launch {
-            _settingsState.value = _settingsState.value.copy(
-                isLibraryLoading = true,
-                libraryError = null,
-                favoriteTracks = emptyList(),
-                favoritePlaylists = emptyList(),
-                userPlaylists = emptyList()
-            )
-            try {
-                println("SettingsViewModel: Fetching favorite tracks for userId: $userId")
-                val tracks = apiClient.getUserFavoriteTracks(userId.toString())
-                println("SettingsViewModel: Fetched ${tracks.size} favorite tracks")
-
-                println("SettingsViewModel: Fetching user playlists for userId: $userId")
-                val playlists = apiClient.getUserPlaylists(userId.toString())
-                println("SettingsViewModel: Fetched ${playlists.size} user playlists")
-
-                println("SettingsViewModel: Fetching favorite playlists for userId: $userId")
-                val favPlaylists = apiClient.getUserFavoritePlaylists(userId.toString())
-                println("SettingsViewModel: Fetched ${favPlaylists.size} favorite playlists")
-
-                _settingsState.value = _settingsState.value.copy(
-                    favoriteTracks = tracks,
-                    userPlaylists = playlists,
-                    favoritePlaylists = favPlaylists,
-                    isLibraryLoading = false
-                )
-            } catch (e: Exception) {
-                _settingsState.value = _settingsState.value.copy(
-                    isLibraryLoading = false,
-                    libraryError = e.message ?: "Failed to fetch library content"
-                )
-            }
-        }
-    }
 }

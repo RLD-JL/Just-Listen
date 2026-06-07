@@ -6,6 +6,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -48,6 +50,9 @@ fun PlaylistDetailScreen(
         val toolbarOffsetHeightPx = remember { mutableStateOf(0f) }
         val showDeleteConfirm = remember { mutableStateOf(false) }
         val showEditDetails = remember { mutableStateOf(false) }
+
+        val playbackState by musicPlayer.playbackState.collectAsState()
+        val currentPlayingSongId = playbackState.currentMedia?.id
 
         val imageUrl = if (playlistDetailState.playlistIcon.isNotBlank()) {
             playlistDetailState.playlistIcon
@@ -117,8 +122,12 @@ fun PlaylistDetailScreen(
                 onRepostPressed = { id, isRep ->
                     onAction(PlaylistDetailAction.RepostPressed(id, isRep))
                 },
+                onDeleteSong = { songId ->
+                    onAction(PlaylistDetailAction.DeleteSongFromPlaylist(songId))
+                },
                 painter = painter,
-                onArtistClicked = { id, name -> onAction(PlaylistDetailAction.ArtistClicked(id, name)) }
+                onArtistClicked = { id, name -> onAction(PlaylistDetailAction.ArtistClicked(id, name)) },
+                currentPlayingSongId = currentPlayingSongId
             )
             AnimatedToolBar(
                 playlistDetailState = playlistDetailState, 

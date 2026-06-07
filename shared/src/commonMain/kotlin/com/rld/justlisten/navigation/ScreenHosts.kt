@@ -50,4 +50,7 @@ expect fun ArtistProfileScreenHost(
 )
 
 @Composable
-expect fun FeedScreenHost(navController: NavHostController)
+expect fun FeedScreenHost(
+    navController: NavHostController,
+    args: Route.Feed
+)

@@ -25,6 +25,7 @@ enum class FeedFormat {
 
 data class FeedState(
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val items: List<PlaylistItem> = emptyList(),
     val rawItems: List<PlaylistItem> = emptyList(),
     val isGuest: Boolean = true,

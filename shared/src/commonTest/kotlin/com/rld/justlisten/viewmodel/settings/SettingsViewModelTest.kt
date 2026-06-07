@@ -87,7 +87,8 @@ class FakeSettingsRepository : SettingsRepository {
         customSecondary = null,
         customBackground = null,
         customSurface = null,
-        isFirstLaunch = true
+        isFirstLaunch = true,
+        isOngoingStreamEnabled = true
     )
 
     override fun saveSettingsInfo(
@@ -98,7 +99,8 @@ class FakeSettingsRepository : SettingsRepository {
         customSecondary: String?,
         customBackground: String?,
         customSurface: String?,
-        isFirstLaunch: Boolean
+        isFirstLaunch: Boolean,
+        isOngoingStreamEnabled: Boolean
     ) {
         info = SettingsInfo(
             id = 1L,
@@ -109,7 +111,8 @@ class FakeSettingsRepository : SettingsRepository {
             customSecondary = customSecondary,
             customBackground = customBackground,
             customSurface = customSurface,
-            isFirstLaunch = isFirstLaunch
+            isFirstLaunch = isFirstLaunch,
+            isOngoingStreamEnabled = isOngoingStreamEnabled
         )
     }
 

@@ -158,8 +158,9 @@ fun AppNavigation(
             ArtistProfileScreenHost(navController, args)
         }
 
-        composable<Route.Feed> {
-            FeedScreenHost(navController)
+        composable<Route.Feed> { backStackEntry ->
+            val args: Route.Feed = backStackEntry.toRoute()
+            FeedScreenHost(navController, args)
         }
     }
 }

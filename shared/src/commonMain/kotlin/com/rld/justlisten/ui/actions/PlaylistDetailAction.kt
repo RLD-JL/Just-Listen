@@ -20,6 +20,7 @@ sealed interface PlaylistDetailAction {
     ) : PlaylistDetailAction
 
     data class DeletePlaylistClicked(val playlistName: String) : PlaylistDetailAction
+    data class DeleteSongFromPlaylist(val songId: String) : PlaylistDetailAction
     data class EditPlaylistTitleClicked(val oldName: String, val newName: String) : PlaylistDetailAction
     
     data class ArtistClicked(

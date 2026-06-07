@@ -109,6 +109,7 @@ actual fun PlaylistDetailScreenHost(navController: NavHostController, args: Rout
                     musicPlayer.refreshMetadata()
                 }
                 is PlaylistDetailAction.DeletePlaylistClicked -> viewModel.deletePlaylist(action.playlistName)
+                is PlaylistDetailAction.DeleteSongFromPlaylist -> viewModel.removeSongFromPlaylist(state.playlistName, action.songId)
                 is PlaylistDetailAction.EditPlaylistTitleClicked -> viewModel.editPlaylistTitle(action.oldName, action.newName)
                 is PlaylistDetailAction.ArtistClicked -> viewModel.onArtistClicked(action.artistId, action.artistName)
                 is PlaylistDetailAction.RepostPressed -> viewModel.onRepostPressed(action.songId, action.isRepost)
@@ -182,6 +183,7 @@ actual fun SettingsScreenHost(navController: NavHostController) {
             if (updated.isDarkThemeOn != state.isDarkThemeOn) viewModel.onDarkModeToggled(updated.isDarkThemeOn)
             if (updated.hasDonationNavigationOn != state.hasDonationNavigationOn) viewModel.onDonationToggled(updated.hasDonationNavigationOn)
             if (updated.palletColor != state.palletColor) viewModel.onPaletteSelected(updated.palletColor)
+            if (updated.isOngoingStreamEnabled != state.isOngoingStreamEnabled) viewModel.onOngoingStreamToggled(updated.isOngoingStreamEnabled)
         },
         onNavigateToCustomTheme = {
             navController.navigate(Route.CustomTheme)
@@ -200,9 +202,6 @@ actual fun SettingsScreenHost(navController: NavHostController) {
         },
         onClearSync = {
             viewModel.clearFailedSync()
-        },
-        onFetchLibraryContent = {
-            viewModel.fetchLibraryContent()
         }
     )
 }
@@ -228,8 +227,6 @@ actual fun SeeAllScreenHost(navController: NavHostController, args: Route.SeeAll
                 is SeeAllAction.SongPressed -> playMusicFromId(musicPlayer, state.items, action.songId, repository)
                 SeeAllAction.BackPressed -> viewModel.popBack()
                 is SeeAllAction.LoadMore -> viewModel.fetchItems(action.offset)
-                is SeeAllAction.ChangeTimeRange -> viewModel.changeTimeRange(action.timeRange)
-                is SeeAllAction.ChangeGenre -> viewModel.changeGenre(action.genre)
                 is SeeAllAction.ArtistClicked -> viewModel.onArtistClicked(action.artistId, action.artistName)
             }
         }
@@ -313,11 +310,20 @@ actual fun ArtistProfileScreenHost(
 }
 
 @Composable
-actual fun FeedScreenHost(navController: NavHostController) {
+actual fun FeedScreenHost(
+    navController: NavHostController,
+    args: Route.Feed
+) {
     val viewModel: com.rld.justlisten.viewmodel.feed.FeedViewModel = koinViewModel()
     val musicPlayer = LocalMusicPlayer.current
     val repository: LibraryRepository = koinInject()
     val state by viewModel.feedState.collectAsState()
+
+    LaunchedEffect(args) {
+        if (args.category != null || args.timeRange != null) {
+            viewModel.loadTrendingWithFilters(args.category, args.timeRange)
+        }
+    }
 
     CollectNavigationEvents(viewModel, navController)
 

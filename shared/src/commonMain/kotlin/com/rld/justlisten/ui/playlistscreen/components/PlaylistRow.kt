@@ -20,11 +20,14 @@ fun PlaylistRow(
     playlistEnum: PlayListEnum,
     onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
     lastIndexReached: Boolean = false,
-    onArtistClicked: ((String, String) -> Unit)? = null
+    onArtistClicked: ((String, String) -> Unit)? = null,
+    currentPlayingSongId: String? = null,
+    currentlyPlayingPlaylistId: String? = null,
+    isPlaying: Boolean = false
 ) {
     val fetchMore = remember { mutableStateOf(false) }
     LazyRow(verticalAlignment = Alignment.CenterVertically) {
-        itemsIndexed(items = playlist) { index, playlistItem ->
+        itemsIndexed(items = playlist, key = { _, item -> item.id }) { index, playlistItem ->
 
             if (index == playlist.lastIndex && !lastIndexReached) {
                 LaunchedEffect(key1 = playlist.lastIndex)
@@ -38,10 +41,14 @@ fun PlaylistRow(
                 fetchMore.value = false
             }
 
+            val isPlayingThisPlaylist = isPlaying &&
+                    (currentlyPlayingPlaylistId == playlistItem.id || currentPlayingSongId == playlistItem.id)
+
             PlaylistRowItem(
                 playlistItem = playlistItem,
                 onPlaylistClicked = onPlaylistClicked,
-                onArtistClicked = onArtistClicked
+                onArtistClicked = onArtistClicked,
+                isPlaying = isPlayingThisPlaylist
             )
         }
         if (fetchMore.value) {

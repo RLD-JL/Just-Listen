@@ -23,4 +23,5 @@ data class SettingsState(
     val userPlaylists: List<PlayListModel> = emptyList(),
     val isLibraryLoading: Boolean = false,
     val libraryError: String? = null,
+    val isOngoingStreamEnabled: Boolean = true,
 ) : ScreenState

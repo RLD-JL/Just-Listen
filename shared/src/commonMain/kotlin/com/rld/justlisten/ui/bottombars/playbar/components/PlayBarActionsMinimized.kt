@@ -31,7 +31,7 @@ import com.rld.justlisten.ui.LocalMusicPlayer
 
 @Composable
 fun PlayBarActionsMinimized(
-    currentFraction: Float,
+    currentFractionProvider: () -> Float,
     onSkipNextPressed: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit
 ) {
@@ -44,6 +44,7 @@ fun PlayBarActionsMinimized(
             // Exactly 65dp — same as minibar height in JustListenScaffold
             .height(65.dp)
             .graphicsLayer {
+                val currentFraction = currentFractionProvider()
                 // Fade out fast so it's gone before the image reaches mid-expansion
                 alpha = (1f - currentFraction * 3f).coerceIn(0f, 1f)
             },
@@ -56,7 +57,7 @@ fun PlayBarActionsMinimized(
                 onFavoritePressed(
                     media.id,
                     media.title,
-                    UserModel(media.artist),
+                    UserModel(username = media.artist, id = media.artistId),
                     SongIconList(
                         media.artworkUrl ?: "",
                         media.artworkUrl ?: "",

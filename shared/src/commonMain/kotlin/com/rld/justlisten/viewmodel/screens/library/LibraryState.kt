@@ -11,7 +11,7 @@ data class LibraryState(
     val mostPlayedSongs: List<PlaylistItem> = emptyList(),
     val recentSongsItems: List<PlaylistItem> = emptyList(),
     val playlistsCreated: List<AddPlaylist> = emptyList(),
-    var lastIndexReached: Boolean = false,
+    val lastIndexReached: Boolean = false,
     val timeCapsuleSongs: List<PlaylistItem> = emptyList(),
     val totalPlays: Int = 0,
     val uniquePlays: Int = 0,

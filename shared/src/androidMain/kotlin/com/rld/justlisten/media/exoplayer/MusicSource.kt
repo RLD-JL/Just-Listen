@@ -35,6 +35,7 @@ class MusicSource {
                     onReadyListener.forEach { listener ->
                         listener(state == STATE_INITIALIZED)
                     }
+                    onReadyListener.clear()
                 }
             } else {
                 field = value

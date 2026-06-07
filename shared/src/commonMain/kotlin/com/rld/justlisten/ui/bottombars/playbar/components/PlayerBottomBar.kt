@@ -11,6 +11,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.runtime.*
@@ -51,7 +52,7 @@ fun PlayerBottomBar(
     val artworkUrl = currentMedia?.artworkUrl ?: ""
     val title = currentMedia?.title ?: ""
 
-    val currentFraction = layoutInfo.currentFraction
+    val currentFractionProvider = layoutInfo.currentFractionProvider
     val bottomPadding = layoutInfo.bottomPadding
     val bottomSafeArea = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding()
 
@@ -66,21 +67,28 @@ fun PlayerBottomBar(
         label = "dominantColor"
     )
 
-    // Ease the fraction for the background blend too
-    val eased = FastOutSlowInEasing.transform(currentFraction)
-
-    // Blend: collapsed = minibarBackground, expanded = dominant color (darkened slightly)
-    val blendedBackground = Color(
-        red   = lerp(minibarBackground.red,   animatedColor.red   * 0.7f, eased).coerceIn(0f, 1f),
-        green = lerp(minibarBackground.green, animatedColor.green * 0.7f, eased).coerceIn(0f, 1f),
-        blue  = lerp(minibarBackground.blue,  animatedColor.blue  * 0.7f, eased).coerceIn(0f, 1f),
-        alpha = 1f
-    )
+    // Derived states to prevent recomposing PlayerBottomBar on every pixel
+    val isMaximizedControlsVisible by remember(layoutInfo) {
+        derivedStateOf { currentFractionProvider() > 0.4f }
+    }
+    val isBottomTabsVisible by remember(layoutInfo) {
+        derivedStateOf { currentFractionProvider() > 0.85f }
+    }
 
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(blendedBackground)
+            .drawBehind {
+                val fraction = currentFractionProvider()
+                val eased = FastOutSlowInEasing.transform(fraction)
+                val blendedBackground = Color(
+                    red   = lerp(minibarBackground.red,   animatedColor.red   * 0.7f, eased).coerceIn(0f, 1f),
+                    green = lerp(minibarBackground.green, animatedColor.green * 0.7f, eased).coerceIn(0f, 1f),
+                    blue  = lerp(minibarBackground.blue,  animatedColor.blue  * 0.7f, eased).coerceIn(0f, 1f),
+                    alpha = 1f
+                )
+                drawRect(color = blendedBackground)
+            }
             .noRippleClickable { onUiEvent(PlayerUiEvent.CloseSheet) }
     ) {
         val constraints = this@BoxWithConstraints
@@ -91,20 +99,21 @@ fun PlayerBottomBar(
                     playbackState.currentMedia!!.duration.toFloat()
         else 0f
 
-        if (!progress.isNaN() && currentFraction < 0.99f) {
+        if (!progress.isNaN()) {
             LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(1.5.dp)
-                                .align(Alignment.TopCenter)
-                                .offset(y = 63.5.dp)
-                                .graphicsLayer {
-                                    alpha = (1f - currentFraction * 4f).coerceIn(0f, 1f)
-                                },
-            color = animatedColor.copy(alpha = 0.85f),
-            trackColor = ProgressIndicatorDefaults.linearTrackColor,
-            strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+                progress = { progress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.5.dp)
+                    .align(Alignment.TopCenter)
+                    .offset(y = 63.5.dp)
+                    .graphicsLayer {
+                        val fraction = currentFractionProvider()
+                        alpha = if (fraction >= 0.99f) 0f else (1f - fraction * 4f).coerceIn(0f, 1f)
+                    },
+                color = animatedColor.copy(alpha = 0.85f),
+                trackColor = ProgressIndicatorDefaults.linearTrackColor,
+                strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
             )
         }
 
@@ -112,7 +121,7 @@ fun PlayerBottomBar(
         PlayBarSwipeActions(
             songIcon = songIcon,
             highResIcon = artworkUrl,
-            currentFraction = currentFraction,
+            currentFractionProvider = currentFractionProvider,
             constraints = constraints,
             title = title,
             onSkipNextPressed = { onAction(PlayerAction.SkipNext) },
@@ -136,14 +145,14 @@ fun PlayerBottomBar(
                 .align(Alignment.TopCenter)
         ) {
             PlayBarTopSection(
-                currentFraction = currentFraction,
+                currentFractionProvider = currentFractionProvider,
                 onCollapsedClicked = { onUiEvent(PlayerUiEvent.Collapse) }
             )
         }
 
         // ── 4. Playback controls + seek bar (fade in after 40% expanded) ────
         AnimatedVisibility(
-            visible = currentFraction > 0.4f,
+            visible = isMaximizedControlsVisible,
             enter = fadeIn(tween(220)) + slideInVertically(
                 tween(280), initialOffsetY = { it / 3 }
             ),
@@ -165,7 +174,7 @@ fun PlayerBottomBar(
 
         // ── 5. Bottom tabs (UP NEXT / LYRICS / RELATED) ─────────────────────
         AnimatedVisibility(
-            visible = currentFraction > 0.85f,
+            visible = isBottomTabsVisible,
             enter = fadeIn(tween(180)) + slideInVertically(
                 tween(220), initialOffsetY = { it / 2 }
             ),
@@ -174,7 +183,6 @@ fun PlayerBottomBar(
             )
         ) {
             PlayerBottomTabs(
-                currentFraction = currentFraction,
                 maxHeight = constraints.maxHeight,
                 bottomPadding = bottomPadding
             )

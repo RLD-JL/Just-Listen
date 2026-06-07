@@ -72,14 +72,6 @@ fun androidModule(apiKey: String = "") = module {
             .setCache(get<SimpleCache>())
             .setUpstreamDataSourceFactory(httpDataSourceFactory)
     }
-    single {
-        ExoPlayer.Builder(androidContext())
-            .setMediaSourceFactory(DefaultMediaSourceFactory(get<CacheDataSource.Factory>()))
-            .build().apply {
-                setAudioAttributes(get(), true)
-                setHandleAudioBecomingNoisy(true)
-            }
-    }
     single { MusicPreloader(get()) }
     single { MusicServiceConnection(get(), get(), androidContext()) }
     single<MusicPlayer> { AndroidMusicPlayer(get(), get(), get()) }

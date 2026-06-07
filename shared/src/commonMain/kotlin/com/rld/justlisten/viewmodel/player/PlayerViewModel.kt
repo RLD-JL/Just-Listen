@@ -23,6 +23,11 @@ import com.rld.justlisten.datalayer.repositories.AuthRepository
 
 import com.rld.justlisten.datalayer.repositories.PlaylistRepository
 
+import com.rld.justlisten.datalayer.repositories.FeedRepository
+import com.rld.justlisten.datalayer.repositories.SettingsRepository
+import com.rld.justlisten.datalayer.repositories.SessionState
+import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
+
 class PlayerViewModel(
     private val favoritesRepository: FavoritesRepository,
     private val libraryRepository: LibraryRepository,
@@ -30,7 +35,86 @@ class PlayerViewModel(
     private val musicPlayer: MusicPlayer,
     private val playHistoryTracker: PlayHistoryTracker,
     private val authRepository: AuthRepository,
+    private val feedRepository: FeedRepository,
+    private val settingsRepository: SettingsRepository,
 ) : BaseScreenViewModel() {
+
+    private var lastAutoplaySongId: String? = null
+    private var fetchDetailsJob: kotlinx.coroutines.Job? = null
+
+    init {
+        viewModelScope.launch {
+            musicPlayer.currentPlaylist.collect { playlist ->
+                val settings = settingsRepository.getSettingsInfo()
+                if (settings.isOngoingStreamEnabled && playlist.size == 1) {
+                    val singleSongId = playlist.first().id
+                    if (singleSongId != lastAutoplaySongId) {
+                        lastAutoplaySongId = singleSongId
+                        fetchAndAppendRecommendations()
+                    }
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            var lastTrackId: String? = null
+            musicPlayer.playbackState.collect { state ->
+                val media = state.currentMedia
+                val trackId = media?.id
+                if (trackId != null && trackId != lastTrackId) {
+                    lastTrackId = trackId
+                    fetchDetailsJob?.cancel()
+                    fetchDetailsJob = viewModelScope.launch {
+                        try {
+                            val details = playlistRepository.fetchTrackDetails(trackId)
+                            if (details != null) {
+                                musicPlayer.updateTrackMetadata(
+                                    songId = trackId,
+                                    repostCount = details.repostCount,
+                                    favoriteCount = details.favoriteCount,
+                                    commentCount = details.commentCount,
+                                    playCount = details.playCount,
+                                    artistId = details.user.id
+                                )
+                            }
+                        } catch (e: Exception) {
+                            // Ignore API fetch errors (e.g. offline)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun fetchAndAppendRecommendations() {
+        viewModelScope.launch {
+            try {
+                val session = authRepository.sessionState.value
+                val recommendedTracks = if (session is SessionState.Authenticated) {
+                    feedRepository.getUserFeed(
+                        userId = session.userProfile.userId ?: "",
+                        limit = 10,
+                        tracksOnly = true
+                    )
+                } else {
+                    playlistRepository.getTracks(
+                        limit = 10,
+                        category = "",
+                        timeRange = "week"
+                    ).map { PlaylistItem(it._data, it.isFavorite, it.isReposted) }
+                }
+                
+                val currentTrackId = musicPlayer.playbackState.value.currentMedia?.id
+                val filteredTracks = recommendedTracks.filter { it.id != currentTrackId }
+                
+                if (filteredTracks.isNotEmpty()) {
+                    musicPlayer.addTracksToQueue(filteredTracks)
+                }
+            } catch (e: Exception) {
+                // Ignore or log error
+            }
+        }
+    }
 
     private val _addPlaylistList = MutableStateFlow(emptyList<AddPlaylist>())
     val addPlaylistList: StateFlow<List<AddPlaylist>> = _addPlaylistList.asStateFlow()

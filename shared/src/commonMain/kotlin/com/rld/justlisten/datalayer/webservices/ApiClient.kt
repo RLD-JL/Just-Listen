@@ -12,6 +12,8 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @Serializable
 data class TokenResponse(
@@ -23,6 +25,7 @@ open class ApiClient(
     val apiKey: String = "",
     val secureStorage: SecureStorage
 ) {
+    private val tokenMutex = Mutex()
 
     val client = HttpClient {
         install(ContentNegotiation) {
@@ -57,31 +60,37 @@ open class ApiClient(
         }
     }
 
-    suspend fun refreshToken(): Boolean {
-        val refreshToken = secureStorage.getToken("refresh_token") ?: return false
-        val url = "${Constants.BASEURL}/v1/oauth/token"
-        return try {
-            val response = client.post(url) {
-                // Avoid infinite loops by overriding the bearer token for this request
-                header("Authorization", "")
-                contentType(ContentType.Application.FormUrlEncoded)
-                setBody(
-                    "grant_type=refresh_token" +
-                    "&refresh_token=$refreshToken" +
-                    "&client_id=$apiKey"
-                )
+    suspend fun refreshToken(failedToken: String? = null): Boolean {
+        return tokenMutex.withLock {
+            val currentToken = secureStorage.getToken("access_token")
+            if (!currentToken.isNullOrBlank() && currentToken != failedToken) {
+                return true
             }
-            if (response.status.isSuccess()) {
-                val tokenResponse = response.body<TokenResponse>()
-                secureStorage.saveToken("access_token", tokenResponse.accessToken)
-                secureStorage.saveToken("refresh_token", tokenResponse.refreshToken)
-                true
-            } else {
+            val refreshToken = secureStorage.getToken("refresh_token") ?: return false
+            val url = "${Constants.BASEURL}/v1/oauth/token"
+            try {
+                val response = client.post(url) {
+                    // Avoid infinite loops by overriding the bearer token for this request
+                    header("Authorization", "")
+                    contentType(ContentType.Application.FormUrlEncoded)
+                    setBody(
+                        "grant_type=refresh_token" +
+                        "&refresh_token=$refreshToken" +
+                        "&client_id=$apiKey"
+                    )
+                }
+                if (response.status.isSuccess()) {
+                    val tokenResponse = response.body<TokenResponse>()
+                    secureStorage.saveToken("access_token", tokenResponse.accessToken)
+                    secureStorage.saveToken("refresh_token", tokenResponse.refreshToken)
+                    true
+                } else {
+                    false
+                }
+            } catch (e: Exception) {
+                println("Error refreshing token: ${e.message}")
                 false
             }
-        } catch (e: Exception) {
-            println("Error refreshing token: ${e.message}")
-            false
         }
     }
 
@@ -89,9 +98,10 @@ open class ApiClient(
         val url = "${Constants.BASEURL}/v1$endpoint"
         println("ApiClient: GET request to: $url")
         return try {
+            val tokenBeforeRequest = secureStorage.getToken("access_token")
             var response = client.get(url)
             if (response.status == HttpStatusCode.Unauthorized) {
-                val refreshed = refreshToken()
+                val refreshed = refreshToken(tokenBeforeRequest)
                 if (refreshed) {
                     response = client.get(url)
                 }
@@ -107,6 +117,7 @@ open class ApiClient(
         val url = "${Constants.BASEURL}/v1$endpoint"
         println("ApiClient: POST request to: $url")
         return try {
+            val tokenBeforeRequest = secureStorage.getToken("access_token")
             var response = client.post(url) {
                 if (body != null) {
                     if (body is String) {
@@ -118,7 +129,7 @@ open class ApiClient(
                 }
             }
             if (response.status == HttpStatusCode.Unauthorized) {
-                val refreshed = refreshToken()
+                val refreshed = refreshToken(tokenBeforeRequest)
                 if (refreshed) {
                     response = client.post(url) {
                         if (body != null) {
@@ -143,6 +154,7 @@ open class ApiClient(
         val url = "${Constants.BASEURL}/v1$endpoint"
         println("ApiClient: PUT request to: $url")
         return try {
+            val tokenBeforeRequest = secureStorage.getToken("access_token")
             var response = client.put(url) {
                 if (body != null) {
                     if (body is String) {
@@ -154,7 +166,7 @@ open class ApiClient(
                 }
             }
             if (response.status == HttpStatusCode.Unauthorized) {
-                val refreshed = refreshToken()
+                val refreshed = refreshToken(tokenBeforeRequest)
                 if (refreshed) {
                     response = client.put(url) {
                         if (body != null) {
@@ -178,9 +190,10 @@ open class ApiClient(
     suspend inline fun <reified T : Any> deleteResponse(endpoint: String): T? {
         val url = "${Constants.BASEURL}/v1$endpoint"
         return try {
+            val tokenBeforeRequest = secureStorage.getToken("access_token")
             var response = client.delete(url)
             if (response.status == HttpStatusCode.Unauthorized) {
-                val refreshed = refreshToken()
+                val refreshed = refreshToken(tokenBeforeRequest)
                 if (refreshed) {
                     response = client.delete(url)
                 }

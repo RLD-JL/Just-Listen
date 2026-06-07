@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 import com.rld.justlisten.datalayer.repositories.PlaylistRepository
+import com.rld.justlisten.viewmodel.screens.search.TrackItem
+import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 
 class AndroidMusicPlayer(
     val musicServiceConnection: MusicServiceConnection,
@@ -140,6 +142,42 @@ class AndroidMusicPlayer(
         updateState(musicServiceConnection.playbackState.value, musicServiceConnection.currentPlayingSong.value)
     }
 
+    override fun updateTrackMetadata(
+        songId: String,
+        repostCount: Int,
+        favoriteCount: Int,
+        commentCount: Int,
+        playCount: Int,
+        artistId: String
+    ) {
+        val currentPlaylist = musicServiceConnection.musicSource.playlist
+        val songIndex = currentPlaylist.indexOfFirst { it.id == songId }
+        if (songIndex != -1) {
+            val song = currentPlaylist[songIndex]
+            val updatedSong = when (song) {
+                is TrackItem -> song.copy(_data = song._data.copy(
+                    repostCount = repostCount,
+                    favoriteCount = favoriteCount,
+                    commentCount = commentCount,
+                    playCount = playCount,
+                    user = song._data.user.copy(id = artistId)
+                ))
+                is PlaylistItem -> song.copy(_data = song._data.copy(
+                    repostCount = repostCount,
+                    favoriteCount = favoriteCount,
+                    commentCount = commentCount,
+                    playCount = playCount,
+                    user = song._data.user.copy(id = artistId)
+                ))
+                else -> song
+            }
+            val newList = currentPlaylist.toMutableList()
+            newList[songIndex] = updatedSong
+            musicServiceConnection.musicSource.playlist = newList
+            refreshMetadata()
+        }
+    }
+
     override fun removeTrack(index: Int) {
         musicServiceConnection.mediaController?.let { controller ->
             if (index in 0 until controller.mediaItemCount) {
@@ -154,6 +192,13 @@ class AndroidMusicPlayer(
                 controller.moveMediaItem(fromIndex, toIndex)
             }
         }
+    }
+
+    override fun addTracksToQueue(tracks: List<com.rld.justlisten.viewmodel.interfaces.Item>) {
+        val mediaItems = tracks.map { it.toMediaItem() }
+        musicServiceConnection.musicSource.playlist = musicServiceConnection.musicSource.playlist + tracks
+        musicServiceConnection.musicSource.songs = musicServiceConnection.musicSource.songs + mediaItems
+        musicServiceConnection.mediaController?.addMediaItems(mediaItems)
     }
     
     // Helper to update internal state from MusicServiceConnection
@@ -203,5 +248,10 @@ class AndroidMusicPlayer(
         Player.REPEAT_MODE_ONE -> RepeatMode.ONE
         Player.REPEAT_MODE_ALL -> RepeatMode.ALL
         else -> RepeatMode.NONE
+    }
+
+    override fun release() {
+        scope.cancel()
+        musicServiceConnection.release()
     }
 }

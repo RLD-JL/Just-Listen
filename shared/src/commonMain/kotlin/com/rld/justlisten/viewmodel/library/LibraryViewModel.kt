@@ -33,18 +33,70 @@ class LibraryViewModel(
         }
         
         viewModelScope.launch {
-            favoritesRepository.getFavoritePlaylistFlow().collect {
-                loadLibraryData()
+            favoritesRepository.getFavoritePlaylistFlow().collect { favoriteList ->
+                val mapped = favoriteList.map { PlaylistItem(it, it.isFavorite) }
+                _libraryState.update { it.copy(favoritePlaylistItems = mapped) }
             }
         }
         viewModelScope.launch {
-            libraryRepository.getAddPlaylistFlow().collect {
-                loadLibraryData()
+            libraryRepository.getAddPlaylistFlow().collect { playlistList ->
+                _libraryState.update { it.copy(playlistsCreated = playlistList) }
             }
         }
         viewModelScope.launch {
             libraryRepository.getPlayHistoryFlow().collect {
-                loadLibraryData()
+                loadPlayHistoryAndStats()
+            }
+        }
+    }
+
+    private fun loadPlayHistoryAndStats() {
+        viewModelScope.launch {
+            try {
+                val data = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val recent = libraryRepository.getRecentSongs(20).map { PlaylistItem(it, it.isFavorite) }
+                    val mostPlayed = libraryRepository.getMostPlayedSongsFromHistory(20, 0)
+                        .map { PlaylistItem(it, it.isFavorite) }
+                    val totalPlays = libraryRepository.getTotalPlays().toInt()
+                    val uniquePlays = libraryRepository.getUniquePlays().toInt()
+                    val totalDurationSeconds = libraryRepository.getTotalDurationPlayed()
+                    val hoursPlayed = ((totalDurationSeconds / 3600.0) * 10).toInt() / 10.0
+                    val topArtistGroup = libraryRepository.getTopArtistFromHistory()
+                    val topArtistName = topArtistGroup?.first?.username ?: ""
+                    val topArtistPlays = topArtistGroup?.second?.toInt() ?: 0
+                    val topArtistDurationSec = topArtistGroup?.third ?: 0L
+                    val topArtistHours = ((topArtistDurationSec / 3600.0) * 10).toInt() / 10.0
+                    val timeCapsule = libraryRepository.getTimeCapsuleSongs(20).map { PlaylistItem(it, it.isFavorite) }
+                    
+                    PlayHistoryData(
+                        recent = recent,
+                        mostPlayed = mostPlayed,
+                        totalPlays = totalPlays,
+                        uniquePlays = uniquePlays,
+                        hoursPlayed = hoursPlayed,
+                        topArtistName = topArtistName,
+                        topArtistPlays = topArtistPlays,
+                        topArtistHours = topArtistHours,
+                        timeCapsule = timeCapsule
+                    )
+                }
+                
+                _libraryState.update {
+                    it.copy(
+                        recentSongsItems = data.recent,
+                        mostPlayedSongs = data.mostPlayed,
+                        totalPlays = data.totalPlays,
+                        uniquePlays = data.uniquePlays,
+                        hoursPlayed = data.hoursPlayed,
+                        topArtistName = data.topArtistName,
+                        topArtistPlays = data.topArtistPlays,
+                        topArtistHours = data.topArtistHours,
+                        timeCapsuleSongs = data.timeCapsule,
+                        lastMostPlayedIndexReached = data.mostPlayed.size < 20
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -52,48 +104,53 @@ class LibraryViewModel(
     private fun loadLibraryData() {
         viewModelScope.launch {
             try {
-                val recent = libraryRepository.getRecentSongs(20).map { PlaylistItem(it, it.isFavorite) }
-                val favorites = favoritesRepository.getFavoritePlaylist().map { PlaylistItem(it, it.isFavorite) }
-                
-                // Fetch top played songs from history
-                val mostPlayed = libraryRepository.getMostPlayedSongsFromHistory(20, 0)
-                    .map { PlaylistItem(it, it.isFavorite) }
-                
-                val playlistsCreated = libraryRepository.getAddPlaylist()
-                
-                // Fetch total play and unique plays count directly
-                val totalPlays = libraryRepository.getTotalPlays().toInt()
-                val uniquePlays = libraryRepository.getUniquePlays().toInt()
-                
-                // Fetch total duration and calculate hours
-                val totalDurationSeconds = libraryRepository.getTotalDurationPlayed()
-                val hoursPlayed = ((totalDurationSeconds / 3600.0) * 10).toInt() / 10.0
-                
-                // Fetch top artist from history
-                val topArtistGroup = libraryRepository.getTopArtistFromHistory()
-                val topArtistName = topArtistGroup?.first?.username ?: ""
-                val topArtistPlays = topArtistGroup?.second?.toInt() ?: 0
-                val topArtistDurationSec = topArtistGroup?.third ?: 0L
-                val topArtistHours = ((topArtistDurationSec / 3600.0) * 10).toInt() / 10.0
-                
-                val timeCapsule = libraryRepository.getTimeCapsuleSongs(20).map { PlaylistItem(it, it.isFavorite) }
-                
-                _libraryState.update {
-                    it.copy(
-                        isLoading = false,
-                        recentSongsItems = recent,
-                        favoritePlaylistItems = favorites,
-                        mostPlayedSongs = mostPlayed,
+                val data = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val recent = libraryRepository.getRecentSongs(20).map { PlaylistItem(it, it.isFavorite) }
+                    val favorites = favoritesRepository.getFavoritePlaylist().map { PlaylistItem(it, it.isFavorite) }
+                    val mostPlayed = libraryRepository.getMostPlayedSongsFromHistory(20, 0)
+                        .map { PlaylistItem(it, it.isFavorite) }
+                    val playlistsCreated = libraryRepository.getAddPlaylist()
+                    val totalPlays = libraryRepository.getTotalPlays().toInt()
+                    val uniquePlays = libraryRepository.getUniquePlays().toInt()
+                    val totalDurationSeconds = libraryRepository.getTotalDurationPlayed()
+                    val hoursPlayed = ((totalDurationSeconds / 3600.0) * 10).toInt() / 10.0
+                    val topArtistGroup = libraryRepository.getTopArtistFromHistory()
+                    val topArtistName = topArtistGroup?.first?.username ?: ""
+                    val topArtistPlays = topArtistGroup?.second?.toInt() ?: 0
+                    val topArtistDurationSec = topArtistGroup?.third ?: 0L
+                    val topArtistHours = ((topArtistDurationSec / 3600.0) * 10).toInt() / 10.0
+                    val timeCapsule = libraryRepository.getTimeCapsuleSongs(20).map { PlaylistItem(it, it.isFavorite) }
+
+                    LibraryData(
+                        recent = recent,
+                        favorites = favorites,
+                        mostPlayed = mostPlayed,
                         playlistsCreated = playlistsCreated,
-                        timeCapsuleSongs = timeCapsule,
                         totalPlays = totalPlays,
                         uniquePlays = uniquePlays,
                         hoursPlayed = hoursPlayed,
                         topArtistName = topArtistName,
                         topArtistPlays = topArtistPlays,
                         topArtistHours = topArtistHours,
-                        lastMostPlayedIndexReached = mostPlayed.size < 20,
-                        sessionState = it.sessionState
+                        timeCapsule = timeCapsule
+                    )
+                }
+
+                _libraryState.update {
+                    it.copy(
+                        isLoading = false,
+                        recentSongsItems = data.recent,
+                        favoritePlaylistItems = data.favorites,
+                        mostPlayedSongs = data.mostPlayed,
+                        playlistsCreated = data.playlistsCreated,
+                        timeCapsuleSongs = data.timeCapsule,
+                        totalPlays = data.totalPlays,
+                        uniquePlays = data.uniquePlays,
+                        hoursPlayed = data.hoursPlayed,
+                        topArtistName = data.topArtistName,
+                        topArtistPlays = data.topArtistPlays,
+                        topArtistHours = data.topArtistHours,
+                        lastMostPlayedIndexReached = data.mostPlayed.size < 20
                     )
                 }
             } catch (e: Exception) {
@@ -239,3 +296,29 @@ class LibraryViewModel(
         }
     }
 }
+
+private data class LibraryData(
+    val recent: List<PlaylistItem>,
+    val favorites: List<PlaylistItem>,
+    val mostPlayed: List<PlaylistItem>,
+    val playlistsCreated: List<com.rld.justlisten.database.addplaylistscreen.AddPlaylist>,
+    val totalPlays: Int,
+    val uniquePlays: Int,
+    val hoursPlayed: Double,
+    val topArtistName: String,
+    val topArtistPlays: Int,
+    val topArtistHours: Double,
+    val timeCapsule: List<PlaylistItem>
+)
+
+private data class PlayHistoryData(
+    val recent: List<PlaylistItem>,
+    val mostPlayed: List<PlaylistItem>,
+    val totalPlays: Int,
+    val uniquePlays: Int,
+    val hoursPlayed: Double,
+    val topArtistName: String,
+    val topArtistPlays: Int,
+    val topArtistHours: Double,
+    val timeCapsule: List<PlaylistItem>
+)

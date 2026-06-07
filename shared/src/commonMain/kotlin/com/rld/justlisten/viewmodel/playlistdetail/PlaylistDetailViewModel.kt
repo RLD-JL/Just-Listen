@@ -86,7 +86,8 @@ class PlaylistDetailViewModel(
                     playlistName = args.playlistTitle, 
                     playListCreatedBy = args.playlistCreatedBy, 
                     playlistIcon = args.playlistIcon,
-                    playlistId = args.playlistId
+                    playlistId = args.playlistId,
+                    playlistEnum = args.playlistEnum
                 ) 
             }
             val playlistEnum = PlayListEnum.valueOf(args.playlistEnum)
@@ -117,6 +118,27 @@ class PlaylistDetailViewModel(
             libraryRepository.updatePlaylistName(oldName, newName)
             _playlistDetailState.update {
                 it.copy(playlistName = newName)
+            }
+        }
+    }
+
+    fun removeSongFromPlaylist(playlistName: String, songId: String) {
+        viewModelScope.launch {
+            val playlist = libraryRepository.getAddPlaylist().firstOrNull { it.playlistName == playlistName }
+            if (playlist != null) {
+                val updatedSongs = (playlist.songsList ?: emptyList()).filter { it != songId }
+                libraryRepository.updatePlaylistSongs(
+                    playlistName = playlistName,
+                    playlistDescription = playlist.playlistDescription,
+                    songList = updatedSongs,
+                    isRemote = playlist.isRemote,
+                    isPrivate = playlist.isPrivate,
+                    playlistId = playlist.playlistId
+                )
+                _playlistDetailState.update { state ->
+                    val updatedList = state.songPlaylist.filter { it.id != songId }
+                    state.copy(songPlaylist = updatedList)
+                }
             }
         }
     }

@@ -21,7 +21,7 @@ private const val SERVICE_TAG = "MusicService"
 
 class MusicService : MediaSessionService() {
 
-    val exoPlayer: ExoPlayer by inject()
+    private var exoPlayer: ExoPlayer? = null
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
@@ -33,13 +33,26 @@ class MusicService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
 
+        val cacheDataSourceFactory: androidx.media3.datasource.cache.CacheDataSource.Factory by inject()
+        val audioAttributes: androidx.media3.common.AudioAttributes by inject()
+
+        val player = ExoPlayer.Builder(this)
+            .setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(cacheDataSourceFactory))
+            .build().apply {
+                setAudioAttributes(audioAttributes, true)
+                setHandleAudioBecomingNoisy(true)
+            }
+        exoPlayer = player
+
         val activityIntent = packageManager?.getLaunchIntentForPackage(packageName)?.let {
             PendingIntent.getActivity(this, 0, it, PendingIntent.FLAG_IMMUTABLE)
         }
 
-        mediaSession = MediaSession.Builder(this, exoPlayer)
-            .setSessionActivity(activityIntent!!)
-            .build()
+        val sessionBuilder = MediaSession.Builder(this, player)
+        if (activityIntent != null) {
+            sessionBuilder.setSessionActivity(activityIntent)
+        }
+        mediaSession = sessionBuilder.build()
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
@@ -55,10 +68,11 @@ class MusicService : MediaSessionService() {
 
     override fun onDestroy() {
         mediaSession?.run {
-            player.release()
             release()
             mediaSession = null
         }
+        exoPlayer?.release()
+        exoPlayer = null
         serviceScope.cancel()
         super.onDestroy()
     }

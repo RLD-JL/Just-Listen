@@ -7,8 +7,8 @@ interface Item {
     val title: String
     val playlistTitle: String
     val id: String
-    var isFavorite: Boolean
-    var isReposted: Boolean
+    val isFavorite: Boolean
+    val isReposted: Boolean
     val songIconList: SongIconList
     val songCounter: String
     val repostCount: Int

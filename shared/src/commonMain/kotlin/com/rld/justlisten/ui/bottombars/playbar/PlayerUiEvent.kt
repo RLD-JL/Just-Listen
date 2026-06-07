@@ -5,7 +5,7 @@ import androidx.compose.ui.unit.Dp
 
 data class PlayerLayoutInfo(
     val bottomPadding: Dp,
-    val currentFraction: Float,
+    val currentFractionProvider: () -> Float,
     val isExtended: Boolean
 )
 

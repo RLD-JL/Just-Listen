@@ -22,7 +22,10 @@ fun ListOfCollections(
     lasItemReached: (Int, PlayListEnum) -> Unit,
     onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
     onSeeAllClicked: (String, PlayListEnum, String) -> Unit,
-    onArtistClicked: (String, String) -> Unit
+    onArtistClicked: (String, String) -> Unit,
+    currentPlayingSongId: String? = null,
+    currentlyPlayingPlaylistId: String? = null,
+    isPlaying: Boolean = false
 ) {
     val list = remember {
         mutableListOf(
@@ -73,7 +76,10 @@ fun ListOfCollections(
                 playlistEnum = PlayListEnum.TOP_PLAYLIST,
                 onPlaylistClicked = onPlaylistClicked,
                 lastIndexReached = playlistState.lastFetchPlaylist,
-                onArtistClicked = onArtistClicked
+                onArtistClicked = onArtistClicked,
+                currentPlayingSongId = currentPlayingSongId,
+                currentlyPlayingPlaylistId = currentlyPlayingPlaylistId,
+                isPlaying = isPlaying
             )
             1 -> PlaylistRow(
                 playlist = playlistState.remixPlaylist,
@@ -81,7 +87,10 @@ fun ListOfCollections(
                 playlistEnum = PlayListEnum.REMIX,
                 onPlaylistClicked = onPlaylistClicked,
                 lastIndexReached = playlistState.lastFetchRemix,
-                onArtistClicked = onArtistClicked
+                onArtistClicked = onArtistClicked,
+                currentPlayingSongId = currentPlayingSongId,
+                currentlyPlayingPlaylistId = currentlyPlayingPlaylistId,
+                isPlaying = isPlaying
             )
             2 -> PlaylistRow(
                 playlist = playlistState.hotPlaylist,
@@ -89,7 +98,10 @@ fun ListOfCollections(
                 playlistEnum = PlayListEnum.HOT,
                 onPlaylistClicked = onPlaylistClicked,
                 lastIndexReached = playlistState.lastFetchHot,
-                onArtistClicked = onArtistClicked
+                onArtistClicked = onArtistClicked,
+                currentPlayingSongId = currentPlayingSongId,
+                currentlyPlayingPlaylistId = currentlyPlayingPlaylistId,
+                isPlaying = isPlaying
             )
         }
     }

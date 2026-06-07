@@ -113,13 +113,18 @@ fun UpNextQueueView(
     val localPlaylist = localPlaylistState.value
     val currentIndex = localPlaylist.indexOfFirst { it.id == currentMedia?.id }
 
-    val pastSongs = localPlaylist.take(maxOf(0, currentIndex))
-    val currentSong = localPlaylist.getOrNull(currentIndex)
-    val nextSongs =
+    val pastSongs = remember(localPlaylist, currentIndex) {
+        localPlaylist.take(maxOf(0, currentIndex))
+    }
+    val currentSong = remember(localPlaylist, currentIndex) {
+        localPlaylist.getOrNull(currentIndex)
+    }
+    val nextSongs = remember(localPlaylist, currentIndex) {
         if (currentIndex >= 0 && currentIndex < localPlaylist.size - 1)
             localPlaylist.drop(currentIndex + 1)
         else
             emptyList()
+    }
 
     val lazyListState = rememberLazyListState()
     val isPlaying = playbackState.status == PlaybackStatus.PLAYING

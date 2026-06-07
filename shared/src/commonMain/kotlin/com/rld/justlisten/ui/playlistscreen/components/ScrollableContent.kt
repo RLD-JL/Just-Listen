@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
+import com.rld.justlisten.datalayer.repositories.SessionState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +47,11 @@ fun ScrollableContent(
     playlistState: PlaylistState,
     onAction: (PlaylistScreenAction) -> Unit
 ) {
+    val musicPlayer = LocalMusicPlayer.current
+    val playbackState by musicPlayer.playbackState.collectAsState()
+    val currentPlayingSongId = playbackState.currentMedia?.id
+    val currentlyPlayingPlaylistId = musicPlayer.currentlyPlayingPlaylistId
+    val isPlaying = playbackState.status == PlaybackStatus.PLAYING
 
     Column(
         modifier = Modifier
@@ -61,11 +69,61 @@ fun ScrollableContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = greetingText,
-                style = typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                if (playlistState.sessionState is SessionState.Authenticated) {
+                    val avatarUrl = playlistState.sessionState.userProfile.profilePicture?.image150
+                    val context = LocalPlatformContext.current
+                    val painter = rememberAsyncImagePainter(
+                        model = remember(avatarUrl, context) {
+                            ImageRequest.Builder(context)
+                                .data(avatarUrl)
+                                .build()
+                        }
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (avatarUrl != null) {
+                            Image(
+                                painter = painter,
+                                contentDescription = "User Avatar",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "User Profile",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                }
+                
+                Column {
+                    Text(
+                        text = greetingText,
+                        style = typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    if (playlistState.sessionState is SessionState.Authenticated) {
+                        Text(
+                            text = playlistState.sessionState.userProfile.name,
+                            style = typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = "Search",
@@ -187,10 +245,11 @@ fun ScrollableContent(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    items(chunkedTracks) { pair ->
+                    items(chunkedTracks, key = { chunk -> chunk.firstOrNull()?.id ?: "" }) { pair ->
                         Column(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
+                            val isPlaying0 = isPlaying && pair[0].id == currentPlayingSongId
                             TrackCardItem(
                                 track = pair[0],
                                 onClick = {
@@ -198,9 +257,11 @@ fun ScrollableContent(
                                 },
                                 onArtistClicked = { id, name ->
                                     onAction(PlaylistScreenAction.ArtistClicked(id, name))
-                                }
+                                },
+                                isPlaying = isPlaying0
                             )
                             if (pair.size > 1) {
+                                val isPlaying1 = isPlaying && pair[1].id == currentPlayingSongId
                                 TrackCardItem(
                                     track = pair[1],
                                     onClick = {
@@ -208,7 +269,8 @@ fun ScrollableContent(
                                     },
                                     onArtistClicked = { id, name ->
                                         onAction(PlaylistScreenAction.ArtistClicked(id, name))
-                                    }
+                                    },
+                                    isPlaying = isPlaying1
                                 )
                             }
                         }
@@ -231,7 +293,10 @@ fun ScrollableContent(
             },
             onArtistClicked = { id, name ->
                 onAction(PlaylistScreenAction.ArtistClicked(id, name))
-            }
+            },
+            currentPlayingSongId = currentPlayingSongId,
+            currentlyPlayingPlaylistId = currentlyPlayingPlaylistId,
+            isPlaying = isPlaying
         )
         
         Spacer(modifier = Modifier.height(24.dp))
@@ -242,13 +307,9 @@ fun ScrollableContent(
 fun TrackCardItem(
     track: TrackItem,
     onClick: () -> Unit,
-    onArtistClicked: (String, String) -> Unit
+    onArtistClicked: (String, String) -> Unit,
+    isPlaying: Boolean = false
 ) {
-    val musicPlayer = LocalMusicPlayer.current
-    val playbackState by musicPlayer.playbackState.collectAsState()
-    val isPlayingThisTrack = playbackState.status == PlaybackStatus.PLAYING &&
-            playbackState.currentMedia?.id == track.id
-
     val context = LocalPlatformContext.current
     val painter = rememberAsyncImagePainter(
         model = remember(track.songIconList.songImageURL480px, context) {
@@ -285,7 +346,7 @@ fun TrackCardItem(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
-                if (isPlayingThisTrack) {
+                if (isPlaying) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()

@@ -18,18 +18,19 @@ fun LocalDb.saveSongToFavorites(
 ) {
     libraryQueries.transaction {
         libraryQueries.upsertLibraryFavorite(
-            id,
-            title,
-            user,
-            songImgList,
-            playlistName,
-            favoriteSong = isFavorite
+            id = id,
+            title = title,
+            user = user,
+            songImgList = songImgList,
+            playlistName = playlistName,
+            favoriteSong = isFavorite,
+            artistId = user.id
         )
     }
 }
 
 fun LocalDb.getFavoritePlaylist(): List<PlayListModel> {
-    return libraryQueries.getFavoritePlaylist(mapper = { id, title, user, songImgList, _, _, _, _, _ ->
+    return libraryQueries.getFavoritePlaylist(mapper = { id, title, user, songImgList, _, _, _, _, _, _ ->
         PlayListModel(
             id = id,
             playlistTitle = title,
@@ -42,7 +43,7 @@ fun LocalDb.getFavoritePlaylist(): List<PlayListModel> {
 }
 
 fun LocalDb.getFavoritePlaylistFlow(): Flow<List<PlayListModel>> {
-    return libraryQueries.getFavoritePlaylist(mapper = { id, title, user, songImgList, _, _, _, _, _ ->
+    return libraryQueries.getFavoritePlaylist(mapper = { id, title, user, songImgList, _, _, _, _, _, _ ->
         PlayListModel(
             id = id,
             playlistTitle = title,
@@ -56,16 +57,16 @@ fun LocalDb.getFavoritePlaylistFlow(): Flow<List<PlayListModel>> {
 
 fun LocalDb.getCustomPlaylistSongs(songsList: List<String>): List<PlayListModel> {
     return libraryQueries.getCustomPlaylistSongs(
-        songsList, mapper = { id, title, user, songImgList, _, _, _, _, _
+        songsList, mapper = { id, title, user, songImgList, _, _, _, _, _, _
             ->
             PlayListModel(id, title, title, songImgList, user, isStreamable = true)
         }).executeAsList()
 }
 
-fun LocalDb.getSongWithId(songId: String): PlayListModel {
-    return libraryQueries.getSongWithId(songId, mapper = { id, title, user, songImgList, _, _, _, _, _
+fun LocalDb.getSongWithId(songId: String): PlayListModel? {
+    return libraryQueries.getSongWithId(songId, mapper = { id, title, user, songImgList, _, _, _, _, _, _
         -> PlayListModel(id, title, title, songImgList, user)
-    }).executeAsOne()
+    }).executeAsOneOrNull()
 }
 
 fun LocalDb.getFavoritePlaylistWithId(id: String): String? {
@@ -77,7 +78,14 @@ fun LocalDb.saveSongRecentSongs(
     playlistName: String
 ) {
     libraryQueries.transaction {
-        libraryQueries.upsertLibraryRecent(id, title, user, songImgList, playlistName)
+        libraryQueries.upsertLibraryRecent(
+            id = id,
+            title = title,
+            user = user,
+            songImgList = songImgList,
+            playlistName = playlistName,
+            artistId = user.id
+        )
     }
 }
 
@@ -86,13 +94,20 @@ fun LocalDb.saveMostPlayedSongs(
     playlistName: String
 ) {
     libraryQueries.transaction {
-        libraryQueries.upsertLibraryMostPlayed(id, title, user, songImgList, playlistName)
+        libraryQueries.upsertLibraryMostPlayed(
+            id = id,
+            title = title,
+            user = user,
+            songImgList = songImgList,
+            playlistName = playlistName,
+            artistId = user.id
+        )
     }
 }
 
 fun LocalDb.getRecentPlayed(numberOfLines: Long): List<PlayListModel> {
     return libraryQueries.getRecentPlayed(
-        mapper = { id, title, user, songImgList, _, _, isFavorite, _, _ ->
+        mapper = { id, title, user, songImgList, _, _, isFavorite, _, _, _ ->
             PlayListModel(
                 id = id,
                 playlistTitle = title,
@@ -109,7 +124,7 @@ fun LocalDb.getRecentPlayed(numberOfLines: Long): List<PlayListModel> {
 
 fun LocalDb.getMostPlayedSongs(numberOfSongs: Long): List<PlayListModel> {
     return libraryQueries.getMostPlayed(numberOfSongs = numberOfSongs,
-        mapper = { id, title, user, songImgList, _, _, _, _, songCounter ->
+        mapper = { id, title, user, songImgList, _, _, _, _, songCounter, _ ->
             PlayListModel(
                 id = id,
                 playlistTitle = title,
@@ -124,7 +139,7 @@ fun LocalDb.getMostPlayedSongs(numberOfSongs: Long): List<PlayListModel> {
 
 fun LocalDb.getTimeCapsuleSongs(limit: Long): List<PlayListModel> {
     return libraryQueries.getTimeCapsuleSongs(limit = limit,
-        mapper = { id, title, user, songImgList, _, _, _, _, songCounter ->
+        mapper = { id, title, user, songImgList, _, _, _, _, songCounter, _ ->
             PlayListModel(
                 id = id,
                 playlistTitle = title,
@@ -165,7 +180,7 @@ fun LocalDb.getDurationPlayedForSongFromHistory(songId: String): Long {
 }
 
 fun LocalDb.getDurationPlayedForArtistFromHistory(user: UserModel): Long {
-    return libraryQueries.getDurationPlayedForArtist(user).executeAsOne()
+    return libraryQueries.getDurationPlayedForArtist(artistId = user.id).executeAsOne()
 }
 
 fun LocalDb.getMostPlayedSongsFromHistory(limit: Long, offset: Long): List<PlayListModel> {

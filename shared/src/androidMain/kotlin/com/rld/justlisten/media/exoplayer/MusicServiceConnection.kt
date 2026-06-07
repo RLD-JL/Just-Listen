@@ -51,6 +51,8 @@ class MusicServiceConnection(
     val currentPlaylist = _currentPlaylist.asStateFlow()
 
     var mediaController: MediaController? = null
+    private var controllerFuture: com.google.common.util.concurrent.ListenableFuture<MediaController>? = null
+    private val playerListener = PlayerListener()
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
@@ -58,12 +60,17 @@ class MusicServiceConnection(
 
     init {
         val sessionToken = SessionToken(context, ComponentName(context, MusicService::class.java))
-        val controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
-        controllerFuture.addListener({
-            mediaController = controllerFuture.get()
-            mediaController?.addListener(PlayerListener())
-            _isConnected.value = true
-            updateSong()
+        val future = MediaController.Builder(context, sessionToken).buildAsync()
+        controllerFuture = future
+        future.addListener({
+            try {
+                mediaController = future.get()
+                mediaController?.addListener(playerListener)
+                _isConnected.value = true
+                updateSong()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }, MoreExecutors.directExecutor())
     }
 
@@ -135,5 +142,16 @@ class MusicServiceConnection(
             val nextSong = controller.getMediaItemAt(nextIndex)
             musicPreloader.preloadSong(nextSong.mediaId)
         }
+    }
+
+    fun release() {
+        serviceJob.cancel()
+        updateJob?.cancel()
+        mediaController?.removeListener(playerListener)
+        controllerFuture?.let {
+            MediaController.releaseFuture(it)
+        }
+        mediaController = null
+        _isConnected.value = false
     }
 }

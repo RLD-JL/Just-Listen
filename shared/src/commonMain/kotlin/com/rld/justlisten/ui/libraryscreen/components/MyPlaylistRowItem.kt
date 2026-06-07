@@ -10,7 +10,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.rounded.CloudQueue
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.runtime.Composable
@@ -27,7 +26,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
-import com.rld.justlisten.ui.addplaylistscreen.components.ConfirmDeletePlaylistDialog
 
 @Composable
 fun MyPlaylistRowItem(

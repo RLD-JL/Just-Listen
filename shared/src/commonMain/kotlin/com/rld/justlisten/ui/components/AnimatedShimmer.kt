@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -36,17 +37,19 @@ fun Modifier.shimmerEffect(): Modifier = composed {
         label = "shimmer_translate"
     )
 
-    background(
-        brush = Brush.linearGradient(
-            colors = listOf(
-                Color(0xFFB8B5B5),
-                Color(0xFF8F8B8B),
-                Color(0xFFB8B5B5),
-            ),
-            start = Offset(translateAnim - 200f, translateAnim - 200f),
-            end = Offset(translateAnim, translateAnim)
+    drawBehind {
+        drawRect(
+            brush = Brush.linearGradient(
+                colors = listOf(
+                    Color(0xFFB8B5B5),
+                    Color(0xFF8F8B8B),
+                    Color(0xFFB8B5B5),
+                ),
+                start = Offset(translateAnim - 200f, translateAnim - 200f),
+                end = Offset(translateAnim, translateAnim)
+            )
         )
-    )
+    }
 }
 
 @Composable

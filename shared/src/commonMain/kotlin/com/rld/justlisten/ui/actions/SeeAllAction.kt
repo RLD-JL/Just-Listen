@@ -12,9 +12,6 @@ sealed interface SeeAllAction {
 
     data class LoadMore(val offset: Int) : SeeAllAction
 
-    data class ChangeTimeRange(val timeRange: com.rld.justlisten.viewmodel.screens.playlist.TimeRange) : SeeAllAction
-
-    data class ChangeGenre(val genre: com.rld.justlisten.viewmodel.screens.playlist.TracksCategory) : SeeAllAction
 
     data class SongPressed(
         val songId: String,

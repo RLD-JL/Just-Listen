@@ -1,0 +1,2 @@
+ALTER TABLE Library ADD COLUMN artistId TEXT NOT NULL DEFAULT '';
+CREATE INDEX idx_library_artistId ON Library(artistId);

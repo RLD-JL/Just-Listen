@@ -24,15 +24,20 @@ class AddPlaylistViewModel(
 
     fun refreshPlaylists() {
         viewModelScope.launch {
+            val playlists = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                libraryRepository.getAddPlaylist()
+            }
             _addPlaylistState.update {
-                it.copy(isLoading = false, playlistsCreated = libraryRepository.getAddPlaylist())
+                it.copy(isLoading = false, playlistsCreated = playlists)
             }
         }
     }
 
     fun onAddPlaylistClicked(name: String, description: String?) {
-        libraryRepository.savePlaylist(name, description)
-        refreshPlaylists()
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            libraryRepository.savePlaylist(name, description)
+            refreshPlaylists()
+        }
     }
 
     fun onPlaylistItemClicked(title: String, description: String?, songs: List<String>) {
@@ -53,6 +58,8 @@ class AddPlaylistViewModel(
     }
 
     fun updatePlaylistSongs(title: String, description: String?, songs: List<String>) {
-        libraryRepository.updatePlaylistSongs(title, description, songs)
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            libraryRepository.updatePlaylistSongs(title, description, songs)
+        }
     }
 }

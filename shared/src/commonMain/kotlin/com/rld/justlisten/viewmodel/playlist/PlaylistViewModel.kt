@@ -3,6 +3,7 @@ package com.rld.justlisten.viewmodel.playlist
 import androidx.lifecycle.viewModelScope
 import com.rld.justlisten.datalayer.repositories.PlaylistRepository
 import com.rld.justlisten.datalayer.repositories.FavoritesRepository
+import com.rld.justlisten.datalayer.repositories.AuthRepository
 import com.rld.justlisten.datalayer.utils.Constants.list
 import com.rld.justlisten.navigation.Route
 import com.rld.justlisten.viewmodel.BaseScreenViewModel
@@ -22,6 +23,7 @@ import kotlin.random.Random
 class PlaylistViewModel(
     private val playlistRepository: PlaylistRepository,
     private val favoritesRepository: FavoritesRepository,
+    private val authRepository: AuthRepository,
 ) : BaseScreenViewModel() {
 
     private val _playlistState = MutableStateFlow(PlaylistState(isLoading = true))
@@ -31,6 +33,11 @@ class PlaylistViewModel(
 
     init {
         refreshScreen()
+        viewModelScope.launch {
+            authRepository.sessionState.collect { session ->
+                _playlistState.update { it.copy(sessionState = session) }
+            }
+        }
         viewModelScope.launch {
             favoritesRepository.getFavoritePlaylistFlow().collect { favoriteList ->
                 val favoriteIds = favoriteList.map { it.id }.toSet()
@@ -170,11 +177,9 @@ class PlaylistViewModel(
 
     fun onSeeAllTracksClicked(categoryName: String, queryPlaylist: String, selectedTimeRange: TimeRange) {
         navigate(
-            Route.SeeAll(
-                categoryName = categoryName,
-                playlistEnum = "TRACKS",
-                queryPlaylist = queryPlaylist,
-                selectedTimeRange = selectedTimeRange.name
+            Route.Feed(
+                category = queryPlaylist,
+                timeRange = selectedTimeRange.name
             )
         )
     }
