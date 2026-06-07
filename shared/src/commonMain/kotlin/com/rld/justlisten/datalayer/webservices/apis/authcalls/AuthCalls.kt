@@ -119,3 +119,60 @@ suspend fun ApiClient.getUserFavoritePlaylists(userId: String): List<PlayListMod
     }
     return playlists
 }
+
+@Serializable
+data class UserProfileModel(
+    @SerialName("id") val id: String = "",
+    @SerialName("name") val name: String = "",
+    @SerialName("handle") val handle: String = "",
+    @SerialName("bio") val bio: String? = null,
+    @SerialName("location") val location: String? = null,
+    @SerialName("profile_picture") val profilePicture: ProfileImages? = null,
+    @SerialName("cover_photo") val coverPhoto: ProfileImages? = null,
+    @SerialName("follower_count") val followerCount: Int = 0,
+    @SerialName("followee_count") val followeeCount: Int = 0,
+    @SerialName("track_count") val trackCount: Int = 0,
+    @SerialName("playlist_count") val playlistCount: Int = 0,
+    @SerialName("does_current_user_follow") val doesCurrentUserFollow: Boolean = false,
+    @SerialName("is_verified") val isVerified: Boolean = false
+)
+
+@Serializable
+data class UserProfileResponse(
+    @SerialName("data") val data: UserProfileModel
+)
+
+suspend fun ApiClient.getUserProfile(userId: String): UserProfileModel? {
+    val response: UserProfileResponse? = getResponse("/users/$userId")
+    return response?.data
+}
+
+@Serializable
+data class FeedItemModel(
+    @SerialName("type") val type: String,
+    @SerialName("item") val item: PlayListModel
+)
+
+@Serializable
+data class FeedResponse(
+    @SerialName("data") val data: List<FeedItemModel>,
+    @SerialName("err") val error: String? = null
+)
+
+suspend fun ApiClient.getUserFeed(
+    userId: String,
+    limit: Int = 20,
+    offset: Int = 0,
+    filter: String = "all",
+    tracksOnly: Boolean? = null
+): FeedResponse? {
+    var url = "/users/$userId/feed?limit=$limit&offset=$offset"
+    if (filter != "all") {
+        url += "&filter=$filter"
+    }
+    if (tracksOnly != null) {
+        url += "&tracks_only=$tracksOnly"
+    }
+    return getResponse(url)
+}
+

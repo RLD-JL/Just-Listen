@@ -120,6 +120,9 @@ class LibraryViewModelTest {
         override val syncState = MutableStateFlow<com.rld.justlisten.datalayer.repositories.SyncState>(com.rld.justlisten.datalayer.repositories.SyncState.Synced)
         override fun enqueueFavoriteTask(trackId: String, isFavorite: Boolean) {}
         override fun enqueuePlaylistCreateTask(name: String, description: String?, isPrivate: Boolean) {}
+        override fun enqueuePlaylistUpdateTask(playlistId: String, songs: List<String>) {}
+        override fun enqueuePlaylistDeleteTask(playlistId: String) {}
+        override fun enqueuePlaylistDetailsUpdateTask(playlistId: String, name: String, description: String?) {}
         override fun triggerSync() {}
         override fun clearQueue() {}
         override suspend fun performInboundSync(userId: String) {}
@@ -134,10 +137,10 @@ class LibraryViewModelTest {
             playlistsFlow.value = playlists.toList()
         }
 
-        override fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean, isPrivate: Boolean) {
+        override fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean, isPrivate: Boolean, playlistId: String?) {
             savePlaylistCalledWith.add(playlistName)
             if (playlists.none { it.playlistName == playlistName }) {
-                playlists.add(AddPlaylist(playlistName, playlistDescription ?: "", songsList = emptyList(), isRemote = isRemote, isPrivate = isPrivate))
+                playlists.add(AddPlaylist(playlistName, playlistDescription ?: "", songsList = emptyList(), isRemote = isRemote, isPrivate = isPrivate, playlistId = playlistId))
                 updateFlow()
             }
         }
@@ -146,10 +149,10 @@ class LibraryViewModelTest {
 
         override fun getAddPlaylistFlow(): Flow<List<AddPlaylist>> = playlistsFlow
 
-        override fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean, isPrivate: Boolean) {
+        override fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean, isPrivate: Boolean, playlistId: String?) {
             val index = playlists.indexOfFirst { it.playlistName == playlistName }
             if (index >= 0) {
-                playlists[index] = AddPlaylist(playlistName, playlistDescription ?: "", songsList = songList, isRemote = isRemote, isPrivate = isPrivate)
+                playlists[index] = AddPlaylist(playlistName, playlistDescription ?: "", songsList = songList, isRemote = isRemote, isPrivate = isPrivate, playlistId = playlistId)
             }
             updateFlow()
         }

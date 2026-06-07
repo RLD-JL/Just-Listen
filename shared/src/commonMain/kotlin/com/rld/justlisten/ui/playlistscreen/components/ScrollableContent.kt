@@ -195,6 +195,9 @@ fun ScrollableContent(
                                 track = pair[0],
                                 onClick = {
                                     onAction(PlaylistScreenAction.SongPressed(pair[0].id, pair[0].title, pair[0].user, pair[0].songIconList))
+                                },
+                                onArtistClicked = { id, name ->
+                                    onAction(PlaylistScreenAction.ArtistClicked(id, name))
                                 }
                             )
                             if (pair.size > 1) {
@@ -202,6 +205,9 @@ fun ScrollableContent(
                                     track = pair[1],
                                     onClick = {
                                         onAction(PlaylistScreenAction.SongPressed(pair[1].id, pair[1].title, pair[1].user, pair[1].songIconList))
+                                    },
+                                    onArtistClicked = { id, name ->
+                                        onAction(PlaylistScreenAction.ArtistClicked(id, name))
                                     }
                                 )
                             }
@@ -222,6 +228,9 @@ fun ScrollableContent(
             },
             onSeeAllClicked = { item, playListEnum, query ->
                 onAction(PlaylistScreenAction.SeeAllClicked(item, playListEnum, query))
+            },
+            onArtistClicked = { id, name ->
+                onAction(PlaylistScreenAction.ArtistClicked(id, name))
             }
         )
         
@@ -232,7 +241,8 @@ fun ScrollableContent(
 @Composable
 fun TrackCardItem(
     track: TrackItem,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onArtistClicked: (String, String) -> Unit
 ) {
     val musicPlayer = LocalMusicPlayer.current
     val playbackState by musicPlayer.playbackState.collectAsState()
@@ -302,12 +312,19 @@ fun TrackCardItem(
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(2.dp))
+                val artistId = track._data.user.id
                 Text(
                     text = track.user,
-                    style = typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = typography.bodySmall.copy(
+                        color = if (artistId.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.then(
+                        if (artistId.isNotBlank()) {
+                            Modifier.clickable { onArtistClicked(artistId, track.user) }
+                        } else Modifier
+                    )
                 )
             }
         }

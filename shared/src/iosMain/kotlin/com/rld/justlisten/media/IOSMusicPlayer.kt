@@ -31,7 +31,11 @@ import platform.UIKit.UIImage
 class IOSMusicPlayer(
     private val favoritesRepository: FavoritesRepository
 ) : MusicPlayer {
-    private var avPlayer: AVPlayer? = null
+    private val avPlayer = AVPlayer()
+    private var preloadedPlayerItem: AVPlayerItem? = null
+    private var preloadedSongId: String? = null
+    private var preloadJob: kotlinx.coroutines.Job? = null
+    
     private var playlistItems = mutableListOf<MediaMetadata>()
     private var currentIndex = -1
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -46,9 +50,9 @@ class IOSMusicPlayer(
 
     // Public property to allow volume fading from Sleep Timer
     var volume: Float
-        get() = avPlayer?.volume ?: 1.0f
+        get() = avPlayer.volume
         set(value) {
-            avPlayer?.volume = value
+            avPlayer.volume = value
         }
 
     init {
@@ -116,20 +120,23 @@ class IOSMusicPlayer(
     override val networkError: StateFlow<Boolean> = _networkError.asStateFlow()
 
     override fun play() {
-        avPlayer?.play()
+        avPlayer.play()
         updateState(PlaybackStatus.PLAYING)
         updateNowPlayingInfo(_playbackState.value.currentMedia, _playbackState.value.currentPosition)
     }
 
     override fun pause() {
-        avPlayer?.pause()
+        avPlayer.pause()
         updateState(PlaybackStatus.PAUSED)
         updateNowPlayingInfo(_playbackState.value.currentMedia, _playbackState.value.currentPosition)
     }
 
     override fun stop() {
-        avPlayer?.pause()
-        avPlayer = null
+        avPlayer.pause()
+        avPlayer.replaceCurrentItemWithPlayerItem(null)
+        preloadedPlayerItem = null
+        preloadedSongId = null
+        preloadJob?.cancel()
         updateState(PlaybackStatus.STOPPED)
         updateNowPlayingInfo(null, 0L)
     }
@@ -143,19 +150,64 @@ class IOSMusicPlayer(
     }
 
     private fun playTrack(metadata: MediaMetadata) {
-        val baseUrl = com.rld.justlisten.datalayer.utils.Constants.BASEURL
-        val appName = com.rld.justlisten.datalayer.utils.Constants.appName.replace(" ", "%20")
-        val streamUrl = "$baseUrl/v1/tracks/${metadata.id}/stream?app_name=$appName"
-        val nsUrl = NSURL.URLWithString(streamUrl)
-        if (nsUrl != null) {
-            val playerItem = AVPlayerItem.playerItemWithURL(nsUrl)
-            avPlayer = AVPlayer.playerWithPlayerItem(playerItem)
-            avPlayer?.play()
+        val playerItem = if (preloadedSongId == metadata.id && preloadedPlayerItem != null) {
+            preloadedPlayerItem!!
+        } else {
+            val baseUrl = com.rld.justlisten.datalayer.utils.Constants.BASEURL
+            val appName = com.rld.justlisten.datalayer.utils.Constants.appName.replace(" ", "%20")
+            val streamUrl = "$baseUrl/v1/tracks/${metadata.id}/stream?app_name=$appName"
+            val nsUrl = NSURL.URLWithString(streamUrl)
+            if (nsUrl != null) AVPlayerItem.playerItemWithURL(nsUrl) else null
+        }
+
+        if (playerItem != null) {
+            avPlayer.replaceCurrentItemWithPlayerItem(playerItem)
+            avPlayer.play()
             updateState(PlaybackStatus.BUFFERING, metadata)
             updateNowPlayingInfo(metadata, 0L)
+            
+            preloadedPlayerItem = null
+            preloadedSongId = null
+            preloadNextTrack()
         } else {
             updateState(PlaybackStatus.ERROR)
         }
+    }
+
+    private fun preloadNextTrack() {
+        preloadJob?.cancel()
+        
+        val nextIndex = getNextTrackIndex()
+        if (nextIndex == -1 || nextIndex >= playlistItems.size) {
+            preloadedPlayerItem = null
+            preloadedSongId = null
+            return
+        }
+        
+        val nextMetadata = playlistItems[nextIndex]
+        
+        preloadJob = scope.launch(Dispatchers.Main) {
+            delay(2000L)
+            
+            val baseUrl = com.rld.justlisten.datalayer.utils.Constants.BASEURL
+            val appName = com.rld.justlisten.datalayer.utils.Constants.appName.replace(" ", "%20")
+            val streamUrl = "$baseUrl/v1/tracks/${nextMetadata.id}/stream?app_name=$appName"
+            val nsUrl = NSURL.URLWithString(streamUrl)
+            if (nsUrl != null) {
+                preloadedPlayerItem = AVPlayerItem.playerItemWithURL(nsUrl)
+                preloadedSongId = nextMetadata.id
+            }
+        }
+    }
+
+    private fun getNextTrackIndex(): Int {
+        return PlaybackQueueNavigator.getNextIndex(
+            currentIndex = currentIndex,
+            playlistSize = playlistItems.size,
+            shuffledIndices = shuffledIndices,
+            isShuffleEnabled = isShuffleEnabled,
+            repeatMode = repeatMode
+        )
     }
 
     private fun updateState(status: PlaybackStatus, currentMedia: MediaMetadata? = _playbackState.value.currentMedia) {
@@ -168,57 +220,32 @@ class IOSMusicPlayer(
     }
 
     override fun skipToNext() {
-        if (playlistItems.isEmpty()) return
-        if (isShuffleEnabled) {
-            val currentShuffledPos = shuffledIndices.indexOf(currentIndex)
-            if (currentShuffledPos != -1 && currentShuffledPos < shuffledIndices.size - 1) {
-                currentIndex = shuffledIndices[currentShuffledPos + 1]
-                playTrack(playlistItems[currentIndex])
-            } else if (repeatMode == RepeatMode.ALL) {
-                shuffledIndices = playlistItems.indices.shuffled()
-                currentIndex = shuffledIndices.first()
-                playTrack(playlistItems[currentIndex])
-            } else {
-                stop()
-            }
+        val nextIndex = getNextTrackIndex()
+        if (nextIndex != -1) {
+            currentIndex = nextIndex
+            playTrack(playlistItems[currentIndex])
         } else {
-            if (currentIndex < playlistItems.size - 1) {
-                currentIndex++
-                playTrack(playlistItems[currentIndex])
-            } else if (repeatMode == RepeatMode.ALL) {
-                currentIndex = 0
-                playTrack(playlistItems[currentIndex])
-            } else {
-                stop()
-            }
+            stop()
         }
     }
 
     override fun skipToPrevious() {
-        if (playlistItems.isEmpty()) return
-        if (isShuffleEnabled) {
-            val currentShuffledPos = shuffledIndices.indexOf(currentIndex)
-            if (currentShuffledPos > 0) {
-                currentIndex = shuffledIndices[currentShuffledPos - 1]
-                playTrack(playlistItems[currentIndex])
-            } else if (repeatMode == RepeatMode.ALL) {
-                currentIndex = shuffledIndices.last()
-                playTrack(playlistItems[currentIndex])
-            }
-        } else {
-            if (currentIndex > 0) {
-                currentIndex--
-                playTrack(playlistItems[currentIndex])
-            } else if (repeatMode == RepeatMode.ALL) {
-                currentIndex = playlistItems.size - 1
-                playTrack(playlistItems[currentIndex])
-            }
+        val prevIndex = PlaybackQueueNavigator.getPreviousIndex(
+            currentIndex = currentIndex,
+            playlistSize = playlistItems.size,
+            shuffledIndices = shuffledIndices,
+            isShuffleEnabled = isShuffleEnabled,
+            repeatMode = repeatMode
+        )
+        if (prevIndex != -1) {
+            currentIndex = prevIndex
+            playTrack(playlistItems[currentIndex])
         }
     }
 
     override fun seekTo(position: Long) {
         val time = CMTimeMake(position, 1000)
-        avPlayer?.seekToTime(time)
+        avPlayer.seekToTime(time)
         updateNowPlayingInfo(_playbackState.value.currentMedia, position)
     }
 
@@ -231,7 +258,12 @@ class IOSMusicPlayer(
                 duration = 0L,
                 artworkUrl = it.songIconList.songImageURL480px,
                 lowResArtworkUrl = it.songIconList.songImageURL150px,
-                isFavorite = favoritesRepository.getFavoritePlaylistWithId(it.id) != null
+                isFavorite = favoritesRepository.getFavoritePlaylistWithId(it.id) != null,
+                repostCount = it.repostCount,
+                favoriteCount = it.favoriteCount,
+                commentCount = it.commentCount,
+                playCount = it.playCount,
+                artistId = it.userId
             )
         }.toMutableList()
         _currentPlaylist.value = playlistItems
@@ -248,11 +280,13 @@ class IOSMusicPlayer(
             shuffledIndices = playlistItems.indices.shuffled()
         }
         _playbackState.update { it.copy(isShuffleModeEnabled = enabled) }
+        preloadNextTrack()
     }
 
     override fun setRepeatMode(repeatMode: RepeatMode) {
         this.repeatMode = repeatMode
         _playbackState.update { it.copy(repeatMode = repeatMode) }
+        preloadNextTrack()
     }
 
     override fun refreshMetadata() {
@@ -298,7 +332,7 @@ class IOSMusicPlayer(
     }
 
     private fun updateProgress() {
-        val player = avPlayer ?: return
+        val player = avPlayer
         val currentItem = player.currentItem ?: return
 
         val durationTime = currentItem.duration

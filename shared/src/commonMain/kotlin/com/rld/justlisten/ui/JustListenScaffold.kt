@@ -40,6 +40,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import org.koin.compose.viewmodel.koinViewModel
 import com.rld.justlisten.viewmodel.player.PlayerViewModel
+import com.rld.justlisten.ui.actions.PlayerAction
 import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.navigation.AppNavigation
 import com.rld.justlisten.ui.bottombars.bottombarnav.Level1BottomBar
@@ -200,7 +201,12 @@ fun JustListenScaffold(
                             isExtended = anchoredDraggableState.currentValue == PlayBarState.EXPANDED
                         ),
                         onAction = { action ->
-                            viewModel.onAction(action)
+                            if (action is PlayerAction.ConnectAudiusPressed) {
+                                viewModel.onAction(PlayerAction.DismissConnectPrompt)
+                                navController.navigate(Route.Settings)
+                            } else {
+                                viewModel.onAction(action)
+                            }
                         },
                         onUiEvent = { uiEvent ->
                             when (uiEvent) {
@@ -213,6 +219,12 @@ fun JustListenScaffold(
                                     coroutineScope.launch {
                                         anchoredDraggableState.animateTo(PlayBarState.EXPANDED)
                                     }
+                                }
+                                is PlayerUiEvent.NavigateToArtist -> {
+                                    coroutineScope.launch {
+                                        anchoredDraggableState.animateTo(PlayBarState.COLLAPSED)
+                                    }
+                                    navController.navigate(Route.ArtistProfile(uiEvent.artistId, uiEvent.artistName))
                                 }
                                 else -> Unit
                             }

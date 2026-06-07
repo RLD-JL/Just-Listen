@@ -128,6 +128,9 @@ class FakeSyncRepository : com.rld.justlisten.datalayer.repositories.SyncReposit
     override val syncState = kotlinx.coroutines.flow.MutableStateFlow<com.rld.justlisten.datalayer.repositories.SyncState>(com.rld.justlisten.datalayer.repositories.SyncState.Synced)
     override fun enqueueFavoriteTask(trackId: String, isFavorite: Boolean) {}
     override fun enqueuePlaylistCreateTask(name: String, description: String?, isPrivate: Boolean) {}
+    override fun enqueuePlaylistUpdateTask(playlistId: String, songs: List<String>) {}
+    override fun enqueuePlaylistDeleteTask(playlistId: String) {}
+    override fun enqueuePlaylistDetailsUpdateTask(playlistId: String, name: String, description: String?) {}
     override fun triggerSync() {}
     override fun clearQueue() {}
     override suspend fun performInboundSync(userId: String) {}

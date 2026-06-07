@@ -42,3 +42,12 @@ expect fun SeeAllScreenHost(
 
 @Composable
 expect fun CustomThemeScreenHost(navController: NavHostController)
+
+@Composable
+expect fun ArtistProfileScreenHost(
+    navController: NavHostController,
+    args: Route.ArtistProfile
+)
+
+@Composable
+expect fun FeedScreenHost(navController: NavHostController)

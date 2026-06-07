@@ -12,6 +12,9 @@ import com.rld.justlisten.datalayer.localdb.addplaylistscreen.updatePlaylistSong
 import com.rld.justlisten.datalayer.webservices.apis.writecalls.favoriteTrack
 import com.rld.justlisten.datalayer.webservices.apis.writecalls.unfavoriteTrack
 import com.rld.justlisten.datalayer.webservices.apis.writecalls.createPlaylist
+import com.rld.justlisten.datalayer.webservices.apis.writecalls.updatePlaylistSongs
+import com.rld.justlisten.datalayer.webservices.apis.writecalls.deletePlaylist
+import com.rld.justlisten.datalayer.webservices.apis.writecalls.updatePlaylistDetails
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +32,9 @@ interface SyncRepository {
     val syncState: StateFlow<SyncState>
     fun enqueueFavoriteTask(trackId: String, isFavorite: Boolean)
     fun enqueuePlaylistCreateTask(name: String, description: String?, isPrivate: Boolean)
+    fun enqueuePlaylistUpdateTask(playlistId: String, songs: List<String>)
+    fun enqueuePlaylistDeleteTask(playlistId: String)
+    fun enqueuePlaylistDetailsUpdateTask(playlistId: String, name: String, description: String?)
     fun triggerSync()
     fun clearQueue()
     suspend fun performInboundSync(userId: String)
@@ -39,6 +45,17 @@ data class PlaylistTaskPayload(
     val name: String,
     val description: String?,
     val isPrivate: Boolean
+)
+
+@Serializable
+data class PlaylistUpdateTaskPayload(
+    val songs: List<String>
+)
+
+@Serializable
+data class PlaylistDetailsUpdatePayload(
+    val name: String,
+    val description: String?
 )
 
 class SyncRepositoryImpl(
@@ -77,6 +94,47 @@ class SyncRepositoryImpl(
         localDb.syncQueueQueries.insertTask(
             actionType = "PLAYLIST_CREATE",
             targetId = "NEW",
+            payload = payloadJson,
+            errorMessage = null,
+            retryCount = 0
+        )
+        triggerSync()
+    }
+
+    override fun enqueuePlaylistUpdateTask(playlistId: String, songs: List<String>) {
+        val payloadJson = Json.encodeToString(
+            PlaylistUpdateTaskPayload.serializer(),
+            PlaylistUpdateTaskPayload(songs)
+        )
+        localDb.syncQueueQueries.insertTask(
+            actionType = "PLAYLIST_UPDATE",
+            targetId = playlistId,
+            payload = payloadJson,
+            errorMessage = null,
+            retryCount = 0
+        )
+        triggerSync()
+    }
+
+    override fun enqueuePlaylistDeleteTask(playlistId: String) {
+        localDb.syncQueueQueries.insertTask(
+            actionType = "PLAYLIST_DELETE",
+            targetId = playlistId,
+            payload = null,
+            errorMessage = null,
+            retryCount = 0
+        )
+        triggerSync()
+    }
+
+    override fun enqueuePlaylistDetailsUpdateTask(playlistId: String, name: String, description: String?) {
+        val payloadJson = Json.encodeToString(
+            PlaylistDetailsUpdatePayload.serializer(),
+            PlaylistDetailsUpdatePayload(name, description)
+        )
+        localDb.syncQueueQueries.insertTask(
+            actionType = "PLAYLIST_DETAILS_UPDATE",
+            targetId = playlistId,
             payload = payloadJson,
             errorMessage = null,
             retryCount = 0
@@ -141,6 +199,41 @@ class SyncRepositoryImpl(
                             name = payload.name,
                             description = payload.description,
                             isPrivate = payload.isPrivate
+                        )
+                        if (response?.playlistId != null) {
+                            localDb.addPlaylistQueries.updatePlaylistId(
+                                playlistId = response.playlistId,
+                                playlistName = payload.name
+                            )
+                        }
+                        response?.error == null
+                    }
+                    "PLAYLIST_UPDATE" -> {
+                        val payload = Json.decodeFromString(
+                            PlaylistUpdateTaskPayload.serializer(),
+                            task.payload ?: ""
+                        )
+                        val response = apiClient.updatePlaylistSongs(
+                            playlistId = task.targetId,
+                            songList = payload.songs
+                        )
+                        response?.error == null
+                    }
+                    "PLAYLIST_DELETE" -> {
+                        val response = apiClient.deletePlaylist(
+                            playlistId = task.targetId
+                        )
+                        response?.error == null
+                    }
+                    "PLAYLIST_DETAILS_UPDATE" -> {
+                        val payload = Json.decodeFromString(
+                            PlaylistDetailsUpdatePayload.serializer(),
+                            task.payload ?: ""
+                        )
+                        val response = apiClient.updatePlaylistDetails(
+                            playlistId = task.targetId,
+                            name = payload.name,
+                            description = payload.description
                         )
                         response?.error == null
                     }
@@ -252,7 +345,8 @@ class SyncRepositoryImpl(
                                     playlistDescription = null,
                                     songList = songList,
                                     isRemote = true,
-                                    isPrivate = false
+                                    isPrivate = false,
+                                    playlistId = playlist.id
                                 )
                             }
                             delay(100L) // rate-limiting friendly

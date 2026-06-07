@@ -11,9 +11,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.List
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.painterResource
 import justlisten.shared.generated.resources.Res
@@ -21,12 +23,16 @@ import justlisten.shared.generated.resources.ic_library_music_filled
 import justlisten.shared.generated.resources.ic_library_music_outlined
 import justlisten.shared.generated.resources.ic_monetization_on_filled
 import justlisten.shared.generated.resources.ic_monetization_on_outlined
+import justlisten.shared.generated.resources.ic_feed_filled
+import justlisten.shared.generated.resources.ic_feed_outlined
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -48,6 +54,7 @@ fun Level1BottomBar(
         mutableMapOf<String, Route>(
             "Playlist" to Route.Playlist,
             "Library" to Route.Library,
+            "Feed" to Route.Feed,
             "Search" to Route.Search,
             "Settings" to Route.Settings,
             "Donation" to Route.Donation
@@ -76,6 +83,7 @@ fun Level1BottomBar(
             }
             routeStr.contains("Playlist") -> Route.Playlist
             routeStr.contains("Library") -> Route.Library
+            routeStr.contains("Feed") -> Route.Feed
             routeStr.contains("Search") -> Route.Search
             routeStr.contains("Settings") -> Route.Settings
             routeStr.contains("Donation") -> Route.Donation
@@ -94,6 +102,10 @@ fun Level1BottomBar(
                 is Route.Library -> {
                     currentTab = "Library"
                     lastActiveRoutes["Library"] = Route.Library
+                }
+                is Route.Feed -> {
+                    currentTab = "Feed"
+                    lastActiveRoutes["Feed"] = Route.Feed
                 }
                 is Route.Search -> {
                     currentTab = "Search"
@@ -117,6 +129,9 @@ fun Level1BottomBar(
                     lastActiveRoutes[currentTab] = currentRoute
                 }
                 is Route.MusicInsights -> {
+                    lastActiveRoutes[currentTab] = currentRoute
+                }
+                is Route.ArtistProfile -> {
                     lastActiveRoutes[currentTab] = currentRoute
                 }
                 Route.CustomTheme -> {
@@ -205,22 +220,23 @@ fun Level1BottomBar(
         NavigationBarItem(
             icon = {
                 Icon(
-                    if (currentTab == "Search") Icons.Filled.Search else Icons.Outlined.Search,
-                    contentDescription = "Search",
+                    painter = if (currentTab == "Feed") painterResource(Res.drawable.ic_feed_filled) else painterResource(Res.drawable.ic_feed_outlined),
+                    contentDescription = "Feed",
+                    modifier = Modifier.size(24.dp)
                 )
             },
-            label = { Text("Search", fontSize = 10.sp) },
-            selected = currentTab == "Search",
+            label = { Text("Feed", fontSize = 10.sp) },
+            selected = currentTab == "Feed",
             onClick = {
-                if (currentTab == "Search") {
-                    val isAtRoot = currentDestination?.route?.split('/')?.firstOrNull() == Route.Search::class.qualifiedName
+                if (currentTab == "Feed") {
+                    val isAtRoot = currentDestination?.route?.split('/')?.firstOrNull() == Route.Feed::class.qualifiedName
                     if (!isAtRoot) {
-                        navController.navigate(Route.Search) {
-                            popUpTo(Route.Search) { inclusive = true }
+                        navController.navigate(Route.Feed) {
+                            popUpTo(Route.Feed) { inclusive = true }
                         }
                     }
                 } else {
-                    navigateTo("Search", Route.Search)
+                    navigateTo("Feed", Route.Feed)
                 }
             },
             colors = NavigationBarItemDefaults.colors(

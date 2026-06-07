@@ -21,5 +21,14 @@ sealed interface PlaylistDetailAction {
 
     data class DeletePlaylistClicked(val playlistName: String) : PlaylistDetailAction
     data class EditPlaylistTitleClicked(val oldName: String, val newName: String) : PlaylistDetailAction
+    
+    data class ArtistClicked(
+        val artistId: String,
+        val artistName: String
+    ) : PlaylistDetailAction
+
+    data class RepostPressed(val songId: String, val isRepost: Boolean) : PlaylistDetailAction
+    data object DismissConnectPrompt : PlaylistDetailAction
+    data object ConnectAudiusPressed : PlaylistDetailAction
 }
 

@@ -31,4 +31,9 @@ sealed interface SearchScreenAction {
         val playlistCreatedBy: String,
         val isFavorite: Boolean
     ) : SearchScreenAction
+    
+    data class ArtistClicked(
+        val artistId: String,
+        val artistName: String
+    ) : SearchScreenAction
 }

@@ -50,6 +50,10 @@ open class ApiClient(
             if (!accessToken.isNullOrBlank()) {
                 header("Authorization", "Bearer $accessToken")
             }
+            val userId = secureStorage.getToken("user_id")
+            if (!userId.isNullOrBlank() && !url.encodedPath.endsWith("/oauth/token")) {
+                url.parameters.append("user_id", userId)
+            }
         }
     }
 
@@ -131,6 +135,42 @@ open class ApiClient(
             if (response.status.isSuccess()) response.body<T>() else null
         } catch (e: Exception) {
             println("Error posting to $url: ${e.message}")
+            null
+        }
+    }
+
+    suspend inline fun <reified T : Any> putResponse(endpoint: String, body: Any? = null): T? {
+        val url = "${Constants.BASEURL}/v1$endpoint"
+        println("ApiClient: PUT request to: $url")
+        return try {
+            var response = client.put(url) {
+                if (body != null) {
+                    if (body is String) {
+                        contentType(ContentType.Application.FormUrlEncoded)
+                    } else {
+                        contentType(ContentType.Application.Json)
+                    }
+                    setBody(body)
+                }
+            }
+            if (response.status == HttpStatusCode.Unauthorized) {
+                val refreshed = refreshToken()
+                if (refreshed) {
+                    response = client.put(url) {
+                        if (body != null) {
+                            if (body is String) {
+                                contentType(ContentType.Application.FormUrlEncoded)
+                            } else {
+                                contentType(ContentType.Application.Json)
+                            }
+                            setBody(body)
+                        }
+                    }
+                }
+            }
+            if (response.status.isSuccess()) response.body<T>() else null
+        } catch (e: Exception) {
+            println("Error putting to $url: ${e.message}")
             null
         }
     }

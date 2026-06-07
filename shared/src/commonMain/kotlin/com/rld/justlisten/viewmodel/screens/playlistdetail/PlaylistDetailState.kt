@@ -10,5 +10,6 @@ data class PlaylistDetailState(
     var playlistIcon: String= "",
     var songPlaylist: List<PlaylistItem> = emptyList(),
     val dominantColor: Int = 0,
-    val playlistId: String = ""
+    val playlistId: String = "",
+    val showConnectPrompt: Boolean = false
 ): ScreenState

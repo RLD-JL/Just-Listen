@@ -39,6 +39,8 @@ import com.rld.justlisten.viewmodel.screens.playlist.TimeRange
 import com.rld.justlisten.viewmodel.screens.playlist.TracksCategory
 import com.rld.justlisten.viewmodel.screens.playlist.getTrackCategory
 import com.rld.justlisten.viewmodel.seeall.SeeAllState
+import androidx.compose.ui.text.TextStyle
+import com.rld.justlisten.ui.components.SmartMarqueeText
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -202,6 +204,9 @@ fun SeeAllScreen(
                                             )
                                         )
                                     }
+                                },
+                                onArtistClicked = { id, name ->
+                                    onAction(SeeAllAction.ArtistClicked(id, name))
                                 }
                             )
                         }
@@ -240,7 +245,8 @@ fun SeeAllScreen(
 @Composable
 fun SeeAllListItem(
     item: Item,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onArtistClicked: (String, String) -> Unit
 ) {
     val musicPlayer = LocalMusicPlayer.current
     val playbackState by musicPlayer.playbackState.collectAsState()
@@ -305,20 +311,26 @@ fun SeeAllListItem(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(
+                SmartMarqueeText(
                     text = item.playlistTitle,
                     style = typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(
+                val artistId = when (item) {
+                    is com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem -> item._data.user.id
+                    is com.rld.justlisten.viewmodel.screens.search.TrackItem -> item._data.user.id
+                    else -> ""
+                }
+                val artistClickAction = if (artistId.isNotBlank()) {
+                    { onArtistClicked(artistId, item.user) }
+                } else null
+
+                SmartMarqueeText(
                     text = item.user,
                     style = typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    onClick = artistClickAction
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 

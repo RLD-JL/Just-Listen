@@ -9,7 +9,13 @@ data class MediaMetadata(
     val duration: Long,
     val artworkUrl: String? = null,
     val lowResArtworkUrl: String? = null,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val isReposted: Boolean = false,
+    val repostCount: Int = 0,
+    val favoriteCount: Int = 0,
+    val commentCount: Int = 0,
+    val playCount: Int = 0,
+    val artistId: String = ""
 )
 
 enum class PlaybackStatus {

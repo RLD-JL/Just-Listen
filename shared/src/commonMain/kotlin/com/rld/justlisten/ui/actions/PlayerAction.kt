@@ -28,4 +28,7 @@ sealed interface PlayerAction {
     ) : PlayerAction
     data object LoadPlaylists : PlayerAction
     data class NewDominantColor(val colorInt: Int) : PlayerAction
+    data class ToggleRepost(val songId: String, val isRepost: Boolean) : PlayerAction
+    data object DismissConnectPrompt : PlayerAction
+    data object ConnectAudiusPressed : PlayerAction
 }

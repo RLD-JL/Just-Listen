@@ -17,10 +17,11 @@ private fun androidx.navigation.NavBackStackEntry.getTabIndex(): Int {
         routeStr.contains("MusicInsights") -> 1
         routeStr.contains("Library") -> 1
         routeStr.contains("Playlist") -> 0
-        routeStr.contains("Search") -> 2
-        routeStr.contains("Donation") -> 3
-        routeStr.contains("Settings") -> 4
-        routeStr.contains("CustomTheme") -> 4
+        routeStr.contains("Feed") -> 2
+        routeStr.contains("Search") -> 3
+        routeStr.contains("Donation") -> 4
+        routeStr.contains("Settings") -> 5
+        routeStr.contains("CustomTheme") -> 5
         else -> -1
     }
 }
@@ -150,6 +151,15 @@ fun AppNavigation(
 
         composable<Route.CustomTheme> {
             CustomThemeScreenHost(navController)
+        }
+
+        composable<Route.ArtistProfile> { backStackEntry ->
+            val args: Route.ArtistProfile = backStackEntry.toRoute()
+            ArtistProfileScreenHost(navController, args)
+        }
+
+        composable<Route.Feed> {
+            FeedScreenHost(navController)
         }
     }
 }

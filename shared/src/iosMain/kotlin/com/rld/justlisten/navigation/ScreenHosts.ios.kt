@@ -58,6 +58,7 @@ actual fun LibraryScreenHost(navController: NavHostController) {
                 LibraryScreenAction.TimeCapsulePressed -> viewModel.onTimeCapsuleClicked()
                 LibraryScreenAction.ExploreMusicPressed -> viewModel.onExploreMusicClicked()
                 LibraryScreenAction.MusicInsightsPressed -> viewModel.onMusicInsightsClicked()
+                is LibraryScreenAction.ArtistClicked -> viewModel.onArtistClicked(action.artistId, action.artistName)
             }
         }
     )
@@ -82,6 +83,7 @@ actual fun PlaylistScreenHost(navController: NavHostController) {
                 is PlaylistScreenAction.ChangeTracksCategory -> viewModel.getNewTracks(action.category, action.timeRange)
                 is PlaylistScreenAction.SeeAllClicked -> viewModel.onSeeAllClicked(action.categoryName, action.playlistEnum, action.queryPlaylist)
                 is PlaylistScreenAction.SeeAllTracksClicked -> viewModel.onSeeAllTracksClicked(action.categoryName, action.queryPlaylist, action.selectedTimeRange)
+                is PlaylistScreenAction.ArtistClicked -> viewModel.onArtistClicked(action.artistId, action.artistName)
             }
         }
     )
@@ -108,6 +110,13 @@ actual fun PlaylistDetailScreenHost(navController: NavHostController, args: Rout
                 }
                 is PlaylistDetailAction.DeletePlaylistClicked -> viewModel.deletePlaylist(action.playlistName)
                 is PlaylistDetailAction.EditPlaylistTitleClicked -> viewModel.editPlaylistTitle(action.oldName, action.newName)
+                is PlaylistDetailAction.ArtistClicked -> viewModel.onArtistClicked(action.artistId, action.artistName)
+                is PlaylistDetailAction.RepostPressed -> viewModel.onRepostPressed(action.songId, action.isRepost)
+                PlaylistDetailAction.DismissConnectPrompt -> viewModel.dismissConnectPrompt()
+                PlaylistDetailAction.ConnectAudiusPressed -> {
+                    viewModel.dismissConnectPrompt()
+                    navController.navigate(Route.Settings)
+                }
             }
         }
     )
@@ -138,6 +147,7 @@ actual fun SearchScreenHost(navController: NavHostController) {
                     playMusicFromId(musicPlayer, tracksList, action.songId, repository)
                 }
                 is SearchScreenAction.PlaylistPressed -> viewModel.onPlaylistPressed(action.playlistId, action.playlistIcon, action.playlistTitle, action.playlistCreatedBy)
+                is SearchScreenAction.ArtistClicked -> viewModel.onArtistClicked(action.artistId, action.artistName)
             }
         }
     )
@@ -220,6 +230,7 @@ actual fun SeeAllScreenHost(navController: NavHostController, args: Route.SeeAll
                 is SeeAllAction.LoadMore -> viewModel.fetchItems(action.offset)
                 is SeeAllAction.ChangeTimeRange -> viewModel.changeTimeRange(action.timeRange)
                 is SeeAllAction.ChangeGenre -> viewModel.changeGenre(action.genre)
+                is SeeAllAction.ArtistClicked -> viewModel.onArtistClicked(action.artistId, action.artistName)
             }
         }
     )
@@ -253,6 +264,110 @@ actual fun CustomThemeScreenHost(navController: NavHostController) {
         },
         onPaletteSelected = { color ->
             viewModel.onPaletteSelected(color)
+        }
+    )
+}
+
+@Composable
+actual fun ArtistProfileScreenHost(
+    navController: NavHostController,
+    args: Route.ArtistProfile
+) {
+    val viewModel: com.rld.justlisten.viewmodel.artistprofile.ArtistProfileViewModel = koinViewModel()
+    val musicPlayer = LocalMusicPlayer.current
+    val repository: LibraryRepository = koinInject()
+    val state by viewModel.artistProfileState.collectAsState()
+
+    LaunchedEffect(args) { viewModel.load(args) }
+    CollectNavigationEvents(viewModel, navController)
+
+    com.rld.justlisten.ui.artistprofile.ArtistProfileScreen(
+        artistProfileState = state,
+        musicPlayer = musicPlayer,
+        libraryRepository = repository,
+        onAction = { action ->
+            when (action) {
+                is com.rld.justlisten.ui.actions.ArtistProfileAction.BackPressed -> viewModel.popBack()
+                is com.rld.justlisten.ui.actions.ArtistProfileAction.SongPressed -> playMusicFromId(
+                    musicPlayer,
+                    state.artistTracks,
+                    action.songId,
+                    repository
+                )
+                is com.rld.justlisten.ui.actions.ArtistProfileAction.PlaylistClicked -> viewModel.onPlaylistClicked(
+                    action.playlistId,
+                    action.playlistIcon,
+                    action.createdBy,
+                    action.title
+                )
+                is com.rld.justlisten.ui.actions.ArtistProfileAction.FollowPressed -> viewModel.onFollowPressed()
+                is com.rld.justlisten.ui.actions.ArtistProfileAction.DismissConnectPrompt -> viewModel.dismissConnectPrompt()
+                is com.rld.justlisten.ui.actions.ArtistProfileAction.ConnectAudiusPressed -> {
+                    viewModel.dismissConnectPrompt()
+                    navController.navigate(Route.Settings)
+                }
+                is com.rld.justlisten.ui.actions.ArtistProfileAction.TabSelected -> viewModel.onTabSelected(action.index)
+            }
+        }
+    )
+}
+
+@Composable
+actual fun FeedScreenHost(navController: NavHostController) {
+    val viewModel: com.rld.justlisten.viewmodel.feed.FeedViewModel = koinViewModel()
+    val musicPlayer = LocalMusicPlayer.current
+    val repository: LibraryRepository = koinInject()
+    val state by viewModel.feedState.collectAsState()
+
+    CollectNavigationEvents(viewModel, navController)
+
+    com.rld.justlisten.ui.feedscreen.FeedScreen(
+        feedState = state,
+        musicPlayer = musicPlayer,
+        libraryRepository = repository,
+        onAction = { action ->
+            when (action) {
+                is com.rld.justlisten.ui.actions.FeedAction.SongPressed -> playMusicFromId(
+                    musicPlayer,
+                    state.items,
+                    action.songId,
+                    repository
+                )
+                is com.rld.justlisten.ui.actions.FeedAction.PlaylistClicked -> viewModel.onPlaylistClicked(
+                    action.playlistId,
+                    action.playlistIcon,
+                    action.createdBy,
+                    action.title
+                )
+                is com.rld.justlisten.ui.actions.FeedAction.FavoritePressed -> viewModel.onFavoritePressed(
+                    action.songId,
+                    action.title,
+                    action.user,
+                    action.songIcon,
+                    action.isFavorite
+                )
+                is com.rld.justlisten.ui.actions.FeedAction.RepostPressed -> viewModel.onRepostPressed(
+                    action.itemId,
+                    action.isRepost,
+                    action.isPlaylist
+                )
+                is com.rld.justlisten.ui.actions.FeedAction.ArtistClicked -> viewModel.onArtistClicked(
+                    action.artistId,
+                    action.artistName
+                )
+                com.rld.justlisten.ui.actions.FeedAction.Refresh -> viewModel.refreshFeed()
+                com.rld.justlisten.ui.actions.FeedAction.DismissConnectPrompt -> viewModel.dismissConnectPrompt()
+                com.rld.justlisten.ui.actions.FeedAction.ConnectAudiusPressed -> {
+                    viewModel.dismissConnectPrompt()
+                    navController.navigate(Route.Settings)
+                }
+                com.rld.justlisten.ui.actions.FeedAction.LoadMore -> viewModel.loadMore()
+                is com.rld.justlisten.ui.actions.FeedAction.SelectTab -> viewModel.selectTab(action.tab)
+                is com.rld.justlisten.ui.actions.FeedAction.SetPersonalFilter -> viewModel.setPersonalFilter(action.filter)
+                is com.rld.justlisten.ui.actions.FeedAction.SetPersonalFormat -> viewModel.setPersonalFormat(action.format)
+                is com.rld.justlisten.ui.actions.FeedAction.SetTrendingCategory -> viewModel.setTrendingCategory(action.category)
+                is com.rld.justlisten.ui.actions.FeedAction.SetTrendingTimeRange -> viewModel.setTrendingTimeRange(action.timeRange)
+            }
         }
     )
 }

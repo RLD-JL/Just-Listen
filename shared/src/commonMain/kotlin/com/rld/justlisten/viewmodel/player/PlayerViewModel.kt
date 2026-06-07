@@ -19,23 +19,33 @@ import kotlinx.coroutines.launch
 
 import com.rld.justlisten.media.PlayHistoryTracker
 
+import com.rld.justlisten.datalayer.repositories.AuthRepository
+
+import com.rld.justlisten.datalayer.repositories.PlaylistRepository
+
 class PlayerViewModel(
     private val favoritesRepository: FavoritesRepository,
     private val libraryRepository: LibraryRepository,
+    private val playlistRepository: PlaylistRepository,
     private val musicPlayer: MusicPlayer,
     private val playHistoryTracker: PlayHistoryTracker,
+    private val authRepository: AuthRepository,
 ) : BaseScreenViewModel() {
 
     private val _addPlaylistList = MutableStateFlow(emptyList<AddPlaylist>())
     val addPlaylistList: StateFlow<List<AddPlaylist>> = _addPlaylistList.asStateFlow()
 
+    private val _showConnectPrompt = MutableStateFlow(false)
+
     val playerUiState: StateFlow<PlayerUiState> = combine(
         _addPlaylistList,
-        musicPlayer.playbackState
-    ) { addPlaylists, playbackState ->
+        musicPlayer.playbackState,
+        _showConnectPrompt
+    ) { addPlaylists, playbackState, showConnectPrompt ->
         PlayerUiState(
             addPlaylistList = addPlaylists,
-            playbackState = playbackState
+            playbackState = playbackState,
+            showConnectPrompt = showConnectPrompt
         )
     }.stateIn(
         scope = viewModelScope,
@@ -53,6 +63,12 @@ class PlayerViewModel(
                     action.songIcon,
                     action.isFavorite
                 )
+            }
+            is PlayerAction.ToggleRepost -> {
+                toggleRepost(action.songId, action.isRepost)
+            }
+            PlayerAction.DismissConnectPrompt -> {
+                _showConnectPrompt.value = false
             }
             is PlayerAction.CreatePlaylist -> {
                 savePlaylist(action.name, action.description)
@@ -99,6 +115,23 @@ class PlayerViewModel(
         viewModelScope.launch {
             libraryRepository.updatePlaylistSongs(title, description, songs)
             loadAddPlaylists()
+        }
+    }
+
+    fun toggleRepost(songId: String, isRepost: Boolean) {
+        if (authRepository.sessionState.value is com.rld.justlisten.datalayer.repositories.SessionState.Guest) {
+            _showConnectPrompt.value = true
+            return
+        }
+        viewModelScope.launch {
+            val success = if (isRepost) {
+                playlistRepository.repostTrack(songId)
+            } else {
+                playlistRepository.unrepostTrack(songId)
+            }
+            if (success) {
+                musicPlayer.refreshMetadata()
+            }
         }
     }
 }

@@ -22,4 +22,9 @@ sealed interface SeeAllAction {
         val user: String,
         val songIconList: com.rld.justlisten.datalayer.models.SongIconList
     ) : SeeAllAction
+    
+    data class ArtistClicked(
+        val artistId: String,
+        val artistName: String
+    ) : SeeAllAction
 }

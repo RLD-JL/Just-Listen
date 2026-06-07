@@ -76,7 +76,8 @@ fun LibraryScreen(
                     }
                 },
                 lasItemReached = { onAction(LibraryScreenAction.LastItemReached(it)) },
-                lastIndexReached = libraryState.lastIndexReached
+                lastIndexReached = libraryState.lastIndexReached,
+                onArtistClicked = { id, name -> onAction(LibraryScreenAction.ArtistClicked(id, name)) }
             )
             
             HorizontalDivider(thickness = 1.dp, modifier = Modifier.padding(vertical = 12.dp))

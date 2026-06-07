@@ -8,9 +8,12 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
+import com.rld.justlisten.datalayer.repositories.PlaylistRepository
+
 class AndroidMusicPlayer(
     val musicServiceConnection: MusicServiceConnection,
-    private val favoritesRepository: FavoritesRepository
+    private val favoritesRepository: FavoritesRepository,
+    private val playlistRepository: PlaylistRepository
 ) : MusicPlayer {
 
     override var currentlyPlayingPlaylistId: String? = null
@@ -178,6 +181,7 @@ class AndroidMusicPlayer(
         if (mediaItem == null) return null
         val id = mediaItem.mediaId
         val metadata = mediaItem.mediaMetadata
+        val originalSong = musicServiceConnection.musicSource.playlist.find { it.id == id }
         return MediaMetadata(
             id = id,
             title = metadata.title?.toString() ?: "",
@@ -185,7 +189,13 @@ class AndroidMusicPlayer(
             duration = musicServiceConnection.mediaController?.duration ?: 0L,
             artworkUrl = metadata.artworkUri?.toString(),
             lowResArtworkUrl = metadata.artworkUri?.toString(),
-            isFavorite = favoritesRepository.getFavoritePlaylistWithId(id) != null
+            isFavorite = favoritesRepository.getFavoritePlaylistWithId(id) != null,
+            isReposted = playlistRepository.isTrackReposted(id),
+            repostCount = originalSong?.repostCount ?: 0,
+            favoriteCount = originalSong?.favoriteCount ?: 0,
+            commentCount = originalSong?.commentCount ?: 0,
+            playCount = originalSong?.playCount ?: 0,
+            artistId = originalSong?.userId ?: ""
         )
     }
     

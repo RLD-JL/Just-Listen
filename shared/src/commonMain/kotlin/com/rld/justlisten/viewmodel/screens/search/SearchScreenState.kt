@@ -38,7 +38,11 @@ data class SearchScreenState(
 ) : ScreenState
 
 
-data class TrackItem(val _data: PlayListModel, override var isFavorite: Boolean = false) : Item {
+data class TrackItem(
+    val _data: PlayListModel,
+    override var isFavorite: Boolean = false,
+    override var isReposted: Boolean = _data.hasCurrentUserReposted
+) : Item {
     override val user = _data.user.username
     override val title = _data.title
     override val playlistTitle = _data.playlistTitle
@@ -48,4 +52,8 @@ data class TrackItem(val _data: PlayListModel, override var isFavorite: Boolean 
         get() = _data.songCounter
     override val repostCount = _data.repostCount
     override val favoriteCount = _data.favoriteCount
+    override val commentCount = _data.commentCount
+    override val playCount = if (_data.isPlaylist) _data.totalPlayCount else _data.playCount
+    override val duration = _data.duration
+    override val userId = _data.user.id
 }

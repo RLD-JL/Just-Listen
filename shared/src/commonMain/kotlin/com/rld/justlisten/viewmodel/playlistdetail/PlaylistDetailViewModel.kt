@@ -16,10 +16,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+import com.rld.justlisten.datalayer.repositories.AuthRepository
+
 class PlaylistDetailViewModel(
     private val playlistRepository: PlaylistRepository,
     private val favoritesRepository: FavoritesRepository,
     private val libraryRepository: LibraryRepository,
+    private val authRepository: AuthRepository,
 ) : BaseScreenViewModel() {
 
     private val _playlistDetailState = MutableStateFlow(PlaylistDetailState(isLoading = true))
@@ -32,6 +35,16 @@ class PlaylistDetailViewModel(
                 _playlistDetailState.update { state ->
                     val updated = state.songPlaylist.map { item ->
                         item.copy(isFavorite = favoriteIds.contains(item.id))
+                    }
+                    state.copy(songPlaylist = updated)
+                }
+            }
+        }
+        viewModelScope.launch {
+            playlistRepository.repostedTrackIdsFlow.collect { repostedIds ->
+                _playlistDetailState.update { state ->
+                    val updated = state.songPlaylist.map { item ->
+                        item.copy(isReposted = repostedIds.contains(item.id))
                     }
                     state.copy(songPlaylist = updated)
                 }
@@ -111,5 +124,42 @@ class PlaylistDetailViewModel(
 
     fun popBack() {
         popBackStack()
+    }
+
+    fun onArtistClicked(artistId: String, artistName: String) {
+        if (artistId.isNotBlank()) {
+            navigate(Route.ArtistProfile(artistId, artistName))
+        }
+    }
+
+    fun onRepostPressed(id: String, isRepost: Boolean) {
+        if (authRepository.sessionState.value is com.rld.justlisten.datalayer.repositories.SessionState.Guest) {
+            _playlistDetailState.update { it.copy(showConnectPrompt = true) }
+            return
+        }
+
+        viewModelScope.launch {
+            val success = if (isRepost) {
+                playlistRepository.repostTrack(id)
+            } else {
+                playlistRepository.unrepostTrack(id)
+            }
+            if (success) {
+                _playlistDetailState.update { state ->
+                    val updated = state.songPlaylist.map { item ->
+                        if (item.id == id) {
+                            val newCount = if (isRepost) item.repostCount + 1 else (item.repostCount - 1).coerceAtLeast(0)
+                            val updatedData = item._data.copy(repostCount = newCount)
+                            item.copy(_data = updatedData, isReposted = isRepost)
+                        } else item
+                    }
+                    state.copy(songPlaylist = updated)
+                }
+            }
+        }
+    }
+
+    fun dismissConnectPrompt() {
+        _playlistDetailState.update { it.copy(showConnectPrompt = false) }
     }
 }

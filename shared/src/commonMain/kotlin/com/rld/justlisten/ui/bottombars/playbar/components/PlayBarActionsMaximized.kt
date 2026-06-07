@@ -2,12 +2,16 @@ package com.rld.justlisten.ui.bottombars.playbar.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.Slider
+import androidx.compose.ui.text.TextStyle
+import com.rld.justlisten.ui.components.SmartMarqueeText
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
@@ -42,6 +46,10 @@ import com.rld.justlisten.ui.components.MusicLoadingSpinner
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.painterResource
+import justlisten.shared.generated.resources.Res
+import justlisten.shared.generated.resources.ic_repost
+import com.rld.justlisten.ui.seeallscreen.formatCount
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,49 +107,86 @@ fun PlayBarActionsMaximized(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.Start
             ) {
-                Text(
+                SmartMarqueeText(
                     text = title,
                     color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    style = TextStyle(
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 )
-                Text(
+                val artistId = playbackState.currentMedia?.artistId ?: ""
+                val artistColor = if (artistId.isNotBlank()) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.7f)
+                val artistClickAction = if (artistId.isNotBlank()) {
+                    { onUiEvent(PlayerUiEvent.NavigateToArtist(artistId, artist)) }
+                } else null
+
+                SmartMarqueeText(
                     text = artist,
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 16.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    color = artistColor,
+                    style = TextStyle(
+                        fontSize = 16.sp
+                    ),
+                    onClick = artistClickAction
                 )
             }
             
             Spacer(Modifier.height(16.dp))
 
             // Social Buttons Row
-            Row(
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                SocialButton(icon = if (playbackState.currentMedia?.isFavorite == true) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder, text = null) {
-                    playbackState.currentMedia?.let {
-                        onAction(
-                            PlayerAction.ToggleFavorite(
-                                songId = it.id,
-                                title = it.title,
-                                user = UserModel(it.artist),
-                                songIcon = SongIconList(it.artworkUrl ?: "", it.artworkUrl ?: "", it.artworkUrl ?: ""),
-                                isFavorite = !it.isFavorite
+                item {
+                    val favoriteCountText = formatCount(playbackState.currentMedia?.favoriteCount ?: 0)
+                    SocialButton(
+                        icon = if (playbackState.currentMedia?.isFavorite == true) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                        text = favoriteCountText
+                    ) {
+                        playbackState.currentMedia?.let {
+                            onAction(
+                                PlayerAction.ToggleFavorite(
+                                    songId = it.id,
+                                    title = it.title,
+                                    user = UserModel(it.artist),
+                                    songIcon = SongIconList(it.artworkUrl ?: "", it.artworkUrl ?: "", it.artworkUrl ?: ""),
+                                    isFavorite = !it.isFavorite
+                                )
                             )
-                        )
+                        }
                     }
                 }
-                SocialButton(icon = Icons.Default.Add, text = "Save") {
-                    onAction(PlayerAction.LoadPlaylists)
-                    onUiEvent(PlayerUiEvent.OpenAddPlaylist)
+                item {
+                    val isReposted = playbackState.currentMedia?.isReposted == true
+                    val repostCountText = formatCount(playbackState.currentMedia?.repostCount ?: 0)
+                    SocialButton(
+                        painter = painterResource(Res.drawable.ic_repost),
+                        text = repostCountText,
+                        tint = if (isReposted) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.7f)
+                    ) {
+                        playbackState.currentMedia?.let {
+                            onAction(PlayerAction.ToggleRepost(it.id, !isReposted))
+                        }
+                    }
                 }
-                SocialButton(icon = Icons.Outlined.Share, text = "Share")
+                item {
+                    val commentCountText = formatCount(playbackState.currentMedia?.commentCount ?: 0)
+                    SocialButton(
+                        icon = Icons.Outlined.Comment,
+                        text = commentCountText
+                    )
+                }
+                item {
+                    SocialButton(icon = Icons.Default.Add, text = "Save") {
+                        onAction(PlayerAction.LoadPlaylists)
+                        onUiEvent(PlayerUiEvent.OpenAddPlaylist)
+                    }
+                }
+                item {
+                    SocialButton(icon = Icons.Outlined.Share, text = "Share")
+                }
             }
 
             Spacer(Modifier.height(16.dp))
@@ -199,7 +244,7 @@ fun PlayBarActionsMaximized(
                     Icon(
                         imageVector = Icons.Default.Shuffle,
                         contentDescription = null,
-                        tint = if (playbackState.isShuffleModeEnabled) Color.Green else Color.White
+                        tint = if (playbackState.isShuffleModeEnabled) MaterialTheme.colorScheme.primary else Color.White
                     )
                 }
                 
@@ -247,7 +292,7 @@ fun PlayBarActionsMaximized(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = if (playbackState.repeatMode != RepeatMode.NONE) Color.Green else Color.White
+                        tint = if (playbackState.repeatMode != RepeatMode.NONE) MaterialTheme.colorScheme.primary else Color.White
                     )
                 }
             }
@@ -256,7 +301,12 @@ fun PlayBarActionsMaximized(
 }
 
 @Composable
-fun SocialButton(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String? = null, onClick: () -> Unit = {}) {
+fun SocialButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String? = null,
+    tint: Color = Color.White,
+    onClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
@@ -265,7 +315,30 @@ fun SocialButton(icon: androidx.compose.ui.graphics.vector.ImageVector, text: St
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(imageVector = icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+        Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
+        if (text != null) {
+            Spacer(Modifier.width(8.dp))
+            Text(text = text, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        }
+    }
+}
+
+@Composable
+fun SocialButton(
+    painter: androidx.compose.ui.graphics.painter.Painter,
+    text: String? = null,
+    tint: Color = Color.White,
+    onClick: () -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color.White.copy(alpha = 0.1f))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(painter = painter, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
         if (text != null) {
             Spacer(Modifier.width(8.dp))
             Text(text = text, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium)

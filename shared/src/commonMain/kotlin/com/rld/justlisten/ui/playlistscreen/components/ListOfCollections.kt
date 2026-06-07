@@ -21,7 +21,8 @@ fun ListOfCollections(
     playlistState: PlaylistState,
     lasItemReached: (Int, PlayListEnum) -> Unit,
     onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
-    onSeeAllClicked: (String, PlayListEnum, String) -> Unit
+    onSeeAllClicked: (String, PlayListEnum, String) -> Unit,
+    onArtistClicked: (String, String) -> Unit
 ) {
     val list = remember {
         mutableListOf(
@@ -69,23 +70,26 @@ fun ListOfCollections(
             0 -> PlaylistRow(
                 playlist = playlistState.playlistItems,
                 lasItemReached = lasItemReached,
-                PlayListEnum.TOP_PLAYLIST,
-                onPlaylistClicked,
-                playlistState.lastFetchPlaylist
+                playlistEnum = PlayListEnum.TOP_PLAYLIST,
+                onPlaylistClicked = onPlaylistClicked,
+                lastIndexReached = playlistState.lastFetchPlaylist,
+                onArtistClicked = onArtistClicked
             )
             1 -> PlaylistRow(
                 playlist = playlistState.remixPlaylist,
                 lasItemReached = lasItemReached,
-                PlayListEnum.REMIX,
-                onPlaylistClicked,
-                playlistState.lastFetchRemix
+                playlistEnum = PlayListEnum.REMIX,
+                onPlaylistClicked = onPlaylistClicked,
+                lastIndexReached = playlistState.lastFetchRemix,
+                onArtistClicked = onArtistClicked
             )
             2 -> PlaylistRow(
                 playlist = playlistState.hotPlaylist,
                 lasItemReached = lasItemReached,
-                PlayListEnum.HOT,
-                onPlaylistClicked,
-                playlistState.lastFetchHot
+                playlistEnum = PlayListEnum.HOT,
+                onPlaylistClicked = onPlaylistClicked,
+                lastIndexReached = playlistState.lastFetchHot,
+                onArtistClicked = onArtistClicked
             )
         }
     }

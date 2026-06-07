@@ -6,6 +6,12 @@ import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.datalayer.repositories.FavoritesRepository
 import com.rld.justlisten.datalayer.repositories.LibraryRepository
+import com.rld.justlisten.datalayer.repositories.PlaylistRepository
+import com.rld.justlisten.datalayer.repositories.AuthRepository
+import com.rld.justlisten.datalayer.repositories.SessionState
+import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum
+import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
+import com.rld.justlisten.viewmodel.screens.search.TrackItem
 import com.rld.justlisten.media.MediaMetadata
 import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.media.PlaybackState
@@ -30,6 +36,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerViewModelTest {
@@ -39,6 +46,8 @@ class PlayerViewModelTest {
     private val fakeFavoritesRepo = FakeFavoritesRepository()
     private val fakeLibraryRepo = FakeLibraryRepository()
     private val fakeMusicPlayer = FakeMusicPlayer()
+    private val fakePlaylistRepo = FakePlaylistRepository()
+    private val fakeAuthRepo = FakeAuthRepository()
 
     private lateinit var viewModel: PlayerViewModel
 
@@ -46,7 +55,14 @@ class PlayerViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         val playHistoryTracker = PlayHistoryTracker(fakeLibraryRepo, fakeMusicPlayer, kotlinx.coroutines.CoroutineScope(testDispatcher))
-        viewModel = PlayerViewModel(fakeFavoritesRepo, fakeLibraryRepo, fakeMusicPlayer, playHistoryTracker)
+        viewModel = PlayerViewModel(
+            favoritesRepository = fakeFavoritesRepo,
+            libraryRepository = fakeLibraryRepo,
+            playlistRepository = fakePlaylistRepo,
+            musicPlayer = fakeMusicPlayer,
+            playHistoryTracker = playHistoryTracker,
+            authRepository = fakeAuthRepo
+        )
     }
 
     @AfterTest
@@ -76,7 +92,8 @@ class PlayerViewModelTest {
             playlistDescription = "Test desc",
             songsList = emptyList(),
             isRemote = false,
-            isPrivate = false
+            isPrivate = false,
+            playlistId = null
         )
         fakeLibraryRepo.addPlaylist(dummyPlaylist)
 
@@ -148,7 +165,8 @@ class PlayerViewModelTest {
             playlistDescription = "Workout tracks",
             songsList = emptyList(),
             isRemote = false,
-            isPrivate = false
+            isPrivate = false,
+            playlistId = null
         )
         fakeLibraryRepo.addPlaylist(dummyPlaylist)
         viewModel.onAction(PlayerAction.LoadPlaylists)
@@ -168,6 +186,53 @@ class PlayerViewModelTest {
         assertEquals(1, playlists.size)
         assertEquals("Running Mix", playlists[0].playlistName)
         assertEquals(listOf("song123"), playlists[0].songsList)
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun testToggleRepostGuest() = runTest(testDispatcher) {
+        val collectJob = launch { viewModel.playerUiState.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        fakeAuthRepo.setSessionState(SessionState.Guest)
+
+        viewModel.onAction(PlayerAction.ToggleRepost("song123", isRepost = true))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(viewModel.playerUiState.value.showConnectPrompt)
+        assertFalse(fakePlaylistRepo.isTrackReposted("song123"))
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun testToggleRepostAuthenticated() = runTest(testDispatcher) {
+        val collectJob = launch { viewModel.playerUiState.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val dummyProfile = com.rld.justlisten.datalayer.webservices.apis.authcalls.MeResponse(
+            userId = "user123",
+            name = "Test User",
+            handle = "testuser",
+            verified = false
+        )
+        fakeAuthRepo.setSessionState(SessionState.Authenticated(dummyProfile))
+
+        viewModel.onAction(PlayerAction.ToggleRepost("song123", isRepost = true))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertFalse(viewModel.playerUiState.value.showConnectPrompt)
+        assertTrue(fakePlaylistRepo.isTrackReposted("song123"))
+        assertTrue(fakeMusicPlayer.refreshMetadataCalled)
+
+        // Now unrepost
+        fakeMusicPlayer.refreshMetadataCalled = false
+        viewModel.onAction(PlayerAction.ToggleRepost("song123", isRepost = false))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertFalse(fakePlaylistRepo.isTrackReposted("song123"))
+        assertTrue(fakeMusicPlayer.refreshMetadataCalled)
 
         collectJob.cancel()
     }
@@ -221,8 +286,8 @@ class FakeLibraryRepository : LibraryRepository {
         updateFlow()
     }
 
-    override fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean, isPrivate: Boolean) {
-        playlists.add(AddPlaylist(playlistName, playlistDescription ?: "", songsList = emptyList(), isRemote = isRemote, isPrivate = isPrivate))
+    override fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean, isPrivate: Boolean, playlistId: String?) {
+        playlists.add(AddPlaylist(playlistName, playlistDescription ?: "", songsList = emptyList(), isRemote = isRemote, isPrivate = isPrivate, playlistId = playlistId))
         updateFlow()
     }
 
@@ -230,10 +295,10 @@ class FakeLibraryRepository : LibraryRepository {
 
     override fun getAddPlaylistFlow(): Flow<List<AddPlaylist>> = playlistsFlow
 
-    override fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean, isPrivate: Boolean) {
+    override fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean, isPrivate: Boolean, playlistId: String?) {
         val index = playlists.indexOfFirst { it.playlistName == playlistName }
         if (index >= 0) {
-            playlists[index] = AddPlaylist(playlistName, playlistDescription ?: "", songsList = songList, isRemote = isRemote, isPrivate = isPrivate)
+            playlists[index] = AddPlaylist(playlistName, playlistDescription ?: "", songsList = songList, isRemote = isRemote, isPrivate = isPrivate, playlistId = playlistId)
         }
         updateFlow()
     }
@@ -313,4 +378,66 @@ class FakeMusicPlayer : MusicPlayer {
     override fun refreshMetadata() {
         refreshMetadataCalled = true
     }
+}
+
+class FakePlaylistRepository : PlaylistRepository {
+    private val _repostedTrackIds = MutableStateFlow<Set<String>>(emptySet())
+    override val repostedTrackIdsFlow = _repostedTrackIds.asStateFlow()
+
+    private val _repostedPlaylistIds = MutableStateFlow<Set<String>>(emptySet())
+    override val repostedPlaylistIdsFlow = _repostedPlaylistIds.asStateFlow()
+
+    override fun isTrackReposted(id: String): Boolean = _repostedTrackIds.value.contains(id)
+    override fun setTrackReposted(id: String, reposted: Boolean) {
+        _repostedTrackIds.value = if (reposted) _repostedTrackIds.value + id else _repostedTrackIds.value - id
+    }
+    override fun isPlaylistReposted(id: String): Boolean = _repostedPlaylistIds.value.contains(id)
+    override fun setPlaylistReposted(id: String, reposted: Boolean) {
+        _repostedPlaylistIds.value = if (reposted) _repostedPlaylistIds.value + id else _repostedPlaylistIds.value - id
+    }
+
+    override suspend fun repostTrack(trackId: String): Boolean {
+        setTrackReposted(trackId, true)
+        return true
+    }
+    override suspend fun unrepostTrack(trackId: String): Boolean {
+        setTrackReposted(trackId, false)
+        return true
+    }
+    override suspend fun repostPlaylist(playlistId: String): Boolean {
+        setPlaylistReposted(playlistId, true)
+        return true
+    }
+    override suspend fun unrepostPlaylist(playlistId: String): Boolean {
+        setPlaylistReposted(playlistId, false)
+        return true
+    }
+
+    override suspend fun getPlaylist(
+        index: Int,
+        playListEnum: PlayListEnum,
+        playlistId: String,
+        songsList: List<String>,
+        queryPlaylist: String
+    ): List<PlaylistItem> = emptyList()
+
+    override suspend fun getTracks(limit: Int, category: String, timeRange: String): List<TrackItem> = emptyList()
+    
+    override fun getSongWithId(songId: String): PlayListModel {
+        return PlayListModel(id = songId)
+    }
+}
+
+class FakeAuthRepository : AuthRepository {
+    private val _sessionState = MutableStateFlow<SessionState>(SessionState.Guest)
+    override val sessionState: StateFlow<SessionState> = _sessionState.asStateFlow()
+
+    fun setSessionState(state: SessionState) {
+        _sessionState.value = state
+    }
+
+    override fun getAuthUrl(redirectUri: String): String = ""
+    override suspend fun loginWithCode(code: String, redirectUri: String): Boolean = true
+    override suspend fun refreshSession(): Boolean = true
+    override fun logout() {}
 }

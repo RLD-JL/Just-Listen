@@ -6,11 +6,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import com.rld.justlisten.ui.theme.typography
 import androidx.compose.material3.Text
+import com.rld.justlisten.ui.components.SmartMarqueeText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,12 +46,18 @@ import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
+import com.rld.justlisten.ui.seeallscreen.formatCount
+import org.jetbrains.compose.resources.painterResource
+import justlisten.shared.generated.resources.Res
+import justlisten.shared.generated.resources.ic_repost
 
 @Composable
 fun SongListItem(
     playlistItem: PlaylistItem, onSongClicked: (String) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    playlist: String
+    onRepostPressed: (String, Boolean) -> Unit,
+    playlist: String,
+    onArtistClicked: (String, String) -> Unit
 ) {
     val musicPlayer = LocalMusicPlayer.current
     val playbackState by musicPlayer.playbackState.collectAsState()
@@ -108,16 +119,38 @@ fun SongListItem(
                 .padding(horizontal = 4.dp)
                 .weight(1f)
         ) {
-            Text(
-                text = playlistItem.playlistTitle,
-                style = typography.titleMedium.copy(fontSize = 16.sp),
+            SmartMarqueeText(
+                text = playlistItem.title.ifBlank { playlistItem.playlistTitle },
+                style = typography.titleMedium.copy(fontSize = 16.sp)
             )
-            Text(
-                text = "${playlistItem.title} by ${playlistItem.user}",
-                style = typography.titleSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val artistId = playlistItem._data.user.id
+                val artistColor = if (artistId.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                val artistClickAction = if (artistId.isNotBlank()) {
+                    { onArtistClicked(artistId, playlistItem.user) }
+                } else null
+
+                SmartMarqueeText(
+                    text = "by ${playlistItem.user}",
+                    style = typography.titleSmall,
+                    color = artistColor,
+                    onClick = artistClickAction,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                Text(
+                    text = " • ${formatDuration(playlistItem.duration)}",
+                    style = typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+                val playsText = if (playlistItem.playCount == 1) "1 play" else "${formatCount(playlistItem.playCount)} plays"
+                Text(
+                    text = " • $playsText",
+                    style = typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+            }
         }
 
         if (playlist == "Most Played") {
@@ -139,6 +172,27 @@ fun SongListItem(
                         )
                     }
             )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        val isReposted = playlistItem.isReposted
+        Icon(
+            painter = painterResource(Res.drawable.ic_repost),
+            contentDescription = "Repost",
+            tint = if (isReposted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .padding(4.dp)
+                .size(20.dp)
+                .clickable {
+                    onRepostPressed(playlistItem.id, !isReposted)
+                }
+        )
     }
+}
+
+private fun formatDuration(seconds: Int): String {
+    val m = seconds / 60
+    val s = seconds % 60
+    return "$m:${s.toString().padStart(2, '0')}"
 }
 

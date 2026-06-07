@@ -39,6 +39,13 @@ fun PlayerBottomBar(
         currentPosition = 0
     )
 
+    if (uiState.showConnectPrompt) {
+        com.rld.justlisten.ui.artistprofile.components.ConnectPromptDialog(
+            onDismissRequest = { onAction(PlayerAction.DismissConnectPrompt) },
+            onConnectClick = { onAction(PlayerAction.ConnectAudiusPressed) }
+        )
+    }
+
     val currentMedia = playbackState.currentMedia
     val songIcon = currentMedia?.lowResArtworkUrl ?: currentMedia?.artworkUrl ?: ""
     val artworkUrl = currentMedia?.artworkUrl ?: ""

@@ -19,6 +19,7 @@ fun Item.toMediaItem(): MediaItem {
     return MediaItem.Builder()
         .setMediaId(id)
         .setUri(setSongUrl(id))
+        .setCustomCacheKey(id)
         .setMediaMetadata(metadata)
         .build()
 }

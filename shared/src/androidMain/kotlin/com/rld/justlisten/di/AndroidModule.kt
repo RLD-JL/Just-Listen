@@ -10,6 +10,7 @@ import com.rld.justlisten.media.AndroidMusicPlayer
 import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.media.exoplayer.MusicServiceConnection
 import com.rld.justlisten.media.exoplayer.MusicSource
+import com.rld.justlisten.media.exoplayer.MusicPreloader
 import com.rld.justlisten.ui.utils.SleepTimerService
 import com.rld.justlisten.ui.utils.AndroidSleepTimerService
 import com.rld.justlisten.util.SecureStorage
@@ -61,12 +62,14 @@ fun androidModule(apiKey: String = "") = module {
             .build()
     }
     single {
-        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
         val evictor = LeastRecentlyUsedCacheEvictor((50 * 1024 * 1024).toLong())
         val databaseProvider = StandaloneDatabaseProvider(androidContext())
-        val simpleCache = SimpleCache(File(androidContext().cacheDir, "media"), evictor, databaseProvider)
+        SimpleCache(File(androidContext().cacheDir, "media"), evictor, databaseProvider)
+    }
+    single {
+        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
         CacheDataSource.Factory()
-            .setCache(simpleCache)
+            .setCache(get<SimpleCache>())
             .setUpstreamDataSourceFactory(httpDataSourceFactory)
     }
     single {
@@ -77,6 +80,7 @@ fun androidModule(apiKey: String = "") = module {
                 setHandleAudioBecomingNoisy(true)
             }
     }
-    single { MusicServiceConnection(get(), androidContext()) }
-    single<MusicPlayer> { AndroidMusicPlayer(get(), get()) }
+    single { MusicPreloader(get()) }
+    single { MusicServiceConnection(get(), get(), androidContext()) }
+    single<MusicPlayer> { AndroidMusicPlayer(get(), get(), get()) }
 }

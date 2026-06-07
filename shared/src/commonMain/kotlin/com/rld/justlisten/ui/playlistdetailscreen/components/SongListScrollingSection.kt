@@ -41,7 +41,9 @@ fun SongListScrollingSection(
     onSongClicked: (String) -> Unit,
     onShuffleClicked: () -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
-    painter: AsyncImagePainter
+    onRepostPressed: (String, Boolean) -> Unit,
+    painter: AsyncImagePainter,
+    onArtistClicked: (String, String) -> Unit
 ) {
     LazyColumn(Modifier.padding(top = 25.dp)) {
         item {
@@ -63,6 +65,8 @@ fun SongListScrollingSection(
                 playlistItem = playlistItem,
                 onSongClicked = onSongClicked,
                 onFavoritePressed = onFavoritePressed,
+                onRepostPressed = onRepostPressed,
+                onArtistClicked = onArtistClicked
             )
         }
     }

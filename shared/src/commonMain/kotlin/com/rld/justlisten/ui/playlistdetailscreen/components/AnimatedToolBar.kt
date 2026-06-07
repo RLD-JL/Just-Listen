@@ -67,7 +67,7 @@ fun AnimatedToolBar(
             modifier = Modifier
                 .alpha(((-scrollState.value + 0.010f) / 1000).coerceIn(0f, 1f))
         )
-        if (playlistDetailState.playListCreatedBy == "ME") {
+        if (playlistDetailState.playListCreatedBy == "ME" || playlistDetailState.playListCreatedBy == "ME (Audius)") {
             Box {
                 IconButton(
                     onClick = { showMenu = true },

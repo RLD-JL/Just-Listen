@@ -4,7 +4,15 @@ import com.rld.justlisten.LocalDb
 import com.rld.justlisten.datalayer.models.PlayListModel
 
 fun LocalDb.getPlaylistDetail() : List<PlayListModel> {
-  return  playlistDetailQueries.getPlaylistDetail(mapper = ::PlayListModel).executeAsList()
+  return  playlistDetailQueries.getPlaylistDetail(mapper = { id, title, playlistName, songImgList, user ->
+      PlayListModel(
+          id = id,
+          title = title,
+          playlistTitle = playlistName,
+          songImgList = songImgList,
+          user = user
+      )
+  }).executeAsList()
 }
 
 fun LocalDb.setPlaylistDetail(list: List<PlayListModel>) {

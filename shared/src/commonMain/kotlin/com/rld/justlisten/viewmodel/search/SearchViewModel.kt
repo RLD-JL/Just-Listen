@@ -231,4 +231,10 @@ class SearchViewModel(
     fun popBack() {
         popBackStack()
     }
+
+    fun onArtistClicked(artistId: String, artistName: String) {
+        if (artistId.isNotBlank()) {
+            navigate(Route.ArtistProfile(artistId, artistName))
+        }
+    }
 }

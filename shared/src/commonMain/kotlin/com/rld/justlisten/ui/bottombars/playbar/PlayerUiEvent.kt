@@ -16,4 +16,5 @@ sealed interface PlayerUiEvent {
     data object CloseSheet : PlayerUiEvent
     data class PainterLoaded(val painter: Painter) : PlayerUiEvent
     data class DominantColorExtracted(val colorInt: Int) : PlayerUiEvent
+    data class NavigateToArtist(val artistId: String, val artistName: String) : PlayerUiEvent
 }

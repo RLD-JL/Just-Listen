@@ -98,7 +98,11 @@ fun SearchScreen(
                             expanded = active,
                             onExpandedChange = { active = it },
                             placeholder = { Text("Search songs, artists, playlists...") },
-                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                            leadingIcon = {
+                                IconButton(onClick = { onAction(SearchScreenAction.BackPressed(false)) }) {
+                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                                }
+                            },
                             trailingIcon = {
                                 if (searchScreenState.searchFor.isNotEmpty()) {
                                     IconButton(onClick = { onAction(SearchScreenAction.QueryChanged("")) }) {
@@ -143,9 +147,9 @@ fun SearchScreen(
                                             active = false
                                             onAction(SearchScreenAction.PlaylistPressed(id, icon, title, creator, fav))
                                         },
-                                        onUserPressed = { artistName ->
+                                        onUserPressed = { id, name ->
                                             active = false
-                                            onAction(SearchScreenAction.SearchPressed(artistName))
+                                            onAction(SearchScreenAction.ArtistClicked(id, name))
                                         }
                                     )
                                 }
@@ -178,8 +182,8 @@ fun SearchScreen(
                                     onPlaylistPressed = { id, icon, title, createdBy, isFavorite ->
                                         onAction(SearchScreenAction.PlaylistPressed(id, icon, title, createdBy, isFavorite))
                                     },
-                                    onUserPressed = { artistName ->
-                                        onAction(SearchScreenAction.SearchPressed(artistName))
+                                    onUserPressed = { id, name ->
+                                        onAction(SearchScreenAction.ArtistClicked(id, name))
                                     },
                                     onSeeAllClicked = { type ->
                                         onAction(SearchScreenAction.SeeAllClicked(type))
@@ -285,6 +289,9 @@ fun SeeAllSearchContainer(
                                             track.songIconList
                                         )
                                     )
+                                },
+                                onArtistClicked = { id, name ->
+                                    onAction(SearchScreenAction.ArtistClicked(id, name))
                                 }
                             )
                         }
@@ -332,6 +339,9 @@ fun SeeAllSearchContainer(
                                 playlistItem = playlist,
                                 onPlaylistClicked = { id, icon, title, creator, fav ->
                                     onAction(SearchScreenAction.PlaylistPressed(id, icon, title, creator, fav))
+                                },
+                                onArtistClicked = { id, name ->
+                                    onAction(SearchScreenAction.ArtistClicked(id, name))
                                 }
                             )
                         }
@@ -386,7 +396,7 @@ fun SeeAllSearchContainer(
                             ArtistCircleSeeAllCard(
                                 user = user,
                                 onClick = {
-                                    onAction(SearchScreenAction.SearchPressed(user.name))
+                                    onAction(SearchScreenAction.ArtistClicked(user.id, user.name))
                                 }
                             )
                         }
@@ -425,7 +435,8 @@ fun SeeAllSearchContainer(
 @Composable
 fun TrackSeeAllRow(
     track: TrackItem,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onArtistClicked: (String, String) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -456,12 +467,19 @@ fun TrackSeeAllRow(
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onBackground
             )
+            val artistId = track._data.user.id
             Text(
                 text = track.user,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = if (artistId.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                modifier = Modifier.then(
+                    if (artistId.isNotBlank()) {
+                        Modifier.clickable { onArtistClicked(artistId, track.user) }
+                    } else Modifier
+                )
             )
         }
 
@@ -480,7 +498,7 @@ fun ArtistCircleSeeAllCard(user: AutocompleteUser, onClick: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .width(80.dp)
-            .clickable(enabled = false, onClick = onClick)
+            .clickable(onClick = onClick)
     ) {
         val imageUrl = user.profilePicture?.songImageURL150px
         val painter = rememberAsyncImagePainter(imageUrl)

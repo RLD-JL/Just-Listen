@@ -37,7 +37,8 @@ import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 @Composable
 fun PlaylistRowItem(
     playlistItem: PlaylistItem,
-    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit
+    onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
+    onArtistClicked: ((String, String) -> Unit)? = null
 ) {
     val musicPlayer = LocalMusicPlayer.current
     val playbackState by musicPlayer.playbackState.collectAsState()
@@ -110,13 +111,21 @@ fun PlaylistRowItem(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 8.dp)
         )
+        val artistId = playlistItem._data.user.id
         Text(
             text = "by ${playlistItem.user}",
-            style = typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = typography.bodySmall.copy(
+                color = if (onArtistClicked != null && artistId.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 2.dp)
+            modifier = Modifier
+                .padding(top = 2.dp)
+                .then(
+                    if (onArtistClicked != null && artistId.isNotBlank()) {
+                        Modifier.clickable { onArtistClicked(artistId, playlistItem.user) }
+                    } else Modifier
+                )
         )
     }
 }

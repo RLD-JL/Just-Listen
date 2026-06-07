@@ -21,6 +21,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -62,8 +67,56 @@ fun PlayerBottomTabs(
                 anchors = DraggableAnchors {
                     TabsSheetState.EXPANDED at startAnchor
                     TabsSheetState.COLLAPSED at endAnchor
-                }
+                },
+                positionalThreshold = { distance: Float -> distance * 0.3f },
+                velocityThreshold = { with(density) { 125.dp.toPx() } },
+                snapAnimationSpec = spring(stiffness = 300f, dampingRatio = 0.8f),
+                decayAnimationSpec = decayAnimationSpec
             )
+        }
+
+        val nestedScrollConnection = remember(anchoredDraggableState, startAnchor, endAnchor) {
+            object : NestedScrollConnection {
+                override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                    val delta = available.y
+                    val offset = anchoredDraggableState.offset
+                    if (!offset.isNaN()) {
+                        val isIntermediate = offset > startAnchor && offset < endAnchor
+                        if (isIntermediate || (delta < 0f && offset > startAnchor)) {
+                            val consumed = anchoredDraggableState.dispatchRawDelta(delta)
+                            return Offset(0f, consumed)
+                        }
+                    }
+                    return Offset.Zero
+                }
+
+                override fun onPostScroll(
+                    consumed: Offset,
+                    available: Offset,
+                    source: NestedScrollSource
+                ): Offset {
+                    val delta = available.y
+                    if (delta > 0f) {
+                        val consumedByDraggable = anchoredDraggableState.dispatchRawDelta(delta)
+                        return Offset(0f, consumedByDraggable)
+                    }
+                    return Offset.Zero
+                }
+
+                override suspend fun onPreFling(available: Velocity): Velocity {
+                    val offset = anchoredDraggableState.offset
+                    if (!offset.isNaN() && offset > startAnchor && offset < endAnchor) {
+                        anchoredDraggableState.settle(available.y)
+                        return available
+                    }
+                    return Velocity.Zero
+                }
+
+                override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                    anchoredDraggableState.settle(available.y)
+                    return available
+                }
+            }
         }
 
         Box(
@@ -76,6 +129,7 @@ fun PlayerBottomTabs(
                         anchoredDraggableState.offset.toInt()
                     )
                 }
+                .nestedScroll(nestedScrollConnection)
                 .anchoredDraggable(
                     state = anchoredDraggableState,
                     orientation = Orientation.Vertical,

@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class MusicServiceConnection(
-    private val musicSource: MusicSource,
+    val musicSource: MusicSource,
+    private val musicPreloader: MusicPreloader,
     context: Context
 ) {
 
@@ -117,10 +118,22 @@ class MusicServiceConnection(
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             _currentPlayingSong.value = mediaItem
+            mediaItem?.let {
+                preloadNextSong()
+            }
         }
         
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
             _networkError.value = true
+        }
+    }
+
+    private fun preloadNextSong() {
+        val controller = mediaController ?: return
+        val nextIndex = controller.nextMediaItemIndex
+        if (nextIndex != androidx.media3.common.C.INDEX_UNSET && nextIndex < controller.mediaItemCount) {
+            val nextSong = controller.getMediaItemAt(nextIndex)
+            musicPreloader.preloadSong(nextSong.mediaId)
         }
     }
 }

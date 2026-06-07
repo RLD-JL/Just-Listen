@@ -19,7 +19,8 @@ fun PlaylistRow(
     playlist: List<PlaylistItem>, lasItemReached: (Int, PlayListEnum) -> Unit,
     playlistEnum: PlayListEnum,
     onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
-    lastIndexReached: Boolean = false
+    lastIndexReached: Boolean = false,
+    onArtistClicked: ((String, String) -> Unit)? = null
 ) {
     val fetchMore = remember { mutableStateOf(false) }
     LazyRow(verticalAlignment = Alignment.CenterVertically) {
@@ -39,7 +40,8 @@ fun PlaylistRow(
 
             PlaylistRowItem(
                 playlistItem = playlistItem,
-                onPlaylistClicked = onPlaylistClicked
+                onPlaylistClicked = onPlaylistClicked,
+                onArtistClicked = onArtistClicked
             )
         }
         if (fetchMore.value) {

@@ -34,6 +34,13 @@ fun PlaylistDetailScreen(
     musicPlayer: MusicPlayer,
     onAction: (PlaylistDetailAction) -> Unit
 ) {
+    if (playlistDetailState.showConnectPrompt) {
+        com.rld.justlisten.ui.artistprofile.components.ConnectPromptDialog(
+            onDismissRequest = { onAction(PlaylistDetailAction.DismissConnectPrompt) },
+            onConnectClick = { onAction(PlaylistDetailAction.ConnectAudiusPressed) }
+        )
+    }
+
     if (playlistDetailState.isLoading) {
         LoadingScreen()
     } else {
@@ -107,7 +114,11 @@ fun PlaylistDetailScreen(
                 onFavoritePressed = { id, title, user, icon, isFav -> 
                     onAction(PlaylistDetailAction.FavoritePressed(id, title, user, icon, isFav)) 
                 },
-                painter = painter
+                onRepostPressed = { id, isRep ->
+                    onAction(PlaylistDetailAction.RepostPressed(id, isRep))
+                },
+                painter = painter,
+                onArtistClicked = { id, name -> onAction(PlaylistDetailAction.ArtistClicked(id, name)) }
             )
             AnimatedToolBar(
                 playlistDetailState = playlistDetailState, 

@@ -36,7 +36,7 @@ fun ShowSearchResults(
     searchResultPlaylist: List<PlaylistItem>,
     onSongPressed: (String, String, String, SongIconList) -> Unit,
     onPlaylistPressed: (String, String, String, String, Boolean) -> Unit,
-    onUserPressed: (String) -> Unit,
+    onUserPressed: (String, String) -> Unit,
     onSeeAllClicked: (SearchSeeAllType) -> Unit
 ) {
     val genres = listOf(
@@ -63,7 +63,7 @@ fun ShowSearchResults(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(searchResultUsers.take(8)) { user ->
-                    ArtistCard(user = user, onClick = { onUserPressed(user.name) })
+                    ArtistCard(user = user, onClick = { onUserPressed(user.id, user.name) })
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -120,7 +120,7 @@ fun ArtistCard(user: AutocompleteUser, onClick: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .width(80.dp)
-            .clickable(enabled = false, onClick = onClick)
+            .clickable(onClick = onClick)
     ) {
         val imageUrl = user.profilePicture?.songImageURL150px
         val painter = rememberAsyncImagePainter(imageUrl)

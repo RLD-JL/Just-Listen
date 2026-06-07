@@ -9,20 +9,20 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 
 fun LocalDb.savePlaylist(
-    playlistName: String, playlistDescription: String?, isRemote: Boolean = false, isPrivate: Boolean = false
+    playlistName: String, playlistDescription: String?, isRemote: Boolean = false, isPrivate: Boolean = false, playlistId: String? = null
 ) {
     addPlaylistQueries.transaction {
-        addPlaylistQueries.upsertAddPlaylist(playlistName, playlistDescription, isRemote, isPrivate)
+        addPlaylistQueries.upsertAddPlaylist(playlistName, playlistDescription, isRemote, isPrivate, playlistId)
     }
 }
 
 fun LocalDb.updatePlaylistSongs(
-    playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean = false, isPrivate: Boolean = false
+    playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean = false, isPrivate: Boolean = false, playlistId: String? = null
 ) {
     addPlaylistQueries.transaction {
         addPlaylistQueries.upsertAddPlaylistWithSongs(
             playlistName,
-            playlistDescription, songList, isRemote, isPrivate
+            playlistDescription, songList, isRemote, isPrivate, playlistId
         )
     }
 }

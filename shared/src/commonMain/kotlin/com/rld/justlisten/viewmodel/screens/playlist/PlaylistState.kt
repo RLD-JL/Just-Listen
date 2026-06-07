@@ -27,7 +27,8 @@ data class PlaylistState(
 
 data class PlaylistItem(
     val _data: PlayListModel,
-    override var isFavorite: Boolean = false
+    override var isFavorite: Boolean = false,
+    override var isReposted: Boolean = _data.hasCurrentUserReposted
 ) : Item{
     override val user = _data.user.username
     override val title = _data.title
@@ -38,5 +39,10 @@ data class PlaylistItem(
     override val repostCount = _data.repostCount
     override val favoriteCount = _data.favoriteCount
     override val durationPlayedSec = _data.durationPlayedSec
+    override val commentCount = _data.commentCount
+    override val playCount = if (_data.isPlaylist) _data.totalPlayCount else _data.playCount
+    override val duration = _data.duration
+    override val userId = _data.user.id
+    val releaseDate = _data.releaseDate
 }
 

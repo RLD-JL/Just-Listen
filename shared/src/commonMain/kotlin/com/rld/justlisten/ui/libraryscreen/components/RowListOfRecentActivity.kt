@@ -14,7 +14,8 @@ fun RowListOfRecentActivity(
     libraryState: LibraryState,
     onPlaylistClicked: (String, String, String, String, Boolean) -> Unit,
     lastIndexReached: Boolean,
-    lasItemReached: (Int) -> Unit
+    lasItemReached: (Int) -> Unit,
+    onArtistClicked: (String, String) -> Unit
 ) {
     val fetchMore = remember { mutableStateOf(false) }
 
@@ -35,6 +36,7 @@ fun RowListOfRecentActivity(
             PlaylistRowItem(
                 playlistItem = playlistItem,
                 onPlaylistClicked = onPlaylistClicked,
+                onArtistClicked = onArtistClicked
             )
         }
     }

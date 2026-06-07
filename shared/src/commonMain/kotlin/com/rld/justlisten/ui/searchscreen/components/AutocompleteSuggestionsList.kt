@@ -33,7 +33,7 @@ fun AutocompleteSuggestionsList(
     users: List<AutocompleteUser>,
     onSongPressed: (String, String, String, SongIconList) -> Unit,
     onPlaylistPressed: (String, String, String, String, Boolean) -> Unit,
-    onUserPressed: (String) -> Unit
+    onUserPressed: (String, String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -43,7 +43,7 @@ fun AutocompleteSuggestionsList(
         if (users.isNotEmpty()) {
             SuggestionHeader(title = "Artists")
             users.take(5).forEach { user ->
-                ArtistSuggestionRow(user = user, onClick = { onUserPressed(user.name) })
+                ArtistSuggestionRow(user = user, onClick = { onUserPressed(user.id, user.name) })
             }
             Spacer(modifier = Modifier.height(12.dp))
         }
@@ -101,7 +101,7 @@ fun ArtistSuggestionRow(user: AutocompleteUser, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = false, onClick = onClick)
+            .clickable(onClick = onClick)
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

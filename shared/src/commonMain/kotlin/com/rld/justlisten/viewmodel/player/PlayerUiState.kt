@@ -5,5 +5,6 @@ import com.rld.justlisten.media.PlaybackState
 
 data class PlayerUiState(
     val addPlaylistList: List<AddPlaylist> = emptyList(),
-    val playbackState: PlaybackState? = null
+    val playbackState: PlaybackState? = null,
+    val showConnectPrompt: Boolean = false
 )

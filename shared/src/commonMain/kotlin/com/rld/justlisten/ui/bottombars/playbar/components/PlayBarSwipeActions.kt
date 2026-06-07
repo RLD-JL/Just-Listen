@@ -41,6 +41,7 @@ import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.ui.LocalMusicPlayer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import com.rld.justlisten.ui.components.SmartMarqueeText
 
 @Composable
 fun PlayBarSwipeActions(
@@ -267,19 +268,15 @@ fun PlayBarSwipeActions(
                 ) {
                     val currentTitle = currentMedia?.title ?: title
                     val currentArtist = currentMedia?.artist ?: ""
-                    Text(
+                    SmartMarqueeText(
                         text = currentTitle,
                         style = MaterialTheme.typography.bodyLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
                         color = Color.White
                     )
                     if (currentArtist.isNotEmpty()) {
-                        Text(
+                        SmartMarqueeText(
                             text = currentArtist,
                             style = MaterialTheme.typography.bodyMedium.copy(fontSize = 11.sp),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
                             color = Color.White.copy(alpha = 0.7f)
                         )
                     }
@@ -339,19 +336,15 @@ fun MinibarTrackRow(
                 .padding(end = 8.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
+            SmartMarqueeText(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
                 color = Color.White
             )
             if (artist.isNotEmpty()) {
-                Text(
+                SmartMarqueeText(
                     text = artist,
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 11.sp),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                     color = Color.White.copy(alpha = 0.7f)
                 )
             }

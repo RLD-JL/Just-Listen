@@ -22,6 +22,11 @@ sealed interface PlaylistScreenAction {
         val user: String,
         val songIcon: SongIconList,
     ) : PlaylistScreenAction
+    
+    data class ArtistClicked(
+        val artistId: String,
+        val artistName: String
+    ) : PlaylistScreenAction
 
     data object SearchClicked : PlaylistScreenAction
     data object RefreshScreen : PlaylistScreenAction

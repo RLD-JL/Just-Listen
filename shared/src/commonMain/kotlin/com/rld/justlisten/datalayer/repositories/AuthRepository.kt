@@ -63,6 +63,9 @@ class AuthRepositoryImpl(
         // Fetch user profile
         val userProfile = apiClient.getMe()
         return if (userProfile != null) {
+            if (!userProfile.userId.isNullOrBlank()) {
+                secureStorage.saveToken("user_id", userProfile.userId)
+            }
             _sessionState.value = SessionState.Authenticated(userProfile)
             CoroutineScope(Dispatchers.Default).launch {
                 syncRepository.performInboundSync(userProfile.userId.toString())
@@ -81,6 +84,9 @@ class AuthRepositoryImpl(
         }
         val userProfile = apiClient.getMe()
         return if (userProfile != null) {
+            if (!userProfile.userId.isNullOrBlank()) {
+                secureStorage.saveToken("user_id", userProfile.userId)
+            }
             _sessionState.value = SessionState.Authenticated(userProfile)
             CoroutineScope(Dispatchers.Default).launch {
                 syncRepository.performInboundSync(userProfile.userId.toString())
@@ -91,6 +97,9 @@ class AuthRepositoryImpl(
             if (refreshed) {
                 val profile = apiClient.getMe()
                 if (profile != null) {
+                    if (!profile.userId.isNullOrBlank()) {
+                        secureStorage.saveToken("user_id", profile.userId)
+                    }
                     _sessionState.value = SessionState.Authenticated(profile)
                     CoroutineScope(Dispatchers.Default).launch {
                         syncRepository.performInboundSync(profile.userId.toString())

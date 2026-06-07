@@ -37,16 +37,18 @@ interface LibraryRepository {
     fun getPlayHistoryFlow(): Flow<Unit>
     
     // Add Playlist functions
-    fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean = false, isPrivate: Boolean = false)
+    fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean = false, isPrivate: Boolean = false, playlistId: String? = null)
     fun getAddPlaylist(): List<AddPlaylist>
     fun getAddPlaylistFlow(): Flow<List<AddPlaylist>>
-    fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean = false, isPrivate: Boolean = false)
+    fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean = false, isPrivate: Boolean = false, playlistId: String? = null)
     fun deletePlaylist(playlistName: String)
     fun updatePlaylistName(oldName: String, newName: String)
 }
 
 class LibraryRepositoryImpl(
-    private val localDb: LocalDb
+    private val localDb: LocalDb,
+    private val authRepository: AuthRepository,
+    private val syncRepository: SyncRepository
 ) : LibraryRepository {
     private val _playHistoryFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
 
@@ -109,8 +111,8 @@ class LibraryRepositoryImpl(
         return localDb.getTopArtistFromHistory()
     }
 
-    override fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean, isPrivate: Boolean) {
-        localDb.savePlaylist(playlistName, playlistDescription, isRemote, isPrivate)
+    override fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean, isPrivate: Boolean, playlistId: String?) {
+        localDb.savePlaylist(playlistName, playlistDescription, isRemote, isPrivate, playlistId)
     }
 
     override fun getAddPlaylist(): List<AddPlaylist> {
@@ -126,17 +128,37 @@ class LibraryRepositoryImpl(
         playlistDescription: String?,
         songList: List<String>,
         isRemote: Boolean,
-        isPrivate: Boolean
+        isPrivate: Boolean,
+        playlistId: String?
     ) {
-        localDb.updatePlaylistSongs(playlistName, playlistDescription, songList, isRemote, isPrivate)
+        localDb.updatePlaylistSongs(playlistName, playlistDescription, songList, isRemote, isPrivate, playlistId)
+        
+        val playlist = localDb.addPlaylistQueries.getPlaylistByName(playlistName).executeAsOneOrNull()
+        if (playlist != null && playlist.isRemote && !playlist.playlistId.isNullOrBlank()) {
+            if (authRepository.sessionState.value is SessionState.Authenticated) {
+                syncRepository.enqueuePlaylistUpdateTask(playlist.playlistId, songList)
+            }
+        }
     }
 
     override fun deletePlaylist(playlistName: String) {
+        val playlist = localDb.addPlaylistQueries.getPlaylistByName(playlistName).executeAsOneOrNull()
         localDb.deletePlaylist(playlistName)
+        if (playlist != null && playlist.isRemote && !playlist.playlistId.isNullOrBlank()) {
+            if (authRepository.sessionState.value is SessionState.Authenticated) {
+                syncRepository.enqueuePlaylistDeleteTask(playlist.playlistId)
+            }
+        }
     }
 
     override fun updatePlaylistName(oldName: String, newName: String) {
         localDb.updatePlaylistName(oldName, newName)
+        val playlist = localDb.addPlaylistQueries.getPlaylistByName(newName).executeAsOneOrNull()
+        if (playlist != null && playlist.isRemote && !playlist.playlistId.isNullOrBlank()) {
+            if (authRepository.sessionState.value is SessionState.Authenticated) {
+                syncRepository.enqueuePlaylistDetailsUpdateTask(playlist.playlistId, newName, playlist.playlistDescription)
+            }
+        }
     }
 }
 
