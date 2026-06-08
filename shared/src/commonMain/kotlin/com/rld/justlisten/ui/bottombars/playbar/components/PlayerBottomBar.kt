@@ -27,6 +27,8 @@ import com.rld.justlisten.viewmodel.player.PlayerUiState
 import com.rld.justlisten.ui.actions.PlayerAction
 import com.rld.justlisten.ui.bottombars.playbar.PlayerLayoutInfo
 import com.rld.justlisten.ui.bottombars.playbar.PlayerUiEvent
+import com.rld.justlisten.ui.LocalMusicPlayer
+import com.rld.justlisten.media.MusicPlayer
 
 @Composable
 fun PlayerBottomBar(
@@ -35,6 +37,7 @@ fun PlayerBottomBar(
     onAction: (PlayerAction) -> Unit,
     onUiEvent: (PlayerUiEvent) -> Unit
 ) {
+    val musicPlayer = LocalMusicPlayer.current
     val playbackState = uiState.playbackState ?: com.rld.justlisten.media.PlaybackState(
         status = com.rld.justlisten.media.PlaybackStatus.IDLE,
         currentPosition = 0
@@ -94,28 +97,12 @@ fun PlayerBottomBar(
         val constraints = this@BoxWithConstraints
 
         // ── 1. Progress bar (minibar only) ──────────────────────────────────
-        val progress = if ((playbackState.currentMedia?.duration ?: 0L) > 0L)
-            playbackState.currentPosition.toFloat() /
-                    playbackState.currentMedia!!.duration.toFloat()
-        else 0f
-
-        if (!progress.isNaN()) {
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.5.dp)
-                    .align(Alignment.TopCenter)
-                    .offset(y = 63.5.dp)
-                    .graphicsLayer {
-                        val fraction = currentFractionProvider()
-                        alpha = if (fraction >= 0.99f) 0f else (1f - fraction * 4f).coerceIn(0f, 1f)
-                    },
-                color = animatedColor.copy(alpha = 0.85f),
-                trackColor = ProgressIndicatorDefaults.linearTrackColor,
-                strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
-            )
-        }
+        MiniProgressBar(
+            musicPlayer = musicPlayer,
+            duration = playbackState.currentMedia?.duration ?: 0L,
+            currentFractionProvider = currentFractionProvider,
+            animatedColor = animatedColor
+        )
 
         // ── 2. Album art + minimized controls ───────────────────────────────
         PlayBarSwipeActions(
@@ -189,5 +176,36 @@ fun PlayerBottomBar(
                 onAction = onAction
             )
         }
+    }
+}
+
+@Composable
+fun BoxScope.MiniProgressBar(
+    musicPlayer: MusicPlayer,
+    duration: Long,
+    currentFractionProvider: () -> Float,
+    animatedColor: Color
+) {
+    val playbackState by musicPlayer.playbackState.collectAsState()
+    val progress = if (duration > 0L) {
+        playbackState.currentPosition.toFloat() / duration.toFloat()
+    } else 0f
+
+    if (!progress.isNaN()) {
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.5.dp)
+                .align(Alignment.TopCenter)
+                .offset(y = 63.5.dp)
+                .graphicsLayer {
+                    val fraction = currentFractionProvider()
+                    alpha = if (fraction >= 0.99f) 0f else (1f - fraction * 4f).coerceIn(0f, 1f)
+                },
+            color = animatedColor.copy(alpha = 0.85f),
+            trackColor = ProgressIndicatorDefaults.linearTrackColor,
+            strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+        )
     }
 }

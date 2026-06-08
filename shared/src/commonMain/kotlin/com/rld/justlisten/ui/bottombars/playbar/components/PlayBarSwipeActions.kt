@@ -338,6 +338,14 @@ fun PlayBarSwipeActions(
         // Fixed Minimized controls (Favorite, Play/Pause, SkipNext)
         PlayBarActionsMinimized(
             currentFractionProvider = currentFractionProvider,
+            status = playbackState.status,
+            isFavorite = playbackState.currentMedia?.isFavorite == true,
+            songId = playbackState.currentMedia?.id,
+            songTitle = playbackState.currentMedia?.title,
+            songArtist = playbackState.currentMedia?.artist,
+            songArtistId = playbackState.currentMedia?.artistId,
+            songArtworkUrl = playbackState.currentMedia?.artworkUrl,
+            onPlayPause = { if (playbackState.status == com.rld.justlisten.media.PlaybackStatus.PLAYING) musicPlayer.pause() else musicPlayer.play() },
             onSkipNextPressed = onSkipNextPressed,
             onFavoritePressed = onFavoritePressed
         )

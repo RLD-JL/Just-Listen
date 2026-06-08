@@ -67,15 +67,6 @@ fun PlayBarActionsMaximized(
     val artist = playbackState.currentMedia?.artist ?: ""
     val title = playbackState.currentMedia?.title ?: ""
 
-    val coroutineScope = rememberCoroutineScope()
-    var dragPosition by remember { mutableStateOf<Float?>(null) }
-    var seekJob by remember { mutableStateOf<Job?>(null) }
-
-    LaunchedEffect(playbackState.currentMedia?.id) {
-        seekJob?.cancel()
-        dragPosition = null
-    }
-
     val bottomPadding = layoutInfo.bottomPadding
     val isVisible by remember(layoutInfo) {
         derivedStateOf {
@@ -84,18 +75,6 @@ fun PlayBarActionsMaximized(
     }
 
     if (isVisible) {
-        val sliderPosition = if (playbackState.currentMedia?.duration ?: 0L > 0) {
-            playbackState.currentPosition.toFloat() / playbackState.currentMedia!!.duration.toFloat()
-        } else 0f
-
-        val displayPosition = dragPosition ?: sliderPosition
-        val duration = playbackState.currentMedia?.duration ?: 0L
-        val displayPositionMs = if (dragPosition != null) {
-            (dragPosition!! * duration).toLong()
-        } else {
-            playbackState.currentPosition
-        }
-        
         Column(
             Modifier
                 .fillMaxWidth()
@@ -197,45 +176,10 @@ fun PlayBarActionsMaximized(
             Spacer(Modifier.height(16.dp))
 
             // Slider and Time Labels
-            Column(modifier = Modifier.fillMaxWidth()) {
-                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
-                    Slider(
-                        value = displayPosition,
-                        onValueChange = {
-                            seekJob?.cancel()
-                            dragPosition = it
-                        },
-                        onValueChangeFinished = {
-                            dragPosition?.let { pos ->
-                                val newPos = (pos * duration).toLong()
-                                musicPlayer.seekTo(newPos)
-                                seekJob = coroutineScope.launch {
-                                    delay(500)
-                                    dragPosition = null
-                                }
-                            }
-                        },
-                        thumb = {
-                            SliderDefaults.Thumb(
-                                interactionSource = remember { MutableInteractionSource() },
-                                colors = SliderDefaults.colors(thumbColor = Color.White),
-                                thumbSize = DpSize(12.dp, 12.dp)
-                            )
-                        },
-                        colors = SliderDefaults.colors(
-                            activeTrackColor = Color.White,
-                            inactiveTrackColor = Color.White.copy(alpha = 0.2f)
-                        )
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(text = formatTime(displayPositionMs), color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
-                    Text(text = formatTime(duration), color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
-                }
-            }
+            PlaybackSeekBar(
+                musicPlayer = musicPlayer,
+                duration = playbackState.currentMedia?.duration ?: 0L
+            )
 
             Spacer(Modifier.height(12.dp))
 
@@ -361,5 +305,73 @@ private fun formatTime(ms: Long): String {
         "${hours}:${remainingMinutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}"
     } else {
         "${minutes}:${seconds.toString().padStart(2, '0')}"
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PlaybackSeekBar(
+    musicPlayer: MusicPlayer,
+    duration: Long
+) {
+    val playbackState by musicPlayer.playbackState.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+    var dragPosition by remember { mutableStateOf<Float?>(null) }
+    var seekJob by remember { mutableStateOf<Job?>(null) }
+
+    LaunchedEffect(playbackState.currentMedia?.id) {
+        seekJob?.cancel()
+        dragPosition = null
+    }
+
+    val sliderPosition = if (duration > 0L) {
+        playbackState.currentPosition.toFloat() / duration.toFloat()
+    } else 0f
+
+    val displayPosition = dragPosition ?: sliderPosition
+    val displayPositionMs = if (dragPosition != null) {
+        (dragPosition!! * duration).toLong()
+    } else {
+        playbackState.currentPosition
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+            Slider(
+                value = displayPosition,
+                onValueChange = {
+                    seekJob?.cancel()
+                    dragPosition = it
+                },
+                onValueChangeFinished = {
+                    dragPosition?.let { pos ->
+                        val newPos = (pos * duration).toLong()
+                        musicPlayer.seekTo(newPos)
+                        seekJob = coroutineScope.launch {
+                            delay(500)
+                            dragPosition = null
+                        }
+                    }
+                },
+                thumb = {
+                    SliderDefaults.Thumb(
+                        interactionSource = remember { MutableInteractionSource() },
+                        colors = SliderDefaults.colors(thumbColor = Color.White),
+                        thumbSize = DpSize(12.dp, 12.dp)
+                    )
+                },
+                colors = SliderDefaults.colors(
+                    activeTrackColor = Color.White,
+                    inactiveTrackColor = Color.White.copy(alpha = 0.2f)
+                )
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = formatTime(displayPositionMs), color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
+            Text(text = formatTime(duration), color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
+        }
     }
 }

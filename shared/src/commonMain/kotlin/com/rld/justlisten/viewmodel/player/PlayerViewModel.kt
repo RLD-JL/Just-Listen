@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 import com.rld.justlisten.media.PlayHistoryTracker
@@ -175,7 +177,9 @@ class PlayerViewModel(
 
     val playerUiState: StateFlow<PlayerUiState> = combine(
         _addPlaylistList,
-        musicPlayer.playbackState,
+        musicPlayer.playbackState.map { state ->
+            state.copy(currentPosition = 0)
+        }.distinctUntilChanged(),
         _showConnectPrompt,
         _isAutoplayEnabled,
         _recommendedSongs

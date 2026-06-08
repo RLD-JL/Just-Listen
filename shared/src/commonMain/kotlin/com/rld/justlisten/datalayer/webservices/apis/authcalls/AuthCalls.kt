@@ -88,6 +88,7 @@ suspend fun ApiClient.getUserFavoriteTracks(userId: String): List<PlayListModel>
             try {
                 getTrackDetails(trackId)
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 println("ApiClient: Error fetching track details for favorite $trackId: ${e.message}")
                 null
             }
@@ -118,6 +119,7 @@ suspend fun ApiClient.getUserFavoritePlaylists(userId: String): List<PlayListMod
                 val response: com.rld.justlisten.datalayer.webservices.apis.playlistcalls.PlayListResponse? = getResponse("/playlists/$playlistId")
                 response?.data?.firstOrNull()
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 println("ApiClient: Error fetching playlist details for favorite $playlistId: ${e.message}")
                 null
             }
