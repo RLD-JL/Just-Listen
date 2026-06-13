@@ -28,15 +28,45 @@ CREATE TABLE UserProfileOverrides (
      customName TEXT,
      customBio TEXT,
      customProfilePic TEXT,
-     customCoverPhoto TEXT
+     customCoverPhoto TEXT,
+     customLocation TEXT,
+     xHandle TEXT,
+     instagramHandle TEXT,
+     tiktokHandle TEXT,
+     website TEXT,
+     fanClubFlair TEXT
 );
 
 getUserProfileOverride:
 SELECT * FROM UserProfileOverrides WHERE userId = :userId;
 
 upsertUserProfileOverride:
-INSERT OR REPLACE INTO UserProfileOverrides(userId, customName, customBio, customProfilePic, customCoverPhoto)
-VALUES(:userId, :customName, :customBio, :customProfilePic, :customCoverPhoto);
+INSERT OR REPLACE INTO UserProfileOverrides(
+    userId,
+    customName,
+    customBio,
+    customProfilePic,
+    customCoverPhoto,
+    customLocation,
+    xHandle,
+    instagramHandle,
+    tiktokHandle,
+    website,
+    fanClubFlair
+)
+VALUES(
+    :userId,
+    :customName,
+    :customBio,
+    :customProfilePic,
+    :customCoverPhoto,
+    :customLocation,
+    :xHandle,
+    :instagramHandle,
+    :tiktokHandle,
+    :website,
+    :fanClubFlair
+);
 
 deleteUserProfileOverride:
 DELETE FROM UserProfileOverrides WHERE userId = :userId;

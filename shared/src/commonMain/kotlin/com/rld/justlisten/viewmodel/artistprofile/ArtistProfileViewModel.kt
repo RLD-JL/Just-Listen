@@ -6,6 +6,8 @@ import com.rld.justlisten.datalayer.webservices.apis.authcalls.getUserProfile
 import com.rld.justlisten.datalayer.webservices.apis.authcalls.getUserPlaylists
 import com.rld.justlisten.datalayer.webservices.apis.authcalls.getUserFollowers
 import com.rld.justlisten.datalayer.webservices.apis.authcalls.getUserFollowing
+import com.rld.justlisten.datalayer.webservices.apis.authcalls.getUserCoins
+import com.rld.justlisten.datalayer.webservices.apis.authcalls.UserCoinModel
 import com.rld.justlisten.datalayer.webservices.apis.writecalls.followUser
 import com.rld.justlisten.datalayer.webservices.apis.writecalls.unfollowUser
 import com.rld.justlisten.datalayer.repositories.AuthRepository
@@ -59,13 +61,31 @@ class ArtistProfileViewModel(
                     apiClient.getResponse<com.rld.justlisten.datalayer.webservices.apis.playlistcalls.PlayListResponse>("/users/$artistId/tracks") 
                 }
                 val playlistsDeferred = async { apiClient.getUserPlaylists(artistId) }
+                val coinsDeferred = async { apiClient.getUserCoins(artistId) }
 
                 var profile = profileDeferred.await()
+                val coins = coinsDeferred.await()
+
                 if (profile != null && isCurrentUser) {
                     val customName = authRepository.getCustomName(artistId)
                     val customBio = authRepository.getCustomBio(artistId)
                     val customProfilePic = authRepository.getCustomProfilePic(artistId)
                     val customCoverPhoto = authRepository.getCustomCoverPhoto(artistId)
+                    val customLocation = authRepository.getCustomLocation(artistId)
+                    val customXHandle = authRepository.getCustomXHandle(artistId)
+                    val customInstagramHandle = authRepository.getCustomInstagramHandle(artistId)
+                    val customTikTokHandle = authRepository.getCustomTikTokHandle(artistId)
+                    val customWebsite = authRepository.getCustomWebsite(artistId)
+                    val customFanClubFlair = authRepository.getCustomFanClubFlair(artistId)
+
+                    val resolvedFlairMint = when (customFanClubFlair) {
+                        "Highest Balance" -> {
+                            coins.maxByOrNull { it.balanceUsd ?: it.balance.toDoubleOrNull() ?: 0.0 }?.mint
+                        }
+                        "None" -> null
+                        null -> profile.coinFlairMint
+                        else -> customFanClubFlair
+                    }
 
                     profile = profile.copy(
                         name = customName ?: profile.name,
@@ -82,7 +102,14 @@ class ArtistProfileViewModel(
                                 image640 = customCoverPhoto,
                                 image2000 = customCoverPhoto
                             )
-                        } else profile.coverPhoto
+                        } else profile.coverPhoto,
+                        location = customLocation ?: profile.location,
+                        twitterHandle = customXHandle ?: profile.twitterHandle,
+                        instagramHandle = customInstagramHandle ?: profile.instagramHandle,
+                        tiktokHandle = customTikTokHandle ?: profile.tiktokHandle,
+                        website = customWebsite ?: profile.website,
+                        coinFlairMint = resolvedFlairMint,
+                        fanClubFlair = customFanClubFlair ?: profile.fanClubFlair
                     )
                 }
 
@@ -100,7 +127,8 @@ class ArtistProfileViewModel(
                         artistProfile = profile,
                         artistTracks = playlistItems,
                         artistPlaylists = playlists,
-                        isCurrentUser = isCurrentUser
+                        isCurrentUser = isCurrentUser,
+                        userCoins = coins
                     )
                 }
             } catch (e: Exception) {
@@ -163,11 +191,35 @@ class ArtistProfileViewModel(
         )
     }
 
-    fun onEditProfileSaved(name: String, bio: String?, profilePicUrl: String?, coverPhotoUrl: String?) {
+    fun onEditProfileSaved(
+        name: String,
+        bio: String?,
+        profilePicUrl: String?,
+        coverPhotoUrl: String?,
+        location: String?,
+        xHandle: String?,
+        instagramHandle: String?,
+        tiktokHandle: String?,
+        website: String?,
+        fanClubFlair: String?
+    ) {
         val profile = _artistProfileState.value.artistProfile ?: return
         val artistId = profile.id
-        authRepository.updateUserProfile(artistId, name, bio, profilePicUrl, coverPhotoUrl)
+        authRepository.updateUserProfile(
+            artistId, name, bio, profilePicUrl, coverPhotoUrl,
+            location, xHandle, instagramHandle, tiktokHandle, website, fanClubFlair
+        )
         
+        val coins = _artistProfileState.value.userCoins
+        val resolvedFlairMint = when (fanClubFlair) {
+            "Highest Balance" -> {
+                coins.maxByOrNull { it.balanceUsd ?: it.balance.toDoubleOrNull() ?: 0.0 }?.mint
+            }
+            "None" -> null
+            null -> profile.coinFlairMint
+            else -> fanClubFlair
+        }
+
         val updatedProfile = profile.copy(
             name = name,
             bio = bio ?: profile.bio,
@@ -183,7 +235,14 @@ class ArtistProfileViewModel(
                     image640 = coverPhotoUrl,
                     image2000 = coverPhotoUrl
                 )
-            } else profile.coverPhoto
+            } else profile.coverPhoto,
+            location = location ?: profile.location,
+            twitterHandle = xHandle ?: profile.twitterHandle,
+            instagramHandle = instagramHandle ?: profile.instagramHandle,
+            tiktokHandle = tiktokHandle ?: profile.tiktokHandle,
+            website = website ?: profile.website,
+            coinFlairMint = resolvedFlairMint,
+            fanClubFlair = fanClubFlair ?: profile.fanClubFlair
         )
         _artistProfileState.update {
             it.copy(artistProfile = updatedProfile)

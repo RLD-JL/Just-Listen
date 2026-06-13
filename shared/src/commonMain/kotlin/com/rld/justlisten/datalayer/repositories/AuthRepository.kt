@@ -31,7 +31,25 @@ interface AuthRepository {
     fun getCustomBio(userId: String): String?
     fun getCustomProfilePic(userId: String): String?
     fun getCustomCoverPhoto(userId: String): String?
-    fun updateUserProfile(userId: String, name: String, bio: String?, profilePicUrl: String?, coverPhotoUrl: String?)
+    fun getCustomLocation(userId: String): String?
+    fun getCustomXHandle(userId: String): String?
+    fun getCustomInstagramHandle(userId: String): String?
+    fun getCustomTikTokHandle(userId: String): String?
+    fun getCustomWebsite(userId: String): String?
+    fun getCustomFanClubFlair(userId: String): String?
+    fun updateUserProfile(
+        userId: String,
+        name: String,
+        bio: String?,
+        profilePicUrl: String?,
+        coverPhotoUrl: String?,
+        location: String?,
+        xHandle: String?,
+        instagramHandle: String?,
+        tiktokHandle: String?,
+        website: String?,
+        fanClubFlair: String?
+    )
 }
 
 class AuthRepositoryImpl(
@@ -212,12 +230,42 @@ class AuthRepositoryImpl(
         return localDb.settingsScreenQueries.getUserProfileOverride(userId).executeAsOneOrNull()?.customCoverPhoto
     }
 
+    override fun getCustomLocation(userId: String): String? {
+        return localDb.settingsScreenQueries.getUserProfileOverride(userId).executeAsOneOrNull()?.customLocation
+    }
+
+    override fun getCustomXHandle(userId: String): String? {
+        return localDb.settingsScreenQueries.getUserProfileOverride(userId).executeAsOneOrNull()?.xHandle
+    }
+
+    override fun getCustomInstagramHandle(userId: String): String? {
+        return localDb.settingsScreenQueries.getUserProfileOverride(userId).executeAsOneOrNull()?.instagramHandle
+    }
+
+    override fun getCustomTikTokHandle(userId: String): String? {
+        return localDb.settingsScreenQueries.getUserProfileOverride(userId).executeAsOneOrNull()?.tiktokHandle
+    }
+
+    override fun getCustomWebsite(userId: String): String? {
+        return localDb.settingsScreenQueries.getUserProfileOverride(userId).executeAsOneOrNull()?.website
+    }
+
+    override fun getCustomFanClubFlair(userId: String): String? {
+        return localDb.settingsScreenQueries.getUserProfileOverride(userId).executeAsOneOrNull()?.fanClubFlair
+    }
+
     override fun updateUserProfile(
         userId: String,
         name: String,
         bio: String?,
         profilePicUrl: String?,
-        coverPhotoUrl: String?
+        coverPhotoUrl: String?,
+        location: String?,
+        xHandle: String?,
+        instagramHandle: String?,
+        tiktokHandle: String?,
+        website: String?,
+        fanClubFlair: String?
     ) {
         localDb.settingsScreenQueries.transaction {
             localDb.settingsScreenQueries.upsertUserProfileOverride(
@@ -225,7 +273,13 @@ class AuthRepositoryImpl(
                 customName = name,
                 customBio = bio,
                 customProfilePic = profilePicUrl,
-                customCoverPhoto = coverPhotoUrl
+                customCoverPhoto = coverPhotoUrl,
+                customLocation = location,
+                xHandle = xHandle,
+                instagramHandle = instagramHandle,
+                tiktokHandle = tiktokHandle,
+                website = website,
+                fanClubFlair = fanClubFlair
             )
         }
 

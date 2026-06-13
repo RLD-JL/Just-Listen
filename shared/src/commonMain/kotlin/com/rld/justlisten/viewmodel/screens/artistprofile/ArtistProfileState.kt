@@ -2,6 +2,7 @@ package com.rld.justlisten.viewmodel.screens.artistprofile
 
 import com.rld.justlisten.ScreenState
 import com.rld.justlisten.datalayer.webservices.apis.authcalls.UserProfileModel
+import com.rld.justlisten.datalayer.webservices.apis.authcalls.UserCoinModel
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import com.rld.justlisten.datalayer.models.PlayListModel
 
@@ -19,5 +20,6 @@ data class ArtistProfileState(
     val showSocialSheet: Boolean = false,
     val socialSheetTitle: String = "",
     val isSocialLoading: Boolean = false,
-    val socialUsersList: List<UserProfileModel> = emptyList()
+    val socialUsersList: List<UserProfileModel> = emptyList(),
+    val userCoins: List<UserCoinModel> = emptyList()
 ) : ScreenState

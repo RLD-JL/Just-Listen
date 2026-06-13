@@ -11,11 +11,15 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.border
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -72,8 +76,18 @@ fun ArtistProfileScreen(
                 initialBio = profile.bio,
                 initialProfilePicUrl = profile.profilePicture?.image150 ?: profile.profilePicture?.image480 ?: profile.profilePicture?.image1000,
                 initialCoverPhotoUrl = profile.coverPhoto?.image2000 ?: profile.coverPhoto?.image640,
-                onSaveClicked = { name, bio, profilePicUrl, coverPhotoUrl ->
-                    onAction(ArtistProfileAction.EditProfileSaved(name, bio, profilePicUrl, coverPhotoUrl))
+                initialLocation = profile.location,
+                initialXHandle = profile.twitterHandle,
+                initialInstagramHandle = profile.instagramHandle,
+                initialTikTokHandle = profile.tiktokHandle,
+                initialWebsite = profile.website,
+                initialFanClubFlair = profile.fanClubFlair,
+                userCoins = artistProfileState.userCoins,
+                onSaveClicked = { name, bio, profilePicUrl, coverPhotoUrl, location, xHandle, instagramHandle, tiktokHandle, website, fanClubFlair ->
+                    onAction(ArtistProfileAction.EditProfileSaved(
+                        name, bio, profilePicUrl, coverPhotoUrl,
+                        location, xHandle, instagramHandle, tiktokHandle, website, fanClubFlair
+                    ))
                     showEditDialog = false
                 }
             )
@@ -422,6 +436,33 @@ fun ArtistProfileScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                                 modifier = Modifier.offset(y = (-28).dp)
                             )
+                            val flairCoin = artistProfileState.userCoins.find { it.mint == profile.coinFlairMint }
+                            if (flairCoin != null) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(
+                                    modifier = Modifier
+                                        .offset(y = (-28).dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+                                        .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
+                                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Stars,
+                                        contentDescription = "Fan Club Flair",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        text = flairCoin.ticker,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
 
                             // Follow / Unfollow / Edit Profile Button
                             if (artistProfileState.isCurrentUser) {
@@ -522,8 +563,15 @@ fun ArtistProfileScreen(
                         }
                     }
 
-                    // 4. Bio section
-                    if (!profile.bio.isNullOrBlank()) {
+                    // 4. Bio & Details section
+                    val hasAbout = !profile.bio.isNullOrBlank() || 
+                                   !profile.location.isNullOrBlank() || 
+                                   !profile.website.isNullOrBlank() || 
+                                   !profile.twitterHandle.isNullOrBlank() || 
+                                   !profile.instagramHandle.isNullOrBlank() || 
+                                   !profile.tiktokHandle.isNullOrBlank()
+                    
+                    if (hasAbout) {
                         item {
                             Column(
                                 modifier = Modifier
@@ -535,12 +583,129 @@ fun ArtistProfileScreen(
                                     style = typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = profile.bio,
-                                    style = typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                
+                                if (!profile.bio.isNullOrBlank()) {
+                                    Text(
+                                        text = profile.bio,
+                                        style = typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                }
+                                
+                                // Location & Website details
+                                if (!profile.location.isNullOrBlank() || !profile.website.isNullOrBlank()) {
+                                    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        if (!profile.location.isNullOrBlank()) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Place,
+                                                    contentDescription = "Location",
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                                Text(
+                                                    text = profile.location,
+                                                    style = typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                        }
+                                        if (!profile.website.isNullOrBlank()) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                modifier = Modifier.clickable {
+                                                    val url = if (!profile.website.startsWith("http://") && !profile.website.startsWith("https://")) {
+                                                        "https://${profile.website}"
+                                                    } else {
+                                                        profile.website
+                                                    }
+                                                    runCatching { uriHandler.openUri(url) }
+                                                }
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Link,
+                                                    contentDescription = "Website",
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                                Text(
+                                                    text = profile.website,
+                                                    style = typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                }
+                                
+                                // Social Handles Buttons
+                                val hasSocials = !profile.twitterHandle.isNullOrBlank() || 
+                                                 !profile.instagramHandle.isNullOrBlank() || 
+                                                 !profile.tiktokHandle.isNullOrBlank()
+                                if (hasSocials) {
+                                    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        if (!profile.twitterHandle.isNullOrBlank()) {
+                                            IconButton(
+                                                onClick = {
+                                                    val handle = profile.twitterHandle.removePrefix("@")
+                                                    runCatching { uriHandler.openUri("https://x.com/$handle") }
+                                                },
+                                                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                                            ) {
+                                                Icon(
+                                                    imageVector = com.rld.justlisten.ui.artistprofile.components.XLogoIcon,
+                                                    contentDescription = "X (Twitter)",
+                                                    tint = MaterialTheme.colorScheme.onSurface,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                            }
+                                        }
+                                        if (!profile.instagramHandle.isNullOrBlank()) {
+                                            IconButton(
+                                                onClick = {
+                                                    val handle = profile.instagramHandle.removePrefix("@")
+                                                    runCatching { uriHandler.openUri("https://instagram.com/$handle") }
+                                                },
+                                                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                                            ) {
+                                                Icon(
+                                                    imageVector = com.rld.justlisten.ui.artistprofile.components.InstagramLogoIcon,
+                                                    contentDescription = "Instagram",
+                                                    tint = MaterialTheme.colorScheme.onSurface,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        }
+                                        if (!profile.tiktokHandle.isNullOrBlank()) {
+                                            IconButton(
+                                                onClick = {
+                                                    val handle = profile.tiktokHandle.removePrefix("@")
+                                                    runCatching { uriHandler.openUri("https://tiktok.com/@$handle") }
+                                                },
+                                                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                                            ) {
+                                                Icon(
+                                                    imageVector = com.rld.justlisten.ui.artistprofile.components.TikTokLogoIcon,
+                                                    contentDescription = "TikTok",
+                                                    tint = MaterialTheme.colorScheme.onSurface,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     } else {

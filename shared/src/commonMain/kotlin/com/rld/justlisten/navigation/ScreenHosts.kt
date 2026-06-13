@@ -425,7 +425,13 @@ fun ArtistProfileScreenHost(
                     action.name,
                     action.bio,
                     action.profilePicUrl,
-                    action.coverPhotoUrl
+                    action.coverPhotoUrl,
+                    action.location,
+                    action.xHandle,
+                    action.instagramHandle,
+                    action.tiktokHandle,
+                    action.website,
+                    action.fanClubFlair
                 )
                 is com.rld.justlisten.ui.actions.ArtistProfileAction.FollowersClicked -> viewModel.onFollowersClicked()
                 is com.rld.justlisten.ui.actions.ArtistProfileAction.FollowingClicked -> viewModel.onFollowingClicked()

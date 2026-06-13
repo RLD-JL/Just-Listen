@@ -17,7 +17,13 @@ sealed interface ArtistProfileAction {
         val name: String,
         val bio: String?,
         val profilePicUrl: String?,
-        val coverPhotoUrl: String?
+        val coverPhotoUrl: String?,
+        val location: String?,
+        val xHandle: String?,
+        val instagramHandle: String?,
+        val tiktokHandle: String?,
+        val website: String?,
+        val fanClubFlair: String?
     ) : ArtistProfileAction
     data object FollowersClicked : ArtistProfileAction
     data object FollowingClicked : ArtistProfileAction

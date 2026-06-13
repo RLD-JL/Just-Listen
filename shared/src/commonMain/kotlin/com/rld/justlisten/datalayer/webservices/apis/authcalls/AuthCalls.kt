@@ -150,7 +150,13 @@ data class UserProfileModel(
     @SerialName("track_count") val trackCount: Int = 0,
     @SerialName("playlist_count") val playlistCount: Int = 0,
     @SerialName("does_current_user_follow") val doesCurrentUserFollow: Boolean = false,
-    @SerialName("is_verified") val isVerified: Boolean = false
+    @SerialName("is_verified") val isVerified: Boolean = false,
+    @SerialName("twitter_handle") val twitterHandle: String? = null,
+    @SerialName("instagram_handle") val instagramHandle: String? = null,
+    @SerialName("tiktok_handle") val tiktokHandle: String? = null,
+    @SerialName("website") val website: String? = null,
+    @SerialName("coin_flair_mint") val coinFlairMint: String? = null,
+    @SerialName("fan_club_flair") val fanClubFlair: String? = null
 )
 
 @Serializable
@@ -204,6 +210,29 @@ suspend fun ApiClient.getUserFollowers(userId: String): List<UserProfileModel> {
 
 suspend fun ApiClient.getUserFollowing(userId: String): List<UserProfileModel> {
     val response: UsersListResponse? = getResponse("/users/$userId/following")
+    return response?.data ?: emptyList()
+}
+
+@Serializable
+data class UserCoinModel(
+    @SerialName("mint") val mint: String,
+    @SerialName("ticker") val ticker: String,
+    @SerialName("decimals") val decimals: Int,
+    @SerialName("owner_id") val ownerId: String,
+    @SerialName("balance") val balance: String,
+    @SerialName("balance_usd") val balanceUsd: Double? = null,
+    @SerialName("logo_uri") val logoUri: String? = null,
+    @SerialName("banner_image_url") val bannerImageUrl: String? = null,
+    @SerialName("has_discord") val hasDiscord: Boolean = false
+)
+
+@Serializable
+data class UserCoinsResponse(
+    @SerialName("data") val data: List<UserCoinModel> = emptyList()
+)
+
+suspend fun ApiClient.getUserCoins(userId: String): List<UserCoinModel> {
+    val response: UserCoinsResponse? = getResponse("/users/$userId/coins")
     return response?.data ?: emptyList()
 }
 

@@ -1,0 +1,6 @@
+ALTER TABLE UserProfileOverrides ADD COLUMN customLocation TEXT;
+ALTER TABLE UserProfileOverrides ADD COLUMN xHandle TEXT;
+ALTER TABLE UserProfileOverrides ADD COLUMN instagramHandle TEXT;
+ALTER TABLE UserProfileOverrides ADD COLUMN tiktokHandle TEXT;
+ALTER TABLE UserProfileOverrides ADD COLUMN website TEXT;
+ALTER TABLE UserProfileOverrides ADD COLUMN fanClubFlair TEXT;

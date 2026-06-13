@@ -22,6 +22,10 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Wallpaper
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,24 +33,161 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import com.rld.justlisten.datalayer.webservices.ApiClient
 import com.rld.justlisten.datalayer.webservices.apis.unsplashcalls.UnsplashPhoto
 import com.rld.justlisten.datalayer.webservices.apis.unsplashcalls.getUnsplashPhotos
+import com.rld.justlisten.datalayer.webservices.apis.authcalls.UserCoinModel
 import com.rld.justlisten.util.rememberImagePicker
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 enum class ImageTarget { PROFILE_PIC, COVER_PHOTO }
+
+// Custom Vector Logos
+val XLogoIcon: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "XLogoIcon",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).apply {
+        path(fill = androidx.compose.ui.graphics.SolidColor(Color.White)) {
+            moveTo(18.244f, 2.25f)
+            lineToRelative(3.308f, 0f)
+            lineToRelative(-7.227f, 8.26f)
+            lineToRelative(8.502f, 11.24f)
+            lineToRelative(-6.657f, 0f)
+            lineToRelative(-5.214f, -6.817f)
+            lineToRelative(-5.966f, 6.817f)
+            lineToRelative(-3.31f, 0f)
+            lineToRelative(7.73f, -8.835f)
+            lineToRelative(-8.124f, -10.665f)
+            lineToRelative(6.828f, 0f)
+            lineToRelative(4.716f, 6.236f)
+            close()
+        }
+    }.build()
+}
+
+val InstagramLogoIcon: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "InstagramLogoIcon",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).apply {
+        path(
+            stroke = androidx.compose.ui.graphics.SolidColor(Color.White),
+            strokeLineWidth = 2f
+        ) {
+            moveTo(7f, 2f)
+            lineTo(17f, 2f)
+            arcTo(5f, 5f, 0f, false, true, 22f, 7f)
+            lineTo(22f, 17f)
+            arcTo(5f, 5f, 0f, false, true, 17f, 22f)
+            lineTo(7f, 22f)
+            arcTo(5f, 5f, 0f, false, true, 2f, 17f)
+            lineTo(2f, 7f)
+            arcTo(5f, 5f, 0f, false, true, 7f, 2f)
+            close()
+        }
+        path(
+            stroke = androidx.compose.ui.graphics.SolidColor(Color.White),
+            strokeLineWidth = 2f
+        ) {
+            moveTo(12f, 8f)
+            arcTo(4f, 4f, 0f, true, true, 12f, 16f)
+            arcTo(4f, 4f, 0f, false, true, 12f, 8f)
+            close()
+        }
+        path(fill = androidx.compose.ui.graphics.SolidColor(Color.White)) {
+            moveTo(18f, 5.5f)
+            arcTo(0.5f, 0.5f, 0f, true, true, 17.5f, 5f)
+            arcTo(0.5f, 0.5f, 0f, false, true, 18f, 5.5f)
+        }
+    }.build()
+}
+
+val TikTokLogoIcon: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "TikTokLogoIcon",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).apply {
+        path(fill = androidx.compose.ui.graphics.SolidColor(Color.White)) {
+            moveTo(12.5f, 2f)
+            verticalLineTo(14f)
+            arcTo(3.5f, 3.5f, 0f, false, true, 9f, 17.5f)
+            arcTo(3.5f, 3.5f, 0f, false, true, 5.5f, 14f)
+            arcTo(3.5f, 3.5f, 0f, false, true, 9f, 10.5f)
+            verticalLineTo(12.5f)
+            arcTo(1.5f, 1.5f, 0f, false, false, 7.5f, 14f)
+            arcTo(1.5f, 1.5f, 0f, false, false, 9f, 15.5f)
+            arcTo(1.5f, 1.5f, 0f, false, false, 10.5f, 14f)
+            verticalLineTo(2f)
+            horizontalLineTo(12.5f)
+            moveTo(12.5f, 2f)
+            arcTo(5f, 5f, 0f, false, false, 17.5f, 7f)
+            verticalLineTo(5f)
+            arcTo(3f, 3f, 0f, false, true, 12.5f, 2f)
+            close()
+        }
+    }.build()
+}
+
+@Composable
+fun CustomDarkTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+    singleLine: Boolean = true,
+    maxLines: Int = 1,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default
+) {
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = { Text(text = placeholder, color = Color.Gray, fontSize = 14.sp) },
+        leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        singleLine = singleLine,
+        maxLines = maxLines,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        shape = RoundedCornerShape(8.dp),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color(0xFF121212),
+            unfocusedContainerColor = Color(0xFF121212),
+            disabledContainerColor = Color(0xFF121212),
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            cursorColor = Color.White,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent
+        ),
+        modifier = modifier.fillMaxWidth()
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +197,25 @@ fun EditProfileDialog(
     initialBio: String?,
     initialProfilePicUrl: String?,
     initialCoverPhotoUrl: String?,
-    onSaveClicked: (name: String, bio: String?, profilePicUrl: String?, coverPhotoUrl: String?) -> Unit
+    initialLocation: String?,
+    initialXHandle: String?,
+    initialInstagramHandle: String?,
+    initialTikTokHandle: String?,
+    initialWebsite: String?,
+    initialFanClubFlair: String?,
+    userCoins: List<UserCoinModel>,
+    onSaveClicked: (
+        name: String,
+        bio: String?,
+        profilePicUrl: String?,
+        coverPhotoUrl: String?,
+        location: String?,
+        xHandle: String?,
+        instagramHandle: String?,
+        tiktokHandle: String?,
+        website: String?,
+        fanClubFlair: String?
+    ) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -67,6 +226,12 @@ fun EditProfileDialog(
     var bio by remember(initialBio) { mutableStateOf(initialBio ?: "") }
     var profilePicUrl by remember(initialProfilePicUrl) { mutableStateOf(initialProfilePicUrl ?: "") }
     var coverPhotoUrl by remember(initialCoverPhotoUrl) { mutableStateOf(initialCoverPhotoUrl ?: "") }
+    var location by remember(initialLocation) { mutableStateOf(initialLocation ?: "") }
+    var xHandle by remember(initialXHandle) { mutableStateOf(initialXHandle ?: "") }
+    var instagramHandle by remember(initialInstagramHandle) { mutableStateOf(initialInstagramHandle ?: "") }
+    var tiktokHandle by remember(initialTikTokHandle) { mutableStateOf(initialTikTokHandle ?: "") }
+    var website by remember(initialWebsite) { mutableStateOf(initialWebsite ?: "") }
+    var fanClubFlair by remember(initialFanClubFlair) { mutableStateOf(initialFanClubFlair ?: "None") }
 
     var activeTarget by remember { mutableStateOf<ImageTarget?>(null) }
     var showSourceSelector by remember { mutableStateOf(false) }
@@ -135,12 +300,13 @@ fun EditProfileDialog(
                 showDialog.value = false
             },
             shape = RoundedCornerShape(24.dp),
+            containerColor = Color(0xFFBA68C8), // Vibrant lavender/purple background
             title = null,
             text = {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 500.dp)
+                        .heightIn(max = 520.dp)
                         .then(
                             if (!showUnsplashSearch && !showSourceSelector) {
                                 Modifier.verticalScroll(rememberScrollState())
@@ -162,10 +328,11 @@ fun EditProfileDialog(
                                 text = "Select $titleText",
                                 fontWeight = FontWeight.Black,
                                 fontSize = 18.sp,
+                                color = Color.Black,
                                 modifier = Modifier.weight(1f)
                             )
                             TextButton(onClick = { showSourceSelector = false }) {
-                                Text("Back")
+                                Text("Back", color = Color.Black)
                             }
                         }
 
@@ -181,7 +348,8 @@ fun EditProfileDialog(
                                 }
                             },
                             shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
                         ) {
                             Row(
                                 modifier = Modifier.padding(16.dp),
@@ -191,12 +359,12 @@ fun EditProfileDialog(
                                 Icon(
                                     imageVector = Icons.Default.PhotoLibrary,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = Color.White,
                                     modifier = Modifier.size(28.dp)
                                 )
                                 Column {
-                                    Text("Choose from Gallery", fontWeight = FontWeight.Bold)
-                                    Text("Pick an image from your device storage", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text("Choose from Gallery", fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("Pick an image from your device storage", fontSize = 12.sp, color = Color.LightGray)
                                 }
                             }
                         }
@@ -210,7 +378,8 @@ fun EditProfileDialog(
                                 showUnsplashSearch = true
                             },
                             shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
                         ) {
                             Row(
                                 modifier = Modifier.padding(16.dp),
@@ -220,12 +389,12 @@ fun EditProfileDialog(
                                 Icon(
                                     imageVector = Icons.Default.Wallpaper,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.secondary,
+                                    tint = Color.White,
                                     modifier = Modifier.size(28.dp)
                                 )
                                 Column {
-                                    Text("Search Preset Artworks", fontWeight = FontWeight.Bold)
-                                    Text("Browse high-quality photos from Unsplash", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text("Search Preset Artworks", fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("Browse high-quality photos from Unsplash", fontSize = 12.sp, color = Color.LightGray)
                                 }
                             }
                         }
@@ -239,13 +408,14 @@ fun EditProfileDialog(
                                 text = "Search Presets",
                                 fontWeight = FontWeight.Black,
                                 fontSize = 18.sp,
+                                color = Color.Black,
                                 modifier = Modifier.weight(1f)
                             )
                             TextButton(onClick = { 
                                 showUnsplashSearch = false
                                 showSourceSelector = true 
                             }) {
-                                Text("Back")
+                                Text("Back", color = Color.Black)
                             }
                         }
 
@@ -278,7 +448,7 @@ fun EditProfileDialog(
                                 text = "SUGGESTED SEARCHES",
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                color = Color.DarkGray
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             Row(
@@ -289,7 +459,7 @@ fun EditProfileDialog(
                                     Text(
                                         text = tag,
                                         fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.primary,
+                                        color = Color.Black,
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier
                                             .clickable {
@@ -306,7 +476,7 @@ fun EditProfileDialog(
                             Text(
                                 text = "Photos from Unsplash",
                                 fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                color = Color.DarkGray
                             )
                         }
 
@@ -319,13 +489,13 @@ fun EditProfileDialog(
                                     .height(200.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator()
+                                CircularProgressIndicator(color = Color.Black)
                             }
                         } else {
                             if (unsplashPhotos.isEmpty()) {
                                 Text(
                                     text = "No presets found. Try searching above.",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color = Color.Black,
                                     fontSize = 13.sp,
                                     modifier = Modifier.padding(vertical = 32.dp)
                                 )
@@ -366,7 +536,7 @@ fun EditProfileDialog(
                                                 modifier = Modifier
                                                     .aspectRatio(1.2f)
                                                     .clip(RoundedCornerShape(8.dp))
-                                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                                    .background(Color.DarkGray)
                                                     .clickable {
                                                         if (activeTarget == ImageTarget.COVER_PHOTO) {
                                                             coverPhotoUrl = photo.urls.regular
@@ -392,7 +562,7 @@ fun EditProfileDialog(
                                                         .padding(vertical = 16.dp),
                                                     contentAlignment = Alignment.Center
                                                 ) {
-                                                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.Black)
                                                 }
                                             }
                                         }
@@ -414,7 +584,7 @@ fun EditProfileDialog(
                                     .fillMaxWidth()
                                     .height(120.dp)
                                     .clip(RoundedCornerShape(16.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .background(Color.DarkGray)
                                     .clickable {
                                         activeTarget = ImageTarget.COVER_PHOTO
                                         showSourceSelector = true
@@ -454,9 +624,9 @@ fun EditProfileDialog(
                                 modifier = Modifier
                                     .size(80.dp)
                                     .align(Alignment.BottomCenter)
-                                    .border(3.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                                    .border(3.dp, Color(0xFFBA68C8), CircleShape)
                                     .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .background(Color.DarkGray)
                                     .clickable {
                                         activeTarget = ImageTarget.PROFILE_PIC
                                         showSourceSelector = true
@@ -487,56 +657,215 @@ fun EditProfileDialog(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        // Display Name
                         Text(
-                            text = "Customize Profile Details",
+                            text = "Display Name",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurface
+                            fontSize = 14.sp,
+                            color = Color.Black,
+                            modifier = Modifier.align(Alignment.Start).padding(bottom = 6.dp)
+                        )
+                        CustomDarkTextField(
+                            value = name,
+                            onValueChange = { name = it },
+                            placeholder = "Your name",
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Name Input Field
-                        OutlinedTextField(
-                            value = name,
-                            onValueChange = { name = it },
-                            label = { Text("Display Name") },
-                            placeholder = { Text("Your name") },
-                            singleLine = true,
-                            maxLines = 1,
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth(),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Text,
-                                imeAction = ImeAction.Next
-                            ),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                focusedLabelColor = MaterialTheme.colorScheme.primary,
-                                cursorColor = MaterialTheme.colorScheme.primary
+                        // --- ABOUT YOU SECTION ---
+                        Text(
+                            text = "About You",
+                            fontWeight = FontWeight.Black,
+                            fontSize = 16.sp,
+                            color = Color.Black,
+                            modifier = Modifier.align(Alignment.Start).padding(bottom = 12.dp)
+                        )
+
+                        // Description (Bio)
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            CustomDarkTextField(
+                                value = bio,
+                                onValueChange = { if (it.length <= 256) bio = it },
+                                placeholder = "Description",
+                                singleLine = false,
+                                maxLines = 4,
+                                modifier = Modifier.height(100.dp)
                             )
+                            Text(
+                                text = "${bio.length}/256",
+                                color = Color.Gray,
+                                fontSize = 11.sp,
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(8.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Location
+                        CustomDarkTextField(
+                            value = location,
+                            onValueChange = { location = it },
+                            placeholder = "Location",
+                            singleLine = true,
+                            leadingIcon = { Icon(Icons.Default.Place, contentDescription = null, tint = Color.Gray) },
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // --- SOCIAL HANDLES SECTION ---
+                        Text(
+                            text = "Social Handles",
+                            fontWeight = FontWeight.Black,
+                            fontSize = 16.sp,
+                            color = Color.Black,
+                            modifier = Modifier.align(Alignment.Start).padding(bottom = 12.dp)
+                        )
+
+                        // X Handle
+                        CustomDarkTextField(
+                            value = xHandle,
+                            onValueChange = { xHandle = it },
+                            placeholder = "X Handle",
+                            singleLine = true,
+                            leadingIcon = { Icon(XLogoIcon, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp)) },
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Bio Input Field
-                        OutlinedTextField(
-                            value = bio,
-                            onValueChange = { bio = it },
-                            label = { Text("Bio") },
-                            placeholder = { Text("Tell us about yourself...") },
-                            maxLines = 3,
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth(),
+                        // Instagram Handle
+                        CustomDarkTextField(
+                            value = instagramHandle,
+                            onValueChange = { instagramHandle = it },
+                            placeholder = "Instagram Handle",
+                            singleLine = true,
+                            leadingIcon = { Icon(InstagramLogoIcon, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp)) },
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // TikTok Handle
+                        CustomDarkTextField(
+                            value = tiktokHandle,
+                            onValueChange = { tiktokHandle = it },
+                            placeholder = "TikTok Handle",
+                            singleLine = true,
+                            leadingIcon = { Icon(TikTokLogoIcon, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp)) },
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // --- FAN CLUB FLAIR SECTION ---
+                        Text(
+                            text = "Fan Club Flair",
+                            fontWeight = FontWeight.Black,
+                            fontSize = 16.sp,
+                            color = Color.Black,
+                            modifier = Modifier.align(Alignment.Start).padding(bottom = 12.dp)
+                        )
+
+                        // Dynamic Dropdown Box
+                        var showFlairDropdown by remember { mutableStateOf(false) }
+                        var selectedFlairText by remember(fanClubFlair) {
+                            mutableStateOf(
+                                when (fanClubFlair) {
+                                    "Highest Balance" -> "Highest Balance"
+                                    "None" -> "None"
+                                    else -> userCoins.find { it.mint == fanClubFlair }?.ticker ?: fanClubFlair
+                                }
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF121212))
+                                .clickable { showFlairDropdown = true }
+                                .padding(horizontal = 16.dp, vertical = 14.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = selectedFlairText,
+                                    color = Color.White,
+                                    fontSize = 14.sp
+                                )
+                                Icon(
+                                    imageVector = if (showFlairDropdown) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                    contentDescription = "Dropdown",
+                                    tint = Color.White
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = showFlairDropdown,
+                                onDismissRequest = { showFlairDropdown = false },
+                                modifier = Modifier.background(Color(0xFF1E1E1E))
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("None", color = Color.White) },
+                                    onClick = {
+                                        fanClubFlair = "None"
+                                        selectedFlairText = "None"
+                                        showFlairDropdown = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Highest Balance", color = Color.White) },
+                                    onClick = {
+                                        fanClubFlair = "Highest Balance"
+                                        selectedFlairText = "Highest Balance"
+                                        showFlairDropdown = false
+                                    }
+                                )
+                                userCoins.forEach { coin ->
+                                    DropdownMenuItem(
+                                        text = { Text(coin.ticker, color = Color.White) },
+                                        onClick = {
+                                            fanClubFlair = coin.mint
+                                            selectedFlairText = coin.ticker
+                                            showFlairDropdown = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // --- WEBSITE SECTION ---
+                        Text(
+                            text = "Website",
+                            fontWeight = FontWeight.Black,
+                            fontSize = 16.sp,
+                            color = Color.Black,
+                            modifier = Modifier.align(Alignment.Start).padding(bottom = 12.dp)
+                        )
+
+                        // Website URL Input
+                        CustomDarkTextField(
+                            value = website,
+                            onValueChange = { website = it },
+                            placeholder = "Website",
+                            singleLine = true,
+                            leadingIcon = { Icon(Icons.Default.Link, contentDescription = null, tint = Color.Gray) },
                             keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Text,
+                                keyboardType = KeyboardType.Uri,
                                 imeAction = ImeAction.Done
                             ),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                focusedLabelColor = MaterialTheme.colorScheme.primary,
-                                cursorColor = MaterialTheme.colorScheme.primary
-                            )
+                            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                         )
                     }
                 }
@@ -561,7 +890,13 @@ fun EditProfileDialog(
                                         name,
                                         bio.ifBlank { null },
                                         profilePicUrl.ifBlank { null },
-                                        coverPhotoUrl.ifBlank { null }
+                                        coverPhotoUrl.ifBlank { null },
+                                        location.ifBlank { null },
+                                        xHandle.ifBlank { null },
+                                        instagramHandle.ifBlank { null },
+                                        tiktokHandle.ifBlank { null },
+                                        website.ifBlank { null },
+                                        fanClubFlair
                                     )
                                 }
                             },
@@ -573,7 +908,7 @@ fun EditProfileDialog(
                                 .background(
                                     brush = if (isEnabled) {
                                         Brush.linearGradient(
-                                            colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
+                                            colors = listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
                                         )
                                     } else {
                                         Brush.linearGradient(
@@ -584,14 +919,14 @@ fun EditProfileDialog(
                                 ),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,
-                                disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                                disabledContainerColor = Color.Black.copy(alpha = 0.2f)
                             ),
                             contentPadding = PaddingValues(0.dp)
                         ) {
                             Text(
                                 text = "Save Changes",
                                 fontWeight = FontWeight.Bold,
-                                color = if (isEnabled) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                color = if (isEnabled) Color.White else Color.Black.copy(alpha = 0.4f)
                             )
                         }
 
@@ -604,7 +939,7 @@ fun EditProfileDialog(
                             Text(
                                 text = "Cancel",
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                                color = Color.Black.copy(alpha = 0.7f)
                             )
                         }
                     }
