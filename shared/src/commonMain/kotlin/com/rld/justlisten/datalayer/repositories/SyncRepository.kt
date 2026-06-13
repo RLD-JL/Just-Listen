@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import co.touchlab.kermit.Logger
 
 sealed interface SyncState {
     object Synced : SyncState
@@ -280,9 +281,9 @@ class SyncRepositoryImpl(
                 val hasPendingFavChanges = pendingFavTasks.isNotEmpty()
 
                 if (cloudNumericIds.size == localFavorites.size && !hasPendingFavChanges) {
-                    println("SyncRepository: Favorites in sync (${localFavorites.size} local, ${cloudNumericIds.size} cloud). Skipping track fetches.")
+                    Logger.d { "SyncRepository: Favorites in sync (${localFavorites.size} local, ${cloudNumericIds.size} cloud). Skipping track fetches." }
                 } else {
-                    println("SyncRepository: Favorites differ (${localFavorites.size} local, ${cloudNumericIds.size} cloud). Fetching track details...")
+                    Logger.d { "SyncRepository: Favorites differ (${localFavorites.size} local, ${cloudNumericIds.size} cloud). Fetching track details..." }
                     // Expensive path: fetch full track details to get base58 IDs
                     val cloudFavoriteTracks = apiClient.getUserFavoriteTracks(userId)
                     val cloudFavorites = cloudFavoriteTracks.map { it.id }.toSet()
@@ -359,18 +360,18 @@ class SyncRepositoryImpl(
                             delay(100L) // rate-limiting friendly
                         } catch (e: Exception) {
                             if (e is CancellationException) throw e
-                            println("Error syncing playlist ${playlist.id}: ${e.message}")
+                            Logger.e(e) { "Error syncing playlist ${playlist.id}" }
                         }
                     }
                 } catch (e: Exception) {
                     if (e is CancellationException) throw e
-                    println("Error fetching user playlists: ${e.message}")
+                    Logger.e(e) { "Error fetching user playlists" }
                 }
 
                 _syncState.value = SyncState.Synced
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                println("Error in performInboundSync: ${e.message}")
+                Logger.e(e) { "Error in performInboundSync" }
                 _syncState.value = SyncState.SyncFailed("Inbound sync failed: ${e.message}")
             }
         }

@@ -40,6 +40,14 @@ class SettingsViewModelTest {
 
     @Test
     fun testInitialState_LoadsFromRepository() = runTest(testDispatcher) {
+        testDispatcher.scheduler.advanceUntilIdle()
+        var retries = 100
+        while (viewModel.settingsState.value.palletColor == "Pink" && retries > 0) {
+            java.lang.Thread.sleep(10)
+            testDispatcher.scheduler.runCurrent()
+            retries--
+        }
+
         val state = viewModel.settingsState.value
         assertEquals("Blue", state.palletColor)
         assertTrue(state.isDarkThemeOn)
@@ -48,8 +56,22 @@ class SettingsViewModelTest {
 
     @Test
     fun testDarkModeToggled() = runTest(testDispatcher) {
+        testDispatcher.scheduler.advanceUntilIdle()
+        var retries = 100
+        while (viewModel.settingsState.value.palletColor == "Pink" && retries > 0) {
+            java.lang.Thread.sleep(10)
+            testDispatcher.scheduler.runCurrent()
+            retries--
+        }
+
         viewModel.onDarkModeToggled(false)
         testDispatcher.scheduler.advanceUntilIdle()
+
+        retries = 100
+        while (fakeSettingsRepo.getSettingsInfo().isDarkThemeOn && retries > 0) {
+            java.lang.Thread.sleep(10)
+            retries--
+        }
 
         val state = viewModel.settingsState.value
         assertEquals(false, state.isDarkThemeOn)
@@ -58,8 +80,22 @@ class SettingsViewModelTest {
 
     @Test
     fun testDonationToggled() = runTest(testDispatcher) {
+        testDispatcher.scheduler.advanceUntilIdle()
+        var retries = 100
+        while (viewModel.settingsState.value.palletColor == "Pink" && retries > 0) {
+            java.lang.Thread.sleep(10)
+            testDispatcher.scheduler.runCurrent()
+            retries--
+        }
+
         viewModel.onDonationToggled(false)
         testDispatcher.scheduler.advanceUntilIdle()
+
+        retries = 100
+        while (fakeSettingsRepo.getSettingsInfo().hasNavigationDonationOn && retries > 0) {
+            java.lang.Thread.sleep(10)
+            retries--
+        }
 
         val state = viewModel.settingsState.value
         assertEquals(false, state.hasDonationNavigationOn)
@@ -68,8 +104,22 @@ class SettingsViewModelTest {
 
     @Test
     fun testPaletteSelected() = runTest(testDispatcher) {
+        testDispatcher.scheduler.advanceUntilIdle()
+        var retries = 100
+        while (viewModel.settingsState.value.palletColor == "Pink" && retries > 0) {
+            java.lang.Thread.sleep(10)
+            testDispatcher.scheduler.runCurrent()
+            retries--
+        }
+
         viewModel.onPaletteSelected("Green")
         testDispatcher.scheduler.advanceUntilIdle()
+
+        retries = 100
+        while (fakeSettingsRepo.getSettingsInfo().palletColor != "Green" && retries > 0) {
+            java.lang.Thread.sleep(10)
+            retries--
+        }
 
         val state = viewModel.settingsState.value
         assertEquals("Green", state.palletColor)

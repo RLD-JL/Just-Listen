@@ -55,11 +55,13 @@ class PlayerViewModelTest {
     private val fakeSettingsRepo = FakeSettingsRepository()
 
     private lateinit var viewModel: PlayerViewModel
+    private lateinit var playHistoryTracker: PlayHistoryTracker
 
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        val playHistoryTracker = PlayHistoryTracker(fakeLibraryRepo, fakeMusicPlayer, kotlinx.coroutines.CoroutineScope(testDispatcher))
+        playHistoryTracker = PlayHistoryTracker(fakeLibraryRepo, fakeMusicPlayer, kotlinx.coroutines.CoroutineScope(testDispatcher))
+        playHistoryTracker.release() // Cancel background delay loops to prevent advanceUntilIdle hangs
         viewModel = PlayerViewModel(
             favoritesRepository = fakeFavoritesRepo,
             libraryRepository = fakeLibraryRepo,
@@ -74,6 +76,7 @@ class PlayerViewModelTest {
 
     @AfterTest
     fun tearDown() {
+        playHistoryTracker.release()
         Dispatchers.resetMain()
     }
 
@@ -253,12 +256,26 @@ class PlayerViewModelTest {
         viewModel.onAction(PlayerAction.ToggleAutoplay(false))
         testDispatcher.scheduler.advanceUntilIdle()
 
+        var retries = 100
+        while (viewModel.playerUiState.value.isAutoplayEnabled && retries > 0) {
+            java.lang.Thread.sleep(10)
+            testDispatcher.scheduler.runCurrent()
+            retries--
+        }
+
         assertFalse(viewModel.playerUiState.value.isAutoplayEnabled)
         assertFalse(fakeSettingsRepo.getSettingsInfo().isOngoingStreamEnabled)
 
         // Toggle ON
         viewModel.onAction(PlayerAction.ToggleAutoplay(true))
         testDispatcher.scheduler.advanceUntilIdle()
+
+        retries = 100
+        while (!viewModel.playerUiState.value.isAutoplayEnabled && retries > 0) {
+            java.lang.Thread.sleep(10)
+            testDispatcher.scheduler.runCurrent()
+            retries--
+        }
 
         assertTrue(viewModel.playerUiState.value.isAutoplayEnabled)
         assertTrue(fakeSettingsRepo.getSettingsInfo().isOngoingStreamEnabled)
@@ -274,6 +291,13 @@ class PlayerViewModelTest {
         // 1. Enable autoplay
         viewModel.onAction(PlayerAction.ToggleAutoplay(true))
         testDispatcher.scheduler.advanceUntilIdle()
+
+        var retries = 100
+        while (!viewModel.playerUiState.value.isAutoplayEnabled && retries > 0) {
+            java.lang.Thread.sleep(10)
+            testDispatcher.scheduler.runCurrent()
+            retries--
+        }
 
         // 2. Set up recommendations in repository
         val mockData = com.rld.justlisten.datalayer.models.PlayListModel(
@@ -347,6 +371,13 @@ class PlayerViewModelTest {
         viewModel.onAction(PlayerAction.ToggleAutoplay(true))
         testDispatcher.scheduler.advanceUntilIdle()
 
+        var retries = 100
+        while (!viewModel.playerUiState.value.isAutoplayEnabled && retries > 0) {
+            java.lang.Thread.sleep(10)
+            testDispatcher.scheduler.runCurrent()
+            retries--
+        }
+
         // 2. Mock 50 trending tracks for pagination
         val mockDataList = (1..50).map { i ->
             TrackItem(
@@ -382,7 +413,9 @@ class PlayerViewModelTest {
         assertEquals(10, recommended.size)
         assertEquals("rec_11", recommended[0].id)
 
-        // 4. Simulate queue finishing (STOPPED status while rec_1 was active)
+        // 4. Simulate queue finishing (play the last song in the playlist first, then stop)
+        fakeMusicPlayer.playMedia("rec_10")
+        testDispatcher.scheduler.advanceUntilIdle()
         fakeMusicPlayer.stop()
         testDispatcher.scheduler.advanceUntilIdle()
 

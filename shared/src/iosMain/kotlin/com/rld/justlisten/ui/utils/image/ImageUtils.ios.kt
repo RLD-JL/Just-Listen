@@ -42,7 +42,7 @@ actual suspend fun getImageDominantColor(image: Image): Int? {
         
         (0xFF shl 24) or (avgR shl 16) or (avgG shl 8) or avgB
     } catch (e: Exception) {
-        println("Error extracting dominant color: ${e.message}")
+        co.touchlab.kermit.Logger.e(e) { "Error extracting dominant color" }
         null
     }
 }

@@ -6,9 +6,10 @@ import platform.UIKit.*
 import platform.CoreGraphics.CGRectMake
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
+import co.touchlab.kermit.Logger
 
 actual fun showToast(message: String) {
-    println("iOS Toast: $message")
+    Logger.i { "iOS Toast: $message" }
     dispatch_async(dispatch_get_main_queue()) {
         val window = UIApplication.sharedApplication.keyWindow
             ?: UIApplication.sharedApplication.windows.firstOrNull() as? UIWindow

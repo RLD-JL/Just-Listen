@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import co.touchlab.kermit.Logger
 
 class ArtistProfileViewModel(
     private val apiClient: ApiClient,
@@ -71,7 +72,7 @@ class ArtistProfileViewModel(
                 }
             } catch (e: Exception) {
                 if (e !is kotlinx.coroutines.CancellationException) {
-                    println("ArtistProfileViewModel: Error loading profile: ${e.message}")
+                    Logger.e(e) { "ArtistProfileViewModel: Error loading profile" }
                     _artistProfileState.update { it.copy(isLoading = false) }
                 }
             }

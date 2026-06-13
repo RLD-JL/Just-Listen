@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import co.touchlab.kermit.Logger
 
 
 @Serializable
@@ -79,7 +80,7 @@ suspend fun ApiClient.getTrackDetails(trackId: String): PlayListModel? {
 }
 
 suspend fun ApiClient.getUserFavoriteTracks(userId: String): List<PlayListModel> = coroutineScope {
-    println("ApiClient: Requesting GET /users/$userId/favorites for tracks")
+    Logger.d { "ApiClient: Requesting GET /users/$userId/favorites for tracks" }
     val favorites = getUserFavorites(userId)
     val trackIds = favorites.filter { it.type.equals("SaveType.track", ignoreCase = true) || it.type.equals("track", ignoreCase = true) }.map { it.itemId }
     
@@ -89,7 +90,7 @@ suspend fun ApiClient.getUserFavoriteTracks(userId: String): List<PlayListModel>
                 getTrackDetails(trackId)
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
-                println("ApiClient: Error fetching track details for favorite $trackId: ${e.message}")
+                Logger.e(e) { "ApiClient: Error fetching track details for favorite $trackId" }
                 null
             }
         }
@@ -98,13 +99,13 @@ suspend fun ApiClient.getUserFavoriteTracks(userId: String): List<PlayListModel>
 }
 
 suspend fun ApiClient.getUserPlaylists(userId: String): List<PlayListModel> {
-    println("ApiClient: Requesting GET /users/$userId/playlists")
+    Logger.d { "ApiClient: Requesting GET /users/$userId/playlists" }
     val response: com.rld.justlisten.datalayer.webservices.apis.playlistcalls.PlayListResponse? = getResponse("/users/$userId/playlists")
     return response?.data ?: emptyList()
 }
 
 suspend fun ApiClient.getUserFavoritePlaylists(userId: String): List<PlayListModel> = coroutineScope {
-    println("ApiClient: Requesting GET /users/$userId/favorites for playlists")
+    Logger.d { "ApiClient: Requesting GET /users/$userId/favorites for playlists" }
     val favorites = getUserFavorites(userId)
     val playlistIds = favorites.filter {
         it.type.equals("SaveType.playlist", ignoreCase = true) ||
@@ -120,7 +121,7 @@ suspend fun ApiClient.getUserFavoritePlaylists(userId: String): List<PlayListMod
                 response?.data?.firstOrNull()
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
-                println("ApiClient: Error fetching playlist details for favorite $playlistId: ${e.message}")
+                Logger.e(e) { "ApiClient: Error fetching playlist details for favorite $playlistId" }
                 null
             }
         }

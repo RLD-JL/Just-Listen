@@ -10,3 +10,4 @@
 .cxx
 local.properties
 /.kotlin/
+/private_key.pepk

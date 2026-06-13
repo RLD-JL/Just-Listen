@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import com.rld.justlisten.viewmodel.interfaces.Item
 import com.rld.justlisten.datalayer.repositories.FavoritesRepository
+import co.touchlab.kermit.Logger
 import platform.AVFoundation.*
 import platform.AVFAudio.*
 import platform.Foundation.*
@@ -66,7 +67,7 @@ class IOSMusicPlayer(
             audioSession.setCategory(AVAudioSessionCategoryPlayback, error = null)
             audioSession.setActive(true, error = null)
         } catch (e: Exception) {
-            println("Audio session category set error: ${e.message}")
+            Logger.e(e) { "Audio session category set error" }
         }
 
         // Periodically update progress and monitor network
@@ -538,7 +539,7 @@ class IOSMusicPlayer(
                         }
                     }
                 } catch (e: Exception) {
-                    println("Error loading lockscreen artwork: ${e.message}")
+                    Logger.e(e) { "Error loading lockscreen artwork" }
                 }
             }
         }

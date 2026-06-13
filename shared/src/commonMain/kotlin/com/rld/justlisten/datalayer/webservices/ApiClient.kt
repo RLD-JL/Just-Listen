@@ -14,6 +14,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import co.touchlab.kermit.Logger
 
 @Serializable
 data class TokenResponse(
@@ -88,7 +89,7 @@ open class ApiClient(
                     false
                 }
             } catch (e: Exception) {
-                println("Error refreshing token: ${e.message}")
+                Logger.e(e) { "Error refreshing token" }
                 false
             }
         }
@@ -96,7 +97,7 @@ open class ApiClient(
 
     suspend inline fun <reified T : Any> getResponse(endpoint: String): T? {
         val url = "${Constants.BASEURL}/v1$endpoint"
-        println("ApiClient: GET request to: $url")
+        Logger.d { "ApiClient: GET request to: $url" }
         return try {
             val tokenBeforeRequest = secureStorage.getToken("access_token")
             var response = client.get(url)
@@ -108,14 +109,14 @@ open class ApiClient(
             }
             if (response.status.isSuccess()) response.body<T>() else null
         } catch (e: Exception) {
-            println("Error fetching $url: ${e.message}")
+            Logger.e(e) { "Error fetching $url" }
             null
         }
     }
 
     suspend inline fun <reified T : Any> postResponse(endpoint: String, body: Any? = null): T? {
         val url = "${Constants.BASEURL}/v1$endpoint"
-        println("ApiClient: POST request to: $url")
+        Logger.d { "ApiClient: POST request to: $url" }
         return try {
             val tokenBeforeRequest = secureStorage.getToken("access_token")
             var response = client.post(url) {
@@ -145,14 +146,14 @@ open class ApiClient(
             }
             if (response.status.isSuccess()) response.body<T>() else null
         } catch (e: Exception) {
-            println("Error posting to $url: ${e.message}")
+            Logger.e(e) { "Error posting to $url" }
             null
         }
     }
 
     suspend inline fun <reified T : Any> putResponse(endpoint: String, body: Any? = null): T? {
         val url = "${Constants.BASEURL}/v1$endpoint"
-        println("ApiClient: PUT request to: $url")
+        Logger.d { "ApiClient: PUT request to: $url" }
         return try {
             val tokenBeforeRequest = secureStorage.getToken("access_token")
             var response = client.put(url) {
@@ -182,7 +183,7 @@ open class ApiClient(
             }
             if (response.status.isSuccess()) response.body<T>() else null
         } catch (e: Exception) {
-            println("Error putting to $url: ${e.message}")
+            Logger.e(e) { "Error putting to $url" }
             null
         }
     }
@@ -200,7 +201,7 @@ open class ApiClient(
             }
             if (response.status.isSuccess()) response.body<T>() else null
         } catch (e: Exception) {
-            println("Error deleting from $url: ${e.message}")
+            Logger.e(e) { "Error deleting from $url" }
             null
         }
     }

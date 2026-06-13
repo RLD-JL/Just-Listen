@@ -74,6 +74,9 @@ kotlin {
                 // Image Loading (Coil 3)
                 implementation(libs.coil3.compose)
                 implementation(libs.coil3.network.ktor)
+
+                // Logging
+                implementation(libs.kermit)
             }
         }
         val commonTest by getting {

@@ -3,6 +3,7 @@ package com.rld.justlisten.ui.utils
 import android.widget.Toast
 import android.content.Context
 import org.koin.mp.KoinPlatform
+import co.touchlab.kermit.Logger
 
 actual fun showToast(message: String) {
     try {
@@ -11,6 +12,6 @@ actual fun showToast(message: String) {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     } catch (e: Exception) {
-        println("Android Toast error: ${e.message}")
+        Logger.e(e) { "Android Toast error" }
     }
 }

@@ -49,7 +49,7 @@ class PlayHistoryTrackerTest {
 
         // 1. Transition state to PLAYING at position 0
         fakeMusicPlayer.updateState(PlaybackStatus.PLAYING, 0L, media)
-        testDispatcher.scheduler.advanceUntilIdle()
+        testDispatcher.scheduler.runCurrent()
 
         // Wait 1.5 seconds (PlayHistoryTracker loops inside PLAYING state with 1-second delays)
         testDispatcher.scheduler.apply {
@@ -59,11 +59,11 @@ class PlayHistoryTrackerTest {
 
         // 2. Pause playback (total duration accumulated is ~1 second)
         fakeMusicPlayer.updateState(PlaybackStatus.PAUSED, 1000L, media)
-        testDispatcher.scheduler.advanceUntilIdle()
+        testDispatcher.scheduler.runCurrent()
 
         // 3. Clear/stop session to flush duration logs
         fakeMusicPlayer.updateState(PlaybackStatus.IDLE, 0L, null)
-        testDispatcher.scheduler.advanceUntilIdle()
+        testDispatcher.scheduler.runCurrent()
 
         // Assert no completed play since we only played ~1 second (less than 30s threshold)
         assertEquals(0, fakeLibraryRepo.completedPlays.size)

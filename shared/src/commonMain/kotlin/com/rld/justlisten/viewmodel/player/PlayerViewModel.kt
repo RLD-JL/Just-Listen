@@ -30,6 +30,7 @@ import com.rld.justlisten.datalayer.repositories.FeedRepository
 import com.rld.justlisten.datalayer.repositories.SettingsRepository
 import com.rld.justlisten.datalayer.repositories.SessionState
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
+import kotlinx.coroutines.IO
 
 class PlayerViewModel(
     private val favoritesRepository: FavoritesRepository,
@@ -259,11 +260,11 @@ class PlayerViewModel(
                 val index = tracks.indexOfFirst { it.id == action.songId }
                 if (index != -1) {
                     musicPlayer.updatePlaylist(tracks)
-                    musicPlayer.playMedia(action.songId)
                     _recommendedSongs.value = emptyList()
                     autoplayedTrackIds.clear()
                     autoplayedTrackIds.addAll(tracks.map { it.id })
                     recommendedOffset += 10
+                    musicPlayer.playMedia(action.songId)
                     fetchRecommendations(action.songId)
                 }
             }
