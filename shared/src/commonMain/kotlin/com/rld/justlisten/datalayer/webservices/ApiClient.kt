@@ -37,9 +37,17 @@ open class ApiClient(
             })
         }
         install(HttpTimeout) {
-            connectTimeoutMillis = 3000
-            socketTimeoutMillis = 4500
-            requestTimeoutMillis = 10000
+            connectTimeoutMillis = 10000
+            socketTimeoutMillis = 15000
+            requestTimeoutMillis = 30000
+        }
+        install(io.ktor.client.plugins.logging.Logging) {
+            logger = object : io.ktor.client.plugins.logging.Logger {
+                override fun log(message: String) {
+                    co.touchlab.kermit.Logger.d { "KtorClient: $message" }
+                }
+            }
+            level = io.ktor.client.plugins.logging.LogLevel.HEADERS
         }
         install(HttpRequestRetry) {
             maxRetries = 3
@@ -57,6 +65,14 @@ open class ApiClient(
             val userId = secureStorage.getToken("user_id")
             if (!userId.isNullOrBlank() && !url.encodedPath.endsWith("/oauth/token")) {
                 url.parameters.append("user_id", userId)
+            }
+        }
+    }.apply {
+        sendPipeline.intercept(io.ktor.client.request.HttpSendPipeline.State) {
+            if (context.url.encodedPath.contains("/unsplash")) {
+                context.headers.remove("Authorization")
+                context.headers.remove("X-API-KEY")
+                context.url.parameters.remove("user_id")
             }
         }
     }

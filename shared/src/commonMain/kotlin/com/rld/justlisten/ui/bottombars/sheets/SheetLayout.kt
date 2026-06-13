@@ -30,5 +30,11 @@ fun SheetLayout(
             )
             getLatestPlaylist()
         }
+        is BottomSheetScreen.Comments -> {
+            com.rld.justlisten.ui.bottombars.sheets.components.CommentsView(
+                trackId = currentScreen.trackId,
+                onCloseBottomSheet = onCloseBottomSheet
+            )
+        }
     }
 }

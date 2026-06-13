@@ -95,6 +95,7 @@ kotlin {
                 implementation(libs.androidx.media)
                 implementation(libs.androidx.palette)
                 implementation(libs.androidx.core.ktx)
+                implementation(libs.androidx.activity.compose)
 
                 // Additional Android dependencies
                 implementation(libs.androidx.work.runtime)

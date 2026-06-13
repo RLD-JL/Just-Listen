@@ -142,6 +142,9 @@ fun PlaylistScreenHost(navController: NavHostController) {
                         selectedTimeRange = action.selectedTimeRange
                     )
                 }
+                PlaylistScreenAction.NotificationsClicked -> {
+                    navController.navigate(Route.Notifications)
+                }
                 is PlaylistScreenAction.ArtistClicked -> viewModel.onArtistClicked(action.artistId, action.artistName)
             }
         }
@@ -494,6 +497,18 @@ fun FeedScreenHost(
                 is com.rld.justlisten.ui.actions.FeedAction.SetTrendingCategory -> viewModel.setTrendingCategory(action.category)
                 is com.rld.justlisten.ui.actions.FeedAction.SetTrendingTimeRange -> viewModel.setTrendingTimeRange(action.timeRange)
             }
+        }
+    )
+}
+
+@Composable
+fun NotificationsScreenHost(navController: NavHostController) {
+    com.rld.justlisten.ui.notifications.NotificationScreen(
+        onBackClicked = {
+            navController.popBackStack()
+        },
+        onNavigateToArtist = { artistId, artistName ->
+            navController.navigate(Route.ArtistProfile(artistId, artistName))
         }
     )
 }

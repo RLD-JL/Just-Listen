@@ -28,6 +28,7 @@ fun appModule() = module {
     single<AuthRepository> { AuthRepositoryImpl(apiClient = get(), secureStorage = get(), pkceCrypto = get(), syncRepository = get(), localDb = get()) }
     single<SyncRepository> { SyncRepositoryImpl(localDb = get(), apiClient = get()) }
     single<FeedRepository> { FeedRepositoryImpl(get(), get(), get()) }
+    single<NotificationRepository> { NotificationRepositoryImpl(get()) }
     single(createdAtStart = true) { PlayHistoryTracker(get(), get()) }
     
     // ViewModels

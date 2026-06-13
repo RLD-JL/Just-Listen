@@ -13,6 +13,7 @@ sealed interface PlayerUiEvent {
     data object Collapse : PlayerUiEvent
     data object Expand : PlayerUiEvent
     data object OpenAddPlaylist : PlayerUiEvent
+    data class OpenComments(val trackId: String) : PlayerUiEvent
     data object CloseSheet : PlayerUiEvent
     data class PainterLoaded(val painter: Painter) : PlayerUiEvent
     data class DominantColorExtracted(val colorInt: Int) : PlayerUiEvent

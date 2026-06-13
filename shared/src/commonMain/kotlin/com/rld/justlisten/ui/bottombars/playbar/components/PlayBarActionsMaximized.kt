@@ -161,7 +161,11 @@ fun PlayBarActionsMaximized(
                     SocialButton(
                         icon = Icons.AutoMirrored.Outlined.Comment,
                         text = commentCountText
-                    )
+                    ) {
+                        playbackState.currentMedia?.let {
+                            onUiEvent(PlayerUiEvent.OpenComments(it.id))
+                        }
+                    }
                 }
                 item {
                     SocialButton(icon = Icons.Default.Add, text = "Save") {

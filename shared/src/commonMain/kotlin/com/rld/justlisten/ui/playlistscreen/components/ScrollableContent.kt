@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import com.rld.justlisten.datalayer.repositories.SessionState
 import androidx.compose.runtime.*
@@ -127,14 +128,29 @@ fun ScrollableContent(
                     }
                 }
             }
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search",
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .size(28.dp)
-                    .clickable { onAction(PlaylistScreenAction.SearchClicked) }
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                if (playlistState.sessionState is SessionState.Authenticated) {
+                    Icon(
+                        imageVector = Icons.Filled.Notifications,
+                        contentDescription = "Notifications",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clickable { onAction(PlaylistScreenAction.NotificationsClicked) }
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clickable { onAction(PlaylistScreenAction.SearchClicked) }
+                )
+            }
         }
 
         // 2. Scrollable Genre Filter Pills (Dynamic themed)

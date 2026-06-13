@@ -30,6 +30,7 @@ sealed interface PlaylistScreenAction {
 
     data object SearchClicked : PlaylistScreenAction
     data object RefreshScreen : PlaylistScreenAction
+    data object NotificationsClicked : PlaylistScreenAction
 
     data class FetchMorePlaylists(
         val index: Int,

@@ -163,6 +163,10 @@ fun AppNavigation(
             val args: Route.Feed = backStackEntry.toRoute()
             FeedScreenHost(navController, args)
         }
+
+        composable<Route.Notifications> {
+            NotificationsScreenHost(navController)
+        }
     }
 }
 

@@ -13,6 +13,7 @@ local.properties
 /private_key.pepk
 /.artifacts/
 /.antigravityrules
+/.antigravity
 /APP_FEATURES.md
 /BUG_ANALYSIS.md
 /api-1.json

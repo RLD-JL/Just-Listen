@@ -137,6 +137,7 @@ fun PlayerBarSheetContent(
                 when (event) {
                     PlayerUiEvent.CloseSheet -> closeSheet()
                     PlayerUiEvent.OpenAddPlaylist -> openSheet(BottomSheetScreen.AddPlaylist)
+                    is PlayerUiEvent.OpenComments -> openSheet(BottomSheetScreen.Comments(event.trackId))
                     is PlayerUiEvent.PainterLoaded -> {
                         mutablePainter.value = event.painter
                     }
