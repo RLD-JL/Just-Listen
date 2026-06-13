@@ -25,10 +25,10 @@ fun appModule() = module {
     single<PlaylistRepository> { PlaylistRepositoryImpl(get(), get()) }
     single<SearchRepository> { SearchRepositoryImpl(get(), get()) }
     single<SettingsRepository> { SettingsRepositoryImpl(get()) }
-    single<AuthRepository> { AuthRepositoryImpl(apiClient = get(), secureStorage = get(), pkceCrypto = get(), syncRepository = get()) }
+    single<AuthRepository> { AuthRepositoryImpl(apiClient = get(), secureStorage = get(), pkceCrypto = get(), syncRepository = get(), localDb = get()) }
     single<SyncRepository> { SyncRepositoryImpl(localDb = get(), apiClient = get()) }
     single<FeedRepository> { FeedRepositoryImpl(get(), get(), get()) }
-    single { PlayHistoryTracker(get(), get()) }
+    single(createdAtStart = true) { PlayHistoryTracker(get(), get()) }
     
     // ViewModels
     viewModel { LibraryViewModel(get(), get(), get(), get()) }
@@ -40,5 +40,5 @@ fun appModule() = module {
     viewModel { ArtistProfileViewModel(get(), get(), get()) }
     viewModel { FeedViewModel(get(), get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get(), get(), get()) }
-    viewModel { PlayerViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { PlayerViewModel(get(), get(), get(), get(), get(), get(), get()) }
 }

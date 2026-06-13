@@ -22,6 +22,10 @@ activityVersion = "1.13.0"
 paletteVersion = "1.0.0"
 splashscreenVersion = "1.2.0"
 leakcanaryVersion = "2.14"
+securityCryptoVersion = "1.1.0"
+android-compileSdk = "36"
+android-targetSdk = "35"
+android-minSdk = "23"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutinesVersion" }
@@ -80,6 +84,7 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryVersion" }
 androidx-media = { module = "androidx.media:media", version = "1.8.0" }
 kermit = { module = "co.touchlab:kermit", version = "2.0.4" }
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCryptoVersion" }
 
 [bundles]
 ktor = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-serialization-kotlinx-json", "ktor-client-logging"]

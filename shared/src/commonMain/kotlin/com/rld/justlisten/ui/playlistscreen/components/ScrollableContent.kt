@@ -39,6 +39,9 @@ import com.rld.justlisten.ui.components.MusicLoadingSpinner
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.media.PlaybackStatus
 import androidx.compose.ui.graphics.Color
+import com.rld.justlisten.ui.components.AnimatedShimmer
+import androidx.compose.runtime.collectAsState
+import coil3.compose.AsyncImagePainter
 
 @Composable
 fun ScrollableContent(
@@ -318,6 +321,7 @@ fun TrackCardItem(
                 .build()
         }
     )
+    val state by painter.state.collectAsState()
     
     Card(
         modifier = Modifier
@@ -346,6 +350,9 @@ fun TrackCardItem(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
+                if (state is AsyncImagePainter.State.Loading) {
+                    AnimatedShimmer(56.dp, 56.dp)
+                }
                 if (isPlaying) {
                     Box(
                         modifier = Modifier

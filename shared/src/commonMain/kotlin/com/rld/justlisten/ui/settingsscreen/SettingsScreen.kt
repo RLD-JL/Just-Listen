@@ -46,7 +46,8 @@ fun SettingsScreen(
     onLogin: (String) -> Unit = {},
     onLogout: () -> Unit = {},
     onRetrySync: () -> Unit = {},
-    onClearSync: () -> Unit = {}
+    onClearSync: () -> Unit = {},
+    onNavigateToMyProfile: (String, String) -> Unit = { _, _ -> }
 ) {
     val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineScope = rememberCoroutineScope()
@@ -149,6 +150,12 @@ fun SettingsScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .clickable {
+                                    val userId = session.userProfile.userId
+                                    if (!userId.isNullOrBlank()) {
+                                        onNavigateToMyProfile(userId, session.userProfile.name)
+                                    }
+                                }
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {

@@ -22,3 +22,21 @@ upsertSettingsInfo {
     REPLACE INTO SettingsInfo(id, hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch, isOngoingStreamEnabled)
     VALUES(1, :hasNavigationDonationOn, :isDarkThemeOn, :palletColor, :customPrimary, :customSecondary, :customBackground, :customSurface, :isFirstLaunch, :isOngoingStreamEnabled) ;
 }
+
+CREATE TABLE UserProfileOverrides (
+     userId TEXT NOT NULL PRIMARY KEY,
+     customName TEXT,
+     customBio TEXT,
+     customProfilePic TEXT,
+     customCoverPhoto TEXT
+);
+
+getUserProfileOverride:
+SELECT * FROM UserProfileOverrides WHERE userId = :userId;
+
+upsertUserProfileOverride:
+INSERT OR REPLACE INTO UserProfileOverrides(userId, customName, customBio, customProfilePic, customCoverPhoto)
+VALUES(:userId, :customName, :customBio, :customProfilePic, :customCoverPhoto);
+
+deleteUserProfileOverride:
+DELETE FROM UserProfileOverrides WHERE userId = :userId;

@@ -202,6 +202,9 @@ actual fun SettingsScreenHost(navController: NavHostController) {
         },
         onClearSync = {
             viewModel.clearFailedSync()
+        },
+        onNavigateToMyProfile = { userId, name ->
+            navController.navigate(Route.ArtistProfile(userId, name))
         }
     )
 }
@@ -304,6 +307,12 @@ actual fun ArtistProfileScreenHost(
                     navController.navigate(Route.Settings)
                 }
                 is com.rld.justlisten.ui.actions.ArtistProfileAction.TabSelected -> viewModel.onTabSelected(action.index)
+                is com.rld.justlisten.ui.actions.ArtistProfileAction.EditProfileSaved -> viewModel.onEditProfileSaved(
+                    action.name,
+                    action.bio,
+                    action.profilePicUrl,
+                    action.coverPhotoUrl
+                )
             }
         }
     )

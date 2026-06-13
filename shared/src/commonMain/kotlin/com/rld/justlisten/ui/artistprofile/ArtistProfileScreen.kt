@@ -1,11 +1,14 @@
 package com.rld.justlisten.ui.artistprofile
 
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -29,6 +32,7 @@ import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import com.rld.justlisten.ui.actions.ArtistProfileAction
 import com.rld.justlisten.ui.artistprofile.components.ConnectPromptDialog
+import com.rld.justlisten.ui.artistprofile.components.EditProfileDialog
 import com.rld.justlisten.ui.seeallscreen.SeeAllListItem
 import com.rld.justlisten.ui.seeallscreen.formatCount
 import com.rld.justlisten.ui.theme.typography
@@ -46,6 +50,34 @@ fun ArtistProfileScreen(
     libraryRepository: LibraryRepository,
     onAction: (ArtistProfileAction) -> Unit
 ) {
+    var showEditDialog by remember { mutableStateOf(false) }
+    val showEditState = remember { mutableStateOf(false) }
+    LaunchedEffect(showEditDialog) {
+        showEditState.value = showEditDialog
+    }
+    LaunchedEffect(showEditState.value) {
+        if (!showEditState.value) {
+            showEditDialog = false
+        }
+    }
+
+    if (showEditState.value) {
+        val profile = artistProfileState.artistProfile
+        if (profile != null) {
+            EditProfileDialog(
+                showDialog = showEditState,
+                initialName = profile.name,
+                initialBio = profile.bio,
+                initialProfilePicUrl = profile.profilePicture?.image150 ?: profile.profilePicture?.image480 ?: profile.profilePicture?.image1000,
+                initialCoverPhotoUrl = profile.coverPhoto?.image2000 ?: profile.coverPhoto?.image640,
+                onSaveClicked = { name, bio, profilePicUrl, coverPhotoUrl ->
+                    onAction(ArtistProfileAction.EditProfileSaved(name, bio, profilePicUrl, coverPhotoUrl))
+                    showEditDialog = false
+                }
+            )
+        }
+    }
+
     if (artistProfileState.showConnectPrompt) {
         ConnectPromptDialog(
             onDismissRequest = { onAction(ArtistProfileAction.DismissConnectPrompt) },
@@ -96,8 +128,11 @@ fun ArtistProfileScreen(
             } else {
                 val profile = artistProfileState.artistProfile
                 val context = LocalPlatformContext.current
+                val listState = rememberLazyListState()
+                val coroutineScope = rememberCoroutineScope()
 
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 24.dp)
                 ) {
@@ -109,7 +144,7 @@ fun ArtistProfileScreen(
                                 .height(160.dp)
                                 .background(MaterialTheme.colorScheme.surfaceVariant)
                         ) {
-                            val bannerUrl = profile.coverPhoto?.image1000 ?: profile.coverPhoto?.image480 ?: ""
+                            val bannerUrl = profile.coverPhoto?.image2000 ?: profile.coverPhoto?.image640 ?: ""
                             if (bannerUrl.isNotBlank()) {
                                 val bannerPainter = rememberAsyncImagePainter(
                                     model = remember(bannerUrl, context) {
@@ -201,31 +236,52 @@ fun ArtistProfileScreen(
                                 modifier = Modifier.offset(y = (-28).dp)
                             )
 
-                            // Follow / Unfollow Button
-                            Button(
-                                onClick = { onAction(ArtistProfileAction.FollowPressed) },
-                                modifier = Modifier
-                                    .fillMaxWidth(0.5f)
-                                    .height(38.dp)
-                                    .offset(y = (-18).dp),
-                                shape = RoundedCornerShape(24.dp),
-                                colors = if (profile.doesCurrentUserFollow) {
-                                    ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                } else {
-                                    ButtonDefaults.buttonColors(
+                            // Follow / Unfollow / Edit Profile Button
+                            if (artistProfileState.isCurrentUser) {
+                                Button(
+                                    onClick = { showEditDialog = true },
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.5f)
+                                        .height(38.dp)
+                                        .offset(y = (-18).dp),
+                                    shape = RoundedCornerShape(24.dp),
+                                    colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.primary,
                                         contentColor = MaterialTheme.colorScheme.onPrimary
                                     )
+                                ) {
+                                    Text(
+                                        text = "Edit Profile",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    )
                                 }
-                            ) {
-                                Text(
-                                    text = if (profile.doesCurrentUserFollow) "Following" else "Follow",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
-                                )
+                            } else {
+                                Button(
+                                    onClick = { onAction(ArtistProfileAction.FollowPressed) },
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.5f)
+                                        .height(38.dp)
+                                        .offset(y = (-18).dp),
+                                    shape = RoundedCornerShape(24.dp),
+                                    colors = if (profile.doesCurrentUserFollow) {
+                                        ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    } else {
+                                        ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primary,
+                                            contentColor = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    }
+                                ) {
+                                    Text(
+                                        text = if (profile.doesCurrentUserFollow) "Following" else "Follow",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    )
+                                }
                             }
                         }
                     }
@@ -252,7 +308,17 @@ fun ArtistProfileScreen(
                                 Box(modifier = Modifier.width(1.dp).height(24.dp).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)))
                                 ProfileStatItem(label = "Following", value = formatCount(profile.followeeCount))
                                 Box(modifier = Modifier.width(1.dp).height(24.dp).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)))
-                                ProfileStatItem(label = "Tracks", value = formatCount(profile.trackCount))
+                                ProfileStatItem(
+                                    label = "Tracks", 
+                                    value = formatCount(profile.trackCount),
+                                    modifier = Modifier.clickable {
+                                        onAction(ArtistProfileAction.TabSelected(0))
+                                        coroutineScope.launch {
+                                            val targetIndex = if (!profile.bio.isNullOrBlank()) 4 else 3
+                                            listState.animateScrollToItem(targetIndex)
+                                        }
+                                    }
+                                )
                             }
                         }
                     }
@@ -375,8 +441,17 @@ fun ArtistProfileScreen(
 }
 
 @Composable
-fun ProfileStatItem(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+fun ProfileStatItem(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+    ) {
         Text(
             text = value,
             style = typography.titleMedium.copy(fontWeight = FontWeight.Bold),

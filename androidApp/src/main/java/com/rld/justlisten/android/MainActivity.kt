@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.work.WorkManager
 import com.rld.justlisten.ui.JustListenApp
-import org.koin.compose.KoinContext
+import com.rld.justlisten.ui.JustListenApp
 
 class MainActivity : ComponentActivity() {
 
@@ -51,9 +51,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun JustListenAppContent() {
-    KoinContext {
-        JustListenApp()
-    }
+    JustListenApp()
 }
 
 

@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
-import com.rld.justlisten.media.PlayHistoryTracker
-
 import com.rld.justlisten.datalayer.repositories.AuthRepository
 
 import com.rld.justlisten.datalayer.repositories.PlaylistRepository
@@ -37,7 +35,6 @@ class PlayerViewModel(
     private val libraryRepository: LibraryRepository,
     private val playlistRepository: PlaylistRepository,
     private val musicPlayer: MusicPlayer,
-    private val playHistoryTracker: PlayHistoryTracker,
     private val authRepository: AuthRepository,
     private val feedRepository: FeedRepository,
     private val settingsRepository: SettingsRepository,

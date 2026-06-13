@@ -107,10 +107,14 @@ open class ApiClient(
                     response = client.get(url)
                 }
             }
-            if (response.status.isSuccess()) response.body<T>() else null
+            if (response.status.isSuccess()) {
+                response.body<T>()
+            } else {
+                throw Exception("HTTP error ${response.status.value} fetching $url")
+            }
         } catch (e: Exception) {
             Logger.e(e) { "Error fetching $url" }
-            null
+            throw e
         }
     }
 
@@ -144,10 +148,14 @@ open class ApiClient(
                     }
                 }
             }
-            if (response.status.isSuccess()) response.body<T>() else null
+            if (response.status.isSuccess()) {
+                response.body<T>()
+            } else {
+                throw Exception("HTTP error ${response.status.value} posting to $url")
+            }
         } catch (e: Exception) {
             Logger.e(e) { "Error posting to $url" }
-            null
+            throw e
         }
     }
 
@@ -181,10 +189,14 @@ open class ApiClient(
                     }
                 }
             }
-            if (response.status.isSuccess()) response.body<T>() else null
+            if (response.status.isSuccess()) {
+                response.body<T>()
+            } else {
+                throw Exception("HTTP error ${response.status.value} putting to $url")
+            }
         } catch (e: Exception) {
             Logger.e(e) { "Error putting to $url" }
-            null
+            throw e
         }
     }
 
@@ -199,10 +211,14 @@ open class ApiClient(
                     response = client.delete(url)
                 }
             }
-            if (response.status.isSuccess()) response.body<T>() else null
+            if (response.status.isSuccess()) {
+                response.body<T>()
+            } else {
+                throw Exception("HTTP error ${response.status.value} deleting from $url")
+            }
         } catch (e: Exception) {
             Logger.e(e) { "Error deleting from $url" }
-            null
+            throw e
         }
     }
 }

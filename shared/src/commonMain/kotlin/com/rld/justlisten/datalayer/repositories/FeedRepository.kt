@@ -30,19 +30,21 @@ class FeedRepositoryImpl(
         filter: String,
         tracksOnly: Boolean?
     ): List<PlaylistItem> {
-        val response = webservices.getUserFeed(userId, limit, offset, filter, tracksOnly)
-        return response?.data?.map { feedItem ->
-            val playlistModel = feedItem.item.copy(
-                isPlaylist = feedItem.type == "playlist" || feedItem.item.isPlaylist
-            )
-            // Seed the repost cache if the API says this user has reposted it
-            if (playlistModel.hasCurrentUserReposted) {
-                playlistRepository.setTrackReposted(playlistModel.id, true)
-            }
-            val hasFavorite = localDb.getFavoritePlaylistWithId(playlistModel.id)
-            val isFavorite = !hasFavorite.isNullOrEmpty()
-            val isReposted = playlistModel.hasCurrentUserReposted || playlistRepository.isTrackReposted(playlistModel.id)
-            PlaylistItem(_data = playlistModel, isFavorite = isFavorite, isReposted = isReposted)
-        } ?: emptyList()
+        return runCatching {
+            val response = webservices.getUserFeed(userId, limit, offset, filter, tracksOnly)
+            response?.data?.map { feedItem ->
+                val playlistModel = feedItem.item.copy(
+                    isPlaylist = feedItem.type == "playlist" || feedItem.item.isPlaylist
+                )
+                // Seed the repost cache if the API says this user has reposted it
+                if (playlistModel.hasCurrentUserReposted) {
+                    playlistRepository.setTrackReposted(playlistModel.id, true)
+                }
+                val hasFavorite = localDb.getFavoritePlaylistWithId(playlistModel.id)
+                val isFavorite = !hasFavorite.isNullOrEmpty()
+                val isReposted = playlistModel.hasCurrentUserReposted || playlistRepository.isTrackReposted(playlistModel.id)
+                PlaylistItem(_data = playlistModel, isFavorite = isFavorite, isReposted = isReposted)
+            } ?: emptyList()
+        }.getOrElse { emptyList() }
     }
 }

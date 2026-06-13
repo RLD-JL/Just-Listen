@@ -42,7 +42,12 @@ class SleepWorker(val context: Context, parameters: WorkerParameters) :
             .putLong("sleep_timer_end_time_ms", 0L)
             .apply()
 
-        // Shutdown the application
-        exitProcess(0)
+        // Cleanly stop the player and let OS manage process lifecycle
+        withContext(Dispatchers.Main) {
+            runCatching {
+                musicServiceConnection.mediaController?.stop()
+            }
+        }
+        return Result.success()
     }
 }

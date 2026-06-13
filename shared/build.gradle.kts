@@ -13,8 +13,8 @@ kotlin {
     jvmToolchain(17)
     android {
         namespace = "com.rld.justlisten"
-        compileSdk = 36
-        minSdk = 23
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
         withHostTestBuilder {}.configure {}
         withDeviceTestBuilder { sourceSetTreeName = "test" }
         androidResources { enable = true }
@@ -98,6 +98,7 @@ kotlin {
 
                 // Additional Android dependencies
                 implementation(libs.androidx.work.runtime)
+                implementation(libs.androidx.security.crypto)
 
                 // Lifecycle for Android
                 implementation(libs.lifecycle.viewmodel)
@@ -128,17 +129,6 @@ sqldelight {
     }
 }
 
-configurations {
-    named("debugFrameworkIos") {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "my-unique-attribute"))
-        }
-    }
-    named("releaseFrameworkIos") {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "huh"))
-        }
-    }
-}
+
 
 

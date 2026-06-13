@@ -55,7 +55,7 @@ class SettingsViewModel(
                 val saved = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                     settingsRepository.getSettingsInfo()
                 }
-                _settingsState.value = SettingsState(
+                _settingsState.value = _settingsState.value.copy(
                     hasDonationNavigationOn = saved.hasNavigationDonationOn,
                     isDarkThemeOn = saved.isDarkThemeOn,
                     palletColor = saved.palletColor,

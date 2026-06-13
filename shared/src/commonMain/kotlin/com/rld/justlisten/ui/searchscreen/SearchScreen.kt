@@ -267,7 +267,7 @@ fun SeeAllSearchContainer(
                             totalItemsCount > 0 && lastVisibleItemIndex >= totalItemsCount - 5
                         }
                     }
-                    LaunchedEffect(shouldLoadMore.value) {
+                    LaunchedEffect(shouldLoadMore.value, searchScreenState.isSeeAllLoading, searchScreenState.seeAllLastItemReached) {
                         if (shouldLoadMore.value && !searchScreenState.isSeeAllLoading && !searchScreenState.seeAllLastItemReached) {
                             onAction(SearchScreenAction.LoadMoreSeeAll)
                         }
@@ -321,7 +321,7 @@ fun SeeAllSearchContainer(
                             totalItemsCount > 0 && lastVisibleItemIndex >= totalItemsCount - 6
                         }
                     }
-                    LaunchedEffect(shouldLoadMore.value) {
+                    LaunchedEffect(shouldLoadMore.value, searchScreenState.isSeeAllLoading, searchScreenState.seeAllLastItemReached) {
                         if (shouldLoadMore.value && !searchScreenState.isSeeAllLoading && !searchScreenState.seeAllLastItemReached) {
                             onAction(SearchScreenAction.LoadMoreSeeAll)
                         }
@@ -379,7 +379,7 @@ fun SeeAllSearchContainer(
                             totalItemsCount > 0 && lastVisibleItemIndex >= totalItemsCount - 9
                         }
                     }
-                    LaunchedEffect(shouldLoadMore.value) {
+                    LaunchedEffect(shouldLoadMore.value, searchScreenState.isSeeAllLoading, searchScreenState.seeAllLastItemReached) {
                         if (shouldLoadMore.value && !searchScreenState.isSeeAllLoading && !searchScreenState.seeAllLastItemReached) {
                             onAction(SearchScreenAction.LoadMoreSeeAll)
                         }

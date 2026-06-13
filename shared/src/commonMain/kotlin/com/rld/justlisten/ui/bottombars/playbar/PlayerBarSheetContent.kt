@@ -33,6 +33,13 @@ import com.rld.justlisten.ui.bottombars.sheets.SheetLayout
 import com.rld.justlisten.viewmodel.player.PlayerUiState
 import com.rld.justlisten.ui.actions.PlayerAction
 import kotlinx.coroutines.launch
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.graphics.Color
+import com.rld.justlisten.ui.extensions.noRippleClickable
 
 @ExperimentalMaterial3Api
 @Composable
@@ -60,6 +67,52 @@ fun PlayerBarSheetContent(
     val draggableState = rememberDraggableState { delta ->
         coroutineScope.launch {
             dragOffset.snapTo((dragOffset.value + delta).coerceAtLeast(0f))
+        }
+    }
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val delta = available.y
+                if (delta < 0f && dragOffset.value > 0f) {
+                    val newOffset = (dragOffset.value + delta).coerceAtLeast(0f)
+                    val consumed = newOffset - dragOffset.value
+                    coroutineScope.launch {
+                        dragOffset.snapTo(newOffset)
+                    }
+                    return Offset(0f, consumed)
+                }
+                return Offset.Zero
+            }
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                val delta = available.y
+                if (delta > 0f) {
+                    val newOffset = dragOffset.value + delta
+                    coroutineScope.launch {
+                        dragOffset.snapTo(newOffset)
+                    }
+                    return Offset(0f, delta)
+                }
+                return Offset.Zero
+            }
+
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                return Velocity.Zero
+            }
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                if (dragOffset.value > 150f || available.y > 400f) {
+                    closeSheet()
+                } else {
+                    dragOffset.animateTo(0f, spring())
+                }
+                return available
+            }
         }
     }
 
@@ -92,6 +145,16 @@ fun PlayerBarSheetContent(
             }
         )
 
+        // Dimmed Scrim/Backdrop for secondary sheet
+        if (currentBottomSheet != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .noRippleClickable { closeSheet() }
+            )
+        }
+
         // Secondary sheet overlay
         AnimatedVisibility(
             visible = currentBottomSheet != null,
@@ -112,6 +175,7 @@ fun PlayerBarSheetContent(
                     .offset { IntOffset(0, dragOffset.value.toInt()) }
                     .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                     .background(MaterialTheme.colorScheme.background)
+                    .nestedScroll(nestedScrollConnection)
                     .then(
                         if (isEntireSheetDraggable) {
                             Modifier.draggable(

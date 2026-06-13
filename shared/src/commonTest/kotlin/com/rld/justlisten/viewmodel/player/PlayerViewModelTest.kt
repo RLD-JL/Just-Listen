@@ -67,7 +67,6 @@ class PlayerViewModelTest {
             libraryRepository = fakeLibraryRepo,
             playlistRepository = fakePlaylistRepo,
             musicPlayer = fakeMusicPlayer,
-            playHistoryTracker = playHistoryTracker,
             authRepository = fakeAuthRepo,
             feedRepository = fakeFeedRepo,
             settingsRepository = fakeSettingsRepo

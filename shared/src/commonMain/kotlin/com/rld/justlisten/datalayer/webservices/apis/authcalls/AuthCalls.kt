@@ -15,7 +15,9 @@ import co.touchlab.kermit.Logger
 data class ProfileImages(
     @SerialName("150x150") val image150: String? = null,
     @SerialName("480x480") val image480: String? = null,
-    @SerialName("1000x1000") val image1000: String? = null
+    @SerialName("1000x1000") val image1000: String? = null,
+    @SerialName("640x") val image640: String? = null,
+    @SerialName("2000x") val image2000: String? = null
 )
 
 @Serializable

@@ -124,7 +124,7 @@ fun SeeAllScreen(
                                             playlistId = item.id,
                                             playlistIcon = item.songIconList.songImageURL480px,
                                             createdBy = item.user,
-                                            title = item.playlistTitle
+                                            title = item.playlistTitle.ifBlank { item.title }
                                         )
                                     )
                                 },
@@ -235,7 +235,7 @@ fun SeeAllListItem(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = item.playlistTitle,
+                    text = item.playlistTitle.ifBlank { item.title },
                     style = typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,

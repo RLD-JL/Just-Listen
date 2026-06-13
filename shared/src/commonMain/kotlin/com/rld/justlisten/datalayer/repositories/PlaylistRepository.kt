@@ -83,39 +83,51 @@ class PlaylistRepositoryImpl(
     }
 
     override suspend fun repostTrack(trackId: String): Boolean {
-        val response = webservices.repostTrack(trackId)
-        if (response?.error == null) {
-            setTrackReposted(trackId, true)
-            return true
-        }
-        return false
+        return runCatching {
+            val response = webservices.repostTrack(trackId)
+            if (response?.error == null) {
+                setTrackReposted(trackId, true)
+                true
+            } else {
+                false
+            }
+        }.getOrElse { false }
     }
 
     override suspend fun unrepostTrack(trackId: String): Boolean {
-        val response = webservices.unrepostTrack(trackId)
-        if (response?.error == null) {
-            setTrackReposted(trackId, false)
-            return true
-        }
-        return false
+        return runCatching {
+            val response = webservices.unrepostTrack(trackId)
+            if (response?.error == null) {
+                setTrackReposted(trackId, false)
+                true
+            } else {
+                false
+            }
+        }.getOrElse { false }
     }
 
     override suspend fun repostPlaylist(playlistId: String): Boolean {
-        val response = webservices.repostPlaylist(playlistId)
-        if (response?.error == null) {
-            setPlaylistReposted(playlistId, true)
-            return true
-        }
-        return false
+        return runCatching {
+            val response = webservices.repostPlaylist(playlistId)
+            if (response?.error == null) {
+                setPlaylistReposted(playlistId, true)
+                true
+            } else {
+                false
+            }
+        }.getOrElse { false }
     }
 
     override suspend fun unrepostPlaylist(playlistId: String): Boolean {
-        val response = webservices.unrepostPlaylist(playlistId)
-        if (response?.error == null) {
-            setPlaylistReposted(playlistId, false)
-            return true
-        }
-        return false
+        return runCatching {
+            val response = webservices.unrepostPlaylist(playlistId)
+            if (response?.error == null) {
+                setPlaylistReposted(playlistId, false)
+                true
+            } else {
+                false
+            }
+        }.getOrElse { false }
     }
 
     override suspend fun getPlaylist(
@@ -126,34 +138,21 @@ class PlaylistRepositoryImpl(
         queryPlaylist: String
     ): List<PlaylistItem> {
         val favoriteIds = localDb.getFavoritePlaylist().map { it.id }.toSet()
-        return when (playListEnum) {
-            PlayListEnum.TOP_PLAYLIST -> webservices.fetchPlaylist(index, PlayListEnum.TOP_PLAYLIST)?.data?.map { playlistModel ->
-                if (playlistModel.hasCurrentUserReposted) {
-                    setTrackReposted(playlistModel.id, true)
-                }
-                val isFavorite = favoriteIds.contains(playlistModel.id)
-                val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
-                PlaylistItem(_data = playlistModel, isFavorite = isFavorite, isReposted = isReposted)
-            } ?: emptyList()
+        return runCatching {
+            when (playListEnum) {
+                PlayListEnum.TOP_PLAYLIST -> webservices.fetchPlaylist(index, PlayListEnum.TOP_PLAYLIST)?.data?.map { playlistModel ->
+                    if (playlistModel.hasCurrentUserReposted) {
+                        setTrackReposted(playlistModel.id, true)
+                    }
+                    val isFavorite = favoriteIds.contains(playlistModel.id)
+                    val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
+                    PlaylistItem(_data = playlistModel, isFavorite = isFavorite, isReposted = isReposted)
+                } ?: emptyList()
 
-            PlayListEnum.REMIX -> webservices.fetchPlaylist(
-                index,
-                PlayListEnum.REMIX,
-                queryPlaylist = queryPlaylist
-            )?.data?.map { playlistModel ->
-                if (playlistModel.hasCurrentUserReposted) {
-                    setTrackReposted(playlistModel.id, true)
-                }
-                val isFavorite = favoriteIds.contains(playlistModel.id)
-                val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
-                PlaylistItem(_data = playlistModel, isFavorite = isFavorite, isReposted = isReposted)
-            } ?: emptyList()
-
-            PlayListEnum.CURRENT_PLAYLIST -> {
-                webservices.fetchPlaylist(
+                PlayListEnum.REMIX -> webservices.fetchPlaylist(
                     index,
-                    PlayListEnum.CURRENT_PLAYLIST,
-                    playlistId
+                    PlayListEnum.REMIX,
+                    queryPlaylist = queryPlaylist
                 )?.data?.map { playlistModel ->
                     if (playlistModel.hasCurrentUserReposted) {
                         setTrackReposted(playlistModel.id, true)
@@ -162,53 +161,68 @@ class PlaylistRepositoryImpl(
                     val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
                     PlaylistItem(_data = playlistModel, isFavorite = isFavorite, isReposted = isReposted)
                 } ?: emptyList()
-            }
 
-            PlayListEnum.HOT -> webservices.fetchPlaylist(
-                index,
-                PlayListEnum.HOT,
-                queryPlaylist = queryPlaylist
-            )?.data?.map { playlistModel ->
-                if (playlistModel.hasCurrentUserReposted) {
-                    setTrackReposted(playlistModel.id, true)
+                PlayListEnum.CURRENT_PLAYLIST -> {
+                    webservices.fetchPlaylist(
+                        index,
+                        PlayListEnum.CURRENT_PLAYLIST,
+                        playlistId
+                    )?.data?.map { playlistModel ->
+                        if (playlistModel.hasCurrentUserReposted) {
+                            setTrackReposted(playlistModel.id, true)
+                        }
+                        val isFavorite = favoriteIds.contains(playlistModel.id)
+                        val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
+                        PlaylistItem(_data = playlistModel, isFavorite = isFavorite, isReposted = isReposted)
+                    } ?: emptyList()
                 }
-                val isFavorite = favoriteIds.contains(playlistModel.id)
-                val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
-                PlaylistItem(_data = playlistModel, isFavorite = isFavorite, isReposted = isReposted)
-            } ?: emptyList()
 
-            PlayListEnum.FAVORITE -> {
-                localDb.getFavoritePlaylist().map { playlistModel ->
+                PlayListEnum.HOT -> webservices.fetchPlaylist(
+                    index,
+                    PlayListEnum.HOT,
+                    queryPlaylist = queryPlaylist
+                )?.data?.map { playlistModel ->
+                    if (playlistModel.hasCurrentUserReposted) {
+                        setTrackReposted(playlistModel.id, true)
+                    }
                     val isFavorite = favoriteIds.contains(playlistModel.id)
                     val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
-                    PlaylistItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
-                }.toList()
-            }
+                    PlaylistItem(_data = playlistModel, isFavorite = isFavorite, isReposted = isReposted)
+                } ?: emptyList()
 
-            PlayListEnum.MOST_PLAYED -> {
-                localDb.getMostPlayedSongs(20).map { playlistModel ->
-                    val isFavorite = favoriteIds.contains(playlistModel.id)
-                    val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
-                    PlaylistItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
-                }.toList()
-            }
+                PlayListEnum.FAVORITE -> {
+                    localDb.getFavoritePlaylist().map { playlistModel ->
+                        val isFavorite = favoriteIds.contains(playlistModel.id)
+                        val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
+                        PlaylistItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
+                    }.toList()
+                }
 
-            PlayListEnum.CREATED_BY_USER -> {
-                localDb.getCustomPlaylistSongs(songsList).map { playlistModel ->
-                    val isFavorite = favoriteIds.contains(playlistModel.id)
-                    val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
-                    PlaylistItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
-                }.toList()
-            }
+                PlayListEnum.MOST_PLAYED -> {
+                    localDb.getMostPlayedSongs(20).map { playlistModel ->
+                        val isFavorite = favoriteIds.contains(playlistModel.id)
+                        val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
+                        PlaylistItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
+                    }.toList()
+                }
 
-            PlayListEnum.TIME_CAPSULE -> {
-                localDb.getTimeCapsuleSongs(20).map { playlistModel ->
-                    val isFavorite = favoriteIds.contains(playlistModel.id)
-                    val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
-                    PlaylistItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
-                }.toList()
+                PlayListEnum.CREATED_BY_USER -> {
+                    localDb.getCustomPlaylistSongs(songsList).map { playlistModel ->
+                        val isFavorite = favoriteIds.contains(playlistModel.id)
+                        val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
+                        PlaylistItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
+                    }.toList()
+                }
+
+                PlayListEnum.TIME_CAPSULE -> {
+                    localDb.getTimeCapsuleSongs(20).map { playlistModel ->
+                        val isFavorite = favoriteIds.contains(playlistModel.id)
+                        val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
+                        PlaylistItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
+                    }.toList()
+                }
             }
-        }
+        }.getOrElse { emptyList() }
     }
 
     override suspend fun getTracks(
@@ -217,14 +231,16 @@ class PlaylistRepositoryImpl(
         timeRange: String
     ): List<TrackItem> {
         val favoriteIds = localDb.getFavoritePlaylist().map { it.id }.toSet()
-        return webservices.getTracks(limit, category, timeRange)?.data?.map { playlistModel ->
-            if (playlistModel.hasCurrentUserReposted) {
-                setTrackReposted(playlistModel.id, true)
-            }
-            val isFavorite = favoriteIds.contains(playlistModel.id)
-            val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
-            TrackItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
-        }?.toList() ?: emptyList()
+        return runCatching {
+            webservices.getTracks(limit, category, timeRange)?.data?.map { playlistModel ->
+                if (playlistModel.hasCurrentUserReposted) {
+                    setTrackReposted(playlistModel.id, true)
+                }
+                val isFavorite = favoriteIds.contains(playlistModel.id)
+                val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
+                TrackItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
+            }?.toList() ?: emptyList()
+        }.getOrElse { emptyList() }
     }
 
     override fun getSongWithId(songId: String): PlayListModel? {
@@ -232,6 +248,8 @@ class PlaylistRepositoryImpl(
     }
 
     override suspend fun fetchTrackDetails(trackId: String): PlayListModel? {
-        return webservices.getTrackDetails(trackId)
+        return runCatching {
+            webservices.getTrackDetails(trackId)
+        }.getOrNull()
     }
 }

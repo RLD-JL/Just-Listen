@@ -34,12 +34,14 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import coil3.compose.LocalPlatformContext
 import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.AsyncImagePainter
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.rld.justlisten.media.MediaMetadata
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.ui.components.MusicLoadingSpinner
 import com.rld.justlisten.ui.components.ConfirmDialog
+import com.rld.justlisten.ui.components.AnimatedShimmer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -263,6 +265,7 @@ fun TrackCard(
                                 .build()
                         }
                     )
+                    val state by painter.state.collectAsState()
 
                     Box(
                         modifier = Modifier
@@ -278,6 +281,9 @@ fun TrackCard(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
                             )
+                            if (state is AsyncImagePainter.State.Loading) {
+                                AnimatedShimmer(48.dp, 48.dp)
+                            }
                         } else {
                             // Premium default placeholder
                             Box(

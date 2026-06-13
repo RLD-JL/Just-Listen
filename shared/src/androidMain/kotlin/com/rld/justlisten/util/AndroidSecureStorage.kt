@@ -1,10 +1,20 @@
 package com.rld.justlisten.util
 
 import android.content.Context
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 
 class AndroidSecureStorage(private val context: Context) : SecureStorage {
     
-    private val sharedPreferences = context.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
+    private val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+    
+    private val sharedPreferences = EncryptedSharedPreferences.create(
+        "secure_prefs",
+        masterKeyAlias,
+        context,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
 
     override fun saveToken(key: String, value: String) {
         sharedPreferences.edit().putString(key, value).apply()

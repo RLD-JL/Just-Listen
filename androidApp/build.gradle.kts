@@ -38,11 +38,11 @@ dependencies {
 
 
 android {
-    compileSdk = 36
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         applicationId = "com.rld.justlisten.android"
-        minSdk = 23
-        targetSdk = 35
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 26
         versionName = "1.0.9-a"
         vectorDrawables {

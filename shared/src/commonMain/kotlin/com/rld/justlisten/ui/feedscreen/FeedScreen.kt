@@ -266,7 +266,7 @@ fun FeedScreen(
                                 }
                             }
 
-                            LaunchedEffect(shouldLoadMore.value) {
+                            LaunchedEffect(shouldLoadMore.value, feedState.isLoading, feedState.lastItemReached) {
                                 if (shouldLoadMore.value && !feedState.lastItemReached && !feedState.isLoading) {
                                     onAction(FeedAction.LoadMore)
                                 }

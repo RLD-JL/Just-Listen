@@ -13,4 +13,10 @@ sealed interface ArtistProfileAction {
     data object DismissConnectPrompt : ArtistProfileAction
     data object ConnectAudiusPressed : ArtistProfileAction
     data class TabSelected(val index: Int) : ArtistProfileAction
+    data class EditProfileSaved(
+        val name: String,
+        val bio: String?,
+        val profilePicUrl: String?,
+        val coverPhotoUrl: String?
+    ) : ArtistProfileAction
 }

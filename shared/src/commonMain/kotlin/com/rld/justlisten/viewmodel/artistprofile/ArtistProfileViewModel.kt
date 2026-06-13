@@ -42,10 +42,15 @@ class ArtistProfileViewModel(
                     artistProfile = null, 
                     artistTracks = emptyList(), 
                     artistPlaylists = emptyList(),
-                    showConnectPrompt = false
+                    showConnectPrompt = false,
+                    isCurrentUser = false
                 ) 
             }
             try {
+                val session = authRepository.sessionState.value
+                val currentUserId = if (session is SessionState.Authenticated) session.userProfile.userId else null
+                val isCurrentUser = currentUserId != null && currentUserId == artistId
+
                 // Fetch profile, tracks, and playlists concurrently
                 val profileDeferred = async { apiClient.getUserProfile(artistId) }
                 val tracksDeferred = async { 
@@ -53,7 +58,32 @@ class ArtistProfileViewModel(
                 }
                 val playlistsDeferred = async { apiClient.getUserPlaylists(artistId) }
 
-                val profile = profileDeferred.await()
+                var profile = profileDeferred.await()
+                if (profile != null && isCurrentUser) {
+                    val customName = authRepository.getCustomName(artistId)
+                    val customBio = authRepository.getCustomBio(artistId)
+                    val customProfilePic = authRepository.getCustomProfilePic(artistId)
+                    val customCoverPhoto = authRepository.getCustomCoverPhoto(artistId)
+
+                    profile = profile.copy(
+                        name = customName ?: profile.name,
+                        bio = customBio ?: profile.bio,
+                        profilePicture = if (!customProfilePic.isNullOrBlank()) {
+                            com.rld.justlisten.datalayer.webservices.apis.authcalls.ProfileImages(
+                                image150 = customProfilePic,
+                                image480 = customProfilePic,
+                                image1000 = customProfilePic
+                            )
+                        } else profile.profilePicture,
+                        coverPhoto = if (!customCoverPhoto.isNullOrBlank()) {
+                            com.rld.justlisten.datalayer.webservices.apis.authcalls.ProfileImages(
+                                image640 = customCoverPhoto,
+                                image2000 = customCoverPhoto
+                            )
+                        } else profile.coverPhoto
+                    )
+                }
+
                 val tracksResponse = tracksDeferred.await()
                 val playlists = playlistsDeferred.await()
 
@@ -67,7 +97,8 @@ class ArtistProfileViewModel(
                         isLoading = false,
                         artistProfile = profile,
                         artistTracks = playlistItems,
-                        artistPlaylists = playlists
+                        artistPlaylists = playlists,
+                        isCurrentUser = isCurrentUser
                     )
                 }
             } catch (e: Exception) {
@@ -128,6 +159,33 @@ class ArtistProfileViewModel(
                 playlistEnum = "CREATED_BY_USER"
             )
         )
+    }
+
+    fun onEditProfileSaved(name: String, bio: String?, profilePicUrl: String?, coverPhotoUrl: String?) {
+        val profile = _artistProfileState.value.artistProfile ?: return
+        val artistId = profile.id
+        authRepository.updateUserProfile(artistId, name, bio, profilePicUrl, coverPhotoUrl)
+        
+        val updatedProfile = profile.copy(
+            name = name,
+            bio = bio ?: profile.bio,
+            profilePicture = if (!profilePicUrl.isNullOrBlank()) {
+                com.rld.justlisten.datalayer.webservices.apis.authcalls.ProfileImages(
+                    image150 = profilePicUrl,
+                    image480 = profilePicUrl,
+                    image1000 = profilePicUrl
+                )
+            } else profile.profilePicture,
+            coverPhoto = if (!coverPhotoUrl.isNullOrBlank()) {
+                com.rld.justlisten.datalayer.webservices.apis.authcalls.ProfileImages(
+                    image640 = coverPhotoUrl,
+                    image2000 = coverPhotoUrl
+                )
+            } else profile.coverPhoto
+        )
+        _artistProfileState.update {
+            it.copy(artistProfile = updatedProfile)
+        }
     }
 
     fun popBack() {

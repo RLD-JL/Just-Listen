@@ -48,43 +48,55 @@ class SearchRepositoryImpl(
         search: String,
         searchEnum: SearchEnum
     ): List<PlaylistItem> {
-        return webservices.searchFor(search, searchEnum)?.data?.map { playlistModel ->
-            PlaylistItem(playlistModel)
-        }?.toList() ?: emptyList()
+        return runCatching {
+            webservices.searchFor(search, searchEnum)?.data?.map { playlistModel ->
+                PlaylistItem(playlistModel)
+            }?.toList() ?: emptyList()
+        }.getOrElse { emptyList() }
     }
 
     override suspend fun searchForTracks(
         search: String,
         searchEnum: SearchEnum
     ): List<TrackItem> {
-        return webservices.searchFor(search, searchEnum)?.data?.map { playlistModel ->
-            TrackItem(playlistModel)
-        }?.toList() ?: emptyList()
+        return runCatching {
+            webservices.searchFor(search, searchEnum)?.data?.map { playlistModel ->
+                TrackItem(playlistModel)
+            }?.toList() ?: emptyList()
+        }.getOrElse { emptyList() }
     }
 
     override suspend fun searchAutocomplete(query: String): AutocompleteSuggestions {
-        val autocompleteData = webservices.searchAutocomplete(query)?.data ?: return AutocompleteSuggestions()
-        val tracks = autocompleteData.tracks.filter { it.isStreamable }.map { TrackItem(it) }
-        val playlistItems = autocompleteData.playlists.map { PlaylistItem(it) }
-        val albumItems = autocompleteData.albums.map { PlaylistItem(it) }
-        val combinedPlaylists = playlistItems + albumItems
-        return AutocompleteSuggestions(
-            tracks = tracks,
-            playlists = combinedPlaylists,
-            users = autocompleteData.users
-        )
+        return runCatching {
+            val autocompleteData = webservices.searchAutocomplete(query)?.data ?: return AutocompleteSuggestions()
+            val tracks = autocompleteData.tracks.filter { it.isStreamable }.map { TrackItem(it) }
+            val playlistItems = autocompleteData.playlists.map { PlaylistItem(it) }
+            val albumItems = autocompleteData.albums.map { PlaylistItem(it) }
+            val combinedPlaylists = playlistItems + albumItems
+            AutocompleteSuggestions(
+                tracks = tracks,
+                playlists = combinedPlaylists,
+                users = autocompleteData.users
+            )
+        }.getOrElse { AutocompleteSuggestions() }
     }
 
     override suspend fun searchForTracksPaginated(query: String, offset: Int, limit: Int): List<TrackItem> {
-        return webservices.searchForTracksPaginated(query, offset, limit)?.data?.map { TrackItem(it) } ?: emptyList()
+        return runCatching {
+            webservices.searchForTracksPaginated(query, offset, limit)?.data?.map { TrackItem(it) } ?: emptyList()
+        }.getOrElse { emptyList() }
     }
 
     override suspend fun searchForPlaylistsPaginated(query: String, offset: Int, limit: Int): List<PlaylistItem> {
-        return webservices.searchForPlaylistsPaginated(query, offset, limit)?.data?.map { PlaylistItem(it) } ?: emptyList()
+        return runCatching {
+            webservices.searchForPlaylistsPaginated(query, offset, limit)?.data?.map { PlaylistItem(it) } ?: emptyList()
+        }.getOrElse { emptyList() }
     }
 
     override suspend fun searchForUsersPaginated(query: String, offset: Int, limit: Int): List<AutocompleteUser> {
-        return webservices.searchForUsersPaginated(query, offset, limit)?.data ?: emptyList()
+        return runCatching {
+            webservices.searchForUsersPaginated(query, offset, limit)?.data ?: emptyList()
+        }.getOrElse { emptyList() }
     }
 }
 
