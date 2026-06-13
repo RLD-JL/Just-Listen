@@ -4,6 +4,7 @@ import com.rld.justlisten.ScreenState
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import com.rld.justlisten.viewmodel.screens.playlist.TimeRange
 import com.rld.justlisten.viewmodel.screens.playlist.TracksCategory
+import androidx.compose.runtime.Immutable
 
 enum class FeedTab {
     FOLLOWING,
@@ -23,6 +24,8 @@ enum class FeedFormat {
     ALBUMS
 }
 
+
+@Immutable
 data class FeedState(
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,

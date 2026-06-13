@@ -7,21 +7,22 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import androidx.navigation.NavDestination.Companion.hasRoute
 import com.rld.justlisten.viewmodel.settings.SettingsViewModel
 
 
 private fun androidx.navigation.NavBackStackEntry.getTabIndex(): Int {
-    val routeStr = destination.route.orEmpty()
+    val dest = destination
     return when {
-        routeStr.contains("AddPlaylist") -> 1
-        routeStr.contains("MusicInsights") -> 1
-        routeStr.contains("Library") -> 1
-        routeStr.contains("Playlist") -> 0
-        routeStr.contains("Feed") -> 2
-        routeStr.contains("Search") -> 3
-        routeStr.contains("Donation") -> 4
-        routeStr.contains("Settings") -> 5
-        routeStr.contains("CustomTheme") -> 5
+        dest.hasRoute<Route.Playlist>() -> 0
+        dest.hasRoute<Route.Library>() -> 1
+        dest.hasRoute<Route.AddPlaylist>() -> 1
+        dest.hasRoute<Route.MusicInsights>() -> 1
+        dest.hasRoute<Route.Feed>() -> 2
+        dest.hasRoute<Route.Search>() -> 3
+        dest.hasRoute<Route.Donation>() -> 4
+        dest.hasRoute<Route.Settings>() -> 5
+        dest.hasRoute<Route.CustomTheme>() -> 5
         else -> -1
     }
 }

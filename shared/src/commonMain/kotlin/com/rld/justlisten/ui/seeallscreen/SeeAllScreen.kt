@@ -95,17 +95,15 @@ fun SeeAllScreen(
                     )
                 } else {
                     val listState = rememberLazyListState()
-                    val shouldLoadMore = remember {
-                        derivedStateOf {
+                    LaunchedEffect(listState, seeAllState.lastItemReached, seeAllState.isLoading) {
+                        snapshotFlow {
                             val totalItemsCount = listState.layoutInfo.totalItemsCount
                             val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
                             totalItemsCount > 0 && lastVisibleItemIndex >= totalItemsCount - 2
-                        }
-                    }
-                    
-                    LaunchedEffect(shouldLoadMore.value) {
-                        if (shouldLoadMore.value && !seeAllState.lastItemReached && !seeAllState.isLoading) {
-                            onAction(SeeAllAction.LoadMore(seeAllState.items.size + 20))
+                        }.collect { shouldLoad ->
+                            if (shouldLoad && !seeAllState.lastItemReached && !seeAllState.isLoading) {
+                                onAction(SeeAllAction.LoadMore(seeAllState.items.size + 20))
+                            }
                         }
                     }
 

@@ -102,9 +102,9 @@ class LibraryViewModelTest {
     // ── FAKES IMPLEMENTATION ───────────────────────────────────────────
 
     class FakeFavoritesRepository : FavoritesRepository {
-        override fun saveSongToFavorites(id: String, title: String, user: UserModel, songImgList: SongIconList, playlistName: String, isFavorite: Boolean) {}
-        override fun getFavoritePlaylist(): List<PlayListModel> = emptyList()
-        override fun getFavoritePlaylistWithId(id: String): String? = null
+        override suspend fun saveSongToFavorites(id: String, title: String, user: UserModel, songImgList: SongIconList, playlistName: String, isFavorite: Boolean) {}
+        override suspend fun getFavoritePlaylist(): List<PlayListModel> = emptyList()
+        override suspend fun getFavoritePlaylistWithId(id: String): String? = null
         override fun getFavoritePlaylistFlow(): Flow<List<PlayListModel>> = flowOf(emptyList())
     }
 
@@ -114,6 +114,11 @@ class LibraryViewModelTest {
         override suspend fun loginWithCode(code: String, redirectUri: String): Boolean = false
         override fun logout() {}
         override suspend fun refreshSession(): Boolean = false
+        override fun getCustomName(userId: String): String? = null
+        override fun getCustomBio(userId: String): String? = null
+        override fun getCustomProfilePic(userId: String): String? = null
+        override fun getCustomCoverPhoto(userId: String): String? = null
+        override fun updateUserProfile(userId: String, name: String, bio: String?, profilePicUrl: String?, coverPhotoUrl: String?) {}
     }
 
     class FakeSyncRepository : com.rld.justlisten.datalayer.repositories.SyncRepository {
@@ -137,7 +142,7 @@ class LibraryViewModelTest {
             playlistsFlow.value = playlists.toList()
         }
 
-        override fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean, isPrivate: Boolean, playlistId: String?) {
+        override suspend fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean, isPrivate: Boolean, playlistId: String?) {
             savePlaylistCalledWith.add(playlistName)
             if (playlists.none { it.playlistName == playlistName }) {
                 playlists.add(AddPlaylist(playlistName, playlistDescription ?: "", songsList = emptyList(), isRemote = isRemote, isPrivate = isPrivate, playlistId = playlistId))
@@ -145,11 +150,11 @@ class LibraryViewModelTest {
             }
         }
 
-        override fun getAddPlaylist(): List<AddPlaylist> = playlists
+        override suspend fun getAddPlaylist(): List<AddPlaylist> = playlists
 
         override fun getAddPlaylistFlow(): Flow<List<AddPlaylist>> = playlistsFlow
 
-        override fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean, isPrivate: Boolean, playlistId: String?) {
+        override suspend fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean, isPrivate: Boolean, playlistId: String?) {
             val index = playlists.indexOfFirst { it.playlistName == playlistName }
             if (index >= 0) {
                 playlists[index] = AddPlaylist(playlistName, playlistDescription ?: "", songsList = songList, isRemote = isRemote, isPrivate = isPrivate, playlistId = playlistId)
@@ -157,12 +162,12 @@ class LibraryViewModelTest {
             updateFlow()
         }
 
-        override fun deletePlaylist(playlistName: String) {
+        override suspend fun deletePlaylist(playlistName: String) {
             playlists.removeAll { it.playlistName == playlistName }
             updateFlow()
         }
 
-        override fun updatePlaylistName(oldName: String, newName: String) {
+        override suspend fun updatePlaylistName(oldName: String, newName: String) {
             val index = playlists.indexOfFirst { it.playlistName == oldName }
             if (index >= 0) {
                 playlists[index] = playlists[index].copy(playlistName = newName)
@@ -170,20 +175,20 @@ class LibraryViewModelTest {
             updateFlow()
         }
 
-        override fun saveSongToRecent(id: String, title: String, user: UserModel, songImgList: SongIconList, playlistName: String) {}
-        override fun saveSongToMostPlayed(id: String, title: String, user: UserModel, songImgList: SongIconList, playlistName: String) {}
-        override fun getMostPlayedSongs(numberOfLines: Long): List<PlayListModel> = emptyList()
-        override fun getRecentSongs(numberOfLines: Long): List<PlayListModel> = emptyList()
-        override fun getTimeCapsuleSongs(limit: Long): List<PlayListModel> = emptyList()
+        override suspend fun saveSongToRecent(id: String, title: String, user: UserModel, songImgList: SongIconList, playlistName: String) {}
+        override suspend fun saveSongToMostPlayed(id: String, title: String, user: UserModel, songImgList: SongIconList, playlistName: String) {}
+        override suspend fun getMostPlayedSongs(numberOfLines: Long): List<PlayListModel> = emptyList()
+        override suspend fun getRecentSongs(numberOfLines: Long): List<PlayListModel> = emptyList()
+        override suspend fun getTimeCapsuleSongs(limit: Long): List<PlayListModel> = emptyList()
 
-        override fun insertPlayLog(songId: String, timestamp: Long, durationPlayedSec: Long, completed: Boolean) {}
-        override fun getTotalPlays(): Long = 0L
-        override fun getUniquePlays(): Long = 0L
-        override fun getTotalDurationPlayed(): Long = 0L
-        override fun getDurationPlayedForSong(songId: String): Long = 0L
-        override fun getDurationPlayedForArtist(user: UserModel): Long = 0L
-        override fun getMostPlayedSongsFromHistory(limit: Long, offset: Long): List<PlayListModel> = emptyList()
-        override fun getTopArtistFromHistory(): Triple<UserModel, Long, Long>? = null
+        override suspend fun insertPlayLog(songId: String, timestamp: Long, durationPlayedSec: Long, completed: Boolean) {}
+        override suspend fun getTotalPlays(): Long = 0L
+        override suspend fun getUniquePlays(): Long = 0L
+        override suspend fun getTotalDurationPlayed(): Long = 0L
+        override suspend fun getDurationPlayedForSong(songId: String): Long = 0L
+        override suspend fun getDurationPlayedForArtist(user: UserModel): Long = 0L
+        override suspend fun getMostPlayedSongsFromHistory(limit: Long, offset: Long): List<PlayListModel> = emptyList()
+        override suspend fun getTopArtistFromHistory(): Triple<UserModel, Long, Long>? = null
         override fun getPlayHistoryFlow(): Flow<Unit> = flowOf(Unit)
     }
 }

@@ -45,6 +45,7 @@ class PlayerViewModel(
     private val _isAutoplayEnabled = MutableStateFlow(true)
     private var recommendedOffset = 0
     private val autoplayedTrackIds = mutableSetOf<String>()
+    private var playNextWhenRecommendationsLoaded = false
 
     init {
         viewModelScope.launch {
@@ -150,6 +151,10 @@ class PlayerViewModel(
                 }
                 
                 _recommendedSongs.value = filteredTracks
+                if (playNextWhenRecommendationsLoaded && filteredTracks.isNotEmpty()) {
+                    playNextWhenRecommendationsLoaded = false
+                    playNextAutoplaySong()
+                }
             } catch (e: Exception) {
                 // Ignore or log error
             }
@@ -165,6 +170,8 @@ class PlayerViewModel(
             _recommendedSongs.value = emptyList()
             recommendedOffset += 10
             fetchRecommendations(tracks.first().id)
+        } else {
+            playNextWhenRecommendationsLoaded = true
         }
     }
 

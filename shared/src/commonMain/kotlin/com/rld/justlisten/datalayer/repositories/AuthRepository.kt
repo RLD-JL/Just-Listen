@@ -47,6 +47,7 @@ class AuthRepositoryImpl(
     override val sessionState: StateFlow<SessionState> = _sessionState.asStateFlow()
 
     private var currentVerifier: String? = null
+    private val repositoryScope = CoroutineScope(Dispatchers.Default + kotlinx.coroutines.SupervisorJob())
 
     override fun getAuthUrl(redirectUri: String): String {
         val verifier = pkceCrypto.generateCodeVerifier()
@@ -97,7 +98,7 @@ class AuthRepositoryImpl(
                 }
 
                 _sessionState.value = SessionState.Authenticated(finalProfile)
-                CoroutineScope(Dispatchers.Default).launch {
+                repositoryScope.launch {
                     syncRepository.performInboundSync(userId.toString())
                 }
                 true
@@ -141,7 +142,7 @@ class AuthRepositoryImpl(
                 }
 
                 _sessionState.value = SessionState.Authenticated(finalProfile)
-                CoroutineScope(Dispatchers.Default).launch {
+                repositoryScope.launch {
                     syncRepository.performInboundSync(userId.toString())
                 }
                 true
@@ -175,7 +176,7 @@ class AuthRepositoryImpl(
                         }
 
                         _sessionState.value = SessionState.Authenticated(finalProfile)
-                        CoroutineScope(Dispatchers.Default).launch {
+                        repositoryScope.launch {
                             syncRepository.performInboundSync(userId.toString())
                         }
                         return true

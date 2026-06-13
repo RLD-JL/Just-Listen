@@ -6,6 +6,9 @@ import com.rld.justlisten.viewmodel.interfaces.Item
 import com.rld.justlisten.viewmodel.screens.search.TrackItem
 import com.rld.justlisten.datalayer.repositories.SessionState
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class PlaylistState(
     val isLoading: Boolean = false,
     val playlistName: String = "",

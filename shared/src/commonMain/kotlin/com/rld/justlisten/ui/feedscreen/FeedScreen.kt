@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -258,17 +259,15 @@ fun FeedScreen(
                             EmptyFeedScreen()
                         } else {
                             val listState = rememberLazyListState()
-                            val shouldLoadMore = remember {
-                                derivedStateOf {
+                            LaunchedEffect(listState, feedState.isLoading, feedState.lastItemReached) {
+                                snapshotFlow {
                                     val totalItemsCount = listState.layoutInfo.totalItemsCount
                                     val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
                                     totalItemsCount > 0 && lastVisibleItemIndex >= totalItemsCount - 2
-                                }
-                            }
-
-                            LaunchedEffect(shouldLoadMore.value, feedState.isLoading, feedState.lastItemReached) {
-                                if (shouldLoadMore.value && !feedState.lastItemReached && !feedState.isLoading) {
-                                    onAction(FeedAction.LoadMore)
+                                }.collect { shouldLoad ->
+                                    if (shouldLoad && !feedState.lastItemReached && !feedState.isLoading) {
+                                        onAction(FeedAction.LoadMore)
+                                    }
                                 }
                             }
 

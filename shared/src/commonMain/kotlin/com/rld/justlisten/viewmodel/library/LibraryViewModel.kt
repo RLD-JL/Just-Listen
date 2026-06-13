@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
 
 class LibraryViewModel(
     private val libraryRepository: LibraryRepository,
@@ -53,7 +56,8 @@ class LibraryViewModel(
     private fun loadPlayHistoryAndStats() {
         viewModelScope.launch {
             try {
-                val data = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                val data = withContext(Dispatchers.IO) {
+
                     val recent = libraryRepository.getRecentSongs(20).map { PlaylistItem(it, it.isFavorite) }
                     val mostPlayed = libraryRepository.getMostPlayedSongsFromHistory(20, 0)
                         .map { PlaylistItem(it, it.isFavorite) }
@@ -104,7 +108,7 @@ class LibraryViewModel(
     private fun loadLibraryData() {
         viewModelScope.launch {
             try {
-                val data = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                val data = withContext(Dispatchers.IO) {
                     val recent = libraryRepository.getRecentSongs(20).map { PlaylistItem(it, it.isFavorite) }
                     val favorites = favoritesRepository.getFavoritePlaylist().map { PlaylistItem(it, it.isFavorite) }
                     val mostPlayed = libraryRepository.getMostPlayedSongsFromHistory(20, 0)

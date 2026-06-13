@@ -5,6 +5,9 @@ import com.rld.justlisten.datalayer.webservices.apis.authcalls.UserProfileModel
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import com.rld.justlisten.datalayer.models.PlayListModel
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class ArtistProfileState(
     val isLoading: Boolean = false,
     val artistProfile: UserProfileModel? = null,

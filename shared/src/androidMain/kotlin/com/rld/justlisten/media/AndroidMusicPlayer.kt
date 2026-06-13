@@ -33,6 +33,8 @@ class AndroidMusicPlayer(
     private val _networkError = MutableStateFlow(false)
     override val networkError: StateFlow<Boolean> = _networkError.asStateFlow()
 
+    private val favoriteIds = MutableStateFlow<Set<String>>(emptySet())
+
     init {
         scope.launch {
             musicServiceConnection.isConnected.collect { _isConnected.value = it }
@@ -44,14 +46,9 @@ class AndroidMusicPlayer(
             combine(
                 musicServiceConnection.playbackState,
                 musicServiceConnection.currentPlayingSong,
-                musicServiceConnection.playWhenReady,
-                musicServiceConnection.shuffleModeEnabled,
-                musicServiceConnection.repeatMode,
-                musicServiceConnection.currentPlaylist
-            ) { args ->
-                val state = args[0] as Int
-                val mediaItem = args[1] as? MediaItem
-                val playlist = args[5] as List<MediaItem>
+                musicServiceConnection.currentPlaylist,
+                favoriteIds
+            ) { state, mediaItem, playlist, _ ->
                 updateState(state, mediaItem)
                 _currentPlaylist.value = playlist.mapNotNull { mapMetadata(it) }
             }.collect()
@@ -59,8 +56,9 @@ class AndroidMusicPlayer(
 
         scope.launch {
             favoritesRepository.getFavoritePlaylistFlow().collect { favoriteList ->
-                val favoriteIds = favoriteList.map { it.id }.toSet()
-                if (favoriteIds.contains(_playbackState.value.currentMedia?.id)) {
+                val ids = favoriteList.map { it.id }.toSet()
+                favoriteIds.value = ids
+                if (ids.contains(_playbackState.value.currentMedia?.id)) {
                     refreshMetadata()
                 }
             }
@@ -234,7 +232,7 @@ class AndroidMusicPlayer(
             duration = musicServiceConnection.mediaController?.duration ?: 0L,
             artworkUrl = metadata.artworkUri?.toString(),
             lowResArtworkUrl = metadata.artworkUri?.toString(),
-            isFavorite = favoritesRepository.getFavoritePlaylistWithId(id) != null,
+            isFavorite = favoriteIds.value.contains(id),
             isReposted = playlistRepository.isTrackReposted(id),
             repostCount = originalSong?.repostCount ?: 0,
             favoriteCount = originalSong?.favoriteCount ?: 0,

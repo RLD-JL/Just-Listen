@@ -15,6 +15,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
@@ -52,7 +55,7 @@ class SettingsViewModel(
     private fun loadSettings() {
         viewModelScope.launch {
             try {
-                val saved = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                val saved = withContext(Dispatchers.IO) {
                     settingsRepository.getSettingsInfo()
                 }
                 _settingsState.value = _settingsState.value.copy(
@@ -74,7 +77,7 @@ class SettingsViewModel(
 
     private fun persistSettings() {
         val state = _settingsState.value
-        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
             settingsRepository.saveSettingsInfo(
                 hasNavigationDonationOn = state.hasDonationNavigationOn,
                 isDarkThemeOn = state.isDarkThemeOn,

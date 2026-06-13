@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.NavDestination.Companion.hasRoute
 import org.koin.compose.viewmodel.koinViewModel
 import com.rld.justlisten.viewmodel.player.PlayerViewModel
 import com.rld.justlisten.ui.actions.PlayerAction
@@ -64,7 +65,7 @@ fun JustListenScaffold(
     modifier: Modifier = Modifier,
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val routeLabel = navBackStackEntry?.destination?.route.orEmpty()
+    val destination = navBackStackEntry?.destination
 
     val viewModel: PlayerViewModel = koinViewModel()
     val uiState by viewModel.playerUiState.collectAsState()
@@ -74,12 +75,16 @@ fun JustListenScaffold(
         currentPosition = 0
     )
     val isKeyboardVisible = WindowInsets.ime.asPaddingValues().calculateBottomPadding() > 20.dp
+    
+    val isOnboarding = destination?.hasRoute<Route.Onboarding>() == true
+    val isAddPlaylist = destination?.hasRoute<Route.AddPlaylist>() == true
+
     val shouldShowPlayBar = (playbackState.status == PlaybackStatus.PLAYING ||
             playbackState.status == PlaybackStatus.PAUSED ||
             playbackState.status == PlaybackStatus.BUFFERING ||
-            playbackState.currentMedia != null) && !isKeyboardVisible && !routeLabel.contains("Onboarding")
+            playbackState.currentMedia != null) && !isKeyboardVisible && !isOnboarding
 
-    val showBottomBar = !routeLabel.contains("AddPlaylist") && !routeLabel.contains("Onboarding") && !isKeyboardVisible
+    val showBottomBar = !isAddPlaylist && !isOnboarding && !isKeyboardVisible
 
     val primaryThemeColor = MaterialTheme.colorScheme.primary
 

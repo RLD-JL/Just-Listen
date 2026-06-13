@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.delay
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -43,7 +44,7 @@ class SettingsViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
         var retries = 100
         while (viewModel.settingsState.value.palletColor == "Pink" && retries > 0) {
-            java.lang.Thread.sleep(10)
+            delay(10)
             testDispatcher.scheduler.runCurrent()
             retries--
         }
@@ -59,7 +60,7 @@ class SettingsViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
         var retries = 100
         while (viewModel.settingsState.value.palletColor == "Pink" && retries > 0) {
-            java.lang.Thread.sleep(10)
+            delay(10)
             testDispatcher.scheduler.runCurrent()
             retries--
         }
@@ -69,7 +70,7 @@ class SettingsViewModelTest {
 
         retries = 100
         while (fakeSettingsRepo.getSettingsInfo().isDarkThemeOn && retries > 0) {
-            java.lang.Thread.sleep(10)
+            delay(10)
             retries--
         }
 
@@ -83,7 +84,7 @@ class SettingsViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
         var retries = 100
         while (viewModel.settingsState.value.palletColor == "Pink" && retries > 0) {
-            java.lang.Thread.sleep(10)
+            delay(10)
             testDispatcher.scheduler.runCurrent()
             retries--
         }
@@ -93,7 +94,7 @@ class SettingsViewModelTest {
 
         retries = 100
         while (fakeSettingsRepo.getSettingsInfo().hasNavigationDonationOn && retries > 0) {
-            java.lang.Thread.sleep(10)
+            delay(10)
             retries--
         }
 
@@ -107,7 +108,7 @@ class SettingsViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
         var retries = 100
         while (viewModel.settingsState.value.palletColor == "Pink" && retries > 0) {
-            java.lang.Thread.sleep(10)
+            delay(10)
             testDispatcher.scheduler.runCurrent()
             retries--
         }
@@ -117,7 +118,7 @@ class SettingsViewModelTest {
 
         retries = 100
         while (fakeSettingsRepo.getSettingsInfo().palletColor != "Green" && retries > 0) {
-            java.lang.Thread.sleep(10)
+            delay(10)
             retries--
         }
 
@@ -175,6 +176,11 @@ class FakeAuthRepository : com.rld.justlisten.datalayer.repositories.AuthReposit
     override suspend fun loginWithCode(code: String, redirectUri: String): Boolean = false
     override fun logout() {}
     override suspend fun refreshSession(): Boolean = false
+    override fun getCustomName(userId: String): String? = null
+    override fun getCustomBio(userId: String): String? = null
+    override fun getCustomProfilePic(userId: String): String? = null
+    override fun getCustomCoverPhoto(userId: String): String? = null
+    override fun updateUserProfile(userId: String, name: String, bio: String?, profilePicUrl: String?, coverPhotoUrl: String?) {}
 }
 
 class FakeSyncRepository : com.rld.justlisten.datalayer.repositories.SyncRepository {

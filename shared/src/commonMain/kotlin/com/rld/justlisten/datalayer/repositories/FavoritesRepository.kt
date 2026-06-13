@@ -10,8 +10,12 @@ import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import kotlinx.coroutines.flow.Flow
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
+
 interface FavoritesRepository {
-    fun saveSongToFavorites(
+    suspend fun saveSongToFavorites(
         id: String,
         title: String,
         user: UserModel,
@@ -19,8 +23,8 @@ interface FavoritesRepository {
         playlistName: String,
         isFavorite: Boolean
     )
-    fun getFavoritePlaylist(): List<PlayListModel>
-    fun getFavoritePlaylistWithId(id: String): String?
+    suspend fun getFavoritePlaylist(): List<PlayListModel>
+    suspend fun getFavoritePlaylistWithId(id: String): String?
     fun getFavoritePlaylistFlow(): Flow<List<PlayListModel>>
 }
 
@@ -30,29 +34,30 @@ class FavoritesRepositoryImpl(
     private val syncRepository: SyncRepository
 ) : FavoritesRepository {
 
-    override fun saveSongToFavorites(
+    override suspend fun saveSongToFavorites(
         id: String,
         title: String,
         user: UserModel,
         songImgList: SongIconList,
         playlistName: String,
         isFavorite: Boolean
-    ) {
+    ) = withContext(Dispatchers.IO) {
         localDb.saveSongToFavorites(id, title, user, songImgList, playlistName, isFavorite)
         if (authRepository.sessionState.value is SessionState.Authenticated) {
             syncRepository.enqueueFavoriteTask(id, isFavorite)
         }
     }
 
-    override fun getFavoritePlaylist(): List<PlayListModel> {
-        return localDb.getFavoritePlaylist()
+    override suspend fun getFavoritePlaylist(): List<PlayListModel> = withContext(Dispatchers.IO) {
+        localDb.getFavoritePlaylist()
     }
 
-    override fun getFavoritePlaylistWithId(id: String): String? {
-        return localDb.getFavoritePlaylistWithId(id)
+    override suspend fun getFavoritePlaylistWithId(id: String): String? = withContext(Dispatchers.IO) {
+        localDb.getFavoritePlaylistWithId(id)
     }
 
     override fun getFavoritePlaylistFlow(): Flow<List<PlayListModel>> {
         return localDb.getFavoritePlaylistFlow()
     }
 }
+

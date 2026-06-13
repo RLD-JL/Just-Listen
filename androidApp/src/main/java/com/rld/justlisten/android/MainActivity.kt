@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.work.WorkManager
 import com.rld.justlisten.ui.JustListenApp
-import com.rld.justlisten.ui.JustListenApp
 
 class MainActivity : ComponentActivity() {
 

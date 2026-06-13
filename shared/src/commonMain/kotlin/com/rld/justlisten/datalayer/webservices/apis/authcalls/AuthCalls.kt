@@ -86,18 +86,23 @@ suspend fun ApiClient.getUserFavoriteTracks(userId: String): List<PlayListModel>
     val favorites = getUserFavorites(userId)
     val trackIds = favorites.filter { it.type.equals("SaveType.track", ignoreCase = true) || it.type.equals("track", ignoreCase = true) }.map { it.itemId }
     
-    val deferredTracks = trackIds.map { trackId ->
-        async {
-            try {
-                getTrackDetails(trackId)
-            } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                Logger.e(e) { "ApiClient: Error fetching track details for favorite $trackId" }
-                null
+    val chunkedTrackIds = trackIds.chunked(5)
+    val fetchedTracks = mutableListOf<PlayListModel>()
+    for (chunk in chunkedTrackIds) {
+        val deferred = chunk.map { trackId ->
+            async {
+                try {
+                    getTrackDetails(trackId)
+                } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
+                    Logger.e(e) { "ApiClient: Error fetching track details for favorite $trackId" }
+                    null
+                }
             }
         }
+        fetchedTracks.addAll(deferred.awaitAll().filterNotNull())
     }
-    deferredTracks.awaitAll().filterNotNull()
+    fetchedTracks
 }
 
 suspend fun ApiClient.getUserPlaylists(userId: String): List<PlayListModel> {

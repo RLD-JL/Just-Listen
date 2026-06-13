@@ -15,34 +15,38 @@ import com.rld.justlisten.datalayer.models.UserModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asSharedFlow
 
-interface LibraryRepository {
-    fun saveSongToRecent(
-        id: String, title: String, user: UserModel, songImgList: SongIconList, playlistName: String
-    )
-    fun saveSongToMostPlayed(
-        id: String, title: String, user: UserModel, songImgList: SongIconList, playlistName: String
-    )
-    fun getMostPlayedSongs(numberOfLines: Long): List<PlayListModel>
-    fun getRecentSongs(numberOfLines: Long): List<PlayListModel>
-    fun getTimeCapsuleSongs(limit: Long): List<PlayListModel>
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
 
-    fun insertPlayLog(songId: String, timestamp: Long, durationPlayedSec: Long, completed: Boolean)
-    fun getTotalPlays(): Long
-    fun getUniquePlays(): Long
-    fun getTotalDurationPlayed(): Long
-    fun getDurationPlayedForSong(songId: String): Long
-    fun getDurationPlayedForArtist(user: UserModel): Long
-    fun getMostPlayedSongsFromHistory(limit: Long, offset: Long): List<PlayListModel>
-    fun getTopArtistFromHistory(): Triple<UserModel, Long, Long>?
+interface LibraryRepository {
+    suspend fun saveSongToRecent(
+        id: String, title: String, user: UserModel, songImgList: SongIconList, playlistName: String
+    )
+    suspend fun saveSongToMostPlayed(
+        id: String, title: String, user: UserModel, songImgList: SongIconList, playlistName: String
+    )
+    suspend fun getMostPlayedSongs(numberOfLines: Long): List<PlayListModel>
+    suspend fun getRecentSongs(numberOfLines: Long): List<PlayListModel>
+    suspend fun getTimeCapsuleSongs(limit: Long): List<PlayListModel>
+
+    suspend fun insertPlayLog(songId: String, timestamp: Long, durationPlayedSec: Long, completed: Boolean)
+    suspend fun getTotalPlays(): Long
+    suspend fun getUniquePlays(): Long
+    suspend fun getTotalDurationPlayed(): Long
+    suspend fun getDurationPlayedForSong(songId: String): Long
+    suspend fun getDurationPlayedForArtist(user: UserModel): Long
+    suspend fun getMostPlayedSongsFromHistory(limit: Long, offset: Long): List<PlayListModel>
+    suspend fun getTopArtistFromHistory(): Triple<UserModel, Long, Long>?
     fun getPlayHistoryFlow(): Flow<Unit>
     
     // Add Playlist functions
-    fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean = false, isPrivate: Boolean = false, playlistId: String? = null)
-    fun getAddPlaylist(): List<AddPlaylist>
+    suspend fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean = false, isPrivate: Boolean = false, playlistId: String? = null)
+    suspend fun getAddPlaylist(): List<AddPlaylist>
     fun getAddPlaylistFlow(): Flow<List<AddPlaylist>>
-    fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean = false, isPrivate: Boolean = false, playlistId: String? = null)
-    fun deletePlaylist(playlistName: String)
-    fun updatePlaylistName(oldName: String, newName: String)
+    suspend fun updatePlaylistSongs(playlistName: String, playlistDescription: String?, songList: List<String>, isRemote: Boolean = false, isPrivate: Boolean = false, playlistId: String? = null)
+    suspend fun deletePlaylist(playlistName: String)
+    suspend fun updatePlaylistName(oldName: String, newName: String)
 }
 
 class LibraryRepositoryImpl(
@@ -52,85 +56,86 @@ class LibraryRepositoryImpl(
 ) : LibraryRepository {
     private val _playHistoryFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
 
-    override fun saveSongToRecent(
+    override suspend fun saveSongToRecent(
         id: String, title: String, user: UserModel, songImgList: SongIconList, playlistName: String
-    ) {
+    ) = withContext(Dispatchers.IO) {
         localDb.saveSongRecentSongs(id, title, user, songImgList, playlistName)
     }
 
-    override fun saveSongToMostPlayed(
+    override suspend fun saveSongToMostPlayed(
         id: String, title: String, user: UserModel, songImgList: SongIconList, playlistName: String
-    ) {
+    ) = withContext(Dispatchers.IO) {
         localDb.saveMostPlayedSongs(id, title, user, songImgList, playlistName)
     }
 
-    override fun getMostPlayedSongs(numberOfLines: Long): List<PlayListModel> {
-        return localDb.getMostPlayedSongs(numberOfLines)
+    override suspend fun getMostPlayedSongs(numberOfLines: Long): List<PlayListModel> = withContext(Dispatchers.IO) {
+        localDb.getMostPlayedSongs(numberOfLines)
     }
 
-    override fun getRecentSongs(numberOfLines: Long): List<PlayListModel> {
-        return localDb.getRecentPlayed(numberOfLines)
+    override suspend fun getRecentSongs(numberOfLines: Long): List<PlayListModel> = withContext(Dispatchers.IO) {
+        localDb.getRecentPlayed(numberOfLines)
     }
 
-    override fun getTimeCapsuleSongs(limit: Long): List<PlayListModel> {
-        return localDb.getTimeCapsuleSongs(limit)
+    override suspend fun getTimeCapsuleSongs(limit: Long): List<PlayListModel> = withContext(Dispatchers.IO) {
+        localDb.getTimeCapsuleSongs(limit)
     }
 
-    override fun insertPlayLog(songId: String, timestamp: Long, durationPlayedSec: Long, completed: Boolean) {
+    override suspend fun insertPlayLog(songId: String, timestamp: Long, durationPlayedSec: Long, completed: Boolean) = withContext(Dispatchers.IO) {
         localDb.insertPlayLog(songId, timestamp, durationPlayedSec, completed)
         _playHistoryFlow.tryEmit(Unit)
+        Unit
     }
 
     override fun getPlayHistoryFlow(): Flow<Unit> = _playHistoryFlow.asSharedFlow()
 
-    override fun getTotalPlays(): Long {
-        return localDb.getTotalPlaysFromHistory()
+    override suspend fun getTotalPlays(): Long = withContext(Dispatchers.IO) {
+        localDb.getTotalPlaysFromHistory()
     }
 
-    override fun getUniquePlays(): Long {
-        return localDb.getUniquePlayedCountFromHistory()
+    override suspend fun getUniquePlays(): Long = withContext(Dispatchers.IO) {
+        localDb.getUniquePlayedCountFromHistory()
     }
 
-    override fun getTotalDurationPlayed(): Long {
-        return localDb.getTotalDurationPlayedFromHistory()
+    override suspend fun getTotalDurationPlayed(): Long = withContext(Dispatchers.IO) {
+        localDb.getTotalDurationPlayedFromHistory()
     }
 
-    override fun getDurationPlayedForSong(songId: String): Long {
-        return localDb.getDurationPlayedForSongFromHistory(songId)
+    override suspend fun getDurationPlayedForSong(songId: String): Long = withContext(Dispatchers.IO) {
+        localDb.getDurationPlayedForSongFromHistory(songId)
     }
 
-    override fun getDurationPlayedForArtist(user: UserModel): Long {
-        return localDb.getDurationPlayedForArtistFromHistory(user)
+    override suspend fun getDurationPlayedForArtist(user: UserModel): Long = withContext(Dispatchers.IO) {
+        localDb.getDurationPlayedForArtistFromHistory(user)
     }
 
-    override fun getMostPlayedSongsFromHistory(limit: Long, offset: Long): List<PlayListModel> {
-        return localDb.getMostPlayedSongsFromHistory(limit, offset)
+    override suspend fun getMostPlayedSongsFromHistory(limit: Long, offset: Long): List<PlayListModel> = withContext(Dispatchers.IO) {
+        localDb.getMostPlayedSongsFromHistory(limit, offset)
     }
 
-    override fun getTopArtistFromHistory(): Triple<UserModel, Long, Long>? {
-        return localDb.getTopArtistFromHistory()
+    override suspend fun getTopArtistFromHistory(): Triple<UserModel, Long, Long>? = withContext(Dispatchers.IO) {
+        localDb.getTopArtistFromHistory()
     }
 
-    override fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean, isPrivate: Boolean, playlistId: String?) {
+    override suspend fun savePlaylist(playlistName: String, playlistDescription: String?, isRemote: Boolean, isPrivate: Boolean, playlistId: String?) = withContext(Dispatchers.IO) {
         localDb.savePlaylist(playlistName, playlistDescription, isRemote, isPrivate, playlistId)
     }
 
-    override fun getAddPlaylist(): List<AddPlaylist> {
-        return localDb.getAddPlaylist()
+    override suspend fun getAddPlaylist(): List<AddPlaylist> = withContext(Dispatchers.IO) {
+        localDb.getAddPlaylist()
     }
 
     override fun getAddPlaylistFlow(): Flow<List<AddPlaylist>> {
         return localDb.getAddPlaylistFlow()
     }
 
-    override fun updatePlaylistSongs(
+    override suspend fun updatePlaylistSongs(
         playlistName: String,
         playlistDescription: String?,
         songList: List<String>,
         isRemote: Boolean,
         isPrivate: Boolean,
         playlistId: String?
-    ) {
+    ) = withContext(Dispatchers.IO) {
         localDb.updatePlaylistSongs(playlistName, playlistDescription, songList, isRemote, isPrivate, playlistId)
         
         val playlist = localDb.addPlaylistQueries.getPlaylistByName(playlistName).executeAsOneOrNull()
@@ -141,7 +146,7 @@ class LibraryRepositoryImpl(
         }
     }
 
-    override fun deletePlaylist(playlistName: String) {
+    override suspend fun deletePlaylist(playlistName: String) = withContext(Dispatchers.IO) {
         val playlist = localDb.addPlaylistQueries.getPlaylistByName(playlistName).executeAsOneOrNull()
         localDb.deletePlaylist(playlistName)
         if (playlist != null && playlist.isRemote && !playlist.playlistId.isNullOrBlank()) {
@@ -151,7 +156,7 @@ class LibraryRepositoryImpl(
         }
     }
 
-    override fun updatePlaylistName(oldName: String, newName: String) {
+    override suspend fun updatePlaylistName(oldName: String, newName: String) = withContext(Dispatchers.IO) {
         localDb.updatePlaylistName(oldName, newName)
         val playlist = localDb.addPlaylistQueries.getPlaylistByName(newName).executeAsOneOrNull()
         if (playlist != null && playlist.isRemote && !playlist.playlistId.isNullOrBlank()) {

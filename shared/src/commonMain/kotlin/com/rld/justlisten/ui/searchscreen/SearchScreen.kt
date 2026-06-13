@@ -39,6 +39,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -260,16 +261,15 @@ fun SeeAllSearchContainer(
                 when (searchScreenState.seeAllType) {
                 SearchSeeAllType.SONGS -> {
                     val listState = rememberLazyListState()
-                    val shouldLoadMore = remember {
-                        derivedStateOf {
+                    LaunchedEffect(listState, searchScreenState.isSeeAllLoading, searchScreenState.seeAllLastItemReached) {
+                        snapshotFlow {
                             val totalItemsCount = listState.layoutInfo.totalItemsCount
                             val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
                             totalItemsCount > 0 && lastVisibleItemIndex >= totalItemsCount - 5
-                        }
-                    }
-                    LaunchedEffect(shouldLoadMore.value, searchScreenState.isSeeAllLoading, searchScreenState.seeAllLastItemReached) {
-                        if (shouldLoadMore.value && !searchScreenState.isSeeAllLoading && !searchScreenState.seeAllLastItemReached) {
-                            onAction(SearchScreenAction.LoadMoreSeeAll)
+                        }.collect { shouldLoad ->
+                            if (shouldLoad && !searchScreenState.isSeeAllLoading && !searchScreenState.seeAllLastItemReached) {
+                                onAction(SearchScreenAction.LoadMoreSeeAll)
+                            }
                         }
                     }
                     LazyColumn(
@@ -277,7 +277,7 @@ fun SeeAllSearchContainer(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 16.dp)
                     ) {
-                        items(searchScreenState.seeAllTracks) { track ->
+                        items(searchScreenState.seeAllTracks, key = { it.id }) { track ->
                             TrackSeeAllRow(
                                 track = track,
                                 onClick = {
@@ -314,16 +314,15 @@ fun SeeAllSearchContainer(
                 }
                 SearchSeeAllType.PLAYLISTS -> {
                     val gridState = rememberLazyGridState()
-                    val shouldLoadMore = remember {
-                        derivedStateOf {
+                    LaunchedEffect(gridState, searchScreenState.isSeeAllLoading, searchScreenState.seeAllLastItemReached) {
+                        snapshotFlow {
                             val totalItemsCount = gridState.layoutInfo.totalItemsCount
                             val lastVisibleItemIndex = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
                             totalItemsCount > 0 && lastVisibleItemIndex >= totalItemsCount - 6
-                        }
-                    }
-                    LaunchedEffect(shouldLoadMore.value, searchScreenState.isSeeAllLoading, searchScreenState.seeAllLastItemReached) {
-                        if (shouldLoadMore.value && !searchScreenState.isSeeAllLoading && !searchScreenState.seeAllLastItemReached) {
-                            onAction(SearchScreenAction.LoadMoreSeeAll)
+                        }.collect { shouldLoad ->
+                            if (shouldLoad && !searchScreenState.isSeeAllLoading && !searchScreenState.seeAllLastItemReached) {
+                                onAction(SearchScreenAction.LoadMoreSeeAll)
+                            }
                         }
                     }
                     LazyVerticalGrid(
@@ -334,7 +333,7 @@ fun SeeAllSearchContainer(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        items(searchScreenState.seeAllPlaylists) { playlist ->
+                        items(searchScreenState.seeAllPlaylists, key = { it.id }) { playlist ->
                             com.rld.justlisten.ui.playlistscreen.components.PlaylistRowItem(
                                 playlistItem = playlist,
                                 onPlaylistClicked = { id, icon, title, creator, fav ->
@@ -372,16 +371,15 @@ fun SeeAllSearchContainer(
                 }
                 SearchSeeAllType.ARTISTS -> {
                     val gridState = rememberLazyGridState()
-                    val shouldLoadMore = remember {
-                        derivedStateOf {
+                    LaunchedEffect(gridState, searchScreenState.isSeeAllLoading, searchScreenState.seeAllLastItemReached) {
+                        snapshotFlow {
                             val totalItemsCount = gridState.layoutInfo.totalItemsCount
                             val lastVisibleItemIndex = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
                             totalItemsCount > 0 && lastVisibleItemIndex >= totalItemsCount - 9
-                        }
-                    }
-                    LaunchedEffect(shouldLoadMore.value, searchScreenState.isSeeAllLoading, searchScreenState.seeAllLastItemReached) {
-                        if (shouldLoadMore.value && !searchScreenState.isSeeAllLoading && !searchScreenState.seeAllLastItemReached) {
-                            onAction(SearchScreenAction.LoadMoreSeeAll)
+                        }.collect { shouldLoad ->
+                            if (shouldLoad && !searchScreenState.isSeeAllLoading && !searchScreenState.seeAllLastItemReached) {
+                                onAction(SearchScreenAction.LoadMoreSeeAll)
+                            }
                         }
                     }
                     LazyVerticalGrid(
@@ -392,7 +390,7 @@ fun SeeAllSearchContainer(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        items(searchScreenState.seeAllUsers) { user ->
+                        items(searchScreenState.seeAllUsers, key = { it.id }) { user ->
                             ArtistCircleSeeAllCard(
                                 user = user,
                                 onClick = {

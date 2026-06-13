@@ -357,7 +357,7 @@ fun LibraryScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(vertical = 4.dp)
                 ) {
-                    items(localPlaylists) { playlist ->
+                    items(localPlaylists, key = { it.playlistName }) { playlist ->
                          MyPlaylistRowItem(
                              playlist, 
                              onPlaylistClicked = { title, desc, songs ->
@@ -377,7 +377,7 @@ fun LibraryScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(vertical = 4.dp)
                 ) {
-                    items(remotePlaylists) { playlist ->
+                    items(remotePlaylists, key = { it.playlistName }) { playlist ->
                          MyPlaylistRowItem(
                              playlist, 
                              onPlaylistClicked = { title, desc, songs ->

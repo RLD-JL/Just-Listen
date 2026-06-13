@@ -11,6 +11,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.cancel
+import platform.CoreFoundation.CFRelease
 import com.rld.justlisten.viewmodel.interfaces.Item
 import com.rld.justlisten.datalayer.repositories.FavoritesRepository
 import co.touchlab.kermit.Logger
@@ -44,6 +46,7 @@ class IOSMusicPlayer(
     private var shuffledIndices = listOf<Int>()
     private var isShuffleEnabled = false
     private var repeatMode = RepeatMode.NONE
+    private var favoriteIdsSet = emptySet<String>()
     
     private var lastLoadedArtworkUrl: String? = null
     private var lastLoadedArtwork: UIImage? = null
@@ -82,12 +85,13 @@ class IOSMusicPlayer(
         // Collect favorite tracks list changes to update metadata dynamically
         scope.launch {
             favoritesRepository.getFavoritePlaylistFlow().collect { favoriteList ->
-                val favoriteIds = favoriteList.map { it.id }.toSet()
+                val ids = favoriteList.map { it.id }.toSet()
+                favoriteIdsSet = ids
                 
                 // Update current media favorite status
                 val currentMedia = _playbackState.value.currentMedia
                 if (currentMedia != null) {
-                    val isFav = favoriteIds.contains(currentMedia.id)
+                    val isFav = ids.contains(currentMedia.id)
                     if (isFav != currentMedia.isFavorite) {
                         _playbackState.update { state ->
                             state.copy(
@@ -99,7 +103,7 @@ class IOSMusicPlayer(
 
                 // Update current playlist items favorite status
                 playlistItems = playlistItems.map { item ->
-                    item.copy(isFavorite = favoriteIds.contains(item.id))
+                    item.copy(isFavorite = ids.contains(item.id))
                 }.toMutableList()
                 _currentPlaylist.value = playlistItems
             }
@@ -264,7 +268,7 @@ class IOSMusicPlayer(
                 duration = 0L,
                 artworkUrl = it.songIconList.songImageURL480px,
                 lowResArtworkUrl = it.songIconList.songImageURL150px,
-                isFavorite = favoritesRepository.getFavoritePlaylistWithId(it.id) != null,
+                isFavorite = favoriteIdsSet.contains(it.id),
                 repostCount = it.repostCount,
                 favoriteCount = it.favoriteCount,
                 commentCount = it.commentCount,
@@ -289,7 +293,7 @@ class IOSMusicPlayer(
                 duration = 0L,
                 artworkUrl = it.songIconList.songImageURL480px,
                 lowResArtworkUrl = it.songIconList.songImageURL150px,
-                isFavorite = favoritesRepository.getFavoritePlaylistWithId(it.id) != null,
+                isFavorite = favoriteIdsSet.contains(it.id),
                 repostCount = it.repostCount,
                 favoriteCount = it.favoriteCount,
                 commentCount = it.commentCount,
@@ -325,7 +329,7 @@ class IOSMusicPlayer(
         _playbackState.update { state ->
             val currentMedia = state.currentMedia
             if (currentMedia != null) {
-                val isFav = favoritesRepository.getFavoritePlaylistWithId(currentMedia.id) != null
+                val isFav = favoriteIdsSet.contains(currentMedia.id)
                 state.copy(
                     currentMedia = currentMedia.copy(isFavorite = isFav)
                 )

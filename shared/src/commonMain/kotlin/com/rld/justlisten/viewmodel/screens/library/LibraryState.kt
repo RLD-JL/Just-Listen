@@ -5,6 +5,9 @@ import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
 import com.rld.justlisten.datalayer.repositories.SessionState
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class LibraryState(
     val isLoading: Boolean = false,
     val favoritePlaylistItems: List<PlaylistItem> = emptyList(),

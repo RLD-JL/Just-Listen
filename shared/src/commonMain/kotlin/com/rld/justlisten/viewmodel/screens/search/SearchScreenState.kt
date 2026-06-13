@@ -5,6 +5,7 @@ import com.rld.justlisten.datalayer.models.PlayListModel
 import com.rld.justlisten.datalayer.webservices.apis.searchcalls.AutocompleteUser
 import com.rld.justlisten.viewmodel.interfaces.Item
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
+import androidx.compose.runtime.Immutable
 
 enum class SearchSeeAllType {
     NONE,
@@ -13,6 +14,8 @@ enum class SearchSeeAllType {
     PLAYLISTS
 }
 
+
+@Immutable
 data class SearchScreenState(
     val isLoading: Boolean = false,
     val searchFor: String = "",

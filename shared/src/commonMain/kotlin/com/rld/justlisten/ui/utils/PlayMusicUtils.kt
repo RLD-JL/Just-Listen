@@ -8,6 +8,12 @@ import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.search.TrackItem
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+private val loggingScope = CoroutineScope(Dispatchers.Default)
+
 fun getColorPallet(pallet: String): ColorPallet {
     return when (pallet) {
         "Dark" -> ColorPallet.Dark
@@ -38,11 +44,13 @@ fun playMusicFromId(
                 is PlaylistItem -> song._data.user
                 else -> UserModel(username = song.user, id = song.userId)
             }
-            repo.saveSongToRecent(
-                song.id, song.title,
-                userModel,
-                song.songIconList, song.playlistTitle
-            )
+            loggingScope.launch {
+                repo.saveSongToRecent(
+                    song.id, song.title,
+                    userModel,
+                    song.songIconList, song.playlistTitle
+                )
+            }
         }
     }
     if (playlist.isNotEmpty()) {
@@ -72,11 +80,13 @@ fun playMusic(
                 is PlaylistItem -> song._data.user
                 else -> UserModel(username = song.user, id = song.userId)
             }
-            repo.saveSongToRecent(
-                song.id, song.title,
-                userModel,
-                song.songIconList, song.playlistTitle
-            )
+            loggingScope.launch {
+                repo.saveSongToRecent(
+                    song.id, song.title,
+                    userModel,
+                    song.songIconList, song.playlistTitle
+                )
+            }
         }
     }
     musicPlayer.playMedia(mediaId)

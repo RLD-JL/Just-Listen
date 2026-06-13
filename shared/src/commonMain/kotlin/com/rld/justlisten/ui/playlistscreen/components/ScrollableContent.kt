@@ -143,7 +143,7 @@ fun ScrollableContent(
             modifier = Modifier.padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(genres) { genre ->
+            items(genres, key = { it.name }) { genre ->
                 val isSelected = genre == playlistState.selectedCategory
                 val containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh
                 val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
