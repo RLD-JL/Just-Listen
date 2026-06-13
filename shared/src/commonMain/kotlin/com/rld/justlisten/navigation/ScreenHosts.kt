@@ -427,6 +427,11 @@ fun ArtistProfileScreenHost(
                     action.profilePicUrl,
                     action.coverPhotoUrl
                 )
+                is com.rld.justlisten.ui.actions.ArtistProfileAction.FollowersClicked -> viewModel.onFollowersClicked()
+                is com.rld.justlisten.ui.actions.ArtistProfileAction.FollowingClicked -> viewModel.onFollowingClicked()
+                is com.rld.justlisten.ui.actions.ArtistProfileAction.DismissSocialSheet -> viewModel.onDismissSocialSheet()
+                is com.rld.justlisten.ui.actions.ArtistProfileAction.SocialFollowPressed -> viewModel.onSocialFollowPressed(action.userId)
+                is com.rld.justlisten.ui.actions.ArtistProfileAction.ArtistClicked -> viewModel.onNavigateToArtist(action.userId, action.name)
             }
         }
     )

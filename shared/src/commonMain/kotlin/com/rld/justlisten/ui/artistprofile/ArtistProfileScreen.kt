@@ -14,6 +14,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -83,6 +85,191 @@ fun ArtistProfileScreen(
             onDismissRequest = { onAction(ArtistProfileAction.DismissConnectPrompt) },
             onConnectClick = { onAction(ArtistProfileAction.ConnectAudiusPressed) }
         )
+    }
+
+    if (artistProfileState.showSocialSheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+
+        ModalBottomSheet(
+            onDismissRequest = { onAction(ArtistProfileAction.DismissSocialSheet) },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.background,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 24.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = artistProfileState.socialSheetTitle,
+                        style = typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    IconButton(onClick = { onAction(ArtistProfileAction.DismissSocialSheet) }) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Close",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+
+                if (artistProfileState.isSocialLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                } else if (artistProfileState.socialUsersList.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No users found.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(artistProfileState.socialUsersList) { user ->
+                            var isFollowingState by remember(user.id) { mutableStateOf(user.doesCurrentUserFollow) }
+                            var isFollowInProgress by remember { mutableStateOf(false) }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                                    .clickable {
+                                        onAction(ArtistProfileAction.ArtistClicked(user.id, user.name))
+                                    }
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                val avatarUrl = user.profilePicture?.image150 ?: user.profilePicture?.image480 ?: ""
+                                val avatarPainter = rememberAsyncImagePainter(
+                                    avatarUrl.ifBlank { "https://images.unsplash.com/photo-1534528741775-53994a69daeb" }
+                                )
+                                Image(
+                                    painter = avatarPainter,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                )
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = user.name,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = "@${user.handle}",
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    if (!user.bio.isNullOrBlank()) {
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = user.bio,
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+
+                                val isSelf = artistProfileState.isCurrentUser && (user.id == artistProfileState.artistProfile?.id)
+                                if (!isSelf) {
+                                    if (isFollowingState) {
+                                        Button(
+                                            onClick = {
+                                                if (!isFollowInProgress) {
+                                                    isFollowInProgress = true
+                                                    onAction(ArtistProfileAction.SocialFollowPressed(user.id))
+                                                    isFollowingState = false
+                                                    isFollowInProgress = false
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(8.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                            ),
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                        ) {
+                                            Text("Following", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    } else {
+                                        Button(
+                                            onClick = {
+                                                if (!isFollowInProgress) {
+                                                    isFollowInProgress = true
+                                                    onAction(ArtistProfileAction.SocialFollowPressed(user.id))
+                                                    isFollowingState = true
+                                                    isFollowInProgress = false
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(8.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.primary,
+                                                contentColor = MaterialTheme.colorScheme.onPrimary
+                                            ),
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.PersonAdd,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(14.dp)
+                                                )
+                                                Text("Follow", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     Scaffold(
@@ -304,9 +491,21 @@ fun ArtistProfileScreen(
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                ProfileStatItem(label = "Followers", value = formatCount(profile.followerCount))
+                                ProfileStatItem(
+                                    label = "Followers",
+                                    value = formatCount(profile.followerCount),
+                                    modifier = Modifier.clickable {
+                                        onAction(ArtistProfileAction.FollowersClicked)
+                                    }
+                                )
                                 Box(modifier = Modifier.width(1.dp).height(24.dp).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)))
-                                ProfileStatItem(label = "Following", value = formatCount(profile.followeeCount))
+                                ProfileStatItem(
+                                    label = "Following",
+                                    value = formatCount(profile.followeeCount),
+                                    modifier = Modifier.clickable {
+                                        onAction(ArtistProfileAction.FollowingClicked)
+                                    }
+                                )
                                 Box(modifier = Modifier.width(1.dp).height(24.dp).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)))
                                 ProfileStatItem(
                                     label = "Tracks", 

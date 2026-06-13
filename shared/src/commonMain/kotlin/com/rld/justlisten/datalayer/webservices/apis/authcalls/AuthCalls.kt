@@ -192,3 +192,19 @@ suspend fun ApiClient.getUserFeed(
     return getResponse(url)
 }
 
+@Serializable
+data class UsersListResponse(
+    @SerialName("data") val data: List<UserProfileModel> = emptyList()
+)
+
+suspend fun ApiClient.getUserFollowers(userId: String): List<UserProfileModel> {
+    val response: UsersListResponse? = getResponse("/users/$userId/followers")
+    return response?.data ?: emptyList()
+}
+
+suspend fun ApiClient.getUserFollowing(userId: String): List<UserProfileModel> {
+    val response: UsersListResponse? = getResponse("/users/$userId/following")
+    return response?.data ?: emptyList()
+}
+
+

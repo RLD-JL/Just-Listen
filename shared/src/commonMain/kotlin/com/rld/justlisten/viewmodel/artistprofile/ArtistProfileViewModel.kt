@@ -4,6 +4,8 @@ import androidx.lifecycle.viewModelScope
 import com.rld.justlisten.datalayer.webservices.ApiClient
 import com.rld.justlisten.datalayer.webservices.apis.authcalls.getUserProfile
 import com.rld.justlisten.datalayer.webservices.apis.authcalls.getUserPlaylists
+import com.rld.justlisten.datalayer.webservices.apis.authcalls.getUserFollowers
+import com.rld.justlisten.datalayer.webservices.apis.authcalls.getUserFollowing
 import com.rld.justlisten.datalayer.webservices.apis.writecalls.followUser
 import com.rld.justlisten.datalayer.webservices.apis.writecalls.unfollowUser
 import com.rld.justlisten.datalayer.repositories.AuthRepository
@@ -185,6 +187,111 @@ class ArtistProfileViewModel(
         )
         _artistProfileState.update {
             it.copy(artistProfile = updatedProfile)
+        }
+    }
+
+    fun onFollowersClicked() {
+        val profile = _artistProfileState.value.artistProfile ?: return
+        val artistId = profile.id
+        _artistProfileState.update {
+            it.copy(
+                showSocialSheet = true,
+                socialSheetTitle = "Followers",
+                isSocialLoading = true,
+                socialUsersList = emptyList()
+            )
+        }
+        viewModelScope.launch {
+            try {
+                val followers = apiClient.getUserFollowers(artistId)
+                _artistProfileState.update {
+                    it.copy(
+                        isSocialLoading = false,
+                        socialUsersList = followers
+                    )
+                }
+            } catch (e: Exception) {
+                if (e !is kotlinx.coroutines.CancellationException) {
+                    Logger.e(e) { "ArtistProfileViewModel: Error fetching followers" }
+                    _artistProfileState.update { it.copy(isSocialLoading = false) }
+                }
+            }
+        }
+    }
+
+    fun onFollowingClicked() {
+        val profile = _artistProfileState.value.artistProfile ?: return
+        val artistId = profile.id
+        _artistProfileState.update {
+            it.copy(
+                showSocialSheet = true,
+                socialSheetTitle = "Following",
+                isSocialLoading = true,
+                socialUsersList = emptyList()
+            )
+        }
+        viewModelScope.launch {
+            try {
+                val following = apiClient.getUserFollowing(artistId)
+                _artistProfileState.update {
+                    it.copy(
+                        isSocialLoading = false,
+                        socialUsersList = following
+                    )
+                }
+            } catch (e: Exception) {
+                if (e !is kotlinx.coroutines.CancellationException) {
+                    Logger.e(e) { "ArtistProfileViewModel: Error fetching following" }
+                    _artistProfileState.update { it.copy(isSocialLoading = false) }
+                }
+            }
+        }
+    }
+
+    fun onDismissSocialSheet() {
+        _artistProfileState.update { it.copy(showSocialSheet = false) }
+    }
+
+    fun onNavigateToArtist(userId: String, name: String) {
+        _artistProfileState.update { it.copy(showSocialSheet = false) }
+        navigate(Route.ArtistProfile(userId, name))
+    }
+
+    fun onSocialFollowPressed(userId: String) {
+        val session = authRepository.sessionState.value
+        if (session !is SessionState.Authenticated) {
+            _artistProfileState.update { it.copy(showConnectPrompt = true) }
+            return
+        }
+
+        val list = _artistProfileState.value.socialUsersList
+        val targetUserIndex = list.indexOfFirst { it.id == userId }
+        if (targetUserIndex == -1) return
+        val targetUser = list[targetUserIndex]
+        val currentlyFollowing = targetUser.doesCurrentUserFollow
+
+        viewModelScope.launch {
+            val response = if (currentlyFollowing) {
+                apiClient.unfollowUser(userId)
+            } else {
+                apiClient.followUser(userId)
+            }
+
+            if (response?.error == null) {
+                val updatedList = list.map { user ->
+                    if (user.id == userId) {
+                        user.copy(
+                            doesCurrentUserFollow = !currentlyFollowing,
+                            followerCount = if (currentlyFollowing) user.followerCount - 1 else user.followerCount + 1
+                        )
+                    } else {
+                        user
+                    }
+                }
+                _artistProfileState.update {
+                    it.copy(socialUsersList = updatedList)
+                }
+            }
         }
     }
 

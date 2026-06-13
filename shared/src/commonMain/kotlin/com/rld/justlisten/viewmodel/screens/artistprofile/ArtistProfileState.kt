@@ -15,5 +15,9 @@ data class ArtistProfileState(
     val artistPlaylists: List<PlayListModel> = emptyList(),
     val selectedTabIndex: Int = 0,
     val showConnectPrompt: Boolean = false,
-    val isCurrentUser: Boolean = false
+    val isCurrentUser: Boolean = false,
+    val showSocialSheet: Boolean = false,
+    val socialSheetTitle: String = "",
+    val isSocialLoading: Boolean = false,
+    val socialUsersList: List<UserProfileModel> = emptyList()
 ) : ScreenState

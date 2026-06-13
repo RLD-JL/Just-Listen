@@ -19,4 +19,9 @@ sealed interface ArtistProfileAction {
         val profilePicUrl: String?,
         val coverPhotoUrl: String?
     ) : ArtistProfileAction
+    data object FollowersClicked : ArtistProfileAction
+    data object FollowingClicked : ArtistProfileAction
+    data object DismissSocialSheet : ArtistProfileAction
+    data class SocialFollowPressed(val userId: String) : ArtistProfileAction
+    data class ArtistClicked(val userId: String, val name: String) : ArtistProfileAction
 }
