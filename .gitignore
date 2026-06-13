@@ -11,3 +11,8 @@
 local.properties
 /.kotlin/
 /private_key.pepk
+/.artifacts/
+/.antigravityrules
+/APP_FEATURES.md
+/BUG_ANALYSIS.md
+/api-1.json
