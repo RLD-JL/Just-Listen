@@ -434,8 +434,13 @@ class IOSMusicPlayer(
             else -> PlaybackStatus.IDLE
         }
 
+        val currentMedia = _playbackState.value.currentMedia
+        val oldDuration = currentMedia?.duration ?: 0L
+        val oldStatus = _playbackState.value.status
+
+        val updatedMedia = currentMedia?.copy(duration = durationMs)
+
         _playbackState.update { state ->
-            val updatedMedia = state.currentMedia?.copy(duration = durationMs)
             state.copy(
                 status = currentStatus,
                 currentPosition = currentMs,
@@ -443,10 +448,10 @@ class IOSMusicPlayer(
             )
         }
 
-        // Keep system now playing progress slider synchronized
-        // if (currentStatus == PlaybackStatus.PLAYING) {
-        //     updateNowPlayingInfo(_playbackState.value.currentMedia, currentMs)
-        // }
+        // Update system now playing info center when duration is resolved or playback status changes
+        if (updatedMedia != null && (durationMs != oldDuration || currentStatus != oldStatus)) {
+            updateNowPlayingInfo(updatedMedia, currentMs)
+        }
     }
 
     // --- System Media Integration (Now Playing & Remote Commands) ---
