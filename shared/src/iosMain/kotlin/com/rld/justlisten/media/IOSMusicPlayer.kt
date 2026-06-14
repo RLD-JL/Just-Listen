@@ -34,7 +34,8 @@ import platform.UIKit.UIImage
 class IOSMusicPlayer(
     private val favoritesRepository: FavoritesRepository
 ) : MusicPlayer {
-    private val avPlayer = AVPlayer()
+    private val avPlayer = AVQueuePlayer()
+    private var activePlayerItem: AVPlayerItem? = null
     private var preloadedPlayerItem: AVPlayerItem? = null
     private var preloadedSongId: String? = null
     private var preloadJob: kotlinx.coroutines.Job? = null
@@ -143,7 +144,8 @@ class IOSMusicPlayer(
 
     override fun stop() {
         avPlayer.pause()
-        avPlayer.replaceCurrentItemWithPlayerItem(null)
+        avPlayer.removeAllItems()
+        activePlayerItem = null
         preloadedPlayerItem = null
         preloadedSongId = null
         preloadJob?.cancel()
@@ -159,19 +161,25 @@ class IOSMusicPlayer(
         }
     }
 
+    private fun createPlayerItem(songId: String): AVPlayerItem? {
+        val baseUrl = com.rld.justlisten.datalayer.utils.Constants.BASEURL
+        val appName = com.rld.justlisten.datalayer.utils.Constants.appName.replace(" ", "%20")
+        val streamUrl = "$baseUrl/v1/tracks/$songId/stream?app_name=$appName"
+        val nsUrl = NSURL.URLWithString(streamUrl)
+        return if (nsUrl != null) AVPlayerItem.playerItemWithURL(nsUrl) else null
+    }
+
     private fun playTrack(metadata: MediaMetadata) {
         val playerItem = if (preloadedSongId == metadata.id && preloadedPlayerItem != null) {
             preloadedPlayerItem!!
         } else {
-            val baseUrl = com.rld.justlisten.datalayer.utils.Constants.BASEURL
-            val appName = com.rld.justlisten.datalayer.utils.Constants.appName.replace(" ", "%20")
-            val streamUrl = "$baseUrl/v1/tracks/${metadata.id}/stream?app_name=$appName"
-            val nsUrl = NSURL.URLWithString(streamUrl)
-            if (nsUrl != null) AVPlayerItem.playerItemWithURL(nsUrl) else null
+            createPlayerItem(metadata.id)
         }
 
         if (playerItem != null) {
-            avPlayer.replaceCurrentItemWithPlayerItem(playerItem)
+            activePlayerItem = playerItem
+            avPlayer.removeAllItems()
+            avPlayer.insertItem(playerItem, afterItem = null)
             avPlayer.play()
             updateState(PlaybackStatus.BUFFERING, metadata)
             updateNowPlayingInfo(metadata, 0L)
@@ -199,13 +207,21 @@ class IOSMusicPlayer(
         preloadJob = scope.launch(Dispatchers.Main) {
             delay(2000L)
             
-            val baseUrl = com.rld.justlisten.datalayer.utils.Constants.BASEURL
-            val appName = com.rld.justlisten.datalayer.utils.Constants.appName.replace(" ", "%20")
-            val streamUrl = "$baseUrl/v1/tracks/${nextMetadata.id}/stream?app_name=$appName"
-            val nsUrl = NSURL.URLWithString(streamUrl)
-            if (nsUrl != null) {
-                preloadedPlayerItem = AVPlayerItem.playerItemWithURL(nsUrl)
+            if (repeatMode == RepeatMode.ONE) {
+                preloadedPlayerItem = null
+                preloadedSongId = null
+                return@launch
+            }
+            
+            val nextItem = createPlayerItem(nextMetadata.id)
+            if (nextItem != null) {
+                preloadedPlayerItem = nextItem
                 preloadedSongId = nextMetadata.id
+                
+                val currentActiveItem = avPlayer.currentItem
+                if (currentActiveItem != null && avPlayer.items().size == 1) {
+                    avPlayer.insertItem(nextItem, afterItem = currentActiveItem)
+                }
             }
         }
     }
@@ -232,8 +248,20 @@ class IOSMusicPlayer(
     override fun skipToNext() {
         val nextIndex = getNextTrackIndex()
         if (nextIndex != -1) {
-            currentIndex = nextIndex
-            playTrack(playlistItems[currentIndex])
+            val nextItem = playlistItems[nextIndex]
+            if (avPlayer.items().size > 1 && preloadedSongId == nextItem.id && preloadedPlayerItem != null) {
+                avPlayer.advanceToNextItem()
+                currentIndex = nextIndex
+                activePlayerItem = preloadedPlayerItem
+                updateState(PlaybackStatus.BUFFERING, nextItem)
+                updateNowPlayingInfo(nextItem, 0L)
+                preloadedPlayerItem = null
+                preloadedSongId = null
+                preloadNextTrack()
+            } else {
+                currentIndex = nextIndex
+                playTrack(playlistItems[currentIndex])
+            }
         } else {
             stop()
         }
@@ -322,6 +350,15 @@ class IOSMusicPlayer(
     override fun setRepeatMode(repeatMode: RepeatMode) {
         this.repeatMode = repeatMode
         _playbackState.update { it.copy(repeatMode = repeatMode) }
+        if (repeatMode == RepeatMode.ONE) {
+            val items = avPlayer.items()
+            if (items.size > 1) {
+                for (i in 1 until items.size) {
+                    val item = items[i] as? AVPlayerItem
+                    if (item != null) avPlayer.removeItem(item)
+                }
+            }
+        }
         preloadNextTrack()
     }
 
@@ -631,13 +668,28 @@ class IOSMusicPlayer(
             queue = null
         ) { notification ->
             dispatch_async(dispatch_get_main_queue()) {
-                val currentItem = avPlayer.currentItem
-                if (currentItem != null && notification?.`object` == currentItem) {
+                val finishedItem = notification?.`object` as? AVPlayerItem
+                if (finishedItem != null && finishedItem == activePlayerItem) {
                     if (repeatMode == RepeatMode.ONE) {
                         seekTo(0L)
-                        play()
+                        avPlayer.play()
                     } else {
-                        skipToNext()
+                        val nextIndex = getNextTrackIndex()
+                        if (nextIndex != -1) {
+                            currentIndex = nextIndex
+                            val nextMetadata = playlistItems[currentIndex]
+                            
+                            // The player has automatically transitioned to the next item
+                            activePlayerItem = preloadedPlayerItem
+                            updateState(PlaybackStatus.PLAYING, nextMetadata)
+                            updateNowPlayingInfo(nextMetadata, 0L)
+                            
+                            preloadedPlayerItem = null
+                            preloadedSongId = null
+                            preloadNextTrack()
+                        } else {
+                            stop()
+                        }
                     }
                 }
             }
@@ -702,7 +754,8 @@ class IOSMusicPlayer(
         commandCenter.changePlaybackPositionCommand.removeTarget(null)
 
         avPlayer.pause()
-        avPlayer.replaceCurrentItemWithPlayerItem(null)
+        avPlayer.removeAllItems()
+        activePlayerItem = null
         
         artworkCache.clear()
         lastLoadedArtwork = null

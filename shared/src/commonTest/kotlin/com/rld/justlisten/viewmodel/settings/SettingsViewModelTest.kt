@@ -180,7 +180,13 @@ class FakeAuthRepository : com.rld.justlisten.datalayer.repositories.AuthReposit
     override fun getCustomBio(userId: String): String? = null
     override fun getCustomProfilePic(userId: String): String? = null
     override fun getCustomCoverPhoto(userId: String): String? = null
-    override fun updateUserProfile(userId: String, name: String, bio: String?, profilePicUrl: String?, coverPhotoUrl: String?) {}
+    override fun getCustomLocation(userId: String): String? = null
+    override fun getCustomXHandle(userId: String): String? = null
+    override fun getCustomInstagramHandle(userId: String): String? = null
+    override fun getCustomTikTokHandle(userId: String): String? = null
+    override fun getCustomWebsite(userId: String): String? = null
+    override fun getCustomFanClubFlair(userId: String): String? = null
+    override fun updateUserProfile(userId: String, name: String, bio: String?, profilePicUrl: String?, coverPhotoUrl: String?, location: String?, xHandle: String?, instagramHandle: String?, tiktokHandle: String?, website: String?, fanClubFlair: String?) {}
 }
 
 class FakeSyncRepository : com.rld.justlisten.datalayer.repositories.SyncRepository {
