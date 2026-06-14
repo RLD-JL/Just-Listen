@@ -43,8 +43,8 @@ android {
         applicationId = "com.rld.justlisten.android"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 26
-        versionName = "1.0.9-a"
+        versionCode = 27
+        versionName = "1.0.10"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -119,4 +119,4 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
     }
-}
+}
