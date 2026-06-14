@@ -1,7 +1,8 @@
 import re
 import sys
+import os
 
-def bump_version(bump_type):
+def get_and_bump_version(bump_type):
     file_path = "androidApp/build.gradle.kts"
     with open(file_path, "r") as f:
         content = f.read()
@@ -13,7 +14,9 @@ def bump_version(bump_type):
         sys.exit(1)
     
     current_code = int(version_code_match.group(1))
-    new_code = current_code + 1
+    new_code = current_code
+    if bump_type != "none":
+        new_code = current_code + 1
 
     # Find versionName
     version_name_match = re.search(r'versionName\s*=\s*"([^"]+)"', content)
@@ -27,7 +30,6 @@ def bump_version(bump_type):
     base_name = current_name.split("-")[0]
     parts = base_name.split(".")
     if len(parts) != 3:
-        # Fallback to 2.0.0 if it's not standard semver
         major, minor, patch = 2, 0, 0
     else:
         major, minor, patch = map(int, parts)
@@ -44,19 +46,25 @@ def bump_version(bump_type):
 
     new_name = f"{major}.{minor}.{patch}"
 
-    # Replace in file content
-    content = re.sub(r'(versionCode\s*=\s*)(\d+)', f'\\g<1>{new_code}', content)
-    content = re.sub(r'(versionName\s*=\s*)"([^"]+)"', f'\\g<1>"{new_name}"', content)
+    if bump_type != "none":
+        # Replace in file content
+        content = re.sub(r'(versionCode\s*=\s*)(\d+)', f'\\g<1>{new_code}', content)
+        content = re.sub(r'(versionName\s*=\s*)"([^"]+)"', f'\\g<1>"{new_name}"', content)
+        with open(file_path, "w") as f:
+            f.write(content)
+        print(f"Bumped version from {current_name} (code {current_code}) to {new_name} (code {new_code})")
+    else:
+        new_name = current_name
+        print(f"Keeping current version {current_name} (code {current_code})")
 
-    with open(file_path, "w") as f:
-        f.write(content)
-
-    print(f"Bumped version from {current_name} (code {current_code}) to {new_name} (code {new_code})")
+    # Write to GitHub Actions outputs
+    if 'GITHUB_OUTPUT' in os.environ:
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            print(f"NEW_VERSION={new_name}", file=fh)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python3 bump-version.py [major|minor|patch|none]")
         sys.exit(1)
     bump_type = sys.argv[1]
-    if bump_type != "none":
-        bump_version(bump_type)
+    get_and_bump_version(bump_type)

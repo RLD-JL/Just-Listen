@@ -18,10 +18,6 @@ on:
         required: true
         default: false
         type: boolean
-      tag_name:
-        description: 'Release Tag Name (e.g., v2.0.0, required if Create Release is checked)'
-        required: false
-        type: string
 
 permissions:
   contents: write # Required to commit version changes and create releases
@@ -49,14 +45,19 @@ jobs:
         with:
           gradle-home-cache-cleanup: false
 
-      # Bump the version code and name, then commit it back to Git
-      - name: Bump Version & Commit
-        if: ${{ github.event.inputs.bump_type != 'none' }}
+      # Always run this step to determine current/new version name and set outputs
+      - name: Resolve Version Name
+        id: version_resolver
         run: |
           python3 .github/scripts/bump-version.py ${{ github.event.inputs.bump_type }}
+
+      # Commit and push version changes back to master if we bumped the version
+      - name: Commit and Push Version Bump
+        if: ${{ github.event.inputs.bump_type != 'none' }}
+        run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: bump version to $(grep -o 'versionName = "[^"]*"' androidApp/build.gradle.kts | cut -d'"' -f2) [skip ci]"
+          git commit -am "chore: bump version to ${{ steps.version_resolver.outputs.NEW_VERSION }} [skip ci]"
           git push
 
       # Decode the base64 keystore securely from process memory
@@ -89,11 +90,11 @@ jobs:
 
       # Create GitHub Release and upload APK/AAB as assets if requested
       - name: Create GitHub Release
-        if: ${{ github.event.inputs.create_release == 'true' && github.event.inputs.tag_name != '' }}
+        if: ${{ github.event.inputs.create_release == 'true' }}
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.tag_name }}
-          name: Release ${{ github.event.inputs.tag_name }}
+          tag_name: v${{ steps.version_resolver.outputs.NEW_VERSION }}
+          name: Release v${{ steps.version_resolver.outputs.NEW_VERSION }}
           draft: false
           prerelease: false
           files: |
