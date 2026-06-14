@@ -9,21 +9,23 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
+import com.rld.justlisten.util.clipEntryOf
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 
-@Suppress("DEPRECATION")
 @Composable
 fun DonationScreen() {
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         Modifier
@@ -44,7 +46,9 @@ fun DonationScreen() {
             TextField(
                 "bc1qcsuapkvhpy3tlfrmmxhmf2cru9f2ar8cs4605w", modifier = Modifier.clickable(
                     onClick = {
-                        clipboardManager.setText(AnnotatedString(("bc1qcsuapkvhpy3tlfrmmxhmf2cru9f2ar8cs4605w")))
+                        coroutineScope.launch {
+                            clipboard.setClipEntry(clipEntryOf("bc1qcsuapkvhpy3tlfrmmxhmf2cru9f2ar8cs4605w"))
+                        }
                         showToast("Copied BTC Address")
                     }),
                 onValueChange = {},
@@ -63,7 +67,9 @@ fun DonationScreen() {
             TextField(
                 "0x3A9b38ba07D4E9263c5595C2DbF1dD13a43b577C", modifier = Modifier.clickable(
                     onClick = {
-                        clipboardManager.setText(AnnotatedString(("0x3A9b38ba07D4E9263c5595C2DbF1dD13a43b577C")))
+                        coroutineScope.launch {
+                            clipboard.setClipEntry(clipEntryOf("0x3A9b38ba07D4E9263c5595C2DbF1dD13a43b577C"))
+                        }
                         showToast("Copied ETH Address")
                     }),
                 onValueChange = {},
@@ -82,7 +88,9 @@ fun DonationScreen() {
             TextField(
                 "GjfvqY9ophJZ7r475Wka5GH8HafDj5kFirE86g1jpDYe", modifier = Modifier.clickable(
                     onClick = {
-                        clipboardManager.setText(AnnotatedString(("GjfvqY9ophJZ7r475Wka5GH8HafDj5kFirE86g1jpDYe")))
+                        coroutineScope.launch {
+                            clipboard.setClipEntry(clipEntryOf("GjfvqY9ophJZ7r475Wka5GH8HafDj5kFirE86g1jpDYe"))
+                        }
                         showToast("Copied SOL Address")
                     }),
                 onValueChange = {},
@@ -101,7 +109,9 @@ fun DonationScreen() {
             TextField(
                 "0x3A9b38ba07D4E9263c5595C2DbF1dD13a43b577C", modifier = Modifier.clickable(
                     onClick = {
-                        clipboardManager.setText(AnnotatedString(("0x3A9b38ba07D4E9263c5595C2DbF1dD13a43b577C")))
+                        coroutineScope.launch {
+                            clipboard.setClipEntry(clipEntryOf("0x3A9b38ba07D4E9263c5595C2DbF1dD13a43b577C"))
+                        }
                         showToast("Copied Audius Address")
                     }),
                 onValueChange = {},

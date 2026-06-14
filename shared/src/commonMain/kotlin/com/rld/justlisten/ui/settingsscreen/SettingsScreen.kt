@@ -12,6 +12,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.CompareArrows
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -346,7 +348,7 @@ fun SettingsScreen(
                 HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
                 
                 SettingsClickableRow(
-                    icon = Icons.Rounded.CompareArrows,
+                    icon = Icons.AutoMirrored.Rounded.CompareArrows,
                     title = "Playback Crossfade",
                     subtitle = if (settings.isCrossfadeEnabled) "Style: ${settings.crossfadeStyle} (${settings.crossfadeDurationSeconds.toInt()}s)" else "Configure overlapping transitions (Disabled)",
                     onClick = {
@@ -360,7 +362,7 @@ fun SettingsScreen(
                 HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
                 
                 SettingsSwitchRow(
-                    icon = Icons.Rounded.VolumeUp,
+                    icon = Icons.AutoMirrored.Rounded.VolumeUp,
                     title = "Volume Normalization",
                     checked = settings.isVolumeNormalizationEnabled,
                     onCheckedChange = {

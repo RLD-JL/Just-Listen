@@ -18,8 +18,10 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.LocalClipboard
+import com.rld.justlisten.util.clipEntryOf
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import com.rld.justlisten.navigation.Route
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
@@ -70,7 +72,8 @@ fun AnimatedToolBar(
             modifier = Modifier
                 .alpha(((-scrollState.value + 0.010f) / 1000).coerceIn(0f, 1f))
         )
-        val clipboardManager = LocalClipboardManager.current
+        val clipboard = LocalClipboard.current
+        val coroutineScope = rememberCoroutineScope()
         Box {
             IconButton(
                 onClick = { showMenu = true },
@@ -108,7 +111,9 @@ fun AnimatedToolBar(
                         )
                         val base64Data = com.rld.justlisten.util.PlaylistShareUtils.exportPlaylist(playlistDetail)
                         val url = "justlisten://playlist/import?data=$base64Data"
-                        clipboardManager.setText(AnnotatedString(url))
+                        coroutineScope.launch {
+                            clipboard.setClipEntry(clipEntryOf(url))
+                        }
                         com.rld.justlisten.ui.utils.showToast("Playlist share link copied!")
                     },
                     leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }

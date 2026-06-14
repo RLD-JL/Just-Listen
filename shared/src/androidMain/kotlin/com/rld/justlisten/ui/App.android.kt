@@ -51,9 +51,6 @@ actual fun SetSystemBarsColor(
             val activity = findActivity(view.context)
             if (activity != null) {
                 val window = activity.window
-                window.statusBarColor = statusBarColor.toArgb()
-                window.navigationBarColor = navigationBarColor.toArgb()
-                
                 val insetsController = WindowCompat.getInsetsController(window, view)
                 insetsController.isAppearanceLightStatusBars = darkIcons
                 insetsController.isAppearanceLightNavigationBars = darkIcons

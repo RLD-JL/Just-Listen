@@ -20,8 +20,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.LocalClipboard
+import com.rld.justlisten.util.clipEntryOf
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -169,6 +171,8 @@ private fun SongListItemContent(
     isPlaying: Boolean,
     showShareButton: Boolean
 ) {
+    val clipboard = LocalClipboard.current
+    val coroutineScope = rememberCoroutineScope()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -333,7 +337,6 @@ private fun SongListItemContent(
                         .size(20.dp)
                         .clickable { showShareMenu = true }
                 )
-                val clipboardManager = LocalClipboardManager.current
                 DropdownMenu(
                     expanded = showShareMenu,
                     onDismissRequest = { showShareMenu = false }
@@ -343,7 +346,9 @@ private fun SongListItemContent(
                         onClick = {
                             showShareMenu = false
                             val url = "justlisten://track/share?id=${playlistItem.id}"
-                            clipboardManager.setText(AnnotatedString(url))
+                            coroutineScope.launch {
+                                clipboard.setClipEntry(clipEntryOf(url))
+                            }
                             com.rld.justlisten.ui.utils.showToast("Track link copied!")
                         },
                         leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
@@ -353,7 +358,9 @@ private fun SongListItemContent(
                         onClick = {
                             showShareMenu = false
                             val url = "justlisten://comments/share?trackId=${playlistItem.id}"
-                            clipboardManager.setText(AnnotatedString(url))
+                            coroutineScope.launch {
+                                clipboard.setClipEntry(clipEntryOf(url))
+                            }
                             com.rld.justlisten.ui.utils.showToast("Comments link copied!")
                         },
                         leadingIcon = { Icon(Icons.Default.MoreHoriz, contentDescription = null) }

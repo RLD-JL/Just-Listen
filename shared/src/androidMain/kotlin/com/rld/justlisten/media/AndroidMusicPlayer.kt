@@ -56,6 +56,18 @@ class AndroidMusicPlayer(
         }
 
         scope.launch {
+            musicServiceConnection.shuffleModeEnabled.collect {
+                refreshMetadata()
+            }
+        }
+
+        scope.launch {
+            musicServiceConnection.repeatMode.collect {
+                refreshMetadata()
+            }
+        }
+
+        scope.launch {
             favoritesRepository.getFavoritePlaylistFlow().collect { favoriteList ->
                 val ids = favoriteList.map { it.id }.toSet()
                 favoriteIds.value = ids

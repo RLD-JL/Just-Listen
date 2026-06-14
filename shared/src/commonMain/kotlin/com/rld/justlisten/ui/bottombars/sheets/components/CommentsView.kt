@@ -28,7 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
+import com.rld.justlisten.util.clipEntryOf
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -531,7 +532,7 @@ fun CommentsView(
                                                     .size(16.dp)
                                                     .clickable { showMenu = true }
                                             )
-                                            val clipboardManager = LocalClipboardManager.current
+                                            val clipboard = LocalClipboard.current
                                             DropdownMenu(
                                                 expanded = showMenu,
                                                 onDismissRequest = { showMenu = false }
@@ -541,7 +542,9 @@ fun CommentsView(
                                                     onClick = {
                                                         showMenu = false
                                                         val url = "justlisten://comments/share?trackId=$trackId&commentId=${comment.id}"
-                                                        clipboardManager.setText(AnnotatedString(url))
+                                                        coroutineScope.launch {
+                                                            clipboard.setClipEntry(clipEntryOf(url))
+                                                        }
                                                         com.rld.justlisten.ui.utils.showToast("Comment link copied!")
                                                     },
                                                     leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
