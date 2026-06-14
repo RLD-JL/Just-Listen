@@ -715,7 +715,7 @@ fun ArtistProfileScreen(
                     // 5. Tabs (Tracks / Playlists)
                     item {
                         val tabs = listOf("Tracks", "Playlists")
-                        TabRow(
+                        SecondaryTabRow(
                             selectedTabIndex = artistProfileState.selectedTabIndex,
                             containerColor = Color.Transparent,
                             contentColor = MaterialTheme.colorScheme.primary,

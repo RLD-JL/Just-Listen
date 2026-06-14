@@ -6,6 +6,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
+import androidx.compose.foundation.gestures.ScrollScope
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
@@ -43,7 +44,7 @@ enum class TabsSheetState {
     EXPANDED
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlayerBottomTabs(
     maxHeight: Dp,
@@ -63,21 +64,26 @@ fun PlayerBottomTabs(
     val endAnchor = with(density) { (maxHeight - 56.dp - bottomSafeArea).toPx() }
     val decayAnimationSpec = rememberSplineBasedDecay<Float>()
 
-    val anchoredDraggableState = remember(endAnchor) {
+    val anchoredDraggableState = remember(startAnchor, endAnchor) {
         AnchoredDraggableState(
-            initialValue = TabsSheetState.COLLAPSED,
-            anchors = DraggableAnchors {
-                TabsSheetState.EXPANDED at startAnchor
-                TabsSheetState.COLLAPSED at endAnchor
-            },
-            positionalThreshold = { distance: Float -> distance * 0.3f },
-            velocityThreshold = { with(density) { 125.dp.toPx() } },
-            snapAnimationSpec = spring(stiffness = 300f, dampingRatio = 0.8f),
-            decayAnimationSpec = decayAnimationSpec
-        )
+            initialValue = TabsSheetState.COLLAPSED
+        ).apply {
+            updateAnchors(
+                DraggableAnchors {
+                    TabsSheetState.EXPANDED at startAnchor
+                    TabsSheetState.COLLAPSED at endAnchor
+                }
+            )
+        }
     }
 
-    val nestedScrollConnection = remember(anchoredDraggableState, startAnchor, endAnchor) {
+    val flingBehavior = AnchoredDraggableDefaults.flingBehavior(
+        state = anchoredDraggableState,
+        positionalThreshold = { distance: Float -> distance * 0.3f },
+        animationSpec = spring(stiffness = 300f, dampingRatio = 0.8f)
+    )
+
+    val nestedScrollConnection = remember(anchoredDraggableState, startAnchor, endAnchor, flingBehavior) {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 val delta = available.y
@@ -108,14 +114,28 @@ fun PlayerBottomTabs(
             override suspend fun onPreFling(available: Velocity): Velocity {
                 val offset = anchoredDraggableState.offset
                 if (!offset.isNaN() && offset > startAnchor && offset < endAnchor) {
-                    anchoredDraggableState.settle(available.y)
+                    val scrollScope = object : ScrollScope {
+                        override fun scrollBy(pixels: Float): Float {
+                            return anchoredDraggableState.dispatchRawDelta(pixels)
+                        }
+                    }
+                    with(flingBehavior) {
+                        scrollScope.performFling(available.y)
+                    }
                     return available
                 }
                 return Velocity.Zero
             }
 
             override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-                anchoredDraggableState.settle(available.y)
+                val scrollScope = object : ScrollScope {
+                    override fun scrollBy(pixels: Float): Float {
+                        return anchoredDraggableState.dispatchRawDelta(pixels)
+                    }
+                }
+                with(flingBehavior) {
+                    scrollScope.performFling(available.y)
+                }
                 return available
             }
         }
@@ -135,11 +155,7 @@ fun PlayerBottomTabs(
             .anchoredDraggable(
                 state = anchoredDraggableState,
                 orientation = Orientation.Vertical,
-                flingBehavior = AnchoredDraggableDefaults.flingBehavior(
-                    state = anchoredDraggableState,
-                    positionalThreshold = { distance: Float -> distance * 0.3f },
-                    animationSpec = spring(stiffness = 300f, dampingRatio = 0.8f)
-                )
+                flingBehavior = flingBehavior
             )
             .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
             .background(Color.Black.copy(alpha = 0.95f))

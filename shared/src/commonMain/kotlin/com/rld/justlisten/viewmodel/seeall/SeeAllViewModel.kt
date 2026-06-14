@@ -76,11 +76,7 @@ class SeeAllViewModel(
             val favoriteList = favoritesRepository.getFavoritePlaylist()
             val favoriteIds = favoriteList.map { it.id }.toSet()
             val mappedItems = items.map { item ->
-                when (item) {
-                    is PlaylistItem -> item.copy(isFavorite = favoriteIds.contains(item.id))
-                    is TrackItem -> item.copy(isFavorite = favoriteIds.contains(item.id))
-                    else -> item
-                }
+                item.copy(isFavorite = favoriteIds.contains(item.id))
             }
 
             _seeAllState.update { state ->

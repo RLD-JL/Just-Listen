@@ -14,6 +14,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -29,7 +31,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import com.rld.justlisten.ui.components.MusicLoadingSpinner
@@ -118,7 +119,7 @@ fun FeedScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             // Tab Selection (Following vs Trending)
-            TabRow(
+            PrimaryTabRow(
                 selectedTabIndex = feedState.selectedTab.ordinal,
                 containerColor = MaterialTheme.colorScheme.background,
                 contentColor = MaterialTheme.colorScheme.primary,
@@ -425,7 +426,7 @@ fun FeedTimelineRow(
                         modifier = Modifier.size(14.dp)
                     )
                 } else {
-                    val badgeIcon = if (isPlaylist) Icons.Default.QueueMusic else Icons.Default.PlayArrow
+                    val badgeIcon = if (isPlaylist) Icons.AutoMirrored.Filled.QueueMusic else Icons.Default.PlayArrow
                     Icon(
                         imageVector = badgeIcon,
                         contentDescription = null,
@@ -667,7 +668,7 @@ fun FeedTimelineRow(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Comment,
+                            imageVector = Icons.AutoMirrored.Filled.Comment,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp)
@@ -697,10 +698,11 @@ fun FeedTimelineRow(
     }
 }
 
+@Suppress("DEPRECATION")
 private fun formatDate(dateStr: String?): String {
     if (dateStr.isNullOrBlank()) return ""
     return try {
-        val instant = Instant.parse(dateStr)
+        val instant = kotlinx.datetime.Instant.parse(dateStr)
         val localDate = instant.toLocalDateTime(TimeZone.currentSystemDefault()).date
         val month = localDate.month.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
         "$month ${localDate.day}, ${localDate.year}"

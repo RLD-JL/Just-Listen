@@ -76,11 +76,7 @@ fun SongListItem(
     if (canDelete) {
         val showConfirmDialog = remember { mutableStateOf(false) }
 
-        val dismissState = rememberSwipeToDismissBoxState(
-            confirmValueChange = { dismissValue ->
-                dismissValue == SwipeToDismissBoxValue.EndToStart
-            }
-        )
+        val dismissState = rememberSwipeToDismissBoxState()
 
         LaunchedEffect(dismissState.settledValue) {
             if (dismissState.settledValue == SwipeToDismissBoxValue.EndToStart) {

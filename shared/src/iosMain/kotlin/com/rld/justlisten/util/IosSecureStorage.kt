@@ -1,4 +1,7 @@
-@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+@file:OptIn(
+    kotlinx.cinterop.ExperimentalForeignApi::class,
+    kotlinx.cinterop.BetaInteropApi::class
+)
 package com.rld.justlisten.util
 
 import platform.Foundation.NSData
@@ -17,9 +20,9 @@ class IosSecureStorage : SecureStorage {
     private val serviceName = "com.rld.justlisten.secure"
 
     override fun saveToken(key: String, value: String) {
-        val nsValue = value as NSString
-        val nsKey = key as NSString
-        val nsService = serviceName as NSString
+        val nsValue = NSString.create(string = value)
+        val nsKey = NSString.create(string = key)
+        val nsService = NSString.create(string = serviceName)
         
         val valueData = nsValue.dataUsingEncoding(NSUTF8StringEncoding) ?: return
         
@@ -57,8 +60,8 @@ class IosSecureStorage : SecureStorage {
     }
 
     override fun getToken(key: String): String? {
-        val nsKey = key as NSString
-        val nsService = serviceName as NSString
+        val nsKey = NSString.create(string = key)
+        val nsService = NSString.create(string = serviceName)
         
         return memScoped {
             val cfKey = CFBridgingRetain(nsKey)
@@ -101,7 +104,7 @@ class IosSecureStorage : SecureStorage {
     }
 
     override fun clear() {
-        val nsService = serviceName as NSString
+        val nsService = NSString.create(string = serviceName)
         memScoped {
             val cfService = CFBridgingRetain(nsService)
             try {

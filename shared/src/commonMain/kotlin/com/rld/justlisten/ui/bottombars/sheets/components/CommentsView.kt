@@ -11,7 +11,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -105,7 +105,7 @@ fun CommentsView(
             }
         }
 
-        Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
 
         // Comments List
         Box(
@@ -189,7 +189,7 @@ fun CommentsView(
             }
         }
 
-        Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
 
         // Write Comment Bar
         Box(
@@ -254,7 +254,7 @@ fun CommentsView(
                         )
                     } else {
                         Icon(
-                            imageVector = Icons.Default.Send,
+                            imageVector = Icons.AutoMirrored.Filled.Send,
                             contentDescription = "Send",
                             tint = if (commentText.trim().isNotEmpty())
                                 MaterialTheme.colorScheme.onPrimary
