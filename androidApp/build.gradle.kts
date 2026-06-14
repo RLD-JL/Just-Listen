@@ -62,11 +62,33 @@ android {
         )
     }
 
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
+                ?: gradleLocalProperties(rootDir, providers).getProperty("RELEASE_KEYSTORE_PATH")
+            if (!keystorePath.isNullOrEmpty()) {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+                    ?: gradleLocalProperties(rootDir, providers).getProperty("RELEASE_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                    ?: gradleLocalProperties(rootDir, providers).getProperty("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+                    ?: gradleLocalProperties(rootDir, providers).getProperty("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles("proguard-rules.pro")
+            
+            val keystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
+                ?: gradleLocalProperties(rootDir, providers).getProperty("RELEASE_KEYSTORE_PATH")
+            if (!keystorePath.isNullOrEmpty()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         getByName("debug") {
             isMinifyEnabled = false
