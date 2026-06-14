@@ -2,9 +2,29 @@ name: Android Release Build
 
 on:
   workflow_dispatch: # Allows manual triggering from the GitHub Actions UI
+    inputs:
+      bump_type:
+        description: 'Version Bump Type'
+        required: true
+        default: 'none'
+        type: choice
+        options:
+          - none   # Keep current version name, only build
+          - patch  # Increments PATCH (e.g. 2.0.0 -> 2.0.1)
+          - minor  # Increments MINOR (e.g. 2.0.0 -> 2.1.0)
+          - major  # Increments MAJOR (e.g. 2.0.0 -> 3.0.0)
+      create_release:
+        description: 'Create a GitHub Release'
+        required: true
+        default: false
+        type: boolean
+      tag_name:
+        description: 'Release Tag Name (e.g., v2.0.0, required if Create Release is checked)'
+        required: false
+        type: string
 
 permissions:
-  contents: read
+  contents: write # Required to commit version changes and create releases
 
 jobs:
   build:
@@ -15,6 +35,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true # Crucial to allow pushing commits back to the repo
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -26,6 +48,16 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-home-cache-cleanup: false
+
+      # Bump the version code and name, then commit it back to Git
+      - name: Bump Version & Commit
+        if: ${{ github.event.inputs.bump_type != 'none' }}
+        run: |
+          python3 .github/scripts/bump-version.py ${{ github.event.inputs.bump_type }}
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: bump version to $(grep -o 'versionName = "[^"]*"' androidApp/build.gradle.kts | cut -d'"' -f2) [skip ci]"
+          git push
 
       # Decode the base64 keystore securely from process memory
       - name: Decode Keystore
@@ -46,7 +78,7 @@ jobs:
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: ./gradlew :androidApp:assembleRelease :androidApp:bundleRelease
 
-      # Upload the compiled artifacts to GitHub
+      # Upload the compiled artifacts to GitHub Actions run details
       - name: Upload Release Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -54,3 +86,18 @@ jobs:
           path: |
             androidApp/build/outputs/apk/release/*.apk
             androidApp/build/outputs/bundle/release/*.aab
+
+      # Create GitHub Release and upload APK/AAB as assets if requested
+      - name: Create GitHub Release
+        if: ${{ github.event.inputs.create_release == 'true' && github.event.inputs.tag_name != '' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          name: Release ${{ github.event.inputs.tag_name }}
+          draft: false
+          prerelease: false
+          files: |
+            androidApp/build/outputs/apk/release/*.apk
+            androidApp/build/outputs/bundle/release/*.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
