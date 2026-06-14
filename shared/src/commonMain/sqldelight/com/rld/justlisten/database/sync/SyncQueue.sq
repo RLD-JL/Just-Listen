@@ -21,3 +21,10 @@ DELETE FROM SyncQueue WHERE id = :id;
 
 updateTaskError:
 UPDATE SyncQueue SET errorMessage = :errorMessage, retryCount = :retryCount WHERE id = :id;
+
+getTasksByTarget:
+SELECT * FROM SyncQueue WHERE targetId = :targetId;
+
+deleteTasksByTarget:
+DELETE FROM SyncQueue WHERE targetId = :targetId;
+

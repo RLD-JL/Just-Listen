@@ -53,12 +53,7 @@ fun playMusicFromId(
             }
         }
     }
-    if (playlist.isNotEmpty()) {
-        musicPlayer.updatePlaylist(playlist)
-    }
-    if (songId.isNotEmpty()) {
-        musicPlayer.playMedia(songId)
-    }
+    musicPlayer.playMedia(songId, playlist)
 }
 
 fun playMusic(
@@ -70,7 +65,6 @@ fun playMusic(
 ) {
     if (playlist.isEmpty()) return
     musicPlayer.currentlyPlayingPlaylistId = playlistId
-    musicPlayer.updatePlaylist(playlist)
     val mediaId = playFromId.ifEmpty { playlist.first().id }
     // Save to recent tracking
     repository?.let { repo ->
@@ -89,5 +83,5 @@ fun playMusic(
             }
         }
     }
-    musicPlayer.playMedia(mediaId)
+    musicPlayer.playMedia(mediaId, playlist)
 }

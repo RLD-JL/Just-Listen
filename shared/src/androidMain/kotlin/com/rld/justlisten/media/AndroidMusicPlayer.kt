@@ -133,6 +133,21 @@ class AndroidMusicPlayer(
         }
     }
 
+    override fun playMedia(mediaId: String, playlist: List<com.rld.justlisten.viewmodel.interfaces.Item>) {
+        scope.launch {
+            var attempts = 0
+            while (musicServiceConnection.mediaController == null && attempts < 30) {
+                delay(100)
+                attempts++
+            }
+            musicServiceConnection.mediaController?.let { controller ->
+                val startIndex = playlist.indexOfFirst { it.id == mediaId }.coerceAtLeast(0)
+                musicServiceConnection.updatePlaylist(playlist, startIndex)
+                controller.play()
+            }
+        }
+    }
+
     override fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>) {
         musicServiceConnection.updatePlaylist(list)
     }

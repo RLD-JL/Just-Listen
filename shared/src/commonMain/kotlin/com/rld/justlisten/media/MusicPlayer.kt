@@ -49,6 +49,14 @@ interface MusicPlayer {
     fun setShuffleModeEnabled(enabled: Boolean)
     fun setRepeatMode(repeatMode: RepeatMode)
     fun playMedia(mediaId: String)
+    fun playMedia(mediaId: String, playlist: List<com.rld.justlisten.viewmodel.interfaces.Item>) {
+        if (playlist.isNotEmpty()) {
+            updatePlaylist(playlist)
+        }
+        if (mediaId.isNotEmpty()) {
+            playMedia(mediaId)
+        }
+    }
     fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>)
     fun refreshMetadata()
     fun updateTrackMetadata(

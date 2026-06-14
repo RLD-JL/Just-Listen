@@ -30,4 +30,5 @@ data class SettingsState(
     val eqBands: List<Float> = listOf(0f, 0f, 0f, 0f, 0f),
     val isCrossfadeEnabled: Boolean = false,
     val crossfadeDurationSeconds: Double = 5.0,
+    val crossfadeStyle: String = "Radio Segue",
 ) : ScreenState

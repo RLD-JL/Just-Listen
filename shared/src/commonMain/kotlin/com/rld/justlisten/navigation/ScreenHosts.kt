@@ -304,6 +304,9 @@ fun SettingsScreenHost(navController: NavHostController) {
             if (updated.crossfadeDurationSeconds != state.crossfadeDurationSeconds) {
                 viewModel.onCrossfadeDurationChanged(updated.crossfadeDurationSeconds)
             }
+            if (updated.crossfadeStyle != state.crossfadeStyle) {
+                viewModel.onCrossfadeStyleChanged(updated.crossfadeStyle)
+            }
             if (updated.isEqEnabled != state.isEqEnabled ||
                 updated.eqPreset != state.eqPreset ||
                 updated.eqBands != state.eqBands

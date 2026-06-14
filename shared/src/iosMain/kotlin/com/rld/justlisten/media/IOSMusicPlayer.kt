@@ -43,7 +43,6 @@ class IOSMusicPlayer(
     private var currentPlayer = player1
     private var secondaryPlayer = player2
     private var isCrossfading = false
-    private var crossfadeTargetVolume = 1f
     private var crossfadeJob: kotlinx.coroutines.Job? = null
     private var timeObserverToken2: Any? = null
 
@@ -53,8 +52,8 @@ class IOSMusicPlayer(
         
         if (isCrossfading) {
             // Restore default volumes
-            player1.volume = crossfadeTargetVolume
-            player2.volume = crossfadeTargetVolume
+            player1.volume = userVolume
+            player2.volume = userVolume
             
             // Stop and clear the fading-out player
             secondaryPlayer.pause()
@@ -100,11 +99,16 @@ class IOSMusicPlayer(
     private val artworkCache = mutableMapOf<String, UIImage>()
 
 
+    private var userVolume: Float = 1.0f
+
     // Public property to allow volume fading from Sleep Timer
     var volume: Float
-        get() = currentPlayer.volume
+        get() = userVolume
         set(value) {
-            currentPlayer.volume = value
+            userVolume = value
+            if (!isCrossfading) {
+                currentPlayer.volume = value
+            }
         }
 
     init {
@@ -849,7 +853,12 @@ class IOSMusicPlayer(
             if (!durationSec.isNaN() && !currentSec.isNaN() && durationSec > 0.0) {
                 val remainingSec = durationSec - currentSec
                 val crossfadeSec = settingsRepository.crossfadeDurationSeconds
-                if (remainingSec <= crossfadeSec) {
+                val triggerSec = if (settingsRepository.crossfadeStyle == "Radio Segue") {
+                    crossfadeSec * 1.5
+                } else {
+                    crossfadeSec
+                }
+                if (remainingSec <= triggerSec) {
                     val nextIndex = getNextTrackIndex()
                     if (nextIndex != -1) {
                         startIosCrossfade(crossfadeSec, nextIndex)
@@ -863,7 +872,6 @@ class IOSMusicPlayer(
         val primary = currentPlayer
         val secondary = secondaryPlayer
         isCrossfading = true
-        crossfadeTargetVolume = primary.volume
  
         val nextMetadata = playlistItems[nextIndex]
         val nextItem = if (preloadedSongId == nextMetadata.id && preloadedPlayerItem != null) {
@@ -881,40 +889,93 @@ class IOSMusicPlayer(
         secondary.removeAllItems()
         secondary.insertItem(nextItem, afterItem = null)
         secondary.volume = 0f
-        secondary.play()
  
         // We do NOT swap currentPlayer/secondaryPlayer here.
         // The playerbar continues to show the previous song (primary) and its progress.
  
+        val style = settingsRepository.crossfadeStyle
+        val intervalMs = 100L
+        val durationMs = (durationSeconds * 1000).toLong()
+        val totalDurationMs = if (style == "Radio Segue") (durationMs * 1.5).toLong() else durationMs
+        val totalSteps = (totalDurationMs / intervalMs).coerceAtLeast(1L)
+        val baseSteps = (durationMs / intervalMs).coerceAtLeast(1L)
+        val halfSteps = if (style == "Radio Segue") baseSteps / 2 else totalSteps / 2
+        var secondaryStarted = false
+
+        if (style == "Smooth Blend") {
+            secondary.play()
+            secondaryStarted = true
+        }
+
         crossfadeJob = scope.launch(Dispatchers.Main) {
-            val durationMs = (durationSeconds * 1000).toLong()
-            val intervalMs = 100L
-            val totalSteps = (durationMs / intervalMs).coerceAtLeast(1L)
             val initialActiveSongId = _playbackState.value.currentMedia?.id
  
             for (step in 1..totalSteps) {
-                // Check for manual interventions on the active (old) player, new player, or active song id change
-                if (primary.rate == 0.0f || secondary.rate == 0.0f || _playbackState.value.currentMedia?.id != initialActiveSongId) {
-                    primary.volume = crossfadeTargetVolume
-                    secondary.volume = crossfadeTargetVolume
+                // Check for manual interventions on the active (old) player, new player (if started), or active song id change
+                if (primary.rate == 0.0f || (secondaryStarted && secondary.rate == 0.0f) || _playbackState.value.currentMedia?.id != initialActiveSongId) {
+                    primary.volume = userVolume
+                    secondary.volume = userVolume
                     secondary.pause()
                     isCrossfading = false
                     return@launch
                 }
                 
-                // Equal-power crossfade curve scaled by target volume
-                val progress = step.toFloat() / totalSteps
-                val angle = progress * (kotlin.math.PI.toFloat() / 2f)
-                primary.volume = crossfadeTargetVolume * kotlin.math.cos(angle)
-                secondary.volume = crossfadeTargetVolume * kotlin.math.sin(angle)
+                when (style) {
+                    "Radio Segue" -> {
+                        if (step > baseSteps) {
+                            val progressPrimary = (step - baseSteps).toFloat() / (totalSteps - baseSteps)
+                            val anglePrimary = progressPrimary * (kotlin.math.PI.toFloat() / 2f)
+                            primary.volume = userVolume * kotlin.math.cos(anglePrimary)
+                        } else {
+                            primary.volume = userVolume
+                        }
+
+                        if (step > halfSteps) {
+                            if (!secondaryStarted) {
+                                secondary.play()
+                                secondaryStarted = true
+                            }
+                            if (step <= baseSteps) {
+                                val progressSecondary = (step - halfSteps).toFloat() / (baseSteps - halfSteps)
+                                val angleSecondary = progressSecondary * (kotlin.math.PI.toFloat() / 2f)
+                                secondary.volume = userVolume * kotlin.math.sin(angleSecondary)
+                            } else {
+                                secondary.volume = userVolume
+                            }
+                        } else {
+                            secondary.volume = 0f
+                        }
+                    }
+                    "Compressed" -> {
+                        if (step > halfSteps) {
+                            if (!secondaryStarted) {
+                                secondary.play()
+                                secondaryStarted = true
+                            }
+                            val progress = (step - halfSteps).toFloat() / (totalSteps - halfSteps)
+                            val angle = progress * (kotlin.math.PI.toFloat() / 2f)
+                            primary.volume = userVolume * kotlin.math.cos(angle)
+                            secondary.volume = userVolume * kotlin.math.sin(angle)
+                        } else {
+                            primary.volume = userVolume
+                            secondary.volume = 0f
+                        }
+                    }
+                    else -> { // "Smooth Blend" (Traditional)
+                        val progress = step.toFloat() / totalSteps
+                        val angle = progress * (kotlin.math.PI.toFloat() / 2f)
+                        primary.volume = userVolume * kotlin.math.cos(angle)
+                        secondary.volume = userVolume * kotlin.math.sin(angle)
+                    }
+                }
                 
                 delay(intervalMs)
             }
  
             // Successful crossfade: pause primary (old player) and restore default volumes
             primary.pause()
-            primary.volume = crossfadeTargetVolume
-            secondary.volume = crossfadeTargetVolume
+            primary.volume = userVolume
+            secondary.volume = userVolume
  
             // Swap player roles now that the transition is complete
             currentPlayer = secondary

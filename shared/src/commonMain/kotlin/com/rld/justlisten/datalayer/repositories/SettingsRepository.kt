@@ -23,6 +23,7 @@ interface SettingsRepository {
     fun getSettingsInfo(): SettingsInfo
     var isCrossfadeEnabled: Boolean
     var crossfadeDurationSeconds: Double
+    var crossfadeStyle: String
 }
 
 class SettingsRepositoryImpl(
@@ -31,6 +32,7 @@ class SettingsRepositoryImpl(
 
     override var isCrossfadeEnabled: Boolean = false
     override var crossfadeDurationSeconds: Double = 5.0
+    override var crossfadeStyle: String = "Radio Segue"
 
     override fun saveSettingsInfo(
         hasNavigationDonationOn: Boolean,

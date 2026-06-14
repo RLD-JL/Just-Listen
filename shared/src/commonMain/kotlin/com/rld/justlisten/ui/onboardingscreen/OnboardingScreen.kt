@@ -86,6 +86,17 @@ fun OnboardingScreen(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Hope you enjoy your stay",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color.White.copy(alpha = 0.6f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
         }
 
         Spacer(modifier = Modifier.height(32.dp))

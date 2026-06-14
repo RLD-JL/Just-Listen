@@ -78,6 +78,7 @@ class SettingsViewModel(
                     eqBands = bands,
                     isCrossfadeEnabled = settingsRepository.isCrossfadeEnabled,
                     crossfadeDurationSeconds = settingsRepository.crossfadeDurationSeconds,
+                    crossfadeStyle = settingsRepository.crossfadeStyle,
                     isSettingsLoaded = true
                 )
             } catch (_: Exception) {
@@ -93,6 +94,7 @@ class SettingsViewModel(
         val state = _settingsState.value
         settingsRepository.isCrossfadeEnabled = state.isCrossfadeEnabled
         settingsRepository.crossfadeDurationSeconds = state.crossfadeDurationSeconds
+        settingsRepository.crossfadeStyle = state.crossfadeStyle
         viewModelScope.launch(Dispatchers.IO) {
             settingsRepository.saveSettingsInfo(
                 hasNavigationDonationOn = state.hasDonationNavigationOn,
@@ -160,6 +162,11 @@ class SettingsViewModel(
 
      fun onCrossfadeDurationChanged(duration: Double) {
          _settingsState.value = _settingsState.value.copy(crossfadeDurationSeconds = duration)
+         persistSettings()
+     }
+
+     fun onCrossfadeStyleChanged(style: String) {
+         _settingsState.value = _settingsState.value.copy(crossfadeStyle = style)
          persistSettings()
      }
 

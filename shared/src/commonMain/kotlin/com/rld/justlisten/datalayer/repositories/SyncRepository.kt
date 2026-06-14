@@ -78,6 +78,21 @@ class SyncRepositoryImpl(
 
     override fun enqueueFavoriteTask(trackId: String, isFavorite: Boolean) {
         val actionType = if (isFavorite) "FAVORITE" else "UNFAVORITE"
+        val existingTasks = localDb.syncQueueQueries.getTasksByTarget(trackId).executeAsList()
+        
+        if (existingTasks.isNotEmpty()) {
+            val oppositeAction = if (isFavorite) "UNFAVORITE" else "FAVORITE"
+            val hasOpposite = existingTasks.any { it.actionType == oppositeAction }
+            if (hasOpposite) {
+                // They cancel each other out. Remove all pending tasks for this track.
+                localDb.syncQueueQueries.deleteTasksByTarget(trackId)
+                return
+            } else {
+                // Duplicate task already exists in the queue, ignore.
+                return
+            }
+        }
+
         localDb.syncQueueQueries.insertTask(
             actionType = actionType,
             targetId = trackId,
@@ -178,6 +193,12 @@ class SyncRepositoryImpl(
             _syncState.value = SyncState.Syncing(pendingTasks.size)
 
             val task = pendingTasks.first()
+
+            if (task.retryCount >= 3) {
+                Logger.e { "Skipping task ${task.id} (${task.actionType} for ${task.targetId}) as it exceeded max retry limit of 3. Error: ${task.errorMessage}" }
+                localDb.syncQueueQueries.deleteTask(task.id)
+                continue
+            }
             
             // Stay within rate limits by introducing a 200ms delay between actions
             delay(200L)
@@ -186,11 +207,19 @@ class SyncRepositoryImpl(
                 when (task.actionType) {
                     "FAVORITE" -> {
                         val response = apiClient.favoriteTrack(task.targetId)
-                        response != null && response.error == null
+                        val isConflict = response?.error != null && (
+                            response.error.contains("already favorited", ignoreCase = true) ||
+                            response.error.contains("already exists", ignoreCase = true)
+                        )
+                        isConflict || (response != null && response.error == null)
                     }
                     "UNFAVORITE" -> {
                         val response = apiClient.unfavoriteTrack(task.targetId)
-                        response != null && response.error == null
+                        val isConflict = response?.error != null && (
+                            response.error.contains("not favorited", ignoreCase = true) ||
+                            response.error.contains("does not exist", ignoreCase = true)
+                        )
+                        isConflict || (response != null && response.error == null)
                     }
                     "PLAYLIST_CREATE" -> {
                         val payload = Json.decodeFromString(

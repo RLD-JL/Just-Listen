@@ -262,6 +262,16 @@ fun MusicLoadingScreen(
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.5.sp
                 )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Hope you enjoy your stay",
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 0.5.sp
+                )
             }
         }
     }

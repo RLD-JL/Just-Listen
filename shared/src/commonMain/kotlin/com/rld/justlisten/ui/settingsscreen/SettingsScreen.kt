@@ -228,7 +228,7 @@ fun SettingsScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         val (syncIcon, syncTitle, syncColor) = when (val sync = settings.syncState) {
@@ -250,6 +250,17 @@ fun SettingsScreen(
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
+
+                        if (settings.syncState is SyncState.SyncFailed) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            TextButton(
+                                onClick = onRetrySync,
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                modifier = Modifier.height(28.dp)
+                            ) {
+                                Text("Retry", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                            }
+                        }
                     }
                 }
                 
@@ -334,58 +345,17 @@ fun SettingsScreen(
                 
                 HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
                 
-                SettingsSwitchRow(
+                SettingsClickableRow(
                     icon = Icons.Rounded.CompareArrows,
                     title = "Playback Crossfade",
-                    checked = settings.isCrossfadeEnabled,
-                    onCheckedChange = {
-                        updateSettings(
-                            settings.copy(isCrossfadeEnabled = it)
-                        )
+                    subtitle = if (settings.isCrossfadeEnabled) "Style: ${settings.crossfadeStyle} (${settings.crossfadeDurationSeconds.toInt()}s)" else "Configure overlapping transitions (Disabled)",
+                    onClick = {
+                        activeSheetMode = com.rld.justlisten.ui.settingsscreen.components.SheetMode.Crossfade
+                        coroutineScope.launch {
+                            scaffoldState.bottomSheetState.expand()
+                        }
                     }
                 )
-                
-                AnimatedVisibility(visible = settings.isCrossfadeEnabled) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Crossfade Duration",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "${settings.crossfadeDurationSeconds.toInt()}s",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        
-                        Slider(
-                            value = settings.crossfadeDurationSeconds.toFloat(),
-                            onValueChange = { newValue ->
-                                updateSettings(
-                                    settings.copy(crossfadeDurationSeconds = newValue.toDouble())
-                                )
-                            },
-                            valueRange = 1f..15f,
-                            steps = 13,
-                            colors = SliderDefaults.colors(
-                                thumbColor = MaterialTheme.colorScheme.primary,
-                                activeTrackColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
-                    }
-                }
             }
 
             // Audio Equalizer section

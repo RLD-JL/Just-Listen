@@ -35,6 +35,21 @@ class MusicService : MediaSessionService() {
     private var currentPlayer: ExoPlayer? = null
     private var isCrossfading = false
     private var crossfadeTargetVolume = 1f
+    private var lastPrimarySetVolume: Float? = null
+    private var lastSecondarySetVolume: Float? = null
+
+    private fun setPrimaryVolume(vol: Float) {
+        val p = currentPlayer ?: return
+        lastPrimarySetVolume = vol
+        p.volume = vol
+    }
+
+    private fun setSecondaryVolume(vol: Float) {
+        val s = secondaryExoPlayer ?: return
+        lastSecondarySetVolume = vol
+        s.volume = vol
+    }
+
     private var equalizer: android.media.audiofx.Equalizer? = null
     private var equalizerSessionId: Int = -1
     private var audioAttributes: AudioAttributes? = null
@@ -57,12 +72,24 @@ class MusicService : MediaSessionService() {
         val attrs: androidx.media3.common.AudioAttributes by inject()
         audioAttributes = attrs
 
+        val volumeListener = object : Player.Listener {
+            override fun onVolumeChanged(volume: Float) {
+                val isInternal = (lastPrimarySetVolume != null && kotlin.math.abs(lastPrimarySetVolume!! - volume) < 0.001f) ||
+                                 (lastSecondarySetVolume != null && kotlin.math.abs(lastSecondarySetVolume!! - volume) < 0.001f)
+                if (!isInternal) {
+                    crossfadeTargetVolume = volume
+                    co.touchlab.kermit.Logger.d { "External volume change detected: $volume" }
+                }
+            }
+        }
+
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(cacheDataSourceFactory))
             .build().apply {
                 setAudioAttributes(attrs, true)
                 setHandleAudioBecomingNoisy(true)
             }
+        player.addListener(volumeListener)
         exoPlayer = player
         currentPlayer = player
 
@@ -84,6 +111,7 @@ class MusicService : MediaSessionService() {
                     setAudioAttributes(attrs, true)
                     setHandleAudioBecomingNoisy(true)
                 }
+            secondaryExoPlayer?.addListener(volumeListener)
         }
 
         val activityIntent = packageManager?.getLaunchIntentForPackage(packageName)?.let {
@@ -130,7 +158,12 @@ class MusicService : MediaSessionService() {
                     if (duration > 0 && duration != C.TIME_UNSET) {
                         val remainingMs = duration - position
                         val crossfadeDurationMs = (settingsRepository.crossfadeDurationSeconds * 1000).toLong()
-                        if (remainingMs <= crossfadeDurationMs && settingsRepository.isCrossfadeEnabled) {
+                        val triggerDurationMs = if (settingsRepository.crossfadeStyle == "Radio Segue") {
+                            (crossfadeDurationMs * 1.5).toLong()
+                        } else {
+                            crossfadeDurationMs
+                        }
+                        if (remainingMs <= triggerDurationMs && settingsRepository.isCrossfadeEnabled) {
                             val nextIndex = player.nextMediaItemIndex
                             if (nextIndex != C.INDEX_UNSET && nextIndex < player.mediaItemCount) {
                                 startCrossfade(crossfadeDurationMs, nextIndex)
@@ -150,6 +183,8 @@ class MusicService : MediaSessionService() {
 
         isCrossfading = true
         crossfadeTargetVolume = primary.volume
+        lastPrimarySetVolume = crossfadeTargetVolume
+        lastSecondarySetVolume = 0f
 
         val targetMediaId = primary.getMediaItemAt(nextIndex).mediaId
         val startingMediaId = primary.currentMediaItem?.mediaId
@@ -171,8 +206,8 @@ class MusicService : MediaSessionService() {
                 secondary.setAudioAttributes(restoreAttrs, true)
                 primary.setAudioAttributes(restoreAttrs, true)
             }
-            primary.volume = crossfadeTargetVolume
-            secondary.volume = crossfadeTargetVolume
+            setPrimaryVolume(crossfadeTargetVolume)
+            setSecondaryVolume(crossfadeTargetVolume)
             secondary.pause()
             isCrossfading = false
         }
@@ -221,9 +256,8 @@ class MusicService : MediaSessionService() {
         secondary.repeatMode = primary.repeatMode
         secondary.shuffleModeEnabled = primary.shuffleModeEnabled
         secondary.seekTo(nextIndex, 0L)
-        secondary.volume = 0f
+        setSecondaryVolume(0f)
         secondary.prepare()
-        secondary.play()
 
         // Apply equalizer settings to secondary player immediately so it starts with correct timbre
         val settingsViewModel: SettingsViewModel by inject()
@@ -234,16 +268,26 @@ class MusicService : MediaSessionService() {
 
         co.touchlab.kermit.Logger.d { "startCrossfade: primary=${primary.currentMediaItem?.mediaId}, secondary=${secondary.currentMediaItem?.mediaId}, targetMediaId=$targetMediaId, durationMs=$durationMs" }
 
-        crossfadeJob = serviceScope.launch {
-            val intervalMs = 100L
-            val totalSteps = (durationMs / intervalMs).coerceAtLeast(1L)
+        val style = settingsRepository.crossfadeStyle
+        val intervalMs = 100L
+        val totalDurationMs = if (style == "Radio Segue") (durationMs * 1.5).toLong() else durationMs
+        val totalSteps = (totalDurationMs / intervalMs).coerceAtLeast(1L)
+        val baseSteps = (durationMs / intervalMs).coerceAtLeast(1L)
+        val halfSteps = if (style == "Radio Segue") baseSteps / 2 else totalSteps / 2
+        var secondaryStarted = false
 
-            co.touchlab.kermit.Logger.d { "startCrossfade loop start: targetMediaId=$targetMediaId, playWhenReady=${secondary.playWhenReady}" }
+        if (style == "Smooth Blend") {
+            secondary.play()
+            secondaryStarted = true
+        }
+
+        crossfadeJob = serviceScope.launch {
+            co.touchlab.kermit.Logger.d { "startCrossfade loop start: targetMediaId=$targetMediaId, style=$style, playWhenReady=${secondary.playWhenReady}" }
 
             for (step in 1..totalSteps) {
                 val currentPrimaryId = primary.currentMediaItem?.mediaId
-                // Abort if active playback (primary) stops, secondary stops, or song is skipped/changed manually
-                if (!primary.playWhenReady || !secondary.playWhenReady || currentPrimaryId != startingMediaId) {
+                // Abort if active playback (primary) stops, secondary stops (if started), or song is skipped/changed manually
+                if (!primary.playWhenReady || (secondaryStarted && !secondary.playWhenReady) || currentPrimaryId != startingMediaId) {
                     co.touchlab.kermit.Logger.w { "startCrossfade ABORTED at step $step: primaryPlayWhenReady=${primary.playWhenReady}, secondaryPlayWhenReady=${secondary.playWhenReady}, currentPrimaryId=$currentPrimaryId, startingMediaId=$startingMediaId" }
                     abort()
                     return@launch
@@ -258,11 +302,54 @@ class MusicService : MediaSessionService() {
                     }
                 }
                 
-                // Equal-power crossfade curve scaled by target volume
-                val progress = step.toFloat() / totalSteps
-                val angle = progress * (kotlin.math.PI.toFloat() / 2f)
-                primary.volume = crossfadeTargetVolume * kotlin.math.cos(angle)
-                secondary.volume = crossfadeTargetVolume * kotlin.math.sin(angle)
+                when (style) {
+                    "Radio Segue" -> {
+                        if (step > baseSteps) {
+                            val progressPrimary = (step - baseSteps).toFloat() / (totalSteps - baseSteps)
+                            val anglePrimary = progressPrimary * (kotlin.math.PI.toFloat() / 2f)
+                            setPrimaryVolume(crossfadeTargetVolume * kotlin.math.cos(anglePrimary))
+                        } else {
+                            setPrimaryVolume(crossfadeTargetVolume)
+                        }
+
+                        if (step > halfSteps) {
+                            if (!secondaryStarted) {
+                                secondary.play()
+                                secondaryStarted = true
+                            }
+                            if (step <= baseSteps) {
+                                val progressSecondary = (step - halfSteps).toFloat() / (baseSteps - halfSteps)
+                                val angleSecondary = progressSecondary * (kotlin.math.PI.toFloat() / 2f)
+                                setSecondaryVolume(crossfadeTargetVolume * kotlin.math.sin(angleSecondary))
+                            } else {
+                                setSecondaryVolume(crossfadeTargetVolume)
+                            }
+                        } else {
+                            setSecondaryVolume(0f)
+                        }
+                    }
+                    "Compressed" -> {
+                        if (step > halfSteps) {
+                            if (!secondaryStarted) {
+                                secondary.play()
+                                secondaryStarted = true
+                            }
+                            val progress = (step - halfSteps).toFloat() / (totalSteps - halfSteps)
+                            val angle = progress * (kotlin.math.PI.toFloat() / 2f)
+                            setPrimaryVolume(crossfadeTargetVolume * kotlin.math.cos(angle))
+                            setSecondaryVolume(crossfadeTargetVolume * kotlin.math.sin(angle))
+                        } else {
+                            setPrimaryVolume(crossfadeTargetVolume)
+                            setSecondaryVolume(0f)
+                        }
+                    }
+                    else -> { // "Smooth Blend" (Traditional)
+                        val progress = step.toFloat() / totalSteps
+                        val angle = progress * (kotlin.math.PI.toFloat() / 2f)
+                        setPrimaryVolume(crossfadeTargetVolume * kotlin.math.cos(angle))
+                        setSecondaryVolume(crossfadeTargetVolume * kotlin.math.sin(angle))
+                    }
+                }
                 
                 co.touchlab.kermit.Logger.v { "startCrossfade step $step/$totalSteps: primaryVol=${primary.volume}, secondaryVol=${secondary.volume}" }
                 delay(intervalMs)
@@ -274,8 +361,8 @@ class MusicService : MediaSessionService() {
 
             // Finalize crossfade
             primary.pause()
-            primary.volume = crossfadeTargetVolume
-            secondary.volume = crossfadeTargetVolume
+            setPrimaryVolume(crossfadeTargetVolume)
+            setSecondaryVolume(crossfadeTargetVolume)
 
             // Swap player roles in session now that the transition is complete
             mediaSession?.player = secondary

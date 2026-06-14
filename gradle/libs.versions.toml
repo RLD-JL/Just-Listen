@@ -23,8 +23,8 @@ paletteVersion = "1.0.0"
 splashscreenVersion = "1.2.0"
 leakcanaryVersion = "2.14"
 securityCryptoVersion = "1.1.0"
-android-compileSdk = "36"
-android-targetSdk = "35"
+android-compileSdk = "37"
+android-targetSdk = "37"
 android-minSdk = "23"
 
 [libraries]

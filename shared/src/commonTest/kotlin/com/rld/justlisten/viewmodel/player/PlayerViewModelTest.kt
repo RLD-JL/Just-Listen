@@ -777,5 +777,6 @@ class FakeSettingsRepository : SettingsRepository {
     }
     override var isCrossfadeEnabled: Boolean = false
     override var crossfadeDurationSeconds: Double = 5.0
+    override var crossfadeStyle: String = "Radio Segue"
     override fun getSettingsInfo(): SettingsInfo = info
 }

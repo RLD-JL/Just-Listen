@@ -74,10 +74,10 @@ class MusicServiceConnection(
         }, MoreExecutors.directExecutor())
     }
 
-    fun updatePlaylist(list: List<Item>) {
+    fun updatePlaylist(list: List<Item>, startIndex: Int = 0) {
         musicSource.playlist = list
         musicSource.fetchMediaData()
-        mediaController?.setMediaItems(musicSource.songs)
+        mediaController?.setMediaItems(musicSource.songs, startIndex, 0L)
         mediaController?.prepare()
     }
 
