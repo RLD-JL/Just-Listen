@@ -22,17 +22,14 @@ Available on <a href = "https://play.google.com/store/apps/details?id=com.rld.ju
 
 ## Demos & Previews
 
-<p align="center">
-  <video src="assets/justlisten-demo.mp4" width="340" controls></video>
-  <video src="assets/justlisten-demo-2.mp4" width="340" controls></video>
-</p>
-<p align="center">
-  <video src="assets/justlisten-demo-3.mp4" width="340" controls></video>
-  <video src="assets/justlisten-demo-4.mp4" width="340" controls></video>
-</p>
-<p align="center">
-  <video src="assets/justlisten-demo-5.mp4" width="340" controls></video>
-</p>
+| Demo 1 | Demo 2 |
+| :-: | :-: |
+| ![](assets/justlisten-demo.mp4) | ![](assets/justlisten-demo-2.mp4) |
+| ![](assets/justlisten-demo-3.mp4) | ![](assets/justlisten-demo-4.mp4) |
+
+| Demo 5 |
+| :-: |
+| ![](assets/justlisten-demo-5.mp4) |
 
 ## Features
 
