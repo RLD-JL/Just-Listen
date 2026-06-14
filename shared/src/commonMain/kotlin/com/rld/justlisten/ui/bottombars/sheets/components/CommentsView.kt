@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,6 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -40,6 +43,7 @@ import com.rld.justlisten.datalayer.repositories.SessionState
 import com.rld.justlisten.datalayer.webservices.ApiClient
 import com.rld.justlisten.datalayer.webservices.apis.commentcalls.getTrackComments
 import com.rld.justlisten.datalayer.webservices.apis.commentcalls.postComment
+import com.rld.justlisten.datalayer.webservices.apis.commentcalls.reactToComment
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.ui.theme.typography
 import kotlinx.coroutines.launch
@@ -66,7 +70,10 @@ fun CommentsView(
     var isPosting by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf("Top") }
 
-    // Resolve track artist information for simulated reply interactions
+    // Replying state representation
+    var replyingToComment by remember { mutableStateOf<Comment?>(null) }
+
+    // Resolve track artist information for simulated reply interactions or references
     val musicPlayer = LocalMusicPlayer.current
     val currentMedia = musicPlayer.playbackState.collectAsState().value.currentMedia
     val trackArtist = currentMedia?.artist ?: "Artist"
@@ -124,6 +131,37 @@ fun CommentsView(
 
         HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
 
+        // Replying To Banner
+        if (replyingToComment != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                val replyingUserName = usersMap[replyingToComment?.userId]?.name ?: "User"
+                Text(
+                    text = "Replying to @$replyingUserName",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium
+                )
+                IconButton(
+                    onClick = { replyingToComment = null },
+                    modifier = Modifier.size(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cancel reply",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
+            }
+        }
+
         // Write Comment Bar (Positioned at the top below Header, matching request)
         Box(
             modifier = Modifier
@@ -162,7 +200,7 @@ fun CommentsView(
                         OutlinedTextField(
                             value = commentText,
                             onValueChange = { commentText = it },
-                            placeholder = { Text("Add a comment...", fontSize = 13.sp) },
+                            placeholder = { Text(if (replyingToComment != null) "Add a reply..." else "Add a comment...", fontSize = 13.sp) },
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = Color.Transparent,
@@ -184,9 +222,15 @@ fun CommentsView(
                                     if (text.isNotEmpty() && currentUserId != null && !isPosting) {
                                         coroutineScope.launch {
                                             isPosting = true
-                                            val success = apiClient.postComment(currentUserId, trackId, text)
+                                            val success = apiClient.postComment(
+                                                userId = currentUserId,
+                                                trackId = trackId,
+                                                message = text,
+                                                parentId = replyingToComment?.id
+                                            )
                                             if (success != null && success.error == null) {
                                                 commentText = ""
+                                                replyingToComment = null
                                                 loadComments()
                                             }
                                             isPosting = false
@@ -202,9 +246,15 @@ fun CommentsView(
                                 if (text.isNotEmpty() && currentUserId != null && !isPosting) {
                                     coroutineScope.launch {
                                         isPosting = true
-                                        val success = apiClient.postComment(currentUserId, trackId, text)
+                                        val success = apiClient.postComment(
+                                            userId = currentUserId,
+                                            trackId = trackId,
+                                            message = text,
+                                            parentId = replyingToComment?.id
+                                        )
                                         if (success != null && success.error == null) {
                                             commentText = ""
+                                            replyingToComment = null
                                             loadComments()
                                         }
                                         isPosting = false
@@ -327,7 +377,7 @@ fun CommentsView(
 
                         Column(modifier = Modifier.fillMaxWidth()) {
                             // "Liked by Artist" header (simulated for popular/reacted comments)
-                            val hasLikes = comment.reactCount > 0
+                            val hasLikes = comment.reactCount > 0 || comment.isArtistReacted
                             if (hasLikes) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -387,7 +437,17 @@ fun CommentsView(
                                         )
 
                                         // Render Timestamp
-                                        if (hasLikes) {
+                                        val timestampSec = comment.trackTimestampS
+                                        if (timestampSec != null && timestampSec > 0) {
+                                            val m = timestampSec / 60
+                                            val s = timestampSec % 60
+                                            Text(
+                                                text = "• $m:${s.toString().padStart(2, '0')}",
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        } else if (hasLikes) {
                                             Text(
                                                 text = "• 1:03",
                                                 fontSize = 11.sp,
@@ -413,15 +473,31 @@ fun CommentsView(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                                     ) {
+                                        // Like Heart Toggle
+                                        val isLiked = comment.isCurrentUserReacted
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                            modifier = Modifier.clickable { /* Handle Like */ }
+                                            modifier = Modifier.clickable {
+                                                if (isUserLoggedIn && currentUserId != null) {
+                                                    coroutineScope.launch {
+                                                        val success = apiClient.reactToComment(
+                                                            userId = currentUserId,
+                                                            commentId = comment.id,
+                                                            trackId = trackId,
+                                                            react = !isLiked
+                                                        )
+                                                        if (success != null && success.error == null) {
+                                                            loadComments()
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         ) {
                                             Icon(
-                                                imageVector = if (hasLikes) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                                imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                                                 contentDescription = "Like",
-                                                tint = if (hasLikes) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                                tint = if (isLiked) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                                 modifier = Modifier.size(14.dp)
                                             )
                                             Text(
@@ -431,27 +507,53 @@ fun CommentsView(
                                             )
                                         }
 
+                                        // Reply button triggers "replyingToComment" banner
                                         Text(
                                             text = "Reply",
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                            modifier = Modifier.clickable { /* Handle Reply */ }
+                                            modifier = Modifier.clickable {
+                                                if (isUserLoggedIn) {
+                                                    replyingToComment = comment
+                                                }
+                                            }
                                         )
 
-                                        Icon(
-                                            imageVector = Icons.Default.MoreHoriz,
-                                            contentDescription = "More Options",
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                            modifier = Modifier
-                                                .size(16.dp)
-                                                .clickable { /* Handle More */ }
-                                        )
+                                        // Share specific comment via Ellipsis Menu
+                                        var showMenu by remember { mutableStateOf(false) }
+                                        Box {
+                                            Icon(
+                                                imageVector = Icons.Default.MoreHoriz,
+                                                contentDescription = "More Options",
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                                modifier = Modifier
+                                                    .size(16.dp)
+                                                    .clickable { showMenu = true }
+                                            )
+                                            val clipboardManager = LocalClipboardManager.current
+                                            DropdownMenu(
+                                                expanded = showMenu,
+                                                onDismissRequest = { showMenu = false }
+                                            ) {
+                                                DropdownMenuItem(
+                                                    text = { Text("Copy Link to Comment") },
+                                                    onClick = {
+                                                        showMenu = false
+                                                        val url = "justlisten://comments/share?trackId=$trackId&commentId=${comment.id}"
+                                                        clipboardManager.setText(AnnotatedString(url))
+                                                        com.rld.justlisten.ui.utils.showToast("Comment link copied!")
+                                                    },
+                                                    leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
+                                                )
+                                            }
+                                        }
                                     }
 
-                                    // Interactive Nested Replies
+                                    // Nested replies rendering
+                                    val repliesList = comment.replies
                                     val commentReplyCount = comment.replyCount
-                                    if (commentReplyCount > 0) {
+                                    if (commentReplyCount > 0 || repliesList.isNotEmpty()) {
                                         var showReplies by remember { mutableStateOf(false) }
                                         Spacer(modifier = Modifier.height(8.dp))
 
@@ -469,7 +571,7 @@ fun CommentsView(
                                             )
                                             Spacer(modifier = Modifier.width(4.dp))
                                             Text(
-                                                text = if (showReplies) "Hide Replies" else "Show Replies (${commentReplyCount})",
+                                                text = if (showReplies) "Hide Replies" else "Show Replies (${if (repliesList.isNotEmpty()) repliesList.size else commentReplyCount})",
                                                 fontSize = 12.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
@@ -479,106 +581,186 @@ fun CommentsView(
                                         if (showReplies) {
                                             Spacer(modifier = Modifier.height(8.dp))
 
-                                            // Nested Artist reply box
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                            ) {
-                                                Image(
-                                                    painter = rememberAsyncImagePainter(trackArtistAvatar),
-                                                    contentDescription = null,
-                                                    contentScale = ContentScale.Crop,
-                                                    modifier = Modifier
-                                                        .size(28.dp)
-                                                        .clip(CircleShape)
-                                                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                                                )
+                                            if (repliesList.isNotEmpty()) {
+                                                // Render actual replies from the model
+                                                repliesList.forEach { reply ->
+                                                    val replier = usersMap[reply.userId]
+                                                    val replierName = replier?.name ?: "User"
+                                                    val replierAvatar = replier?.profilePicture?.songImageURL150px ?: "https://images.unsplash.com/photo-1534528741775-53994a69daeb"
+                                                    val isReplierArtist = reply.userId == currentMedia?.artistId
 
-                                                Column(modifier = Modifier.weight(1f)) {
                                                     Row(
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                                                     ) {
-                                                        Text(
-                                                            text = "@${trackArtist.replace(" ", "")}",
-                                                            fontSize = 12.sp,
-                                                            fontWeight = FontWeight.Bold,
-                                                            color = MaterialTheme.colorScheme.primary
-                                                        )
-
-                                                        Icon(
-                                                            imageVector = Icons.Default.Verified,
-                                                            contentDescription = "Verified",
-                                                            tint = MaterialTheme.colorScheme.primary,
-                                                            modifier = Modifier.size(12.dp)
-                                                        )
-
-                                                        Text(
-                                                            text = "• 7d",
-                                                            fontSize = 11.sp,
-                                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                                        )
-
-                                                        Spacer(modifier = Modifier.weight(1f))
-
-                                                        Box(
+                                                        Image(
+                                                            painter = rememberAsyncImagePainter(replierAvatar),
+                                                            contentDescription = null,
+                                                            contentScale = ContentScale.Crop,
                                                             modifier = Modifier
-                                                                .clip(RoundedCornerShape(4.dp))
-                                                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
-                                                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                                                        ) {
+                                                                .size(28.dp)
+                                                                .clip(CircleShape)
+                                                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                                        )
+
+                                                        Column(modifier = Modifier.weight(1f)) {
+                                                            Row(
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                                            ) {
+                                                                Text(
+                                                                    text = replierName,
+                                                                    fontSize = 12.sp,
+                                                                    fontWeight = FontWeight.Bold,
+                                                                    color = if (isReplierArtist) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                                                )
+
+                                                                if (replier?.isVerified == true) {
+                                                                    Icon(
+                                                                        imageVector = Icons.Default.Verified,
+                                                                        contentDescription = "Verified",
+                                                                        tint = MaterialTheme.colorScheme.primary,
+                                                                        modifier = Modifier.size(12.dp)
+                                                                    )
+                                                                }
+
+                                                                Text(
+                                                                    text = "• ${formatTimeAgo(reply.createdAt)}",
+                                                                    fontSize = 11.sp,
+                                                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                                                )
+
+                                                                if (isReplierArtist) {
+                                                                    Spacer(modifier = Modifier.weight(1f))
+                                                                    Box(
+                                                                        modifier = Modifier
+                                                                            .clip(RoundedCornerShape(4.dp))
+                                                                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+                                                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                                                    ) {
+                                                                        Text(
+                                                                            text = "★ Artist",
+                                                                            fontSize = 9.sp,
+                                                                            fontWeight = FontWeight.Bold,
+                                                                            color = MaterialTheme.colorScheme.primary
+                                                                        )
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            Spacer(modifier = Modifier.height(2.dp))
+
                                                             Text(
-                                                                text = "★ Artist",
-                                                                fontSize = 9.sp,
-                                                                fontWeight = FontWeight.Bold,
-                                                                color = MaterialTheme.colorScheme.primary
+                                                                text = reply.message,
+                                                                fontSize = 12.sp,
+                                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                                lineHeight = 16.sp
                                                             )
                                                         }
                                                     }
-
-                                                    Spacer(modifier = Modifier.height(2.dp))
-
-                                                    Text(
-                                                        text = "@${commenterName.replace(" ", "")} Much Appreciated my man! 🙏❤️🔥👊",
-                                                        fontSize = 12.sp,
-                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                        lineHeight = 16.sp
+                                                }
+                                            } else {
+                                                // Fallback to simulated artist reply
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                                ) {
+                                                    Image(
+                                                        painter = rememberAsyncImagePainter(trackArtistAvatar),
+                                                        contentDescription = null,
+                                                        contentScale = ContentScale.Crop,
+                                                        modifier = Modifier
+                                                            .size(28.dp)
+                                                            .clip(CircleShape)
+                                                            .background(MaterialTheme.colorScheme.surfaceVariant)
                                                     )
 
-                                                    Spacer(modifier = Modifier.height(4.dp))
-
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                                    ) {
+                                                    Column(modifier = Modifier.weight(1f)) {
                                                         Row(
                                                             verticalAlignment = Alignment.CenterVertically,
                                                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                                                         ) {
+                                                            Text(
+                                                                text = "@${trackArtist.replace(" ", "")}",
+                                                                fontSize = 12.sp,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = MaterialTheme.colorScheme.primary
+                                                            )
+
                                                             Icon(
-                                                                imageVector = Icons.Default.Favorite,
-                                                                contentDescription = "Like",
-                                                                tint = Color(0xFFE91E63),
+                                                                imageVector = Icons.Default.Verified,
+                                                                contentDescription = "Verified",
+                                                                tint = MaterialTheme.colorScheme.primary,
                                                                 modifier = Modifier.size(12.dp)
                                                             )
+
                                                             Text(
-                                                                text = "2",
+                                                                text = "• 7d",
                                                                 fontSize = 11.sp,
                                                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                                             )
+
+                                                            Spacer(modifier = Modifier.weight(1f))
+
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .clip(RoundedCornerShape(4.dp))
+                                                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+                                                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                                                            ) {
+                                                                Text(
+                                                                    text = "★ Artist",
+                                                                    fontSize = 9.sp,
+                                                                    fontWeight = FontWeight.Bold,
+                                                                    color = MaterialTheme.colorScheme.primary
+                                                                )
+                                                            }
                                                         }
+
+                                                        Spacer(modifier = Modifier.height(2.dp))
+
                                                         Text(
-                                                            text = "Reply",
-                                                            fontSize = 11.sp,
-                                                            fontWeight = FontWeight.Bold,
-                                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                                            text = "@${commenterName.replace(" ", "")} Much Appreciated my man! 🙏❤️🔥👊",
+                                                            fontSize = 12.sp,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                            lineHeight = 16.sp
                                                         )
-                                                        Icon(
-                                                            imageVector = Icons.Default.MoreHoriz,
-                                                            contentDescription = "More",
-                                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                                            modifier = Modifier.size(14.dp)
-                                                        )
+
+                                                        Spacer(modifier = Modifier.height(4.dp))
+
+                                                        Row(
+                                                            verticalAlignment = Alignment.CenterVertically,
+                                                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                                        ) {
+                                                            Row(
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                                            ) {
+                                                                Icon(
+                                                                    imageVector = Icons.Default.Favorite,
+                                                                    contentDescription = "Like",
+                                                                    tint = Color(0xFFE91E63),
+                                                                    modifier = Modifier.size(12.dp)
+                                                                )
+                                                                Text(
+                                                                    text = "2",
+                                                                    fontSize = 11.sp,
+                                                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                                                )
+                                                            }
+                                                            Text(
+                                                                text = "Reply",
+                                                                fontSize = 11.sp,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                                            )
+                                                            Icon(
+                                                                imageVector = Icons.Default.MoreHoriz,
+                                                                contentDescription = "More",
+                                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                                                modifier = Modifier.size(14.dp)
+                                                            )
+                                                        }
                                                     }
                                                 }
                                             }

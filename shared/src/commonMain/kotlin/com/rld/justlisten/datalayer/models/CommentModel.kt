@@ -20,7 +20,12 @@ data class Comment(
     @SerialName("message") val message: String,
     @SerialName("created_at") val createdAt: String,
     @SerialName("react_count") val reactCount: Int = 0,
-    @SerialName("reply_count") val replyCount: Int = 0
+    @SerialName("reply_count") val replyCount: Int = 0,
+    @SerialName("is_current_user_reacted") val isCurrentUserReacted: Boolean = false,
+    @SerialName("is_artist_reacted") val isArtistReacted: Boolean = false,
+    @SerialName("track_timestamp_s") val trackTimestampS: Int? = null,
+    @SerialName("parent_comment_id") val parentCommentId: String? = null,
+    @SerialName("replies") val replies: List<Comment> = emptyList()
 )
 
 @Serializable
@@ -38,5 +43,13 @@ data class TrackCommentsResponse(
 data class CreateCommentRequestBody(
     @SerialName("message") val message: String,
     @SerialName("entity_id") val entityId: String,
-    @SerialName("entity_type") val entityType: String = "track"
+    @SerialName("entity_type") val entityType: String = "track",
+    @SerialName("parent_id") val parentId: String? = null,
+    @SerialName("track_timestamp_s") val trackTimestampS: Int? = null
+)
+
+@Serializable
+data class ReactCommentRequestBody(
+    @SerialName("entity_type") val entityType: String = "track",
+    @SerialName("entity_id") val entityId: String
 )
