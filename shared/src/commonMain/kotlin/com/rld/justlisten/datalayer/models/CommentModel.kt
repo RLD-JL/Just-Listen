@@ -25,7 +25,7 @@ data class Comment(
     @SerialName("is_artist_reacted") val isArtistReacted: Boolean = false,
     @SerialName("track_timestamp_s") val trackTimestampS: Int? = null,
     @SerialName("parent_comment_id") val parentCommentId: String? = null,
-    @SerialName("replies") val replies: List<Comment> = emptyList()
+    @SerialName("replies") val replies: List<Comment>? = emptyList()
 )
 
 @Serializable

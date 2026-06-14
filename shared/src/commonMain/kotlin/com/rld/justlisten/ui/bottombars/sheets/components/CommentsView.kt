@@ -551,7 +551,7 @@ fun CommentsView(
                                     }
 
                                     // Nested replies rendering
-                                    val repliesList = comment.replies
+                                    val repliesList = comment.replies ?: emptyList()
                                     val commentReplyCount = comment.replyCount
                                     if (commentReplyCount > 0 || repliesList.isNotEmpty()) {
                                         var showReplies by remember { mutableStateOf(false) }
