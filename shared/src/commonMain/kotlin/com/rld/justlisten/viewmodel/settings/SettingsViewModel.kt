@@ -79,6 +79,7 @@ class SettingsViewModel(
                     isCrossfadeEnabled = settingsRepository.isCrossfadeEnabled,
                     crossfadeDurationSeconds = settingsRepository.crossfadeDurationSeconds,
                     crossfadeStyle = settingsRepository.crossfadeStyle,
+                    isVolumeNormalizationEnabled = settingsRepository.isVolumeNormalizationEnabled,
                     isSettingsLoaded = true
                 )
             } catch (_: Exception) {
@@ -95,6 +96,7 @@ class SettingsViewModel(
         settingsRepository.isCrossfadeEnabled = state.isCrossfadeEnabled
         settingsRepository.crossfadeDurationSeconds = state.crossfadeDurationSeconds
         settingsRepository.crossfadeStyle = state.crossfadeStyle
+        settingsRepository.isVolumeNormalizationEnabled = state.isVolumeNormalizationEnabled
         viewModelScope.launch(Dispatchers.IO) {
             settingsRepository.saveSettingsInfo(
                 hasNavigationDonationOn = state.hasDonationNavigationOn,
@@ -157,6 +159,11 @@ class SettingsViewModel(
 
      fun onCrossfadeToggled(enabled: Boolean) {
          _settingsState.value = _settingsState.value.copy(isCrossfadeEnabled = enabled)
+         persistSettings()
+     }
+
+     fun onVolumeNormalizationToggled(enabled: Boolean) {
+         _settingsState.value = _settingsState.value.copy(isVolumeNormalizationEnabled = enabled)
          persistSettings()
      }
 

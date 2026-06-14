@@ -52,7 +52,75 @@ class MusicService : MediaSessionService() {
 
     private var equalizer: android.media.audiofx.Equalizer? = null
     private var equalizerSessionId: Int = -1
+    private var secondaryEqualizer: android.media.audiofx.Equalizer? = null
+    private var secondaryEqualizerSessionId: Int = -1
+    private var dynamicsProcessing: android.media.audiofx.DynamicsProcessing? = null
+    private var dynamicsProcessingSessionId: Int = -1
+    private var secondaryDynamicsProcessing: android.media.audiofx.DynamicsProcessing? = null
+    private var secondaryDynamicsProcessingSessionId: Int = -1
     private var audioAttributes: AudioAttributes? = null
+    private var audioFocusRequest: android.media.AudioFocusRequest? = null
+    private var wasPlayingBeforeFocusLoss = false
+
+    private val audioFocusChangeListener = android.media.AudioManager.OnAudioFocusChangeListener { focusChange ->
+        when (focusChange) {
+            android.media.AudioManager.AUDIOFOCUS_GAIN -> {
+                currentPlayer?.let { p ->
+                    p.volume = crossfadeTargetVolume
+                    if (wasPlayingBeforeFocusLoss) {
+                        p.play()
+                    }
+                }
+            }
+            android.media.AudioManager.AUDIOFOCUS_LOSS -> {
+                wasPlayingBeforeFocusLoss = false
+                currentPlayer?.pause()
+            }
+            android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                wasPlayingBeforeFocusLoss = currentPlayer?.playWhenReady == true
+                currentPlayer?.pause()
+            }
+            android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                currentPlayer?.let { p ->
+                    p.volume = crossfadeTargetVolume * 0.2f
+                }
+            }
+        }
+    }
+
+    private fun requestAudioFocus(): Boolean {
+        val audioManager = getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val playbackAttributes = android.media.AudioAttributes.Builder()
+                .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
+            val request = android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(playbackAttributes)
+                .setAcceptsDelayedFocusGain(true)
+                .setOnAudioFocusChangeListener(audioFocusChangeListener)
+                .build()
+            audioFocusRequest = request
+            audioManager.requestAudioFocus(request) == android.media.AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.requestAudioFocus(
+                audioFocusChangeListener,
+                android.media.AudioManager.STREAM_MUSIC,
+                android.media.AudioManager.AUDIOFOCUS_GAIN
+            ) == android.media.AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        }
+    }
+
+    private fun abandonAudioFocus() {
+        val audioManager = getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.abandonAudioFocus(audioFocusChangeListener)
+        }
+    }
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
@@ -81,12 +149,39 @@ class MusicService : MediaSessionService() {
                     co.touchlab.kermit.Logger.d { "External volume change detected: $volume" }
                 }
             }
+
+            override fun onAudioSessionIdChanged(audioSessionId: Int) {
+                val settingsViewModel: SettingsViewModel by inject()
+                val state = settingsViewModel.settingsState.value
+                val p = exoPlayer
+                if (p != null && p.audioSessionId == audioSessionId) {
+                    updateEqualizer(state.isEqEnabled, state.eqBands, p)
+                    updateDynamicsProcessing(state.isVolumeNormalizationEnabled, p)
+                }
+                val s = secondaryExoPlayer
+                if (s != null && s.audioSessionId == audioSessionId) {
+                    updateEqualizer(state.isEqEnabled, state.eqBands, s)
+                    updateDynamicsProcessing(state.isVolumeNormalizationEnabled, s)
+                }
+            }
+
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                if (playWhenReady) {
+                    requestAudioFocus()
+                } else {
+                    val primaryPlaying = exoPlayer?.playWhenReady == true
+                    val secondaryPlaying = secondaryExoPlayer?.playWhenReady == true
+                    if (!primaryPlaying && !secondaryPlaying) {
+                        abandonAudioFocus()
+                    }
+                }
+            }
         }
 
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(cacheDataSourceFactory))
             .build().apply {
-                setAudioAttributes(attrs, true)
+                setAudioAttributes(attrs, false)
                 setHandleAudioBecomingNoisy(true)
             }
         player.addListener(volumeListener)
@@ -108,7 +203,7 @@ class MusicService : MediaSessionService() {
                 .setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(cacheDataSourceFactory))
                 .setLoadControl(loadControl)
                 .build().apply {
-                    setAudioAttributes(attrs, true)
+                    setAudioAttributes(attrs, false)
                     setHandleAudioBecomingNoisy(true)
                 }
             secondaryExoPlayer?.addListener(volumeListener)
@@ -131,6 +226,7 @@ class MusicService : MediaSessionService() {
         serviceScope.launch {
             settingsViewModel.settingsState.collect { state ->
                 updateEqualizer(state.isEqEnabled, state.eqBands)
+                updateDynamicsProcessing(state.isVolumeNormalizationEnabled)
             }
         }
     }
@@ -201,11 +297,6 @@ class MusicService : MediaSessionService() {
             crossfadeJob?.cancel()
             crossfadeJob = null
             
-            val restoreAttrs = audioAttributes
-            if (restoreAttrs != null) {
-                secondary.setAudioAttributes(restoreAttrs, true)
-                primary.setAudioAttributes(restoreAttrs, true)
-            }
             setPrimaryVolume(crossfadeTargetVolume)
             setSecondaryVolume(crossfadeTargetVolume)
             secondary.pause()
@@ -242,14 +333,6 @@ class MusicService : MediaSessionService() {
 
         primary.addListener(listener)
 
-        // Disable audio focus handling temporarily on both players,
-        // so they don't fight for focus and pause each other during crossfade.
-        val attrs = audioAttributes
-        if (attrs != null) {
-            primary.setAudioAttributes(attrs, false)
-            secondary.setAudioAttributes(attrs, false)
-        }
-
         // Copy playlist & playback configurations
         val mediaItems = (0 until primary.mediaItemCount).map { primary.getMediaItemAt(it) }
         secondary.setMediaItems(mediaItems)
@@ -262,6 +345,7 @@ class MusicService : MediaSessionService() {
         // Apply equalizer settings to secondary player immediately so it starts with correct timbre
         val settingsViewModel: SettingsViewModel by inject()
         updateEqualizer(settingsViewModel.settingsState.value.isEqEnabled, settingsViewModel.settingsState.value.eqBands, secondary)
+        updateDynamicsProcessing(settingsViewModel.settingsState.value.isVolumeNormalizationEnabled, secondary)
 
         // We do NOT swap player roles in the mediaSession/currentPlayer here.
         // The playerbar and controls continue to show and target the previous song (primary).
@@ -302,17 +386,20 @@ class MusicService : MediaSessionService() {
                     }
                 }
                 
+                var primaryVol = crossfadeTargetVolume
+                var secondaryVol = 0f
+
                 when (style) {
                     "Radio Segue" -> {
-                        if (step > baseSteps) {
+                        primaryVol = if (step > baseSteps) {
                             val progressPrimary = (step - baseSteps).toFloat() / (totalSteps - baseSteps)
                             val anglePrimary = progressPrimary * (kotlin.math.PI.toFloat() / 2f)
-                            setPrimaryVolume(crossfadeTargetVolume * kotlin.math.cos(anglePrimary))
+                            crossfadeTargetVolume * kotlin.math.cos(anglePrimary)
                         } else {
-                            setPrimaryVolume(crossfadeTargetVolume)
+                            crossfadeTargetVolume
                         }
 
-                        if (step > halfSteps) {
+                        secondaryVol = if (step > halfSteps) {
                             if (!secondaryStarted) {
                                 secondary.play()
                                 secondaryStarted = true
@@ -320,12 +407,12 @@ class MusicService : MediaSessionService() {
                             if (step <= baseSteps) {
                                 val progressSecondary = (step - halfSteps).toFloat() / (baseSteps - halfSteps)
                                 val angleSecondary = progressSecondary * (kotlin.math.PI.toFloat() / 2f)
-                                setSecondaryVolume(crossfadeTargetVolume * kotlin.math.sin(angleSecondary))
+                                crossfadeTargetVolume * kotlin.math.sin(angleSecondary)
                             } else {
-                                setSecondaryVolume(crossfadeTargetVolume)
+                                crossfadeTargetVolume
                             }
                         } else {
-                            setSecondaryVolume(0f)
+                            0f
                         }
                     }
                     "Compressed" -> {
@@ -336,22 +423,32 @@ class MusicService : MediaSessionService() {
                             }
                             val progress = (step - halfSteps).toFloat() / (totalSteps - halfSteps)
                             val angle = progress * (kotlin.math.PI.toFloat() / 2f)
-                            setPrimaryVolume(crossfadeTargetVolume * kotlin.math.cos(angle))
-                            setSecondaryVolume(crossfadeTargetVolume * kotlin.math.sin(angle))
+                            primaryVol = crossfadeTargetVolume * kotlin.math.cos(angle)
+                            secondaryVol = crossfadeTargetVolume * kotlin.math.sin(angle)
                         } else {
-                            setPrimaryVolume(crossfadeTargetVolume)
-                            setSecondaryVolume(0f)
+                            primaryVol = crossfadeTargetVolume
+                            secondaryVol = 0f
                         }
                     }
                     else -> { // "Smooth Blend" (Traditional)
                         val progress = step.toFloat() / totalSteps
                         val angle = progress * (kotlin.math.PI.toFloat() / 2f)
-                        setPrimaryVolume(crossfadeTargetVolume * kotlin.math.cos(angle))
-                        setSecondaryVolume(crossfadeTargetVolume * kotlin.math.sin(angle))
+                        primaryVol = crossfadeTargetVolume * kotlin.math.cos(angle)
+                        secondaryVol = crossfadeTargetVolume * kotlin.math.sin(angle)
                     }
                 }
+
+                // Normalize volumes to ensure the sum never exceeds crossfadeTargetVolume
+                val sumVol = primaryVol + secondaryVol
+                if (sumVol > crossfadeTargetVolume && crossfadeTargetVolume > 0f) {
+                    primaryVol = (primaryVol * crossfadeTargetVolume) / sumVol
+                    secondaryVol = (secondaryVol * crossfadeTargetVolume) / sumVol
+                }
+
+                setPrimaryVolume(primaryVol)
+                setSecondaryVolume(secondaryVol)
                 
-                co.touchlab.kermit.Logger.v { "startCrossfade step $step/$totalSteps: primaryVol=${primary.volume}, secondaryVol=${secondary.volume}" }
+                co.touchlab.kermit.Logger.v { "startCrossfade step $step/$totalSteps: primaryVol=$primaryVol, secondaryVol=$secondaryVol" }
                 delay(intervalMs)
             }
 
@@ -369,18 +466,27 @@ class MusicService : MediaSessionService() {
             currentPlayer = secondary
             secondaryExoPlayer = primary
 
-            // Restore audio focus handling on both players
-            val restoreAttrs = audioAttributes
-            if (restoreAttrs != null) {
-                secondary.setAudioAttributes(restoreAttrs, true)
-                primary.setAudioAttributes(restoreAttrs, true)
-            }
+            // Swap corresponding equalizer and dynamics processing variables to match the player swap
+            val tempEq = equalizer
+            val tempEqId = equalizerSessionId
+            equalizer = secondaryEqualizer
+            equalizerSessionId = secondaryEqualizerSessionId
+            secondaryEqualizer = tempEq
+            secondaryEqualizerSessionId = tempEqId
+
+            val tempDp = dynamicsProcessing
+            val tempDpId = dynamicsProcessingSessionId
+            dynamicsProcessing = secondaryDynamicsProcessing
+            dynamicsProcessingSessionId = secondaryDynamicsProcessingSessionId
+            secondaryDynamicsProcessing = tempDp
+            secondaryDynamicsProcessingSessionId = tempDpId
 
             co.touchlab.kermit.Logger.d { "startCrossfade FINISHED successfully" }
 
             // Re-apply equalizer settings to the new active player's session
             val finalSettingsViewModel: SettingsViewModel by inject()
             updateEqualizer(finalSettingsViewModel.settingsState.value.isEqEnabled, finalSettingsViewModel.settingsState.value.eqBands)
+            updateDynamicsProcessing(finalSettingsViewModel.settingsState.value.isVolumeNormalizationEnabled)
 
             isCrossfading = false
         }
@@ -402,17 +508,30 @@ class MusicService : MediaSessionService() {
             val pl = player ?: return
             val sessionId = pl.audioSessionId
             if (sessionId == androidx.media3.common.C.AUDIO_SESSION_ID_UNSET) {
-                equalizer?.release()
-                equalizer = null
+                if (pl == currentPlayer) {
+                    equalizer?.release()
+                    equalizer = null
+                } else {
+                    secondaryEqualizer?.release()
+                    secondaryEqualizer = null
+                }
                 return
             }
 
-            var eq = equalizer
-            if (eq == null || equalizerSessionId != sessionId) {
-                equalizer?.release()
+            val isPrimary = (pl == currentPlayer)
+            var eq = if (isPrimary) equalizer else secondaryEqualizer
+            val storedSessionId = if (isPrimary) equalizerSessionId else secondaryEqualizerSessionId
+
+            if (eq == null || storedSessionId != sessionId) {
+                eq?.release()
                 eq = android.media.audiofx.Equalizer(0, sessionId)
-                equalizer = eq
-                equalizerSessionId = sessionId
+                if (isPrimary) {
+                    equalizer = eq
+                    equalizerSessionId = sessionId
+                } else {
+                    secondaryEqualizer = eq
+                    secondaryEqualizerSessionId = sessionId
+                }
             }
 
             eq.enabled = enabled
@@ -430,6 +549,52 @@ class MusicService : MediaSessionService() {
         }
     }
 
+    private fun updateDynamicsProcessing(enabled: Boolean, player: ExoPlayer? = currentPlayer) {
+        try {
+            val pl = player ?: return
+            val sessionId = pl.audioSessionId
+            if (sessionId == androidx.media3.common.C.AUDIO_SESSION_ID_UNSET) {
+                if (pl == currentPlayer) {
+                    dynamicsProcessing?.release()
+                    dynamicsProcessing = null
+                } else {
+                    secondaryDynamicsProcessing?.release()
+                    secondaryDynamicsProcessing = null
+                }
+                return
+            }
+
+            val isPrimary = (pl == currentPlayer)
+            var dp = if (isPrimary) dynamicsProcessing else secondaryDynamicsProcessing
+            val storedSessionId = if (isPrimary) dynamicsProcessingSessionId else secondaryDynamicsProcessingSessionId
+
+            if (dp == null || storedSessionId != sessionId) {
+                dp?.release()
+                val builder = android.media.audiofx.DynamicsProcessing.Config.Builder(
+                    0, 1, false, 0, false, 0, false, 0, true
+                )
+                dp = android.media.audiofx.DynamicsProcessing(0, sessionId, builder.build())
+                if (isPrimary) {
+                    dynamicsProcessing = dp
+                    dynamicsProcessingSessionId = sessionId
+                } else {
+                    secondaryDynamicsProcessing = dp
+                    secondaryDynamicsProcessingSessionId = sessionId
+                }
+            }
+
+            if (enabled) {
+                val limiter = android.media.audiofx.DynamicsProcessing.Limiter(
+                    true, true, 0, 1.0f, 50.0f, 1.0f, -12.0f, 0.0f
+                )
+                dp.setLimiterAllChannelsTo(limiter)
+            }
+            dp.enabled = enabled
+        } catch (e: Exception) {
+            android.util.Log.e("MusicService", "Error updating DynamicsProcessing: ${e.message}", e)
+        }
+    }
+
     override fun onDestroy() {
         progressMonitorJob?.cancel()
         crossfadeJob?.cancel()
@@ -437,8 +602,15 @@ class MusicService : MediaSessionService() {
             release()
             mediaSession = null
         }
+        abandonAudioFocus()
         equalizer?.release()
         equalizer = null
+        secondaryEqualizer?.release()
+        secondaryEqualizer = null
+        dynamicsProcessing?.release()
+        dynamicsProcessing = null
+        secondaryDynamicsProcessing?.release()
+        secondaryDynamicsProcessing = null
         exoPlayer?.release()
         exoPlayer = null
         secondaryExoPlayer?.release()

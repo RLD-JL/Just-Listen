@@ -301,6 +301,9 @@ fun SettingsScreenHost(navController: NavHostController) {
             if (updated.isCrossfadeEnabled != state.isCrossfadeEnabled) {
                 viewModel.onCrossfadeToggled(updated.isCrossfadeEnabled)
             }
+            if (updated.isVolumeNormalizationEnabled != state.isVolumeNormalizationEnabled) {
+                viewModel.onVolumeNormalizationToggled(updated.isVolumeNormalizationEnabled)
+            }
             if (updated.crossfadeDurationSeconds != state.crossfadeDurationSeconds) {
                 viewModel.onCrossfadeDurationChanged(updated.crossfadeDurationSeconds)
             }

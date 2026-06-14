@@ -24,6 +24,7 @@ interface SettingsRepository {
     var isCrossfadeEnabled: Boolean
     var crossfadeDurationSeconds: Double
     var crossfadeStyle: String
+    var isVolumeNormalizationEnabled: Boolean
 }
 
 class SettingsRepositoryImpl(
@@ -33,6 +34,7 @@ class SettingsRepositoryImpl(
     override var isCrossfadeEnabled: Boolean = false
     override var crossfadeDurationSeconds: Double = 5.0
     override var crossfadeStyle: String = "Radio Segue"
+    override var isVolumeNormalizationEnabled: Boolean = false
 
     override fun saveSettingsInfo(
         hasNavigationDonationOn: Boolean,

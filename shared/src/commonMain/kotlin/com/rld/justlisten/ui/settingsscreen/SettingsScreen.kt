@@ -356,6 +356,19 @@ fun SettingsScreen(
                         }
                     }
                 )
+                
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+                
+                SettingsSwitchRow(
+                    icon = Icons.Rounded.VolumeUp,
+                    title = "Volume Normalization",
+                    checked = settings.isVolumeNormalizationEnabled,
+                    onCheckedChange = {
+                        updateSettings(
+                            settings.copy(isVolumeNormalizationEnabled = it)
+                        )
+                    }
+                )
             }
 
             // Audio Equalizer section
