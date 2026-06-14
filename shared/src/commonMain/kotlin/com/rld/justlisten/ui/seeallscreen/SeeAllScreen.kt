@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -249,12 +250,8 @@ fun SeeAllListItem(
                     { onArtistClicked(artistId, item.user) }
                 } else null
 
-                Text(
-                    text = item.user,
-                    style = typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.then(
                         if (artistClickAction != null) {
                             Modifier.clickable(onClick = artistClickAction)
@@ -262,7 +259,24 @@ fun SeeAllListItem(
                             Modifier
                         }
                     )
-                )
+                ) {
+                    Text(
+                        text = item.user,
+                        style = typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (item.isVerified) {
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Icon(
+                            imageVector = Icons.Default.Verified,
+                            contentDescription = "Verified",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(13.dp)
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(4.dp))
                 
                 // Repost and Favorite counters with Dynamic themed icons (No heart button on the right)

@@ -23,4 +23,6 @@ interface Item {
         get() = 0
     val userId: String
         get() = ""
+    val isVerified: Boolean
+        get() = false
 }

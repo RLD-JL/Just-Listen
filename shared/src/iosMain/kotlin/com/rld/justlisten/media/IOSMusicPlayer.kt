@@ -43,7 +43,30 @@ class IOSMusicPlayer(
     private var currentPlayer = player1
     private var secondaryPlayer = player2
     private var isCrossfading = false
+    private var crossfadeTargetVolume = 1f
+    private var crossfadeJob: kotlinx.coroutines.Job? = null
     private var timeObserverToken2: Any? = null
+
+    private fun cancelCrossfade(pauseActivePlayer: Boolean = false) {
+        crossfadeJob?.cancel()
+        crossfadeJob = null
+        
+        if (isCrossfading) {
+            // Restore default volumes
+            player1.volume = crossfadeTargetVolume
+            player2.volume = crossfadeTargetVolume
+            
+            // Stop and clear the fading-out player
+            secondaryPlayer.pause()
+            secondaryPlayer.removeAllItems()
+            
+            if (pauseActivePlayer) {
+                currentPlayer.pause()
+            }
+            
+            isCrossfading = false
+        }
+    }
 
     private var activePlayerItem: AVPlayerItem? = null
     private var preloadedPlayerItem: AVPlayerItem? = null
@@ -185,12 +208,17 @@ class IOSMusicPlayer(
     }
 
     override fun pause() {
-        currentPlayer.pause()
+        if (isCrossfading) {
+            cancelCrossfade(pauseActivePlayer = true)
+        } else {
+            currentPlayer.pause()
+        }
         updateState(PlaybackStatus.PAUSED)
         updateNowPlayingInfo(_playbackState.value.currentMedia, _playbackState.value.currentPosition)
     }
 
     override fun stop() {
+        cancelCrossfade()
         currentPlayer.pause()
         currentPlayer.removeAllItems()
         secondaryPlayer.pause()
@@ -485,6 +513,7 @@ class IOSMusicPlayer(
     }
 
     private fun playTrack(metadata: MediaMetadata) {
+        cancelCrossfade()
         val playerItem = if (preloadedSongId == metadata.id && preloadedPlayerItem != null) {
             preloadedPlayerItem!!
         } else {
@@ -567,6 +596,7 @@ class IOSMusicPlayer(
     }
 
     override fun skipToNext() {
+        cancelCrossfade()
         val nextIndex = getNextTrackIndex()
         if (nextIndex != -1) {
             val nextItem = playlistItems[nextIndex]
@@ -589,6 +619,7 @@ class IOSMusicPlayer(
     }
 
     override fun skipToPrevious() {
+        cancelCrossfade()
         val prevIndex = PlaybackQueueNavigator.getPreviousIndex(
             currentIndex = currentIndex,
             playlistSize = playlistItems.size,
@@ -603,6 +634,7 @@ class IOSMusicPlayer(
     }
 
     override fun seekTo(position: Long) {
+        cancelCrossfade()
         val time = CMTimeMake(position, 1000)
         currentPlayer.seekToTime(time)
         updateNowPlayingInfo(_playbackState.value.currentMedia, position)
@@ -831,58 +863,68 @@ class IOSMusicPlayer(
         val primary = currentPlayer
         val secondary = secondaryPlayer
         isCrossfading = true
-
+        crossfadeTargetVolume = primary.volume
+ 
         val nextMetadata = playlistItems[nextIndex]
         val nextItem = if (preloadedSongId == nextMetadata.id && preloadedPlayerItem != null) {
             preloadedPlayerItem!!
         } else {
             createPlayerItem(nextMetadata.id)
         }
-
+ 
         if (nextItem == null) {
             isCrossfading = false
             return
         }
-
+ 
         activePlayerItem = nextItem
         secondary.removeAllItems()
         secondary.insertItem(nextItem, afterItem = null)
         secondary.volume = 0f
         secondary.play()
-
-        // Swap players immediately so user interactions and progress updates target the new player
-        currentPlayer = secondary
-        secondaryPlayer = primary
-
-        currentIndex = nextIndex
-        updateState(PlaybackStatus.PLAYING, nextMetadata)
-        updateNowPlayingInfo(nextMetadata, 0L)
-
-        scope.launch(Dispatchers.Main) {
+ 
+        // We do NOT swap currentPlayer/secondaryPlayer here.
+        // The playerbar continues to show the previous song (primary) and its progress.
+ 
+        crossfadeJob = scope.launch(Dispatchers.Main) {
             val durationMs = (durationSeconds * 1000).toLong()
             val intervalMs = 100L
             val totalSteps = (durationMs / intervalMs).coerceAtLeast(1L)
-            val initialSongId = nextMetadata.id
-
+            val initialActiveSongId = _playbackState.value.currentMedia?.id
+ 
             for (step in 1..totalSteps) {
-                // Check for manual interventions like pausing or skipping on the active (new) player
-                if (secondary.rate == 0.0f || _playbackState.value.currentMedia?.id != initialSongId) {
-                    primary.volume = 1f
-                    secondary.volume = 1f
+                // Check for manual interventions on the active (old) player, new player, or active song id change
+                if (primary.rate == 0.0f || secondary.rate == 0.0f || _playbackState.value.currentMedia?.id != initialActiveSongId) {
+                    primary.volume = crossfadeTargetVolume
+                    secondary.volume = crossfadeTargetVolume
                     secondary.pause()
                     isCrossfading = false
                     return@launch
                 }
+                
+                // Equal-power crossfade curve scaled by target volume
                 val progress = step.toFloat() / totalSteps
-                primary.volume = 1f - progress
-                secondary.volume = progress
+                val angle = progress * (kotlin.math.PI.toFloat() / 2f)
+                primary.volume = crossfadeTargetVolume * kotlin.math.cos(angle)
+                secondary.volume = crossfadeTargetVolume * kotlin.math.sin(angle)
+                
                 delay(intervalMs)
             }
-
+ 
+            // Successful crossfade: pause primary (old player) and restore default volumes
             primary.pause()
-            primary.volume = 1f
-            secondary.volume = 1f
-
+            primary.volume = crossfadeTargetVolume
+            secondary.volume = crossfadeTargetVolume
+ 
+            // Swap player roles now that the transition is complete
+            currentPlayer = secondary
+            secondaryPlayer = primary
+ 
+            // Update state and now playing metadata to show the next song (new player)
+            currentIndex = nextIndex
+            updateState(PlaybackStatus.PLAYING, nextMetadata)
+            updateNowPlayingInfo(nextMetadata, 0L)
+ 
             isCrossfading = false
             
             preloadedPlayerItem = null
@@ -1057,13 +1099,13 @@ class IOSMusicPlayer(
             }
         }
  
-        // 3. Listen to Track Finished Notification
         playToEndObserver = notificationCenter.addObserverForName(
             name = AVPlayerItemDidPlayToEndTimeNotification,
             `object` = null,
             queue = null
         ) { notification ->
             dispatch_async(dispatch_get_main_queue()) {
+                if (isCrossfading) return@dispatch_async
                 val finishedItem = notification?.`object` as? AVPlayerItem
                 if (finishedItem != null && finishedItem == activePlayerItem) {
                     if (repeatMode == RepeatMode.ONE) {
@@ -1132,6 +1174,7 @@ class IOSMusicPlayer(
     }
 
     override fun release() {
+        cancelCrossfade()
         scope.cancel()
         preloadJob?.cancel()
         

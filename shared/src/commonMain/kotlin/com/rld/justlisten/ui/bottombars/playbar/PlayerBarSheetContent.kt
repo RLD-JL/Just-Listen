@@ -172,7 +172,7 @@ fun PlayerBarSheetContent(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.75f)
+                    .fillMaxHeight(if (currentBottomSheet is BottomSheetScreen.Comments) 0.95f else 0.75f)
                     .offset { IntOffset(0, dragOffset.value.toInt()) }
                     .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                     .background(MaterialTheme.colorScheme.background)

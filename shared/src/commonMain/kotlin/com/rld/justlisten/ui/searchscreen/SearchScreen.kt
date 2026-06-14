@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -466,19 +467,32 @@ fun TrackSeeAllRow(
                 color = MaterialTheme.colorScheme.onBackground
             )
             val artistId = track._data.user.id
-            Text(
-                text = track.user,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = if (artistId.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.then(
                     if (artistId.isNotBlank()) {
                         Modifier.clickable { onArtistClicked(artistId, track.user) }
                     } else Modifier
                 )
-            )
+            ) {
+                Text(
+                    text = track.user,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = if (artistId.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (track.isVerified) {
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Icon(
+                        imageVector = Icons.Default.Verified,
+                        contentDescription = "Verified",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
+            }
         }
 
         Icon(

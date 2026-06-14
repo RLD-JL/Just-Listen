@@ -72,7 +72,8 @@ fun SongListScrollingSection(
                 onArtistClicked = onArtistClicked,
                 canDelete = isUserPlaylist,
                 onDelete = { onDeleteSong(playlistItem.id) },
-                isPlaying = isPlaying
+                isPlaying = isPlaying,
+                showShareButton = false
             )
         }
     }

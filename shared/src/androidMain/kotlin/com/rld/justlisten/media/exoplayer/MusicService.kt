@@ -34,6 +34,7 @@ class MusicService : MediaSessionService() {
     private var secondaryExoPlayer: ExoPlayer? = null
     private var currentPlayer: ExoPlayer? = null
     private var isCrossfading = false
+    private var crossfadeTargetVolume = 1f
     private var equalizer: android.media.audiofx.Equalizer? = null
     private var equalizerSessionId: Int = -1
     private var audioAttributes: AudioAttributes? = null
@@ -148,13 +149,69 @@ class MusicService : MediaSessionService() {
         if (isLowMemoryDevice()) return
 
         isCrossfading = true
+        crossfadeTargetVolume = primary.volume
 
         val targetMediaId = primary.getMediaItemAt(nextIndex).mediaId
+        val startingMediaId = primary.currentMediaItem?.mediaId
 
-        // Disable audio focus handling temporarily on secondary player only,
-        // so it doesn't request focus and pause the already playing primary player.
+        var crossfadeListener: Player.Listener? = null
+
+        fun abort() {
+            if (!isCrossfading) return
+            
+            crossfadeListener?.let {
+                primary.removeListener(it)
+            }
+            
+            crossfadeJob?.cancel()
+            crossfadeJob = null
+            
+            val restoreAttrs = audioAttributes
+            if (restoreAttrs != null) {
+                secondary.setAudioAttributes(restoreAttrs, true)
+                primary.setAudioAttributes(restoreAttrs, true)
+            }
+            primary.volume = crossfadeTargetVolume
+            secondary.volume = crossfadeTargetVolume
+            secondary.pause()
+            isCrossfading = false
+        }
+
+        val listener = object : Player.Listener {
+            override fun onPositionDiscontinuity(
+                oldPosition: Player.PositionInfo,
+                newPosition: Player.PositionInfo,
+                reason: Int
+            ) {
+                if (reason == Player.DISCONTINUITY_REASON_SEEK) {
+                    co.touchlab.kermit.Logger.d { "Crossfade cancelled due to seek" }
+                    abort()
+                }
+            }
+
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                if (primary.currentMediaItem?.mediaId != startingMediaId) {
+                    co.touchlab.kermit.Logger.d { "Crossfade cancelled due to media item transition" }
+                    abort()
+                }
+            }
+
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                if (!playWhenReady) {
+                    co.touchlab.kermit.Logger.d { "Crossfade paused/cancelled due to playWhenReadyChanged" }
+                    abort()
+                }
+            }
+        }
+        crossfadeListener = listener
+
+        primary.addListener(listener)
+
+        // Disable audio focus handling temporarily on both players,
+        // so they don't fight for focus and pause each other during crossfade.
         val attrs = audioAttributes
         if (attrs != null) {
+            primary.setAudioAttributes(attrs, false)
             secondary.setAudioAttributes(attrs, false)
         }
 
@@ -168,65 +225,75 @@ class MusicService : MediaSessionService() {
         secondary.prepare()
         secondary.play()
 
-        // Remove subsequent items from primary player so it stops at the end of the current song
-        // and doesn't transition to the next song, which would steal audio focus and pause playback.
-        if (primary.currentMediaItemIndex + 1 < primary.mediaItemCount) {
-            primary.removeMediaItems(primary.currentMediaItemIndex + 1, primary.mediaItemCount)
-        }
+        // Apply equalizer settings to secondary player immediately so it starts with correct timbre
+        val settingsViewModel: SettingsViewModel by inject()
+        updateEqualizer(settingsViewModel.settingsState.value.isEqEnabled, settingsViewModel.settingsState.value.eqBands, secondary)
 
-        // Swap player roles in session immediately so UI/Session controls the new player
-        mediaSession?.player = secondary
-        currentPlayer = secondary
-        secondaryExoPlayer = primary
+        // We do NOT swap player roles in the mediaSession/currentPlayer here.
+        // The playerbar and controls continue to show and target the previous song (primary).
 
         co.touchlab.kermit.Logger.d { "startCrossfade: primary=${primary.currentMediaItem?.mediaId}, secondary=${secondary.currentMediaItem?.mediaId}, targetMediaId=$targetMediaId, durationMs=$durationMs" }
 
         crossfadeJob = serviceScope.launch {
             val intervalMs = 100L
             val totalSteps = (durationMs / intervalMs).coerceAtLeast(1L)
-            val initialMediaId = targetMediaId
 
-            co.touchlab.kermit.Logger.d { "startCrossfade loop start: initialMediaId=$initialMediaId, playWhenReady=${secondary.playWhenReady}" }
+            co.touchlab.kermit.Logger.d { "startCrossfade loop start: targetMediaId=$targetMediaId, playWhenReady=${secondary.playWhenReady}" }
 
             for (step in 1..totalSteps) {
-                val currentId = secondary.currentMediaItem?.mediaId
-                if (!secondary.playWhenReady || (currentId != null && currentId != initialMediaId)) {
-                    co.touchlab.kermit.Logger.w { "startCrossfade ABORTED at step $step: playWhenReady=${secondary.playWhenReady}, currentMediaId=$currentId, initialMediaId=$initialMediaId" }
-                    // Restore audio focus handling on abort
-                    val restoreAttrs = audioAttributes
-                    if (restoreAttrs != null) {
-                        secondary.setAudioAttributes(restoreAttrs, true)
-                    }
-                    // Abort if active playback stops or song is skipped manually
-                    primary.volume = 1f
-                    secondary.volume = 1f
-                    primary.pause()
-                    isCrossfading = false
+                val currentPrimaryId = primary.currentMediaItem?.mediaId
+                // Abort if active playback (primary) stops, secondary stops, or song is skipped/changed manually
+                if (!primary.playWhenReady || !secondary.playWhenReady || currentPrimaryId != startingMediaId) {
+                    co.touchlab.kermit.Logger.w { "startCrossfade ABORTED at step $step: primaryPlayWhenReady=${primary.playWhenReady}, secondaryPlayWhenReady=${secondary.playWhenReady}, currentPrimaryId=$currentPrimaryId, startingMediaId=$startingMediaId" }
+                    abort()
                     return@launch
                 }
+
+                val duration = primary.duration
+                if (duration > 0 && duration != C.TIME_UNSET) {
+                    val remaining = duration - primary.currentPosition
+                    if (remaining <= 250) {
+                        co.touchlab.kermit.Logger.d { "Breaking crossfade loop early at step $step/$totalSteps to prevent STATE_ENDED. remaining=$remaining" }
+                        break
+                    }
+                }
+                
+                // Equal-power crossfade curve scaled by target volume
                 val progress = step.toFloat() / totalSteps
-                primary.volume = 1f - progress
-                secondary.volume = progress
+                val angle = progress * (kotlin.math.PI.toFloat() / 2f)
+                primary.volume = crossfadeTargetVolume * kotlin.math.cos(angle)
+                secondary.volume = crossfadeTargetVolume * kotlin.math.sin(angle)
+                
                 co.touchlab.kermit.Logger.v { "startCrossfade step $step/$totalSteps: primaryVol=${primary.volume}, secondaryVol=${secondary.volume}" }
                 delay(intervalMs)
             }
 
+            // Remove listeners before final swap and cleanup to prevent any transition callbacks
+            primary.removeListener(listener)
+            secondary.removeListener(listener)
+
             // Finalize crossfade
             primary.pause()
-            primary.volume = 1f
-            secondary.volume = 1f
+            primary.volume = crossfadeTargetVolume
+            secondary.volume = crossfadeTargetVolume
 
-            // Restore audio focus handling on success
+            // Swap player roles in session now that the transition is complete
+            mediaSession?.player = secondary
+            currentPlayer = secondary
+            secondaryExoPlayer = primary
+
+            // Restore audio focus handling on both players
             val restoreAttrs = audioAttributes
             if (restoreAttrs != null) {
                 secondary.setAudioAttributes(restoreAttrs, true)
+                primary.setAudioAttributes(restoreAttrs, true)
             }
 
             co.touchlab.kermit.Logger.d { "startCrossfade FINISHED successfully" }
 
             // Re-apply equalizer settings to the new active player's session
-            val settingsViewModel: SettingsViewModel by inject()
-            updateEqualizer(settingsViewModel.settingsState.value.isEqEnabled, settingsViewModel.settingsState.value.eqBands)
+            val finalSettingsViewModel: SettingsViewModel by inject()
+            updateEqualizer(finalSettingsViewModel.settingsState.value.isEqEnabled, finalSettingsViewModel.settingsState.value.eqBands)
 
             isCrossfading = false
         }
@@ -243,10 +310,10 @@ class MusicService : MediaSessionService() {
         }
     }
 
-    private fun updateEqualizer(enabled: Boolean, bands: List<Float>) {
+    private fun updateEqualizer(enabled: Boolean, bands: List<Float>, player: ExoPlayer? = currentPlayer) {
         try {
-            val player = currentPlayer ?: return
-            val sessionId = player.audioSessionId
+            val pl = player ?: return
+            val sessionId = pl.audioSessionId
             if (sessionId == androidx.media3.common.C.AUDIO_SESSION_ID_UNSET) {
                 equalizer?.release()
                 equalizer = null

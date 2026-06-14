@@ -48,6 +48,7 @@ data class PlaylistItem(
     override val playCount = if (_data.isPlaylist) _data.totalPlayCount else _data.playCount
     override val duration = _data.duration
     override val userId = _data.user.id
+    override val isVerified = _data.user.isVerified
     val releaseDate = _data.releaseDate
 }
 

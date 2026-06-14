@@ -8,7 +8,8 @@ data class CommentUserProfile(
     @SerialName("id") val id: String,
     @SerialName("name") val name: String,
     @SerialName("handle") val handle: String = "",
-    @SerialName("profile_picture") val profilePicture: SongIconList? = null
+    @SerialName("profile_picture") val profilePicture: SongIconList? = null,
+    @SerialName("is_verified") val isVerified: Boolean = false
 )
 
 @Serializable

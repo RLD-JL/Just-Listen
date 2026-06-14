@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -77,7 +78,8 @@ fun SongListItem(
     onArtistClicked: (String, String) -> Unit,
     isPlaying: Boolean = false,
     canDelete: Boolean = false,
-    onDelete: () -> Unit = {}
+    onDelete: () -> Unit = {},
+    showShareButton: Boolean = true
 ) {
     if (canDelete) {
         val showConfirmDialog = remember { mutableStateOf(false) }
@@ -128,7 +130,8 @@ fun SongListItem(
                     onRepostPressed = onRepostPressed,
                     playlist = playlist,
                     onArtistClicked = onArtistClicked,
-                    isPlaying = isPlaying
+                    isPlaying = isPlaying,
+                    showShareButton = showShareButton
                 )
             }
         )
@@ -149,7 +152,8 @@ fun SongListItem(
             onRepostPressed = onRepostPressed,
             playlist = playlist,
             onArtistClicked = onArtistClicked,
-            isPlaying = isPlaying
+            isPlaying = isPlaying,
+            showShareButton = showShareButton
         )
     }
 }
@@ -162,7 +166,8 @@ private fun SongListItemContent(
     onRepostPressed: (String, Boolean) -> Unit,
     playlist: String,
     onArtistClicked: (String, String) -> Unit,
-    isPlaying: Boolean
+    isPlaying: Boolean,
+    showShareButton: Boolean
 ) {
     Row(
         modifier = Modifier
@@ -234,12 +239,8 @@ private fun SongListItemContent(
                     { onArtistClicked(artistId, playlistItem.user) }
                 } else null
 
-                Text(
-                    text = "by ${playlistItem.user}",
-                    style = typography.titleSmall,
-                    color = artistColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .weight(1f, fill = false)
                         .then(
@@ -249,7 +250,24 @@ private fun SongListItemContent(
                                 Modifier
                             }
                         )
-                )
+                ) {
+                    Text(
+                        text = "by ${playlistItem.user}",
+                        style = typography.titleSmall,
+                        color = artistColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (playlistItem.isVerified) {
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Icon(
+                            imageVector = Icons.Default.Verified,
+                            contentDescription = "Verified",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(13.dp)
+                        )
+                    }
+                }
                 Text(
                     text = " • ${formatDuration(playlistItem.duration)}",
                     style = typography.titleSmall,
@@ -303,42 +321,44 @@ private fun SongListItemContent(
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        var showShareMenu by remember { mutableStateOf(false) }
-        Box {
-            Icon(
-                imageVector = Icons.Default.Share,
-                contentDescription = "Share",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .padding(4.dp)
-                    .size(20.dp)
-                    .clickable { showShareMenu = true }
-            )
-            val clipboardManager = LocalClipboardManager.current
-            DropdownMenu(
-                expanded = showShareMenu,
-                onDismissRequest = { showShareMenu = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Share Track") },
-                    onClick = {
-                        showShareMenu = false
-                        val url = "justlisten://track/share?id=${playlistItem.id}"
-                        clipboardManager.setText(AnnotatedString(url))
-                        com.rld.justlisten.ui.utils.showToast("Track link copied!")
-                    },
-                    leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
+        if (showShareButton) {
+            var showShareMenu by remember { mutableStateOf(false) }
+            Box {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "Share",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .size(20.dp)
+                        .clickable { showShareMenu = true }
                 )
-                DropdownMenuItem(
-                    text = { Text("Share Comments") },
-                    onClick = {
-                        showShareMenu = false
-                        val url = "justlisten://comments/share?trackId=${playlistItem.id}"
-                        clipboardManager.setText(AnnotatedString(url))
-                        com.rld.justlisten.ui.utils.showToast("Comments link copied!")
-                    },
-                    leadingIcon = { Icon(Icons.Default.MoreHoriz, contentDescription = null) }
-                )
+                val clipboardManager = LocalClipboardManager.current
+                DropdownMenu(
+                    expanded = showShareMenu,
+                    onDismissRequest = { showShareMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Share Track") },
+                        onClick = {
+                            showShareMenu = false
+                            val url = "justlisten://track/share?id=${playlistItem.id}"
+                            clipboardManager.setText(AnnotatedString(url))
+                            com.rld.justlisten.ui.utils.showToast("Track link copied!")
+                        },
+                        leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Share Comments") },
+                        onClick = {
+                            showShareMenu = false
+                            val url = "justlisten://comments/share?trackId=${playlistItem.id}"
+                            clipboardManager.setText(AnnotatedString(url))
+                            com.rld.justlisten.ui.utils.showToast("Comments link copied!")
+                        },
+                        leadingIcon = { Icon(Icons.Default.MoreHoriz, contentDescription = null) }
+                    )
+                }
             }
         }
     }

@@ -45,10 +45,11 @@ class AndroidMusicPlayer(
         scope.launch {
             combine(
                 musicServiceConnection.playbackState,
+                musicServiceConnection.playWhenReady,
                 musicServiceConnection.currentPlayingSong,
                 musicServiceConnection.currentPlaylist,
                 favoriteIds
-            ) { state, mediaItem, playlist, _ ->
+            ) { state, _, mediaItem, playlist, _ ->
                 updateState(state, mediaItem)
                 _currentPlaylist.value = playlist.mapNotNull { mapMetadata(it) }
             }.collect()

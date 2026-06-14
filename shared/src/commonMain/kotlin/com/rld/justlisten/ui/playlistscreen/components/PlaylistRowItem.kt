@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -110,13 +111,8 @@ fun PlaylistRowItem(
             modifier = Modifier.padding(top = 8.dp)
         )
         val artistId = playlistItem._data.user.id
-        Text(
-            text = "by ${playlistItem.user}",
-            style = typography.bodySmall.copy(
-                color = if (onArtistClicked != null && artistId.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-            ),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .padding(top = 2.dp)
                 .then(
@@ -124,6 +120,24 @@ fun PlaylistRowItem(
                         Modifier.clickable { onArtistClicked(artistId, playlistItem.user) }
                     } else Modifier
                 )
-        )
+        ) {
+            Text(
+                text = "by ${playlistItem.user}",
+                style = typography.bodySmall.copy(
+                    color = if (onArtistClicked != null && artistId.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (playlistItem.isVerified) {
+                Spacer(modifier = Modifier.width(3.dp))
+                Icon(
+                    imageVector = Icons.Default.Verified,
+                    contentDescription = "Verified",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(13.dp)
+                )
+            }
+        }
     }
 }

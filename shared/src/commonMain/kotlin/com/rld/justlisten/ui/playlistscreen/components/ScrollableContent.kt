@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.*
 import com.rld.justlisten.datalayer.repositories.SessionState
 import androidx.compose.runtime.*
@@ -397,19 +398,32 @@ fun TrackCardItem(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 val artistId = track._data.user.id
-                Text(
-                    text = track.user,
-                    style = typography.bodySmall.copy(
-                        color = if (artistId.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.then(
                         if (artistId.isNotBlank()) {
                             Modifier.clickable { onArtistClicked(artistId, track.user) }
                         } else Modifier
                     )
-                )
+                ) {
+                    Text(
+                        text = track.user,
+                        style = typography.bodySmall.copy(
+                            color = if (artistId.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (track.isVerified) {
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Icon(
+                            imageVector = Icons.Default.Verified,
+                            contentDescription = "Verified",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(13.dp)
+                        )
+                    }
+                }
             }
         }
     }
