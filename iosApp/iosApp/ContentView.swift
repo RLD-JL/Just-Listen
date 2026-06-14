@@ -19,13 +19,17 @@ struct ContentView: View {
     }
     
     private func handleDeepLink(_ url: URL) {
-        guard url.scheme == "justlisten" && url.host == "oauth" else { return }
+        guard url.scheme == "justlisten" else { return }
         
-        if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
-           let queryItems = components.queryItems,
-           let code = queryItems.first(where: { $0.name == "code" })?.value {
-            let redirectUri = "justlisten://oauth/callback"
-            IOSModuleKt.loginWithCode(code: code, redirectUri: redirectUri)
+        if url.host == "oauth" {
+            if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
+               let queryItems = components.queryItems,
+               let code = queryItems.first(where: { $0.name == "code" })?.value {
+                let redirectUri = "justlisten://oauth/callback"
+                IOSModuleKt.loginWithCode(code: code, redirectUri: redirectUri)
+            }
+        } else {
+            IOSModuleKt.handleDeepLink(url: url.absoluteString)
         }
     }
 }

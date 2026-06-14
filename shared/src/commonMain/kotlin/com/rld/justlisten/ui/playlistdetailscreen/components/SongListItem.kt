@@ -18,11 +18,17 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -294,6 +300,47 @@ private fun SongListItemContent(
                     onRepostPressed(playlistItem.id, !isReposted)
                 }
         )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        var showShareMenu by remember { mutableStateOf(false) }
+        Box {
+            Icon(
+                imageVector = Icons.Default.Share,
+                contentDescription = "Share",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(20.dp)
+                    .clickable { showShareMenu = true }
+            )
+            val clipboardManager = LocalClipboardManager.current
+            DropdownMenu(
+                expanded = showShareMenu,
+                onDismissRequest = { showShareMenu = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Share Track") },
+                    onClick = {
+                        showShareMenu = false
+                        val url = "justlisten://track/share?id=${playlistItem.id}"
+                        clipboardManager.setText(AnnotatedString(url))
+                        com.rld.justlisten.ui.utils.showToast("Track link copied!")
+                    },
+                    leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
+                )
+                DropdownMenuItem(
+                    text = { Text("Share Comments") },
+                    onClick = {
+                        showShareMenu = false
+                        val url = "justlisten://comments/share?trackId=${playlistItem.id}"
+                        clipboardManager.setText(AnnotatedString(url))
+                        com.rld.justlisten.ui.utils.showToast("Comments link copied!")
+                    },
+                    leadingIcon = { Icon(Icons.Default.MoreHoriz, contentDescription = null) }
+                )
+            }
+        }
     }
 }
 

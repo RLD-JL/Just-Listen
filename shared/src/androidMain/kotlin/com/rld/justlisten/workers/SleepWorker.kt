@@ -19,17 +19,26 @@ class SleepWorker(val context: Context, parameters: WorkerParameters) :
         val sharedPrefs = context.getSharedPreferences("sleep_timer_prefs", Context.MODE_PRIVATE)
         val fadeOutEnabled = sharedPrefs.getBoolean("sleep_timer_fade_out", true)
 
+        var originalVolume = 1.0f
+        withContext(Dispatchers.Main) {
+            runCatching {
+                val controller = musicServiceConnection.mediaController
+                if (controller != null) {
+                    originalVolume = controller.volume
+                }
+            }
+        }
+
         if (fadeOutEnabled) {
             // Volume changes on ExoPlayer must occur on the Main dispatcher
             withContext(Dispatchers.Main) {
                 runCatching {
                     val controller = musicServiceConnection.mediaController
                     if (controller != null && controller.isPlaying) {
-                        val startVolume = controller.volume
                         val steps = 10
                         val delayStepMs = 1500L // 15 seconds total fade out duration
                         for (i in steps downTo 0) {
-                            controller.volume = startVolume * (i.toFloat() / steps)
+                            controller.volume = originalVolume * (i.toFloat() / steps)
                             kotlinx.coroutines.delay(delayStepMs)
                         }
                     }
@@ -45,7 +54,9 @@ class SleepWorker(val context: Context, parameters: WorkerParameters) :
         // Cleanly stop the player and let OS manage process lifecycle
         withContext(Dispatchers.Main) {
             runCatching {
-                musicServiceConnection.mediaController?.stop()
+                val controller = musicServiceConnection.mediaController
+                controller?.stop()
+                controller?.volume = originalVolume
             }
         }
         return Result.success()

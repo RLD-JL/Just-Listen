@@ -298,6 +298,22 @@ fun SettingsScreenHost(navController: NavHostController) {
             if (updated.isOngoingStreamEnabled != state.isOngoingStreamEnabled) {
                 viewModel.onOngoingStreamToggled(updated.isOngoingStreamEnabled)
             }
+            if (updated.isCrossfadeEnabled != state.isCrossfadeEnabled) {
+                viewModel.onCrossfadeToggled(updated.isCrossfadeEnabled)
+            }
+            if (updated.crossfadeDurationSeconds != state.crossfadeDurationSeconds) {
+                viewModel.onCrossfadeDurationChanged(updated.crossfadeDurationSeconds)
+            }
+            if (updated.isEqEnabled != state.isEqEnabled ||
+                updated.eqPreset != state.eqPreset ||
+                updated.eqBands != state.eqBands
+            ) {
+                viewModel.onEqualizerSettingsChanged(
+                    enabled = updated.isEqEnabled,
+                    preset = updated.eqPreset,
+                    bands = updated.eqBands
+                )
+            }
         },
         onNavigateToCustomTheme = {
             navController.navigate(com.rld.justlisten.navigation.Route.CustomTheme)

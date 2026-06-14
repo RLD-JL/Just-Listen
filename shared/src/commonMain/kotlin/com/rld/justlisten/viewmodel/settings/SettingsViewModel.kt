@@ -58,6 +58,11 @@ class SettingsViewModel(
                 val saved = withContext(Dispatchers.IO) {
                     settingsRepository.getSettingsInfo()
                 }
+                val bands = try {
+                    saved.eqBands.split(",").map { it.toFloat() }
+                } catch (e: Exception) {
+                    listOf(0f, 0f, 0f, 0f, 0f)
+                }
                 _settingsState.value = _settingsState.value.copy(
                     hasDonationNavigationOn = saved.hasNavigationDonationOn,
                     isDarkThemeOn = saved.isDarkThemeOn,
@@ -67,16 +72,27 @@ class SettingsViewModel(
                     customBackground = saved.customBackground,
                     customSurface = saved.customSurface,
                     isFirstLaunch = saved.isFirstLaunch,
-                    isOngoingStreamEnabled = saved.isOngoingStreamEnabled
+                    isOngoingStreamEnabled = saved.isOngoingStreamEnabled,
+                    isEqEnabled = saved.isEqEnabled,
+                    eqPreset = saved.eqPreset,
+                    eqBands = bands,
+                    isCrossfadeEnabled = settingsRepository.isCrossfadeEnabled,
+                    crossfadeDurationSeconds = settingsRepository.crossfadeDurationSeconds,
+                    isSettingsLoaded = true
                 )
             } catch (_: Exception) {
                 // First run — use defaults
+                _settingsState.value = _settingsState.value.copy(
+                    isSettingsLoaded = true
+                )
             }
         }
     }
 
     private fun persistSettings() {
         val state = _settingsState.value
+        settingsRepository.isCrossfadeEnabled = state.isCrossfadeEnabled
+        settingsRepository.crossfadeDurationSeconds = state.crossfadeDurationSeconds
         viewModelScope.launch(Dispatchers.IO) {
             settingsRepository.saveSettingsInfo(
                 hasNavigationDonationOn = state.hasDonationNavigationOn,
@@ -87,15 +103,65 @@ class SettingsViewModel(
                 customBackground = state.customBackground,
                 customSurface = state.customSurface,
                 isFirstLaunch = state.isFirstLaunch,
-                isOngoingStreamEnabled = state.isOngoingStreamEnabled
+                isOngoingStreamEnabled = state.isOngoingStreamEnabled,
+                isEqEnabled = state.isEqEnabled,
+                eqPreset = state.eqPreset,
+                eqBands = state.eqBands.joinToString(",")
             )
         }
     }
 
-    fun onOngoingStreamToggled(enabled: Boolean) {
-        _settingsState.value = _settingsState.value.copy(isOngoingStreamEnabled = enabled)
+    fun onEqToggled(enabled: Boolean) {
+        _settingsState.value = _settingsState.value.copy(isEqEnabled = enabled)
         persistSettings()
     }
+
+    fun onEqPresetSelected(preset: String) {
+        val presets = mapOf(
+            "Flat" to listOf(0f, 0f, 0f, 0f, 0f),
+            "Bass Booster" to listOf(6f, 4f, 0f, 0f, 0f),
+            "Rock" to listOf(4f, 2f, -2f, 2f, 5f),
+            "Pop" to listOf(-2f, 1f, 4f, 2f, -2f),
+            "Classical" to listOf(4f, 2f, 0f, 3f, 4f),
+            "Vocal Booster" to listOf(-3f, 0f, 5f, 4f, -1f)
+        )
+        val bands = presets[preset] ?: listOf(0f, 0f, 0f, 0f, 0f)
+        _settingsState.value = _settingsState.value.copy(eqPreset = preset, eqBands = bands)
+        persistSettings()
+    }
+
+    fun onEqBandChanged(index: Int, value: Float) {
+        val currentBands = _settingsState.value.eqBands.toMutableList()
+        if (index in currentBands.indices) {
+            currentBands[index] = value
+            _settingsState.value = _settingsState.value.copy(eqPreset = "Custom", eqBands = currentBands)
+            persistSettings()
+        }
+    }
+
+    fun onEqualizerSettingsChanged(enabled: Boolean, preset: String, bands: List<Float>) {
+        _settingsState.value = _settingsState.value.copy(
+            isEqEnabled = enabled,
+            eqPreset = preset,
+            eqBands = bands
+        )
+        persistSettings()
+    }
+ 
+     fun onOngoingStreamToggled(enabled: Boolean) {
+         _settingsState.value = _settingsState.value.copy(isOngoingStreamEnabled = enabled)
+         persistSettings()
+     }
+
+     fun onCrossfadeToggled(enabled: Boolean) {
+         _settingsState.value = _settingsState.value.copy(isCrossfadeEnabled = enabled)
+         persistSettings()
+     }
+
+     fun onCrossfadeDurationChanged(duration: Double) {
+         _settingsState.value = _settingsState.value.copy(crossfadeDurationSeconds = duration)
+         persistSettings()
+     }
 
     fun getAuthUrl(redirectUri: String): String {
         return authRepository.getAuthUrl(redirectUri)

@@ -13,7 +13,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
+        val settingsViewModel = org.koin.mp.KoinPlatform.getKoin().get<com.rld.justlisten.viewmodel.settings.SettingsViewModel>()
+        splashScreen.setKeepOnScreenCondition {
+            !settingsViewModel.settingsState.value.isSettingsLoaded
+        }
         
         val workManager = WorkManager.getInstance(applicationContext)
         workManager.cancelUniqueWork("SleepWorker")
@@ -33,16 +37,20 @@ class MainActivity : ComponentActivity() {
 
     private fun handleIntent(intent: android.content.Intent?) {
         val data: android.net.Uri? = intent?.data
-        if (data != null && data.scheme == "justlisten" && data.host == "oauth") {
-            val code = data.getQueryParameter("code")
-            if (code != null) {
-                val redirectUri = "justlisten://oauth/callback"
-                try {
-                    val settingsViewModel = org.koin.mp.KoinPlatform.getKoin().get<com.rld.justlisten.viewmodel.settings.SettingsViewModel>()
-                    settingsViewModel.loginWithCode(code, redirectUri)
-                } catch (e: Exception) {
-                    e.printStackTrace()
+        if (data != null && data.scheme == "justlisten") {
+            if (data.host == "oauth") {
+                val code = data.getQueryParameter("code")
+                if (code != null) {
+                    val redirectUri = "justlisten://oauth/callback"
+                    try {
+                        val settingsViewModel = org.koin.mp.KoinPlatform.getKoin().get<com.rld.justlisten.viewmodel.settings.SettingsViewModel>()
+                        settingsViewModel.loginWithCode(code, redirectUri)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
+            } else {
+                com.rld.justlisten.util.DeepLinkRouter.handleDeepLink(data.toString())
             }
         }
     }

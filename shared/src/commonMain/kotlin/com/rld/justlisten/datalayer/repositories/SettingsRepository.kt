@@ -15,14 +15,22 @@ interface SettingsRepository {
         customBackground: String?,
         customSurface: String?,
         isFirstLaunch: Boolean,
-        isOngoingStreamEnabled: Boolean
+        isOngoingStreamEnabled: Boolean,
+        isEqEnabled: Boolean = false,
+        eqPreset: String = "Flat",
+        eqBands: String = ""
     )
     fun getSettingsInfo(): SettingsInfo
+    var isCrossfadeEnabled: Boolean
+    var crossfadeDurationSeconds: Double
 }
 
 class SettingsRepositoryImpl(
     private val localDb: LocalDb
 ) : SettingsRepository {
+
+    override var isCrossfadeEnabled: Boolean = false
+    override var crossfadeDurationSeconds: Double = 5.0
 
     override fun saveSettingsInfo(
         hasNavigationDonationOn: Boolean,
@@ -33,7 +41,10 @@ class SettingsRepositoryImpl(
         customBackground: String?,
         customSurface: String?,
         isFirstLaunch: Boolean,
-        isOngoingStreamEnabled: Boolean
+        isOngoingStreamEnabled: Boolean,
+        isEqEnabled: Boolean,
+        eqPreset: String,
+        eqBands: String
     ) {
         localDb.saveSettingsInfo(
             hasNavigationDonationOn = hasNavigationDonationOn,
@@ -44,7 +55,10 @@ class SettingsRepositoryImpl(
             customBackground = customBackground,
             customSurface = customSurface,
             isFirstLaunch = isFirstLaunch,
-            isOngoingStreamEnabled = isOngoingStreamEnabled
+            isOngoingStreamEnabled = isOngoingStreamEnabled,
+            isEqEnabled = isEqEnabled,
+            eqPreset = eqPreset,
+            eqBands = eqBands
         )
     }
 

@@ -16,6 +16,7 @@ data class SettingsState(
     val customBackground: String? = null,
     val customSurface: String? = null,
     val isFirstLaunch: Boolean = true,
+    val isSettingsLoaded: Boolean = false,
     val sessionState: SessionState = SessionState.Guest,
     val syncState: SyncState = SyncState.Synced,
     val favoriteTracks: List<PlayListModel> = emptyList(),
@@ -24,4 +25,9 @@ data class SettingsState(
     val isLibraryLoading: Boolean = false,
     val libraryError: String? = null,
     val isOngoingStreamEnabled: Boolean = true,
+    val isEqEnabled: Boolean = false,
+    val eqPreset: String = "Flat",
+    val eqBands: List<Float> = listOf(0f, 0f, 0f, 0f, 0f),
+    val isCrossfadeEnabled: Boolean = false,
+    val crossfadeDurationSeconds: Double = 5.0,
 ) : ScreenState

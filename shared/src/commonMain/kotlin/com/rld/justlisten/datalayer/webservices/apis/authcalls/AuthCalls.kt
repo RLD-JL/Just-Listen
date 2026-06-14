@@ -26,7 +26,7 @@ data class MeResponse(
     @SerialName("name") val name: String,
     @SerialName("handle") val handle: String,
     @SerialName("verified") val verified: Boolean = false,
-    @SerialName("profilePicture") val profilePicture: ProfileImages? = null
+    @SerialName("profile_picture") val profilePicture: ProfileImages? = null
 )
 
 suspend fun ApiClient.exchangeCodeForTokens(

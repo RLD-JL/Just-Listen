@@ -1,5 +1,6 @@
 package com.rld.justlisten.ui
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -41,17 +42,21 @@ fun JustListenApp(
                 modifier = modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background,
             ) {
-                val startDestination = if (settingsState.isFirstLaunch) {
-                    com.rld.justlisten.navigation.Route.Onboarding
+                if (!settingsState.isSettingsLoaded) {
+                    Box(modifier = Modifier.fillMaxSize())
                 } else {
-                    com.rld.justlisten.navigation.Route.Playlist
+                    val startDestination = if (settingsState.isFirstLaunch) {
+                        com.rld.justlisten.navigation.Route.Onboarding
+                    } else {
+                        com.rld.justlisten.navigation.Route.Playlist
+                    }
+                    JustListenScaffold(
+                        navController = navController,
+                        showDonationTab = settingsState.hasDonationNavigationOn,
+                        startDestination = startDestination,
+                        modifier = Modifier.fillMaxSize(),
+                    )
                 }
-                JustListenScaffold(
-                    navController = navController,
-                    showDonationTab = settingsState.hasDonationNavigationOn,
-                    startDestination = startDestination,
-                    modifier = Modifier.fillMaxSize(),
-                )
             }
         }
     }

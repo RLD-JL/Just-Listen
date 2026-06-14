@@ -139,7 +139,10 @@ class FakeSettingsRepository : SettingsRepository {
         customBackground = null,
         customSurface = null,
         isFirstLaunch = true,
-        isOngoingStreamEnabled = true
+        isOngoingStreamEnabled = true,
+        isEqEnabled = false,
+        eqPreset = "Flat",
+        eqBands = ""
     )
 
     override fun saveSettingsInfo(
@@ -151,7 +154,10 @@ class FakeSettingsRepository : SettingsRepository {
         customBackground: String?,
         customSurface: String?,
         isFirstLaunch: Boolean,
-        isOngoingStreamEnabled: Boolean
+        isOngoingStreamEnabled: Boolean,
+        isEqEnabled: Boolean,
+        eqPreset: String,
+        eqBands: String
     ) {
         info = SettingsInfo(
             id = 1L,
@@ -163,10 +169,15 @@ class FakeSettingsRepository : SettingsRepository {
             customBackground = customBackground,
             customSurface = customSurface,
             isFirstLaunch = isFirstLaunch,
-            isOngoingStreamEnabled = isOngoingStreamEnabled
+            isOngoingStreamEnabled = isOngoingStreamEnabled,
+            isEqEnabled = isEqEnabled,
+            eqPreset = eqPreset,
+            eqBands = eqBands
         )
     }
 
+    override var isCrossfadeEnabled: Boolean = false
+    override var crossfadeDurationSeconds: Double = 5.0
     override fun getSettingsInfo(): SettingsInfo = info
 }
 

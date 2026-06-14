@@ -18,6 +18,9 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import com.rld.justlisten.navigation.Route
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
@@ -67,31 +70,50 @@ fun AnimatedToolBar(
             modifier = Modifier
                 .alpha(((-scrollState.value + 0.010f) / 1000).coerceIn(0f, 1f))
         )
-        if (playlistDetailState.playListCreatedBy == "ME" || playlistDetailState.playListCreatedBy == "ME (Audius)") {
-            Box {
-                IconButton(
-                    onClick = { showMenu = true },
-                    modifier = Modifier
-                        .size(40.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MoreHoriz,
-                        contentDescription = "Playlist Options",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+        val clipboardManager = LocalClipboardManager.current
+        Box {
+            IconButton(
+                onClick = { showMenu = true },
+                modifier = Modifier
+                    .size(40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MoreHoriz,
+                    contentDescription = "Playlist Options",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
 
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Share playlist") },
-                        onClick = { showMenu = false },
-                        leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) },
-                        enabled = false
-                    )
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Share playlist") },
+                    onClick = {
+                        showMenu = false
+                        val imageUrl = if (playlistDetailState.playlistIcon.isNotBlank()) {
+                            playlistDetailState.playlistIcon
+                        } else {
+                            playlistDetailState.songPlaylist.firstOrNull()?.songIconList?.songImageURL480px.orEmpty()
+                        }
+                        val playlistDetail = Route.PlaylistDetail(
+                            playlistId = playlistDetailState.playlistId,
+                            playlistIcon = imageUrl,
+                            playlistTitle = playlistDetailState.playlistName,
+                            playlistCreatedBy = playlistDetailState.playListCreatedBy,
+                            playlistEnum = playlistDetailState.playlistEnum,
+                            songsList = playlistDetailState.songPlaylist.map { it.id }
+                        )
+                        val base64Data = com.rld.justlisten.util.PlaylistShareUtils.exportPlaylist(playlistDetail)
+                        val url = "justlisten://playlist/import?data=$base64Data"
+                        clipboardManager.setText(AnnotatedString(url))
+                        com.rld.justlisten.ui.utils.showToast("Playlist share link copied!")
+                    },
+                    leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
+                )
+                if (playlistDetailState.playListCreatedBy == "ME" || playlistDetailState.playListCreatedBy == "ME (Audius)") {
                     DropdownMenuItem(
                         text = { Text("Edit details") },
                         onClick = {
@@ -122,12 +144,6 @@ fun AnimatedToolBar(
                     )
                 }
             }
-        } else {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = null,
-                modifier = Modifier.alpha(0f)
-            )
         }
     }
 }

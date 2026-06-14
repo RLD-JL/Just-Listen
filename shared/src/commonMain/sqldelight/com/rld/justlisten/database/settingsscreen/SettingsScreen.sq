@@ -10,17 +10,20 @@ CREATE TABLE SettingsInfo (
      customBackground TEXT,
      customSurface TEXT,
      isFirstLaunch INTEGER AS Boolean NOT NULL DEFAULT 1,
-     isOngoingStreamEnabled INTEGER AS Boolean NOT NULL DEFAULT 1
+     isOngoingStreamEnabled INTEGER AS Boolean NOT NULL DEFAULT 1,
+     isEqEnabled INTEGER AS Boolean NOT NULL DEFAULT 0,
+     eqPreset TEXT NOT NULL DEFAULT 'Flat',
+     eqBands TEXT NOT NULL DEFAULT '0.0,0.0,0.0,0.0,0.0'
 );
 
-INSERT INTO SettingsInfo(hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch, isOngoingStreamEnabled) VALUES (0, 1, "Pink", NULL, NULL, NULL, NULL, 1, 1);
+INSERT INTO SettingsInfo(hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch, isOngoingStreamEnabled, isEqEnabled, eqPreset, eqBands) VALUES (0, 1, "Pink", NULL, NULL, NULL, NULL, 1, 1, 0, 'Flat', '0.0,0.0,0.0,0.0,0.0');
 
 getSettingsInfo:
 SELECT * FROM SettingsInfo;
 
 upsertSettingsInfo {
-    REPLACE INTO SettingsInfo(id, hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch, isOngoingStreamEnabled)
-    VALUES(1, :hasNavigationDonationOn, :isDarkThemeOn, :palletColor, :customPrimary, :customSecondary, :customBackground, :customSurface, :isFirstLaunch, :isOngoingStreamEnabled) ;
+    REPLACE INTO SettingsInfo(id, hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch, isOngoingStreamEnabled, isEqEnabled, eqPreset, eqBands)
+    VALUES(1, :hasNavigationDonationOn, :isDarkThemeOn, :palletColor, :customPrimary, :customSecondary, :customBackground, :customSurface, :isFirstLaunch, :isOngoingStreamEnabled, :isEqEnabled, :eqPreset, :eqBands) ;
 }
 
 CREATE TABLE UserProfileOverrides (

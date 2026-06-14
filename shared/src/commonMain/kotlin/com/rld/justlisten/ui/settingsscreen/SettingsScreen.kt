@@ -36,6 +36,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import com.rld.justlisten.datalayer.models.PlayListModel
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.PathEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +60,8 @@ fun SettingsScreen(
     val coroutineScope = rememberCoroutineScope()
     val sleepTimerService: SleepTimerService = koinInject()
 
+    var activeSheetMode by remember { mutableStateOf(com.rld.justlisten.ui.settingsscreen.components.SheetMode.SleepTimer) }
+
     // Ticking countdown logic
     var remainingTimeMs by remember { mutableStateOf(0L) }
     LaunchedEffect(Unit) {
@@ -68,7 +77,13 @@ fun SettingsScreen(
 
     BottomSheetScaffold(
         sheetContent = {
-            BottomSheetSettings(scaffoldState, coroutineScope)
+            BottomSheetSettings(
+                sheetMode = activeSheetMode,
+                settings = settings,
+                updateSettings = updateSettings,
+                scaffoldState = scaffoldState,
+                coroutineScope = coroutineScope
+            )
         },
         sheetPeekHeight = 0.dp,
         scaffoldState = scaffoldState,
@@ -280,19 +295,7 @@ fun SettingsScreen(
                     checked = settings.isDarkThemeOn,
                     onCheckedChange = {
                         updateSettings(
-                            SettingsState(
-                                isDarkThemeOn = it,
-                                hasDonationNavigationOn = settings.hasDonationNavigationOn,
-                                palletColor = settings.palletColor,
-                                customPrimary = settings.customPrimary,
-                                customSecondary = settings.customSecondary,
-                                customBackground = settings.customBackground,
-                                customSurface = settings.customSurface,
-                                isFirstLaunch = settings.isFirstLaunch,
-                                sessionState = settings.sessionState,
-                                syncState = settings.syncState,
-                                isOngoingStreamEnabled = settings.isOngoingStreamEnabled
-                            )
+                            settings.copy(isDarkThemeOn = it)
                         )
                     }
                 )
@@ -308,19 +311,7 @@ fun SettingsScreen(
                     checked = settings.hasDonationNavigationOn,
                     onCheckedChange = {
                         updateSettings(
-                            SettingsState(
-                                hasDonationNavigationOn = it,
-                                isDarkThemeOn = settings.isDarkThemeOn,
-                                palletColor = settings.palletColor,
-                                customPrimary = settings.customPrimary,
-                                customSecondary = settings.customSecondary,
-                                customBackground = settings.customBackground,
-                                customSurface = settings.customSurface,
-                                isFirstLaunch = settings.isFirstLaunch,
-                                sessionState = settings.sessionState,
-                                syncState = settings.syncState,
-                                isOngoingStreamEnabled = settings.isOngoingStreamEnabled
-                            )
+                            settings.copy(hasDonationNavigationOn = it)
                         )
                     }
                 )
@@ -331,24 +322,85 @@ fun SettingsScreen(
             
             SettingsCard {
                 SettingsSwitchRow(
+                    icon = Icons.Rounded.PlayArrow,
                     title = "Ongoing Autoplay Stream",
                     checked = settings.isOngoingStreamEnabled,
                     onCheckedChange = {
                         updateSettings(
-                            SettingsState(
-                                hasDonationNavigationOn = settings.hasDonationNavigationOn,
-                                isDarkThemeOn = settings.isDarkThemeOn,
-                                palletColor = settings.palletColor,
-                                customPrimary = settings.customPrimary,
-                                customSecondary = settings.customSecondary,
-                                customBackground = settings.customBackground,
-                                customSurface = settings.customSurface,
-                                isFirstLaunch = settings.isFirstLaunch,
-                                sessionState = settings.sessionState,
-                                syncState = settings.syncState,
-                                isOngoingStreamEnabled = it
+                            settings.copy(isOngoingStreamEnabled = it)
+                        )
+                    }
+                )
+                
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+                
+                SettingsSwitchRow(
+                    icon = Icons.Rounded.CompareArrows,
+                    title = "Playback Crossfade",
+                    checked = settings.isCrossfadeEnabled,
+                    onCheckedChange = {
+                        updateSettings(
+                            settings.copy(isCrossfadeEnabled = it)
+                        )
+                    }
+                )
+                
+                AnimatedVisibility(visible = settings.isCrossfadeEnabled) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Crossfade Duration",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "${settings.crossfadeDurationSeconds.toInt()}s",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        
+                        Slider(
+                            value = settings.crossfadeDurationSeconds.toFloat(),
+                            onValueChange = { newValue ->
+                                updateSettings(
+                                    settings.copy(crossfadeDurationSeconds = newValue.toDouble())
+                                )
+                            },
+                            valueRange = 1f..15f,
+                            steps = 13,
+                            colors = SliderDefaults.colors(
+                                thumbColor = MaterialTheme.colorScheme.primary,
+                                activeTrackColor = MaterialTheme.colorScheme.primary
                             )
                         )
+                    }
+                }
+            }
+
+            // Audio Equalizer section
+            SettingsSectionHeader(title = "Audio Controls")
+            
+            SettingsCard {
+                SettingsClickableRow(
+                    icon = Icons.Rounded.Equalizer,
+                    title = "Audio Equalizer",
+                    subtitle = if (settings.isEqEnabled) "Preset: ${settings.eqPreset} (Enabled)" else "Configure custom frequencies (Disabled)",
+                    onClick = {
+                        activeSheetMode = com.rld.justlisten.ui.settingsscreen.components.SheetMode.Equalizer
+                        coroutineScope.launch {
+                            scaffoldState.bottomSheetState.expand()
+                        }
                     }
                 )
             }
@@ -362,6 +414,7 @@ fun SettingsScreen(
                     title = "Sleep Timer",
                     subtitle = "Automatically close the application after timeout",
                     onClick = {
+                        activeSheetMode = com.rld.justlisten.ui.settingsscreen.components.SheetMode.SleepTimer
                         coroutineScope.launch {
                             scaffoldState.bottomSheetState.expand()
                         }
@@ -596,6 +649,8 @@ fun SettingsSwitchRow(
         )
     }
 }
+
+
 
 
 

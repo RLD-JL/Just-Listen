@@ -13,6 +13,9 @@ import com.rld.justlisten.util.SecureStorage
 import com.rld.justlisten.util.IosSecureStorage
 import com.rld.justlisten.util.PkceCrypto
 import com.rld.justlisten.util.IosPkceCrypto
+import com.rld.justlisten.datalayer.repositories.FavoritesRepository
+import com.rld.justlisten.datalayer.repositories.SettingsRepository
+import com.rld.justlisten.datalayer.DatabaseSchemaHelper
 import org.koin.dsl.module
 import org.koin.core.context.startKoin
 
@@ -21,7 +24,7 @@ import org.koin.core.context.startKoin
  */
 fun iosModule() = module {
     single<SqlDriver> {
-        NativeSqliteDriver(LocalDb.Schema, "Local.db")
+        NativeSqliteDriver(DatabaseSchemaHelper.SafeSchema, "Local.db")
     }
     
     single<SecureStorage> {
@@ -48,7 +51,7 @@ fun iosModule() = module {
     
     // Provide MusicPlayer implementation for iOS
     single<MusicPlayer> {
-        IOSMusicPlayer(get())
+        IOSMusicPlayer(get(), get(), get())
     }
 }
 
@@ -67,6 +70,14 @@ fun loginWithCode(code: String, redirectUri: String) {
     try {
         val settingsViewModel = org.koin.mp.KoinPlatform.getKoin().get<com.rld.justlisten.viewmodel.settings.SettingsViewModel>()
         settingsViewModel.loginWithCode(code, redirectUri)
+    } catch (e: Exception) {
+        // Log or handle error
+    }
+}
+
+fun handleDeepLink(url: String) {
+    try {
+        com.rld.justlisten.util.DeepLinkRouter.handleDeepLink(url)
     } catch (e: Exception) {
         // Log or handle error
     }

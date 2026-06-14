@@ -27,6 +27,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
+import com.rld.justlisten.datalayer.DatabaseSchemaHelper
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.database.StandaloneDatabaseProvider
 import java.io.File
@@ -43,7 +44,7 @@ fun androidModule(apiKey: String = "") = module {
     single { ApiClient(apiKey = apiKey, secureStorage = get()) }
 
     single<SqlDriver> {
-        AndroidSqliteDriver(LocalDb.Schema, androidContext(), "Local.db")
+        AndroidSqliteDriver(DatabaseSchemaHelper.SafeSchema, androidContext(), "Local.db")
     }
     single {
         LocalDb(
@@ -62,7 +63,7 @@ fun androidModule(apiKey: String = "") = module {
             .build()
     }
     single {
-        val evictor = LeastRecentlyUsedCacheEvictor((50 * 1024 * 1024).toLong())
+        val evictor = LeastRecentlyUsedCacheEvictor(150 * 1024 * 1024L)
         val databaseProvider = StandaloneDatabaseProvider(androidContext())
         SimpleCache(File(androidContext().cacheDir, "media"), evictor, databaseProvider)
     }
