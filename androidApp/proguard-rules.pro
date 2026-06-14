@@ -75,3 +75,8 @@
 -dontwarn org.openjsse.javax.net.ssl.SSLParameters
 -dontwarn org.openjsse.javax.net.ssl.SSLSocket
 -dontwarn org.openjsse.net.ssl.OpenJSSE
+
+# Suppress warnings for missing classes that are optional or only used in testing/compose-resources
+-dontwarn androidx.test.platform.app.InstrumentationRegistry
+-dontwarn androidx.window.extensions.**
+-dontwarn androidx.window.sidecar.**

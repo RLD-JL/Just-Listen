@@ -3,6 +3,9 @@ name: Android Release Build
 on:
   workflow_dispatch: # Allows manual triggering from the GitHub Actions UI
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,7 +25,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-home-cache-cleanup: true
+          gradle-home-cache-cleanup: false
 
       # Decode the base64 keystore securely from process memory
       - name: Decode Keystore

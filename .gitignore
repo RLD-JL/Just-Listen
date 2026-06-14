@@ -18,3 +18,16 @@ local.properties
 /BUG_ANALYSIS.md
 /api-1.json
 /TODO.md
+
+# Built Android packages and release output folders
+*.apk
+*.aab
+/release/
+/androidApp/release/
+
+# Keystores and cryptographic keys
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pepk
