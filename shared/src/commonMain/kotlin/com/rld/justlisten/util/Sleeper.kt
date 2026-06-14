@@ -23,3 +23,20 @@ fun delay(
     return (delayHour * 60 + delayMinute).toLong()
 }
 
+fun formatCountdown(remainingTimeMs: Long): String {
+    val totalSecs = remainingTimeMs / 1000
+    val hours = totalSecs / 3600
+    val mins = (totalSecs % 3600) / 60
+    val secs = totalSecs % 60
+    
+    return when {
+        hours > 0 -> "${hours}h ${mins}m ${secs}s"
+        mins > 0 -> "${mins}m ${secs}s"
+        else -> "${secs}s"
+    }
+}
+
+fun getNormalizedMaxMinutes(selectedMins: Int): Int {
+    return if (selectedMins > 120) selectedMins else 120
+}
+

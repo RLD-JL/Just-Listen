@@ -1,0 +1,102 @@
+package com.rld.justlisten.datalayer.repositories
+
+import com.rld.justlisten.LocalDb
+import com.rld.justlisten.datalayer.localdb.searchscreen.getSearchInfo
+import com.rld.justlisten.datalayer.localdb.searchscreen.saveSearchInfo
+import com.rld.justlisten.datalayer.webservices.ApiClient
+import com.rld.justlisten.datalayer.webservices.apis.searchcalls.searchFor
+import com.rld.justlisten.datalayer.webservices.apis.searchcalls.searchAutocomplete
+import com.rld.justlisten.datalayer.webservices.apis.searchcalls.searchForTracksPaginated
+import com.rld.justlisten.datalayer.webservices.apis.searchcalls.searchForPlaylistsPaginated
+import com.rld.justlisten.datalayer.webservices.apis.searchcalls.searchForUsersPaginated
+import com.rld.justlisten.datalayer.webservices.apis.searchcalls.AutocompleteUser
+import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
+import com.rld.justlisten.viewmodel.screens.search.SearchEnum
+import com.rld.justlisten.viewmodel.screens.search.TrackItem
+
+data class AutocompleteSuggestions(
+    val tracks: List<TrackItem> = emptyList(),
+    val playlists: List<PlaylistItem> = emptyList(),
+    val users: List<AutocompleteUser> = emptyList()
+)
+
+interface SearchRepository {
+    fun saveSearch(search: String)
+    fun getSearchList(): List<String>
+    suspend fun searchForPlaylist(search: String, searchEnum: SearchEnum = SearchEnum.PLAYLIST): List<PlaylistItem>
+    suspend fun searchForTracks(search: String, searchEnum: SearchEnum = SearchEnum.TRACKS): List<TrackItem>
+    suspend fun searchAutocomplete(query: String): AutocompleteSuggestions
+    suspend fun searchForTracksPaginated(query: String, offset: Int, limit: Int): List<TrackItem>
+    suspend fun searchForPlaylistsPaginated(query: String, offset: Int, limit: Int): List<PlaylistItem>
+    suspend fun searchForUsersPaginated(query: String, offset: Int, limit: Int): List<AutocompleteUser>
+}
+
+class SearchRepositoryImpl(
+    private val localDb: LocalDb,
+    private val webservices: ApiClient
+) : SearchRepository {
+
+    override fun saveSearch(search: String) {
+        localDb.saveSearchInfo(search)
+    }
+
+    override fun getSearchList(): List<String> {
+        return localDb.getSearchInfo()
+    }
+
+    override suspend fun searchForPlaylist(
+        search: String,
+        searchEnum: SearchEnum
+    ): List<PlaylistItem> {
+        return runCatching {
+            webservices.searchFor(search, searchEnum)?.data?.map { playlistModel ->
+                PlaylistItem(playlistModel)
+            }?.toList() ?: emptyList()
+        }.getOrElse { emptyList() }
+    }
+
+    override suspend fun searchForTracks(
+        search: String,
+        searchEnum: SearchEnum
+    ): List<TrackItem> {
+        return runCatching {
+            webservices.searchFor(search, searchEnum)?.data?.map { playlistModel ->
+                TrackItem(playlistModel)
+            }?.toList() ?: emptyList()
+        }.getOrElse { emptyList() }
+    }
+
+    override suspend fun searchAutocomplete(query: String): AutocompleteSuggestions {
+        return runCatching {
+            val autocompleteData = webservices.searchAutocomplete(query)?.data ?: return AutocompleteSuggestions()
+            val tracks = autocompleteData.tracks.filter { it.isStreamable }.map { TrackItem(it) }
+            val playlistItems = autocompleteData.playlists.map { PlaylistItem(it) }
+            val albumItems = autocompleteData.albums.map { PlaylistItem(it) }
+            val combinedPlaylists = playlistItems + albumItems
+            AutocompleteSuggestions(
+                tracks = tracks,
+                playlists = combinedPlaylists,
+                users = autocompleteData.users
+            )
+        }.getOrElse { AutocompleteSuggestions() }
+    }
+
+    override suspend fun searchForTracksPaginated(query: String, offset: Int, limit: Int): List<TrackItem> {
+        return runCatching {
+            webservices.searchForTracksPaginated(query, offset, limit)?.data?.map { TrackItem(it) } ?: emptyList()
+        }.getOrElse { emptyList() }
+    }
+
+    override suspend fun searchForPlaylistsPaginated(query: String, offset: Int, limit: Int): List<PlaylistItem> {
+        return runCatching {
+            webservices.searchForPlaylistsPaginated(query, offset, limit)?.data?.map { PlaylistItem(it) } ?: emptyList()
+        }.getOrElse { emptyList() }
+    }
+
+    override suspend fun searchForUsersPaginated(query: String, offset: Int, limit: Int): List<AutocompleteUser> {
+        return runCatching {
+            webservices.searchForUsersPaginated(query, offset, limit)?.data ?: emptyList()
+        }.getOrElse { emptyList() }
+    }
+}
+

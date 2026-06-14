@@ -1,0 +1,8 @@
+CREATE TABLE SyncQueue (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    actionType TEXT NOT NULL,
+    targetId TEXT NOT NULL,
+    payload TEXT,
+    errorMessage TEXT,
+    retryCount INTEGER NOT NULL DEFAULT 0
+);

@@ -1,0 +1,4 @@
+<resources>
+    <string name="channel_name">Just Listen</string>
+    <string name="channel_description">Shows the currently playing music</string>
+</resources>

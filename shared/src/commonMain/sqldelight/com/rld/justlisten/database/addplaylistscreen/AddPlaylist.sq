@@ -1,21 +1,51 @@
 import kotlin.collections.List;
 import kotlin.String;
+import kotlin.Boolean;
 
 CREATE TABLE AddPlaylist  (
        playlistName TEXT NOT NULL PRIMARY KEY ,
        playlistDescription TEXT,
-       songsList TEXT AS List<String>
+       songsList TEXT AS List<String>,
+       isRemote INTEGER AS Boolean NOT NULL DEFAULT 0,
+       isPrivate INTEGER AS Boolean NOT NULL DEFAULT 0,
+       playlistId TEXT
 );
 
 getAddPlaylist:
 SELECT * FROM AddPlaylist;
 
+getPlaylistByName:
+SELECT * FROM AddPlaylist
+WHERE playlistName = :playlistName;
+
 upsertAddPlaylist {
-    INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription)
-    VALUES(:playlistName, :playlistDescription);
+    INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription, songsList, isRemote, isPrivate, playlistId)
+    VALUES(:playlistName, :playlistDescription, 
+           (SELECT songsList FROM AddPlaylist WHERE playlistName = :playlistName), 
+           COALESCE((SELECT isRemote FROM AddPlaylist WHERE playlistName = :playlistName), :isRemote), 
+           COALESCE((SELECT isPrivate FROM AddPlaylist WHERE playlistName = :playlistName), :isPrivate),
+           COALESCE((SELECT playlistId FROM AddPlaylist WHERE playlistName = :playlistName), :playlistId));
 }
 
-upserAddPlaylistWithSongs {
-    INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription, songsList)
-    VALUES (:playlistName, :playlistDescription,:songsList);
+upsertAddPlaylistWithSongs {
+    INSERT OR REPLACE INTO AddPlaylist(playlistName, playlistDescription, songsList, isRemote, isPrivate, playlistId)
+    VALUES (:playlistName, :playlistDescription,:songsList, 
+            COALESCE((SELECT isRemote FROM AddPlaylist WHERE playlistName = :playlistName), :isRemote), 
+            COALESCE((SELECT isPrivate FROM AddPlaylist WHERE playlistName = :playlistName), :isPrivate),
+            COALESCE((SELECT playlistId FROM AddPlaylist WHERE playlistName = :playlistName), :playlistId));
 }
+
+deletePlaylist:
+DELETE FROM AddPlaylist
+WHERE playlistName = :playlistName;
+
+updatePlaylistName:
+UPDATE AddPlaylist
+SET playlistName = :newPlaylistName
+WHERE playlistName = :oldPlaylistName;
+
+updatePlaylistId:
+UPDATE AddPlaylist
+SET playlistId = :playlistId
+WHERE playlistName = :playlistName;
+

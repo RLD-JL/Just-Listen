@@ -1,7 +1,6 @@
 package com.rld.justlisten.datalayer.webservices.apis.playlistcalls
 
 import com.rld.justlisten.datalayer.models.PlayListModel
-import com.rld.justlisten.datalayer.utils.Constants.appName
 import com.rld.justlisten.datalayer.webservices.ApiClient
 import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum
 import com.rld.justlisten.viewmodel.screens.playlist.PlayListEnum.*
@@ -15,13 +14,11 @@ suspend fun ApiClient.fetchPlaylist(
     queryPlaylist: String = "Rock"
 ): PlayListResponse? {
     return when (playListEnum) {
-        TOP_PLAYLIST -> getResponse("/full/playlists/top?type=playlist&limit=${index}&app_name=$appName")
-        REMIX -> getResponse("/playlists/search?query=${queryPlaylist}&limit=${index}&app_name=$appName")
-        CURRENT_PLAYLIST -> getResponse("/playlists/${playlistId}/tracks?app_name=$appName")
-        HOT -> getResponse("/playlists/search?query=${queryPlaylist}&limit=${index}&app_name=$appName")
-        FAVORITE -> TODO()
-        CREATED_BY_USER -> TODO()
-        MOST_PLAYED -> TODO()
+        TOP_PLAYLIST   -> getResponse("/full/playlists/top?type=playlist&limit=$index")
+        REMIX          -> getResponse("/playlists/search?query=$queryPlaylist&limit=$index")
+        CURRENT_PLAYLIST -> getResponse("/playlists/$playlistId/tracks")
+        HOT            -> getResponse("/playlists/search?query=$queryPlaylist&limit=$index")
+        FAVORITE, CREATED_BY_USER, MOST_PLAYED, TIME_CAPSULE -> null
     }
 }
 
@@ -30,11 +27,11 @@ suspend fun ApiClient.getTracks(
     category: String,
     timeRange: String
 ): PlayListResponse? {
+    val genreQuery = if (category.isEmpty() || category == "All") "" else "&genre=$category"
     val response: PlayListResponse? =
-        getResponse("/full/tracks/trending?genre=${category}&limit=${limit}&time=${timeRange}&app_name=$appName")
+        getResponse("/full/tracks/trending?limit=$limit&time=$timeRange$genreQuery")
     return response?.let {
-        val tracks = it.data.filter { it.isStreamable }
-        PlayListResponse(tracks)
+        PlayListResponse(it.data.filter { track -> track.isStreamable })
     }
 }
 

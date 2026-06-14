@@ -1,54 +1,80 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
-    id("com.android.application")
-    kotlin("android")
-    id("kotlin-android")
-    kotlin("kapt")
-    id("dagger.hilt.android.plugin")
-    id("org.jetbrains.kotlin.plugin.compose") version "2.0.10"
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
 }
 
 dependencies {
     implementation(project(":shared"))
-    implementation("com.google.android.material:material:1.11.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
-    implementation("androidx.activity:activity-compose:1.8.2")
-    implementation("androidx.palette:palette-ktx:1.0.0")
+    implementation(libs.android.material)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.palette)
 
     implementation(libs.bundles.compose)
     debugImplementation(libs.compose.ui.preview)
 
-    implementation (libs.bundles.exoplayer)
-
-    implementation ("dev.chrisbanes.snapper:snapper:0.2.2")
-    implementation ("androidx.work:work-runtime-ktx:2.9.0")
+    implementation(libs.bundles.media3)
 
 
-    implementation("androidx.lifecycle:lifecycle-process:2.6.2")
-    implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("com.google.dagger:hilt-android:2.52")
-    kapt("com.google.dagger:hilt-android-compiler:2.52")
+    implementation(libs.androidx.work.runtime)
 
-    implementation("com.google.accompanist:accompanist-swiperefresh:0.24.1-alpha")
-    implementation("androidx.core:core-splashscreen:1.0.1")
-    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
+    implementation(libs.lifecycle.process)
+    implementation(libs.coil3.compose)
+
+    implementation(libs.androidx.core.splashscreen)
+    debugImplementation(libs.leakcanary.android)
+
+    // Navigation Compose
+    implementation(libs.navigation.compose)
+
+    // Koin for Compose
+    implementation(libs.koin.androidx.compose)
 }
 
-kapt {
-    correctErrorTypes = true
-}
+
 android {
-    compileSdk = 34
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         applicationId = "com.rld.justlisten.android"
-        minSdk = 21
-        targetSdk = 34
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 26
         versionName = "1.0.9-a"
         vectorDrawables {
             useSupportLibrary = true
+        }
+
+        val localProps = gradleLocalProperties(rootDir, providers)
+        buildConfigField(
+            "String",
+            "AUDIUS_API_KEY",
+            "\"${localProps.getProperty("AUDIUS_API_KEY") ?: System.getenv("AUDIUS_API_KEY") ?: ""}\""
+        )
+        buildConfigField(
+            "String",
+            "AUDIUS_BEARER_TOKEN",
+            "\"${localProps.getProperty("AUDIUS_BEARER_TOKEN") ?: System.getenv("AUDIUS_BEARER_TOKEN") ?: ""}\""
+        )
+    }
+
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
+                ?: gradleLocalProperties(rootDir, providers).getProperty("RELEASE_KEYSTORE_PATH")
+            if (!keystorePath.isNullOrEmpty()) {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+                    ?: gradleLocalProperties(rootDir, providers).getProperty("RELEASE_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                    ?: gradleLocalProperties(rootDir, providers).getProperty("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+                    ?: gradleLocalProperties(rootDir, providers).getProperty("RELEASE_KEY_PASSWORD")
+            }
         }
     }
 
@@ -57,27 +83,30 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles("proguard-rules.pro")
+            
+            val keystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
+                ?: gradleLocalProperties(rootDir, providers).getProperty("RELEASE_KEYSTORE_PATH")
+            if (!keystorePath.isNullOrEmpty()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         getByName("debug") {
             isMinifyEnabled = false
             isShrinkResources = false
         }
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.2.0"
+        buildConfig = true  // required for BuildConfig fields in AGP 8+
     }
 
-    packagingOptions {
+
+    packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
@@ -85,18 +114,9 @@ android {
     namespace = "com.rld.justlisten.android"
 }
 
-sourceSets {
-    android {
-        kotlinOptions {
-            freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
-        }
+kotlin {
+    jvmToolchain(17)
+    compilerOptions {
+        freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
     }
-}
-
-/*
-composeCompiler {
-    enableStrongSkippingMode = true
-
-    reportsDestination = layout.buildDirectory.dir("compose_compiler")
-    stabilityConfigurationFile = rootProject.layout.projectDirectory.file("stability_config.conf")
-}*/
+}

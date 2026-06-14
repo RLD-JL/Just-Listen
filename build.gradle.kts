@@ -1,15 +1,12 @@
-buildscript {
-    repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${libs.versions.kotlinVersion.get()}")
-        classpath("com.android.tools.build:gradle:8.5.2")
-        classpath ("com.google.dagger:hilt-android-gradle-plugin:2.52")
-    }
+plugins {
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.android.kmp.library) apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.sqldelight) apply false
+    alias(libs.plugins.compose.multiplatform) apply false
+    alias(libs.plugins.kotlin.compose) apply false
 }
 
 allprojects {
@@ -20,12 +17,5 @@ allprojects {
 }
 
 tasks.register("clean", Delete::class) {
-    delete(rootProject.buildDir)
-}
-
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>{
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xuse-k2")
-    }
+    delete(rootProject.layout.buildDirectory)
 }

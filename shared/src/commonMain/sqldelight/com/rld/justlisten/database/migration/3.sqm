@@ -1,0 +1,7 @@
+CREATE TABLE PlayHistory (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    songId TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    durationPlayedSec INTEGER NOT NULL,
+    completed INTEGER NOT NULL DEFAULT 0
+);

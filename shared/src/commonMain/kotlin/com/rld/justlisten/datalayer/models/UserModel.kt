@@ -6,4 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UserModel(
     @SerialName("name") val username: String = "",
+    @SerialName("id") val id: String = "",
+    @SerialName("handle") val handle: String = "",
+    @SerialName("is_verified") val isVerified: Boolean = false
 )

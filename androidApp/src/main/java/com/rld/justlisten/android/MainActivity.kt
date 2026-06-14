@@ -3,58 +3,62 @@ package com.rld.justlisten.android
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.runtime.Composable
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.work.WorkManager
-import com.rld.justlisten.android.ui.MainComposable
-import com.rld.justlisten.android.ui.theme.ColorPallet
-import com.rld.justlisten.android.ui.theme.JustListenTheme
-import com.rld.justlisten.android.ui.utils.getColorPallet
-import com.rld.justlisten.datalayer.datacalls.settings.getSettingsInfo
+import com.rld.justlisten.ui.JustListenApp
 
 class MainActivity : ComponentActivity() {
 
-    @OptIn(ExperimentalMaterialApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val model = (application as JustListenApp).model
-        val musicServiceConnection = (application as JustListenApp).musicServiceConnection
-        installSplashScreen().apply {
+        
+        val splashScreen = installSplashScreen()
+        val settingsViewModel = org.koin.mp.KoinPlatform.getKoin().get<com.rld.justlisten.viewmodel.settings.SettingsViewModel>()
+        splashScreen.setKeepOnScreenCondition {
+            !settingsViewModel.settingsState.value.isSettingsLoaded
         }
+        
         val workManager = WorkManager.getInstance(applicationContext)
         workManager.cancelUniqueWork("SleepWorker")
 
-        val settingsInfo = mutableStateOf(model.repository.getSettingsInfo())
         setContent {
-            JustListenTheme(
-                darkTheme = settingsInfo.value.isDarkThemeOn,
-                colorPallet = getColorPallet(settingsInfo.value.palletColor)
-            ) {
-                val statusBarColor =
-                    if (getColorPallet(settingsInfo.value.palletColor) == ColorPallet.Dark) MaterialTheme.colors.background.toArgb()
-                    else MaterialTheme.colors.primary.toArgb()
-                window.statusBarColor = statusBarColor
-                window.navigationBarColor =
-                    if (getColorPallet(settingsInfo.value.palletColor) == ColorPallet.Dark)
-                        MaterialTheme.colors.background.toArgb() else MaterialTheme.colors.primary.toArgb()
-                MainComposable(
-                    model, musicServiceConnection, settingsUpdated = {
-                        settingsInfo.value = model.repository.getSettingsInfo()
-                    },
-                    hasNavigationDonationOn = settingsInfo.value.hasNavigationDonationOn,
-                    updateStatusBarColor = { color, extended ->
-                        if (extended)
-                            window.statusBarColor = color
-                        else
-                            window.statusBarColor = statusBarColor
+            JustListenAppContent()
+        }
+
+        handleIntent(intent)
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: android.content.Intent?) {
+        val data: android.net.Uri? = intent?.data
+        if (data != null && data.scheme == "justlisten") {
+            if (data.host == "oauth") {
+                val code = data.getQueryParameter("code")
+                if (code != null) {
+                    val redirectUri = "justlisten://oauth/callback"
+                    try {
+                        val settingsViewModel = org.koin.mp.KoinPlatform.getKoin().get<com.rld.justlisten.viewmodel.settings.SettingsViewModel>()
+                        settingsViewModel.loginWithCode(code, redirectUri)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
-                )
+                }
+            } else {
+                com.rld.justlisten.util.DeepLinkRouter.handleDeepLink(data.toString())
             }
         }
     }
+}
+
+@Composable
+fun JustListenAppContent() {
+    JustListenApp()
 }
 
 

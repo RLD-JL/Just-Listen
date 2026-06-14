@@ -2,11 +2,26 @@ package com.rld.justlisten.viewmodel.screens.library
 
 import com.rld.justlisten.ScreenState
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
+import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
+import com.rld.justlisten.datalayer.repositories.SessionState
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class LibraryState(
     val isLoading: Boolean = false,
     val favoritePlaylistItems: List<PlaylistItem> = emptyList(),
     val mostPlayedSongs: List<PlaylistItem> = emptyList(),
     val recentSongsItems: List<PlaylistItem> = emptyList(),
-    var lastIndexReached: Boolean = false
+    val playlistsCreated: List<AddPlaylist> = emptyList(),
+    val lastIndexReached: Boolean = false,
+    val timeCapsuleSongs: List<PlaylistItem> = emptyList(),
+    val totalPlays: Int = 0,
+    val uniquePlays: Int = 0,
+    val hoursPlayed: Double = 0.0,
+    val topArtistName: String = "",
+    val topArtistPlays: Int = 0,
+    val topArtistHours: Double = 0.0,
+    val lastMostPlayedIndexReached: Boolean = false,
+    val sessionState: SessionState = SessionState.Guest
 ): ScreenState

@@ -4,15 +4,72 @@ CREATE TABLE SettingsInfo (
      id INTEGER PRIMARY KEY DEFAULT 1,
      hasNavigationDonationOn INTEGER AS Boolean NOT NULL,
      isDarkThemeOn  INTEGER  AS Boolean  NOT NULL,
-     palletColor  TEXT  NOT NULL
+     palletColor  TEXT  NOT NULL,
+     customPrimary TEXT,
+     customSecondary TEXT,
+     customBackground TEXT,
+     customSurface TEXT,
+     isFirstLaunch INTEGER AS Boolean NOT NULL DEFAULT 1,
+     isOngoingStreamEnabled INTEGER AS Boolean NOT NULL DEFAULT 1,
+     isEqEnabled INTEGER AS Boolean NOT NULL DEFAULT 0,
+     eqPreset TEXT NOT NULL DEFAULT 'Flat',
+     eqBands TEXT NOT NULL DEFAULT '0.0,0.0,0.0,0.0,0.0'
 );
 
-INSERT INTO SettingsInfo(hasNavigationDonationOn, isDarkThemeOn, palletColor) VALUES (0, 1, "Dark");
+INSERT INTO SettingsInfo(hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch, isOngoingStreamEnabled, isEqEnabled, eqPreset, eqBands) VALUES (0, 1, "Pink", NULL, NULL, NULL, NULL, 1, 1, 0, 'Flat', '0.0,0.0,0.0,0.0,0.0');
 
 getSettingsInfo:
 SELECT * FROM SettingsInfo;
 
 upsertSettingsInfo {
-    REPLACE INTO SettingsInfo(id, hasNavigationDonationOn, isDarkThemeOn, palletColor)
-    VALUES(1, :hasNavigationDonationOn, :isDarkThemeOn, :palletColor) ;
+    REPLACE INTO SettingsInfo(id, hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch, isOngoingStreamEnabled, isEqEnabled, eqPreset, eqBands)
+    VALUES(1, :hasNavigationDonationOn, :isDarkThemeOn, :palletColor, :customPrimary, :customSecondary, :customBackground, :customSurface, :isFirstLaunch, :isOngoingStreamEnabled, :isEqEnabled, :eqPreset, :eqBands) ;
 }
+
+CREATE TABLE UserProfileOverrides (
+     userId TEXT NOT NULL PRIMARY KEY,
+     customName TEXT,
+     customBio TEXT,
+     customProfilePic TEXT,
+     customCoverPhoto TEXT,
+     customLocation TEXT,
+     xHandle TEXT,
+     instagramHandle TEXT,
+     tiktokHandle TEXT,
+     website TEXT,
+     fanClubFlair TEXT
+);
+
+getUserProfileOverride:
+SELECT * FROM UserProfileOverrides WHERE userId = :userId;
+
+upsertUserProfileOverride:
+INSERT OR REPLACE INTO UserProfileOverrides(
+    userId,
+    customName,
+    customBio,
+    customProfilePic,
+    customCoverPhoto,
+    customLocation,
+    xHandle,
+    instagramHandle,
+    tiktokHandle,
+    website,
+    fanClubFlair
+)
+VALUES(
+    :userId,
+    :customName,
+    :customBio,
+    :customProfilePic,
+    :customCoverPhoto,
+    :customLocation,
+    :xHandle,
+    :instagramHandle,
+    :tiktokHandle,
+    :website,
+    :fanClubFlair
+);
+
+deleteUserProfileOverride:
+DELETE FROM UserProfileOverrides WHERE userId = :userId;

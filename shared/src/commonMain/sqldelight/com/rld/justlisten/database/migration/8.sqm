@@ -1,0 +1,1 @@
+ALTER TABLE SettingsInfo ADD COLUMN isOngoingStreamEnabled INTEGER NOT NULL DEFAULT 1;

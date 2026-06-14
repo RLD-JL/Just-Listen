@@ -1,7 +1,7 @@
 <div align="center">
   <img width = "150" height ="150" src="https://user-images.githubusercontent.com/106017010/172056412-091f0c8f-f5e9-43af-96bc-aa57e50b66df.png") /img>
 <h1>Just Listen </h1>
-A music player currently only for android. It is using <a href="https://audius.org">Audius</a> public APIs to display and get the playlists/songs!
+A music player for Android and iOS. It is using <a href="https://audius.org">Audius</a> public APIs to display and get the playlists/songs!
 </div> 
 
 <div align="center">
@@ -50,7 +50,7 @@ The app is high network data consumption, since it streams songs at 320 kbps. I 
 - SQLDelight
 - Ktor
 - Jetpack Compose
-- Hilt
+- Koin
 
 ## Credits
 - [Audius](https://audius.org/) for providing free APIs to access the content.

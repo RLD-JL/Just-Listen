@@ -1,26 +1,39 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    kotlin("multiplatform")
-    id("com.android.library")
-    kotlin("plugin.serialization") version libs.versions.kotlinVersion.get()
-    id("app.cash.sqldelight") version "2.0.2"
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.kmp.library)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.sqldelight)
+    alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.kotlin.compose)
 }
 
 kotlin {
-    androidTarget()
+    jvmToolchain(17)
+    android {
+        namespace = "com.rld.justlisten"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        withHostTestBuilder {}.configure {}
+        withDeviceTestBuilder { sourceSetTreeName = "test" }
+        androidResources { enable = true }
+    }
+
+
 
     val iosTarget: (String, KotlinNativeTarget.() -> Unit) -> KotlinNativeTarget =
         if (System.getenv("SDK_NAME")?.startsWith("iphoneos") == true)
             ::iosArm64
         else
-            ::iosX64
+            ::iosSimulatorArm64
 
     iosTarget("ios") {
         binaries {
             framework {
                 baseName = "shared"
+                isStatic = true
+                linkerOpts("-lsqlite3")
             }
         }
     }
@@ -28,33 +41,81 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.datetime)
                 implementation(libs.bundles.ktor)
+
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material3)
+                implementation(libs.compose.material.icons.core)
+                implementation(libs.compose.material.icons.extended)
+                implementation(compose.ui)
+                implementation(compose.components.resources)
+                implementation(compose.components.uiToolingPreview)
+
+                // Navigation Compose (Multiplatform)
+                implementation(libs.navigation.compose)
+
+                // ViewModel + Lifecycle
+                implementation(libs.lifecycle.viewmodel)
+                implementation(libs.lifecycle.runtime)
+
+                // Serialization for routes
+                implementation(libs.kotlinx.serialization.json)
+
+                // Koin DI
+                implementation(libs.koin.core)
+                implementation(libs.koin.compose)
+                implementation(libs.koin.compose.viewmodel)
+
+                implementation(libs.sqldelight.coroutines.extensions)
+
+                // Image Loading (Coil 3)
+                implementation(libs.coil3.compose)
+                implementation(libs.coil3.network.ktor)
+
+                // Logging
+                implementation(libs.kermit)
             }
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
+                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
             }
         }
         val androidMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-android:${libs.versions.ktorVersion.get()}")
-                implementation("app.cash.sqldelight:android-driver:2.0.2")
+                implementation(libs.ktor.client.okhttp)
+                implementation(libs.sqldelight.android.driver)
+
+                implementation(libs.bundles.media3)
+
+                implementation(libs.androidx.media)
+                implementation(libs.androidx.palette)
+                implementation(libs.androidx.core.ktx)
+                implementation(libs.androidx.activity.compose)
+
+                // Additional Android dependencies
+                implementation(libs.androidx.work.runtime)
+                implementation(libs.androidx.security.crypto)
+
+                // Lifecycle for Android
+                implementation(libs.lifecycle.viewmodel)
+                implementation(libs.lifecycle.runtime)
+                implementation(libs.lifecycle.viewmodel.compose)
+
+                // Koin for Android
+                implementation(libs.koin.android)
+                implementation(libs.koin.androidx.compose)
             }
         }
-        val androidUnitTest by getting {
-            dependencies {
-                implementation(kotlin("test-junit"))
-                implementation("junit:junit:4.13.2")
-            }
-        }
+
         val iosMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-ios:${libs.versions.ktorVersion.get()}")
-                implementation("app.cash.sqldelight:native-driver:2.0.2")
+                implementation(libs.ktor.client.ios)
+                implementation(libs.sqldelight.native.driver)
             }
         }
         val iosTest by getting
@@ -69,29 +130,6 @@ sqldelight {
     }
 }
 
-configurations {
-    named("debugFrameworkIos") {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "my-unique-attribute"))
-        }
-    }
-    named("releaseFrameworkIos") {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "huh"))
-        }
-    }
-}
 
-android {
-    compileSdk = 34
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    defaultConfig {
-        testOptions.targetSdk = 34
-        minSdk = 21
-    }
-    namespace = "com.rld.justlisten"
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-}
+
+

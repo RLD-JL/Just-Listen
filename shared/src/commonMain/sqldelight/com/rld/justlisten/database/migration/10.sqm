@@ -1,0 +1,7 @@
+CREATE TABLE UserProfileOverrides (
+     userId TEXT NOT NULL PRIMARY KEY,
+     customName TEXT,
+     customBio TEXT,
+     customProfilePic TEXT,
+     customCoverPhoto TEXT
+);
