@@ -14,16 +14,24 @@ Available on <a href = "https://play.google.com/store/apps/details?id=com.rld.ju
 </a>
 </div>
 
+> [!NOTE]
+> The Google Play version has the support navigation tab and settings toggle completely removed to comply with Google Play's Developer Policy regarding donations/payments. The full FOSS version is available on GitHub and IzzyOnDroid.
 
 
 
-## Demo
-https://www.youtube.com/watch?v=IAExKH6L5P4
 
-## GIFs 
-<p align="start">
-<img width = "340" height ="600" src="https://user-images.githubusercontent.com/106017010/170878348-11563819-ca1b-4012-b4d9-12c436942e28.gif" /img>
-<img width = "340" height ="600" src="https://user-images.githubusercontent.com/106017010/169871828-202b61e8-cc0e-405a-95ba-d1a20cd5d0cd.GIF" /img>
+## Demos & Previews
+
+<p align="center">
+  <video src="assets/justlisten-demo.mp4" width="340" controls></video>
+  <video src="assets/justlisten-demo-2.mp4" width="340" controls></video>
+</p>
+<p align="center">
+  <video src="assets/justlisten-demo-3.mp4" width="340" controls></video>
+  <video src="assets/justlisten-demo-4.mp4" width="340" controls></video>
+</p>
+<p align="center">
+  <video src="assets/justlisten-demo-5.mp4" width="340" controls></video>
 </p>
 
 ## Features
@@ -38,7 +46,11 @@ https://www.youtube.com/watch?v=IAExKH6L5P4
 - Different themes 
 - Shuffle, repeat one/all songs
 - Notification manager displayed
-- No private data leaves your phone
+- Seamless song transitioning (mostly 😬)
+- Insights tracking on device
+- Audius authentication and syncing
+- Personalize feed upon audius authentication
+- No private data leaves your phone (Note: connecting with audius account is reliant on their infrastructure)
 
 ## WARNING ⚠️
 <b>
@@ -54,16 +66,14 @@ The app is high network data consumption, since it streams songs at 320 kbps. I 
 
 ## Credits
 - [Audius](https://audius.org/) for providing free APIs to access the content.
-- [D-KMP](https://github.com/dbaroncelli/D-KMP-sample) for the architecture sample on KMM.
 - [ComposeCookBook](https://github.com/Gurupreet/ComposeCookBook) for designs.
-- [UAMP](https://github.com/android/uamp) for media player sample using ExoPlayer.
 - Every other person that motivated me and helped with testing.
 
 ## Contributors
 Contributors are way more than welcomed, especially for iOS development.
 
 ## Contact
-If you have any questions you can get in touch on [discord](https://discord.gg/vFfUTenp) or via [twitter](https://twitter.com/RldJust).
+If you have any questions you can get in touch on [discord](https://discord.gg/Wjnhpc7ak6) or just raise an issue.
 
 ## Support
 If you like the app and would like more features and bug fixes, please consider supporting me.

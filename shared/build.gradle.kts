@@ -9,6 +9,24 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+val generateBuildConfig by tasks.registering {
+    val playstoreBuild = project.findProperty("playstoreBuild")?.toString()?.toBoolean() ?: false
+    val outputDir = layout.buildDirectory.dir("generated/buildconfig/commonMain/kotlin")
+    inputs.property("playstoreBuild", playstoreBuild)
+    outputs.dir(outputDir)
+    doLast {
+        val outputFile = outputDir.get().file("com/rld/justlisten/BuildConfig.kt").asFile
+        outputFile.parentFile.mkdirs()
+        outputFile.writeText("""
+            package com.rld.justlisten
+
+            object BuildConfig {
+                const val IS_PLAYSTORE_BUILD: Boolean = $playstoreBuild
+            }
+        """.trimIndent())
+    }
+}
+
 kotlin {
     jvmToolchain(17)
     android {
@@ -40,6 +58,7 @@ kotlin {
 
     sourceSets {
         val commonMain by getting {
+            kotlin.srcDir(generateBuildConfig)
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.datetime)

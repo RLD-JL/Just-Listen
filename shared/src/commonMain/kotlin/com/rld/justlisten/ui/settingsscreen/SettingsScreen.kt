@@ -45,6 +45,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.platform.LocalUriHandler
+import com.rld.justlisten.BuildConfig
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -315,19 +317,21 @@ fun SettingsScreen(
             }
 
             // support options section
-            SettingsSectionHeader(title = "Support & Navigation")
-            
-            SettingsCard {
-                SettingsSwitchRow(
-                    icon = Icons.Rounded.Favorite,
-                    title = "Support Tab in Navigation",
-                    checked = settings.hasDonationNavigationOn,
-                    onCheckedChange = {
-                        updateSettings(
-                            settings.copy(hasDonationNavigationOn = it)
-                        )
-                    }
-                )
+            if (!BuildConfig.IS_PLAYSTORE_BUILD) {
+                SettingsSectionHeader(title = "Support & Navigation")
+                
+                SettingsCard {
+                    SettingsSwitchRow(
+                        icon = Icons.Rounded.Favorite,
+                        title = "Support Tab in Navigation",
+                        checked = settings.hasDonationNavigationOn,
+                        onCheckedChange = {
+                            updateSettings(
+                                settings.copy(hasDonationNavigationOn = it)
+                            )
+                        }
+                    )
+                }
             }
 
             // Playback Options Section
@@ -491,23 +495,59 @@ fun SettingsScreen(
 
             // Version Footer info
             Spacer(modifier = Modifier.height(16.dp))
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Rounded.Info,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp).alpha(0.5f),
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "App Version 1.0.9-a",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Info,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp).alpha(0.5f),
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "App Version 1.0.9-a",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                    )
+                }
+                
+                val uriHandler = LocalUriHandler.current
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "GitHub",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.clickable {
+                            uriHandler.openUri("https://github.com/RLD-JL/Just-Listen")
+                        }
+                    )
+                    Text(
+                        text = "  •  ",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f),
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                    Text(
+                        text = "Discord Channel",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.clickable {
+                            uriHandler.openUri("https://discord.gg/Wjnhpc7ak6")
+                        }
+                    )
+                }
             }
         }
     }

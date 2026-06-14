@@ -69,8 +69,8 @@ jobs:
           mkdir -p release
           python3 -c "import os, base64; open('release/release.keystore', 'wb').write(base64.b64decode(os.environ['ENCODED_KEYSTORE']))"
 
-      # Build the production APK and AAB (App Bundle)
-      - name: Build Release APK & AAB
+      # Build the FOSS APK and AAB (with donation screen/toggle present)
+      - name: Build FOSS Release APK & AAB
         env:
           AUDIUS_API_KEY: ${{ secrets.AUDIUS_API_KEY }}
           AUDIUS_BEARER_TOKEN: ${{ secrets.AUDIUS_BEARER_TOKEN }}
@@ -78,16 +78,37 @@ jobs:
           RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-        run: ./gradlew :androidApp:assembleRelease :androidApp:bundleRelease
+        run: |
+          ./gradlew :androidApp:assembleRelease :androidApp:bundleRelease -PplaystoreBuild=false
+          mkdir -p release-artifacts
+          cp androidApp/build/outputs/apk/release/*.apk release-artifacts/justlisten-foss-release.apk
+          cp androidApp/build/outputs/bundle/release/*.aab release-artifacts/justlisten-foss-release.aab
+
+      # Clean build directory to reset state and build configuration
+      - name: Clean Build Outputs
+        run: ./gradlew clean
+
+      # Build the Google Play Store APK and AAB (with donation screen/toggle hidden)
+      - name: Build Play Store Release APK & AAB
+        env:
+          AUDIUS_API_KEY: ${{ secrets.AUDIUS_API_KEY }}
+          AUDIUS_BEARER_TOKEN: ${{ secrets.AUDIUS_BEARER_TOKEN }}
+          RELEASE_KEYSTORE_PATH: ../release/release.keystore # Path relative to androidApp folder
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          ./gradlew :androidApp:assembleRelease :androidApp:bundleRelease -PplaystoreBuild=true
+          mkdir -p release-artifacts
+          cp androidApp/build/outputs/apk/release/*.apk release-artifacts/justlisten-playstore-release.apk
+          cp androidApp/build/outputs/bundle/release/*.aab release-artifacts/justlisten-playstore-release.aab
 
       # Upload the compiled artifacts to GitHub Actions run details
       - name: Upload Release Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: release-artifacts
-          path: |
-            androidApp/build/outputs/apk/release/*.apk
-            androidApp/build/outputs/bundle/release/*.aab
+          path: release-artifacts/*
 
       # Create GitHub Release and upload APK/AAB as assets if requested
       - name: Create GitHub Release
@@ -98,8 +119,6 @@ jobs:
           name: Release v${{ steps.version_resolver.outputs.NEW_VERSION }}
           draft: false
           prerelease: false
-          files: |
-            androidApp/build/outputs/apk/release/*.apk
-            androidApp/build/outputs/bundle/release/*.aab
+          files: release-artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

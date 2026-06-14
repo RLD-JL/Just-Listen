@@ -37,7 +37,7 @@ fun AddPlaylistOption(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).navigationBarsPadding()) {
         if (addPlaylistList.isEmpty()) {
             EmptyPlaylistsPlaceholder()
         } else {
