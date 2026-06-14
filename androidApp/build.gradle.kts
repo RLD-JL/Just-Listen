@@ -43,8 +43,8 @@ android {
         applicationId = "com.rld.justlisten.android"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 27
-        versionName = "1.0.10"
+        versionCode = libs.versions.android.versionCode.get().toInt()
+        versionName = libs.versions.android.versionName.get()
         vectorDrawables {
             useSupportLibrary = true
         }

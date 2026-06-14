@@ -3,14 +3,14 @@ import sys
 import os
 
 def get_and_bump_version(bump_type):
-    file_path = "androidApp/build.gradle.kts"
+    file_path = "gradle/libs.versions.toml"
     with open(file_path, "r") as f:
         content = f.read()
 
     # Find versionCode
-    version_code_match = re.search(r'versionCode\s*=\s*(\d+)', content)
+    version_code_match = re.search(r'android-versionCode\s*=\s*"(\d+)"', content)
     if not version_code_match:
-        print("Could not find versionCode in build.gradle.kts")
+        print("Could not find android-versionCode in libs.versions.toml")
         sys.exit(1)
     
     current_code = int(version_code_match.group(1))
@@ -19,9 +19,9 @@ def get_and_bump_version(bump_type):
         new_code = current_code + 1
 
     # Find versionName
-    version_name_match = re.search(r'versionName\s*=\s*"([^"]+)"', content)
+    version_name_match = re.search(r'android-versionName\s*=\s*"([^"]+)"', content)
     if not version_name_match:
-        print("Could not find versionName in build.gradle.kts")
+        print("Could not find android-versionName in libs.versions.toml")
         sys.exit(1)
 
     current_name = version_name_match.group(1)
@@ -48,8 +48,8 @@ def get_and_bump_version(bump_type):
 
     if bump_type != "none":
         # Replace in file content
-        content = re.sub(r'(versionCode\s*=\s*)(\d+)', f'\\g<1>{new_code}', content)
-        content = re.sub(r'(versionName\s*=\s*)"([^"]+)"', f'\\g<1>"{new_name}"', content)
+        content = re.sub(r'(android-versionCode\s*=\s*)"\d+"', f'\\g<1>"{new_code}"', content)
+        content = re.sub(r'(android-versionName\s*=\s*)"[^"]+"', f'\\g<1>"{new_name}"', content)
         with open(file_path, "w") as f:
             f.write(content)
         print(f"Bumped version from {current_name} (code {current_code}) to {new_name} (code {new_code})")

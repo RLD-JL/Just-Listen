@@ -26,6 +26,8 @@ securityCryptoVersion = "1.1.0"
 android-compileSdk = "37"
 android-targetSdk = "37"
 android-minSdk = "23"
+android-versionCode = "28"
+android-versionName = "2.0.0"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutinesVersion" }

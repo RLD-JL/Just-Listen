@@ -57,7 +57,8 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: bump version to ${{ steps.version_resolver.outputs.NEW_VERSION }} [skip ci]"
+          git add gradle/libs.versions.toml
+          git commit -m "chore: bump version to ${{ steps.version_resolver.outputs.NEW_VERSION }} [skip ci]"
           git push
 
       # Decode the base64 keystore securely from process memory
