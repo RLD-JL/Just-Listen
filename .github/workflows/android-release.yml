@@ -6,8 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Restrict execution strictly to the username 'rld'
-    if: github.actor == 'rld'
+    # Restrict execution strictly to the username 'rld-jl'
+    if: github.actor == 'rld-jl'
 
     steps:
       - name: Checkout Code
