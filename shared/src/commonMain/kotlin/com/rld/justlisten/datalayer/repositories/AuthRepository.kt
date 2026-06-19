@@ -123,7 +123,10 @@ class AuthRepositoryImpl(
             } else {
                 false
             }
-        }.getOrElse { false }
+        }.getOrElse { exception ->
+            co.touchlab.kermit.Logger.e(exception) { "AuthRepository: loginWithCode failed" }
+            false
+        }
     }
 
     override suspend fun refreshSession(): Boolean {
@@ -203,7 +206,8 @@ class AuthRepositoryImpl(
                 _sessionState.value = SessionState.Guest
                 false
             }
-        }.getOrElse {
+        }.getOrElse { exception ->
+            co.touchlab.kermit.Logger.e(exception) { "AuthRepository: refreshSession failed" }
             _sessionState.value = SessionState.Guest
             false
         }

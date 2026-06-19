@@ -35,6 +35,7 @@ sealed interface LibraryScreenAction {
     data object TimeCapsulePressed : LibraryScreenAction
     data object MusicInsightsPressed : LibraryScreenAction
     data object ExploreMusicPressed : LibraryScreenAction
+    data object ArtistDashboardPressed : LibraryScreenAction
     
     data class ArtistClicked(
         val artistId: String,

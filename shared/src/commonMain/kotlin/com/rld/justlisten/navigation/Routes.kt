@@ -67,6 +67,9 @@ sealed class Route {
     ) : Route()
     @Serializable
     data object Notifications : Route()
+
+    @Serializable
+    data object ArtistDashboard : Route()
 }
 
 /**
@@ -97,6 +100,7 @@ val Route.navigationLevel: NavigationLevel
         Route.CustomTheme,
         is Route.PlaylistDetail,
         Route.Notifications,
+        Route.ArtistDashboard,
         is Route.ArtistProfile -> NavigationLevel.LEVEL_2
     }
 

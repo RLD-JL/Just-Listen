@@ -240,6 +240,10 @@ fun AppNavigation(
         composable<Route.Notifications> {
             NotificationsScreenHost(navController)
         }
+
+        composable<Route.ArtistDashboard> {
+            ArtistDashboardScreenHost(navController)
+        }
     }
 
     val playlist = activeImportPlaylist

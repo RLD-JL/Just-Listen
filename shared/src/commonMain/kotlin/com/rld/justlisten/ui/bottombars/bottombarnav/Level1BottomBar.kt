@@ -143,6 +143,9 @@ fun Level1BottomBar(
                 Route.Notifications -> {
                     lastActiveRoutes[currentTab] = currentRoute
                 }
+                Route.ArtistDashboard -> {
+                    lastActiveRoutes[currentTab] = currentRoute
+                }
                 Route.CustomTheme -> {
                     // Do not store the transient CustomTheme route as the active tab route
                 }

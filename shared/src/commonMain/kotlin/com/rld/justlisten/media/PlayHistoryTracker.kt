@@ -41,7 +41,7 @@ class PlayHistoryTracker(
                         
                         // Automatically upsert the new song into Library recents to guarantee metadata exists for JOIN queries
                         if (media != null) {
-                            launch(Dispatchers.IO) {
+                            scope.launch(Dispatchers.IO) {
                                 libraryRepository.saveSongToRecent(
                                     id = media.id,
                                     title = media.title,

@@ -98,8 +98,6 @@ fun PlayerBottomBar(
 
         // ── 1. Progress bar (minibar only) ──────────────────────────────────
         MiniProgressBar(
-            musicPlayer = musicPlayer,
-            duration = playbackState.currentMedia?.duration ?: 0L,
             currentFractionProvider = currentFractionProvider,
             animatedColor = animatedColor
         )
@@ -122,7 +120,8 @@ fun PlayerBottomBar(
                 targetColor = androidx.compose.ui.graphics.lerp(extracted, primaryThemeColor, 0.3f)
                 onUiEvent(PlayerUiEvent.DominantColorExtracted(color))
             },
-            playBarMinimizedClicked = { onUiEvent(PlayerUiEvent.Expand) }
+            playBarMinimizedClicked = { onUiEvent(PlayerUiEvent.Expand) },
+            playbackState = playbackState
         )
 
         // ── 3. Top section: collapse arrow + more (expanded only) ───────────
@@ -181,19 +180,14 @@ fun PlayerBottomBar(
 
 @Composable
 fun BoxScope.MiniProgressBar(
-    musicPlayer: MusicPlayer,
-    duration: Long,
     currentFractionProvider: () -> Float,
     animatedColor: Color
 ) {
-    val playbackState by musicPlayer.playbackState.collectAsState()
-    val progress = if (duration > 0L) {
-        playbackState.currentPosition.toFloat() / duration.toFloat()
-    } else 0f
+    val progress = currentFractionProvider()
 
     if (!progress.isNaN()) {
         LinearProgressIndicator(
-            progress = { progress },
+            progress = currentFractionProvider,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.5.dp)

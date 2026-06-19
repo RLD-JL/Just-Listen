@@ -15,6 +15,7 @@ import com.rld.justlisten.datalayer.repositories.FeedRepositoryImpl
 import org.koin.dsl.module
 import org.koin.core.module.dsl.viewModel
 
+import com.rld.justlisten.viewmodel.artistdashboard.ArtistDashboardViewModel
 import com.rld.justlisten.media.PlayHistoryTracker
 import com.rld.justlisten.datalayer.repositories.*
 
@@ -29,7 +30,8 @@ fun appModule() = module {
     single<SyncRepository> { SyncRepositoryImpl(localDb = get(), apiClient = get()) }
     single<FeedRepository> { FeedRepositoryImpl(get(), get(), get()) }
     single<NotificationRepository> { NotificationRepositoryImpl(get()) }
-    single(createdAtStart = true) { PlayHistoryTracker(get(), get()) }
+    single<ArtistDashboardRepository> { ArtistDashboardRepositoryImpl(get()) }
+    single { PlayHistoryTracker(get(), get()) }
     
     // ViewModels
     viewModel { LibraryViewModel(get(), get(), get(), get()) }
@@ -40,6 +42,7 @@ fun appModule() = module {
     viewModel { SeeAllViewModel(get(), get()) }
     viewModel { ArtistProfileViewModel(get(), get(), get()) }
     viewModel { FeedViewModel(get(), get(), get(), get()) }
+    viewModel { ArtistDashboardViewModel(get(), get()) }
     single { SettingsViewModel(get(), get(), get(), get()) }
     viewModel { PlayerViewModel(get(), get(), get(), get(), get(), get(), get()) }
 }

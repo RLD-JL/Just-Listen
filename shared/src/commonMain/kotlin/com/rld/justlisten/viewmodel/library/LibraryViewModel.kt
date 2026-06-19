@@ -46,9 +46,14 @@ class LibraryViewModel(
                 _libraryState.update { it.copy(playlistsCreated = playlistList) }
             }
         }
+        var debounceJob: kotlinx.coroutines.Job? = null
         viewModelScope.launch {
             libraryRepository.getPlayHistoryFlow().collect {
-                loadPlayHistoryAndStats()
+                debounceJob?.cancel()
+                debounceJob = launch {
+                    kotlinx.coroutines.delay(2000L)
+                    loadPlayHistoryAndStats()
+                }
             }
         }
     }
@@ -237,6 +242,10 @@ class LibraryViewModel(
 
     fun onMusicInsightsClicked() {
         navigate(Route.MusicInsights)
+    }
+
+    fun onArtistDashboardClicked() {
+        navigate(Route.ArtistDashboard)
     }
 
     fun popBack() {

@@ -39,7 +39,8 @@ suspend fun ApiClient.exchangeCodeForTokens(
         "grant_type=authorization_code" +
         "&code=$code" +
         "&code_verifier=$codeVerifier" +
-        "&redirect_uri=$redirectUri"
+        "&redirect_uri=$redirectUri" +
+        "&client_id=$apiKey"
     )
 }
 

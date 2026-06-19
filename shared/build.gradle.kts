@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -10,9 +11,15 @@ plugins {
 }
 
 val generateBuildConfig by tasks.registering {
+    val localProps = gradleLocalProperties(rootDir, providers)
+    val apiKey = localProps.getProperty("AUDIUS_API_KEY") ?: System.getenv("AUDIUS_API_KEY") ?: ""
+    val bearerToken = localProps.getProperty("AUDIUS_BEARER_TOKEN") ?: System.getenv("AUDIUS_BEARER_TOKEN") ?: ""
     val playstoreBuild = project.findProperty("playstoreBuild")?.toString()?.toBoolean() ?: false
     val outputDir = layout.buildDirectory.dir("generated/buildconfig/commonMain/kotlin")
+    
     inputs.property("playstoreBuild", playstoreBuild)
+    inputs.property("apiKey", apiKey)
+    inputs.property("bearerToken", bearerToken)
     outputs.dir(outputDir)
     doLast {
         val outputFile = outputDir.get().file("com/rld/justlisten/BuildConfig.kt").asFile
@@ -22,6 +29,8 @@ val generateBuildConfig by tasks.registering {
 
             object BuildConfig {
                 const val IS_PLAYSTORE_BUILD: Boolean = $playstoreBuild
+                const val AUDIUS_API_KEY: String = "$apiKey"
+                const val AUDIUS_BEARER_TOKEN: String = "$bearerToken"
             }
         """.trimIndent())
     }

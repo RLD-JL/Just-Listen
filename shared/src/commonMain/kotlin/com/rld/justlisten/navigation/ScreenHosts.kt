@@ -28,6 +28,7 @@ import com.rld.justlisten.viewmodel.screens.settings.SettingsState
 import com.rld.justlisten.viewmodel.seeall.SeeAllViewModel
 import com.rld.justlisten.ui.seeallscreen.SeeAllScreen
 import com.rld.justlisten.ui.actions.*
+import com.rld.justlisten.viewmodel.artistdashboard.ArtistDashboardViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -69,6 +70,7 @@ fun LibraryScreenHost(navController: NavHostController) {
                 LibraryScreenAction.TimeCapsulePressed -> viewModel.onTimeCapsuleClicked()
                 LibraryScreenAction.ExploreMusicPressed -> viewModel.onExploreMusicClicked()
                 LibraryScreenAction.MusicInsightsPressed -> viewModel.onMusicInsightsClicked()
+                LibraryScreenAction.ArtistDashboardPressed -> viewModel.onArtistDashboardClicked()
                 is LibraryScreenAction.ArtistClicked -> viewModel.onArtistClicked(action.artistId, action.artistName)
             }
         }
@@ -543,5 +545,18 @@ fun NotificationsScreenHost(navController: NavHostController) {
         onNavigateToArtist = { artistId, artistName ->
             navController.navigate(Route.ArtistProfile(artistId, artistName))
         }
+    )
+}
+
+@Composable
+fun ArtistDashboardScreenHost(navController: NavHostController) {
+    val viewModel: ArtistDashboardViewModel = koinViewModel()
+    val state by viewModel.state.collectAsState()
+
+    CollectNavigationEvents(viewModel, navController)
+
+    com.rld.justlisten.ui.artistdashboard.ArtistDashboardScreen(
+        state = state,
+        onBackPressed = { viewModel.handleBack() }
     )
 }

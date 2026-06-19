@@ -4,8 +4,9 @@ import platform.Foundation.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.usePinned
 import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.BetaInteropApi
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 actual fun gzipCompress(bytes: ByteArray): ByteArray {
     if (bytes.isEmpty()) return ByteArray(0)
     val nsData = bytes.usePinned { pinned ->
@@ -15,7 +16,7 @@ actual fun gzipCompress(bytes: ByteArray): ByteArray {
     return compressed.toByteArray()
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 actual fun gzipDecompress(bytes: ByteArray): ByteArray {
     if (bytes.isEmpty()) return ByteArray(0)
     val nsData = bytes.usePinned { pinned ->
@@ -37,6 +38,7 @@ fun NSData.toByteArray(): ByteArray {
     return byteArray
 }
 
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 actual fun base64UrlEncode(bytes: ByteArray): String {
     if (bytes.isEmpty()) return ""
     @OptIn(ExperimentalForeignApi::class)
@@ -51,6 +53,7 @@ actual fun base64UrlEncode(bytes: ByteArray): String {
         .trim()
 }
 
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 actual fun base64UrlDecode(str: String): ByteArray {
     if (str.isEmpty()) return ByteArray(0)
     var base64 = str.replace("-", "+").replace("_", "/")

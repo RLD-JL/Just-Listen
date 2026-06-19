@@ -88,8 +88,8 @@ jobs:
       - name: Clean Build Outputs
         run: ./gradlew clean
 
-      # Build the Google Play Store APK and AAB (with donation screen/toggle hidden)
-      - name: Build Play Store Release APK & AAB
+      # Build the Google Play Store AAB (with donation screen/toggle hidden)
+      - name: Build Play Store Release AAB
         env:
           AUDIUS_API_KEY: ${{ secrets.AUDIUS_API_KEY }}
           AUDIUS_BEARER_TOKEN: ${{ secrets.AUDIUS_BEARER_TOKEN }}
@@ -98,9 +98,8 @@ jobs:
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
-          ./gradlew :androidApp:assembleRelease :androidApp:bundleRelease -PplaystoreBuild=true
+          ./gradlew :androidApp:bundleRelease -PplaystoreBuild=true
           mkdir -p release-artifacts
-          cp androidApp/build/outputs/apk/release/*.apk release-artifacts/justlisten-playstore-release.apk
           cp androidApp/build/outputs/bundle/release/*.aab release-artifacts/justlisten-playstore-release.aab
 
       # Upload the compiled artifacts to GitHub Actions run details
