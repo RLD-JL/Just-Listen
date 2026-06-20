@@ -27,7 +27,17 @@ import com.rld.justlisten.viewmodel.settings.SettingsViewModel
 import com.rld.justlisten.viewmodel.screens.settings.SettingsState
 import com.rld.justlisten.viewmodel.seeall.SeeAllViewModel
 import com.rld.justlisten.ui.seeallscreen.SeeAllScreen
-import com.rld.justlisten.ui.actions.*
+import com.rld.justlisten.ui.actions.LibraryScreenAction
+import com.rld.justlisten.ui.actions.ArtistProfileAction
+import com.rld.justlisten.ui.actions.FeedAction
+import com.rld.justlisten.ui.artistdashboard.ArtistDashboardScreen
+import com.rld.justlisten.ui.artistprofile.ArtistProfileScreen
+import com.rld.justlisten.ui.feedscreen.FeedScreen
+import com.rld.justlisten.ui.libraryscreen.MusicInsightsScreen
+import com.rld.justlisten.ui.notifications.NotificationScreen
+import com.rld.justlisten.ui.settingsscreen.CustomThemeScreen
+import com.rld.justlisten.viewmodel.artistprofile.ArtistProfileViewModel
+import com.rld.justlisten.viewmodel.feed.FeedViewModel
 import com.rld.justlisten.viewmodel.artistdashboard.ArtistDashboardViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -86,7 +96,7 @@ fun MusicInsightsScreenHost(navController: NavHostController) {
 
     CollectNavigationEvents(viewModel, navController)
 
-    com.rld.justlisten.ui.libraryscreen.MusicInsightsScreen(
+    MusicInsightsScreen(
         libraryState = state,
         musicPlayer = musicPlayer,
         libraryRepository = repository,
@@ -324,7 +334,7 @@ fun SettingsScreenHost(navController: NavHostController) {
             }
         },
         onNavigateToCustomTheme = {
-            navController.navigate(com.rld.justlisten.navigation.Route.CustomTheme)
+            navController.navigate(Route.CustomTheme)
         },
         onLogin = { redirectUri ->
             val authUrl = viewModel.getAuthUrl(redirectUri)
@@ -342,7 +352,7 @@ fun SettingsScreenHost(navController: NavHostController) {
             viewModel.clearFailedSync()
         },
         onNavigateToMyProfile = { userId, name ->
-            navController.navigate(com.rld.justlisten.navigation.Route.ArtistProfile(userId, name))
+            navController.navigate(Route.ArtistProfile(userId, name))
         }
     )
 }
@@ -394,7 +404,7 @@ fun CustomThemeScreenHost(navController: NavHostController) {
     val viewModel: SettingsViewModel = koinInject()
     val state by viewModel.settingsState.collectAsState()
 
-    com.rld.justlisten.ui.settingsscreen.CustomThemeScreen(
+    CustomThemeScreen(
         settings = state,
         onBackPressed = { navController.popBackStack() },
         onCustomColorsApplied = { primary, secondary, background, surface ->
@@ -411,7 +421,7 @@ fun ArtistProfileScreenHost(
     navController: NavHostController,
     args: Route.ArtistProfile
 ) {
-    val viewModel: com.rld.justlisten.viewmodel.artistprofile.ArtistProfileViewModel = koinViewModel()
+    val viewModel: ArtistProfileViewModel = koinViewModel()
     val musicPlayer = LocalMusicPlayer.current
     val repository: LibraryRepository = koinInject()
     val state by viewModel.artistProfileState.collectAsState()
@@ -419,33 +429,33 @@ fun ArtistProfileScreenHost(
     LaunchedEffect(args) { viewModel.load(args) }
     CollectNavigationEvents(viewModel, navController)
 
-    com.rld.justlisten.ui.artistprofile.ArtistProfileScreen(
+    ArtistProfileScreen(
         artistProfileState = state,
         musicPlayer = musicPlayer,
         libraryRepository = repository,
         onAction = { action ->
             when (action) {
-                is com.rld.justlisten.ui.actions.ArtistProfileAction.BackPressed -> viewModel.popBack()
-                is com.rld.justlisten.ui.actions.ArtistProfileAction.SongPressed -> playMusicFromId(
+                is ArtistProfileAction.BackPressed -> viewModel.popBack()
+                is ArtistProfileAction.SongPressed -> playMusicFromId(
                     musicPlayer,
                     state.artistTracks,
                     action.songId,
                     repository
                 )
-                is com.rld.justlisten.ui.actions.ArtistProfileAction.PlaylistClicked -> viewModel.onPlaylistClicked(
+                is ArtistProfileAction.PlaylistClicked -> viewModel.onPlaylistClicked(
                     action.playlistId,
                     action.playlistIcon,
                     action.createdBy,
                     action.title
                 )
-                is com.rld.justlisten.ui.actions.ArtistProfileAction.FollowPressed -> viewModel.onFollowPressed()
-                is com.rld.justlisten.ui.actions.ArtistProfileAction.DismissConnectPrompt -> viewModel.dismissConnectPrompt()
-                is com.rld.justlisten.ui.actions.ArtistProfileAction.ConnectAudiusPressed -> {
+                is ArtistProfileAction.FollowPressed -> viewModel.onFollowPressed()
+                is ArtistProfileAction.DismissConnectPrompt -> viewModel.dismissConnectPrompt()
+                is ArtistProfileAction.ConnectAudiusPressed -> {
                     viewModel.dismissConnectPrompt()
                     navController.navigate(Route.Settings)
                 }
-                is com.rld.justlisten.ui.actions.ArtistProfileAction.TabSelected -> viewModel.onTabSelected(action.index)
-                is com.rld.justlisten.ui.actions.ArtistProfileAction.EditProfileSaved -> viewModel.onEditProfileSaved(
+                is ArtistProfileAction.TabSelected -> viewModel.onTabSelected(action.index)
+                is ArtistProfileAction.EditProfileSaved -> viewModel.onEditProfileSaved(
                     action.name,
                     action.bio,
                     action.profilePicUrl,
@@ -457,11 +467,11 @@ fun ArtistProfileScreenHost(
                     action.website,
                     action.fanClubFlair
                 )
-                is com.rld.justlisten.ui.actions.ArtistProfileAction.FollowersClicked -> viewModel.onFollowersClicked()
-                is com.rld.justlisten.ui.actions.ArtistProfileAction.FollowingClicked -> viewModel.onFollowingClicked()
-                is com.rld.justlisten.ui.actions.ArtistProfileAction.DismissSocialSheet -> viewModel.onDismissSocialSheet()
-                is com.rld.justlisten.ui.actions.ArtistProfileAction.SocialFollowPressed -> viewModel.onSocialFollowPressed(action.userId)
-                is com.rld.justlisten.ui.actions.ArtistProfileAction.ArtistClicked -> viewModel.onNavigateToArtist(action.userId, action.name)
+                is ArtistProfileAction.FollowersClicked -> viewModel.onFollowersClicked()
+                is ArtistProfileAction.FollowingClicked -> viewModel.onFollowingClicked()
+                is ArtistProfileAction.DismissSocialSheet -> viewModel.onDismissSocialSheet()
+                is ArtistProfileAction.SocialFollowPressed -> viewModel.onSocialFollowPressed(action.userId)
+                is ArtistProfileAction.ArtistClicked -> viewModel.onNavigateToArtist(action.userId, action.name)
             }
         }
     )
@@ -472,7 +482,7 @@ fun FeedScreenHost(
     navController: NavHostController,
     args: Route.Feed
 ) {
-    val viewModel: com.rld.justlisten.viewmodel.feed.FeedViewModel = koinViewModel()
+    val viewModel: FeedViewModel = koinViewModel()
     val musicPlayer = LocalMusicPlayer.current
     val repository: LibraryRepository = koinInject()
     val state by viewModel.feedState.collectAsState()
@@ -485,52 +495,52 @@ fun FeedScreenHost(
 
     CollectNavigationEvents(viewModel, navController)
 
-    com.rld.justlisten.ui.feedscreen.FeedScreen(
+    FeedScreen(
         feedState = state,
         musicPlayer = musicPlayer,
         libraryRepository = repository,
         onAction = { action ->
             when (action) {
-                is com.rld.justlisten.ui.actions.FeedAction.SongPressed -> playMusicFromId(
+                is FeedAction.SongPressed -> playMusicFromId(
                     musicPlayer,
                     state.items,
                     action.songId,
                     repository
                 )
-                is com.rld.justlisten.ui.actions.FeedAction.PlaylistClicked -> viewModel.onPlaylistClicked(
+                is FeedAction.PlaylistClicked -> viewModel.onPlaylistClicked(
                     action.playlistId,
                     action.playlistIcon,
                     action.createdBy,
                     action.title
                 )
-                is com.rld.justlisten.ui.actions.FeedAction.FavoritePressed -> viewModel.onFavoritePressed(
+                is FeedAction.FavoritePressed -> viewModel.onFavoritePressed(
                     action.songId,
                     action.title,
                     action.user,
                     action.songIcon,
                     action.isFavorite
                 )
-                is com.rld.justlisten.ui.actions.FeedAction.RepostPressed -> viewModel.onRepostPressed(
+                is FeedAction.RepostPressed -> viewModel.onRepostPressed(
                     action.itemId,
                     action.isRepost,
                     action.isPlaylist
                 )
-                is com.rld.justlisten.ui.actions.FeedAction.ArtistClicked -> viewModel.onArtistClicked(
+                is FeedAction.ArtistClicked -> viewModel.onArtistClicked(
                     action.artistId,
                     action.artistName
                 )
-                com.rld.justlisten.ui.actions.FeedAction.Refresh -> viewModel.refreshFeed()
-                com.rld.justlisten.ui.actions.FeedAction.DismissConnectPrompt -> viewModel.dismissConnectPrompt()
-                com.rld.justlisten.ui.actions.FeedAction.ConnectAudiusPressed -> {
+                FeedAction.Refresh -> viewModel.refreshFeed()
+                FeedAction.DismissConnectPrompt -> viewModel.dismissConnectPrompt()
+                FeedAction.ConnectAudiusPressed -> {
                     viewModel.dismissConnectPrompt()
                     navController.navigate(Route.Settings)
                 }
-                com.rld.justlisten.ui.actions.FeedAction.LoadMore -> viewModel.loadMore()
-                is com.rld.justlisten.ui.actions.FeedAction.SelectTab -> viewModel.selectTab(action.tab)
-                is com.rld.justlisten.ui.actions.FeedAction.SetPersonalFilter -> viewModel.setPersonalFilter(action.filter)
-                is com.rld.justlisten.ui.actions.FeedAction.SetPersonalFormat -> viewModel.setPersonalFormat(action.format)
-                is com.rld.justlisten.ui.actions.FeedAction.SetTrendingCategory -> viewModel.setTrendingCategory(action.category)
-                is com.rld.justlisten.ui.actions.FeedAction.SetTrendingTimeRange -> viewModel.setTrendingTimeRange(action.timeRange)
+                FeedAction.LoadMore -> viewModel.loadMore()
+                is FeedAction.SelectTab -> viewModel.selectTab(action.tab)
+                is FeedAction.SetPersonalFilter -> viewModel.setPersonalFilter(action.filter)
+                is FeedAction.SetPersonalFormat -> viewModel.setPersonalFormat(action.format)
+                is FeedAction.SetTrendingCategory -> viewModel.setTrendingCategory(action.category)
+                is FeedAction.SetTrendingTimeRange -> viewModel.setTrendingTimeRange(action.timeRange)
             }
         }
     )
@@ -538,7 +548,7 @@ fun FeedScreenHost(
 
 @Composable
 fun NotificationsScreenHost(navController: NavHostController) {
-    com.rld.justlisten.ui.notifications.NotificationScreen(
+    NotificationScreen(
         onBackClicked = {
             navController.popBackStack()
         },
@@ -555,7 +565,7 @@ fun ArtistDashboardScreenHost(navController: NavHostController) {
 
     CollectNavigationEvents(viewModel, navController)
 
-    com.rld.justlisten.ui.artistdashboard.ArtistDashboardScreen(
+    ArtistDashboardScreen(
         state = state,
         onBackPressed = { viewModel.handleBack() }
     )
