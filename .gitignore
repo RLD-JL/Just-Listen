@@ -31,3 +31,4 @@ local.properties
 *.p12
 *.pfx
 *.pepk
+*.log

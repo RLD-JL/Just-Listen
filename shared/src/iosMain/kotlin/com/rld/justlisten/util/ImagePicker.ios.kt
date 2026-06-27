@@ -55,8 +55,12 @@ class IosImagePickerLauncher(
     private val onImagePicked: (String) -> Unit
 ) : ImagePickerLauncher {
     override fun launch() {
-        val rootController = UIApplication.sharedApplication.keyWindow?.rootViewController
-            ?: UIApplication.sharedApplication.windows.firstOrNull()?.let { (it as? UIWindow)?.rootViewController }
+        val rootController = UIApplication.sharedApplication.connectedScenes
+            .mapNotNull { it as? UIWindowScene }
+            .flatMap { it.windows }
+            .mapNotNull { it as? UIWindow }
+            .firstOrNull { it.isKeyWindow() }
+            ?.rootViewController
             
         if (rootController != null) {
             val picker = UIImagePickerController()

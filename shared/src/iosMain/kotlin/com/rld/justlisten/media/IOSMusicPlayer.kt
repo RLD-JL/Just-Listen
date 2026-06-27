@@ -1,4 +1,4 @@
-@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
 package com.rld.justlisten.media
 
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -136,10 +136,17 @@ class IOSMusicPlayer(
 
         try {
             val audioSession = AVAudioSession.sharedInstance()
-            audioSession.setCategory(AVAudioSessionCategoryPlayback, error = null)
-            audioSession.setActive(true, error = null)
+            memScoped {
+                val categoryError = alloc<ObjCObjectVar<NSError?>>() 
+                audioSession.setCategory(AVAudioSessionCategoryPlayback, error = categoryError.ptr)
+                categoryError.value?.let { Logger.e { "Audio setCategory failed: ${it.localizedDescription}" } }
+                
+                val activeError = alloc<ObjCObjectVar<NSError?>>()
+                audioSession.setActive(true, error = activeError.ptr)
+                activeError.value?.let { Logger.e { "Audio setActive failed: ${it.localizedDescription}" } }
+            }
         } catch (e: Exception) {
-            Logger.e(e) { "Audio session category set error" }
+            Logger.e(e) { "Audio session setup error" }
         }
 
         // Register periodic time observer for progress updates
@@ -622,8 +629,8 @@ class IOSMusicPlayer(
         updateNowPlayingInfo(metadata, 0L)
 
         playJob = scope.launch(Dispatchers.Main) {
-            val playerItem = if (preloadedSongId == metadata.id && preloadedPlayerItem != null) {
-                preloadedPlayerItem!!
+            val playerItem = if (preloadedSongId == metadata.id) {
+                preloadedPlayerItem
             } else {
                 createPlayerItem(metadata.id)
             }
@@ -989,11 +996,15 @@ class IOSMusicPlayer(
         val secondary = secondaryPlayer
         isCrossfading = true
  
+        if (nextIndex < 0 || nextIndex >= playlistItems.size) {
+            isCrossfading = false
+            return
+        }
         val nextMetadata = playlistItems[nextIndex]
 
         crossfadeJob = scope.launch(Dispatchers.Main) {
-            val nextItem = if (preloadedSongId == nextMetadata.id && preloadedPlayerItem != null) {
-                preloadedPlayerItem!!
+            val nextItem = if (preloadedSongId == nextMetadata.id) {
+                preloadedPlayerItem
             } else {
                 createPlayerItem(nextMetadata.id)
             }
@@ -1216,7 +1227,7 @@ class IOSMusicPlayer(
                             dispatch_async(dispatch_get_main_queue()) {
                                 if (lastLoadedArtworkUrl == artworkUrl) {
                                     if (artworkCache.size >= 15) {
-                                        artworkCache.clear()
+                                        artworkCache.keys.firstOrNull()?.let { artworkCache.remove(it) }
                                     }
                                     artworkCache[artworkUrl] = uiImage
                                     lastLoadedArtwork = uiImage
@@ -1272,7 +1283,18 @@ class IOSMusicPlayer(
                         val optionsNum = userInfo[AVAudioSessionInterruptionOptionKey] as? NSNumber
                         val options = optionsNum?.unsignedLongValue ?: 0UL
                         if ((options and AVAudioSessionInterruptionOptionShouldResume) != 0UL) {
-                            play()
+                            try {
+                                val audioSession = AVAudioSession.sharedInstance()
+                                memScoped {
+                                    val categoryError = alloc<ObjCObjectVar<NSError?>>()
+                                    audioSession.setCategory(AVAudioSessionCategoryPlayback, error = categoryError.ptr)
+                                    val activeError = alloc<ObjCObjectVar<NSError?>>()
+                                    audioSession.setActive(true, error = activeError.ptr)
+                                }
+                                play()
+                            } catch (e: Exception) {
+                                Logger.e(e) { "Audio session setup error" }
+                            }
                         }
                     }
                 }
@@ -1306,11 +1328,18 @@ class IOSMusicPlayer(
             val finishedItem = notification?.`object` as? AVPlayerItem
             if (finishedItem != null && finishedItem == activePlayerItem) {
                 if (repeatMode == RepeatMode.ONE) {
-                    activePlayerItem?.let { item ->
-                        currentPlayer.removeAllItems()
-                        currentPlayer.insertItem(item, afterItem = null)
-                        seekTo(0L)
-                        currentPlayer.play()
+                    val metadata = playlistItems.getOrNull(currentIndex)
+                    if (metadata != null) {
+                        scope.launch(Dispatchers.Main) {
+                            val newItem = createPlayerItem(metadata.id)
+                            if (newItem != null) {
+                                activePlayerItem = newItem
+                                currentPlayer.removeAllItems()
+                                currentPlayer.insertItem(newItem, afterItem = null)
+                                currentPlayer.play()
+                                updateNowPlayingInfo(metadata, 0L)
+                            }
+                        }
                     }
                 } else {
                     val nextIndex = getNextTrackIndex()
@@ -1334,6 +1363,21 @@ class IOSMusicPlayer(
                     } else {
                         stop()
                     }
+                }
+            }
+        }
+
+        // 4. Listen for playback stalls and attempt recovery
+        notificationCenter.addObserverForName(
+            name = AVPlayerItemPlaybackStalledNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue
+        ) { _ ->
+            Logger.w { "Playback stalled, attempting recovery..." }
+            scope.launch(Dispatchers.Main) {
+                delay(1000)
+                if (_playbackState.value.status == PlaybackStatus.PLAYING) {
+                    currentPlayer.play()
                 }
             }
         }

@@ -22,7 +22,12 @@ activityVersion = "1.13.0"
 paletteVersion = "1.0.0"
 splashscreenVersion = "1.2.0"
 leakcanaryVersion = "2.14"
-securityCryptoVersion = "1.1.0"
+coreKtxVersion = "1.18.0"
+mediaLegacyVersion = "1.8.0"
+kermitVersion = "2.0.4"
+composeMaterial3Version = "1.4.0"
+jetbrainsComposeMaterial3Version = "1.9.0"
+materialIconsVersion = "1.7.3"
 android-compileSdk = "37"
 android-targetSdk = "37"
 android-minSdk = "23"
@@ -37,7 +42,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorVersion" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorVersion" }
-ktor-client-ios = { module = "io.ktor:ktor-client-ios", version.ref = "ktorVersion" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktorVersion" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorVersion" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorVersion" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktorVersion" }
@@ -45,16 +50,16 @@ ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "k
 jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatformVersion" }
 jetbrains-compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatformVersion" }
 jetbrains-compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatformVersion" }
-jetbrains-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version = "1.9.0" }
+jetbrains-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "jetbrainsComposeMaterial3Version" }
 jetbrains-compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatformVersion" }
 jetbrains-compose-ui-tooling-preview = { module = "org.jetbrains.compose.components:components-ui-tooling-preview", version.ref = "composeMultiplatformVersion" }
 
 compose-ui = { module = "androidx.compose.ui:ui", version.ref = "composeUiVersion" }
 compose-ui-util = { module = "androidx.compose.ui:ui-util", version.ref = "composeUiVersion" }
 compose-ui-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "composeUiVersion" }
-compose-material3 = { module = "androidx.compose.material3:material3", version = "1.4.0" }
-compose-material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version = "1.7.3" }
-compose-material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version = "1.7.3" }
+compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "composeMaterial3Version" }
+compose-material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "materialIconsVersion" }
+compose-material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "materialIconsVersion" }
 compose-animation = { module = "androidx.compose.animation:animation", version.ref = "composeUiVersion" }
 
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationVersion" }
@@ -84,16 +89,15 @@ androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref
 coil3-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3Version" }
 coil3-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil3Version" }
 androidx-palette = { module = "androidx.palette:palette-ktx", version.ref = "paletteVersion" }
-androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.18.0" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreenVersion" }
 android-material = { module = "com.google.android.material:material", version.ref = "materialVersion" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayoutVersion" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityVersion" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryVersion" }
-androidx-media = { module = "androidx.media:media", version = "1.8.0" }
-kermit = { module = "co.touchlab:kermit", version = "2.0.4" }
-androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCryptoVersion" }
+androidx-media = { module = "androidx.media:media", version.ref = "mediaLegacyVersion" }
+kermit = { module = "co.touchlab:kermit", version.ref = "kermitVersion" }
 
 [bundles]
 ktor = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-serialization-kotlinx-json", "ktor-client-logging"]
