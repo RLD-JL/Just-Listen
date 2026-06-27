@@ -32,10 +32,11 @@ fun EqualizerEditorSheet(
     scaffoldState: BottomSheetScaffoldState,
     coroutineScope: CoroutineScope
 ) {
+    val isExpanded = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
     // Local state to allow saving on confirm rather than instant persist
-    var tempIsEqEnabled by remember(settings.isEqEnabled) { mutableStateOf(settings.isEqEnabled) }
-    var tempEqPreset by remember(settings.eqPreset) { mutableStateOf(settings.eqPreset) }
-    var tempEqBands by remember(settings.eqBands) { mutableStateOf(settings.eqBands) }
+    var tempIsEqEnabled by remember(settings.isEqEnabled, isExpanded) { mutableStateOf(settings.isEqEnabled) }
+    var tempEqPreset by remember(settings.eqPreset, isExpanded) { mutableStateOf(settings.eqPreset) }
+    var tempEqBands by remember(settings.eqBands, isExpanded) { mutableStateOf(settings.eqBands) }
 
     val presetsMap = mapOf(
         "Flat" to listOf(0f, 0f, 0f, 0f, 0f),

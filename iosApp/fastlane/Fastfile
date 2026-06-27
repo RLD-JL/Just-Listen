@@ -1,0 +1,34 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Local test build: Compiles KMP shared module, then compiles the iOS target without signing"
+  lane :build_local do
+    # Compile the Kotlin shared library first
+    sh("cd ../.. && ./gradlew :shared:assemble")
+
+    # Build the Xcode project
+    gym(
+      scheme: "iosApp",
+      project: "iosApp.xcodeproj",
+      skip_profile_detection: true,
+      skip_codesigning: true,
+      clean: true
+    )
+  end
+
+  desc "Build and submit to TestFlight"
+  lane :beta do
+    # Compile the Kotlin shared library first
+    sh("cd ../.. && ./gradlew :shared:assemble")
+
+    # Build and sign the iOS app
+    gym(
+      scheme: "iosApp",
+      project: "iosApp.xcodeproj",
+      clean: true
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight
+  end
+end

@@ -1,0 +1,3 @@
+app_identifier("com.rld.justlisten") # The bundle identifier of your app
+# apple_id("YOUR_APPLE_ID") # Your Apple Developer Portal username / email
+team_id("MBLY86J5NC") # Developer Portal Team ID (matches your Xcode project configuration)

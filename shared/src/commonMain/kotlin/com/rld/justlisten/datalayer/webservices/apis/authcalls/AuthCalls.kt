@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+
 package com.rld.justlisten.datalayer.webservices.apis.authcalls
 
 import com.rld.justlisten.datalayer.webservices.ApiClient
@@ -5,11 +7,41 @@ import com.rld.justlisten.datalayer.webservices.TokenResponse
 import com.rld.justlisten.datalayer.models.PlayListModel
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonNames
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import co.touchlab.kermit.Logger
 
+
+object StringOrIntSerializer : KSerializer<String> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("StringOrIntSerializer", PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: String) {
+        encoder.encodeString(value)
+    }
+
+    override fun deserialize(decoder: Decoder): String {
+        val jsonDecoder = decoder as? JsonDecoder
+        if (jsonDecoder != null) {
+            val element = jsonDecoder.decodeJsonElement()
+            if (element is JsonPrimitive) {
+                return element.content
+            }
+            return element.toString()
+        }
+        return decoder.decodeString()
+    }
+}
 
 @Serializable
 data class ProfileImages(
@@ -22,11 +54,16 @@ data class ProfileImages(
 
 @Serializable
 data class MeResponse(
-    @SerialName("id") val userId: String? = null,
+    @Serializable(with = StringOrIntSerializer::class)
+    @SerialName("id")
+    @JsonNames("userId", "user_id")
+    val userId: String? = null,
     @SerialName("name") val name: String,
     @SerialName("handle") val handle: String,
     @SerialName("verified") val verified: Boolean = false,
-    @SerialName("profile_picture") val profilePicture: ProfileImages? = null
+    @SerialName("profile_picture")
+    @JsonNames("profilePicture")
+    val profilePicture: ProfileImages? = null
 )
 
 suspend fun ApiClient.exchangeCodeForTokens(

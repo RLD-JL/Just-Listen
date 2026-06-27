@@ -148,7 +148,8 @@ fun CrossfadeSettingsSheet(
                         Slider(
                             value = settings.crossfadeDurationSeconds.toFloat(),
                             onValueChange = { newValue ->
-                                updateSettings(settings.copy(crossfadeDurationSeconds = newValue.toDouble()))
+                                val rounded = kotlin.math.round(newValue).toDouble()
+                                updateSettings(settings.copy(crossfadeDurationSeconds = rounded))
                             },
                             valueRange = 1f..15f,
                             steps = 13,
