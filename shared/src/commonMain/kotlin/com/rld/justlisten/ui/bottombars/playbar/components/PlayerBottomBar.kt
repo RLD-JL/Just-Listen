@@ -98,6 +98,7 @@ fun PlayerBottomBar(
 
         // ── 1. Progress bar (minibar only) ──────────────────────────────────
         MiniProgressBar(
+            musicPlayer = musicPlayer,
             currentFractionProvider = currentFractionProvider,
             animatedColor = animatedColor
         )
@@ -180,14 +181,19 @@ fun PlayerBottomBar(
 
 @Composable
 fun BoxScope.MiniProgressBar(
+    musicPlayer: MusicPlayer,
     currentFractionProvider: () -> Float,
     animatedColor: Color
 ) {
-    val progress = currentFractionProvider()
+    val playbackState by musicPlayer.playbackState.collectAsState()
+    val duration = playbackState.currentMedia?.duration ?: 0L
+    val progress = if (duration > 0L) {
+        playbackState.currentPosition.toFloat() / duration.toFloat()
+    } else 0f
 
     if (!progress.isNaN()) {
         LinearProgressIndicator(
-            progress = currentFractionProvider,
+            progress = { progress },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.5.dp)

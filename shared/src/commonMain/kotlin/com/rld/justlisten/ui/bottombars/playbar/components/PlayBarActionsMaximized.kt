@@ -182,9 +182,7 @@ fun PlayBarActionsMaximized(
 
             // Slider and Time Labels
             PlaybackSeekBar(
-                musicPlayer = musicPlayer,
-                playbackState = playbackState,
-                duration = playbackState.currentMedia?.duration ?: 0L
+                musicPlayer = musicPlayer
             )
 
             Spacer(Modifier.height(12.dp))
@@ -317,10 +315,10 @@ private fun formatTime(ms: Long): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaybackSeekBar(
-    musicPlayer: MusicPlayer,
-    playbackState: com.rld.justlisten.media.PlaybackState,
-    duration: Long
+    musicPlayer: MusicPlayer
 ) {
+    val playbackState by musicPlayer.playbackState.collectAsState()
+    val duration = playbackState.currentMedia?.duration ?: 0L
     val coroutineScope = rememberCoroutineScope()
     var dragPosition by remember { mutableStateOf<Float?>(null) }
     var seekJob by remember { mutableStateOf<Job?>(null) }
