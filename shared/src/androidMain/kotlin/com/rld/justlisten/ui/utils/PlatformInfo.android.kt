@@ -3,3 +3,5 @@ package com.rld.justlisten.ui.utils
 import android.os.Build
 
 actual val hasDynamicThemeSupport: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+actual val isIos: Boolean = false
+actual val appVersion: String = com.rld.justlisten.BuildConfig.ANDROID_VERSION_NAME

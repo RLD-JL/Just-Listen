@@ -32,6 +32,8 @@ import com.rld.justlisten.datalayer.repositories.SessionState
 import com.rld.justlisten.datalayer.repositories.SyncState
 import com.rld.justlisten.ui.utils.SleepTimerService
 import com.rld.justlisten.ui.utils.showToast
+import com.rld.justlisten.ui.utils.isIos
+import com.rld.justlisten.ui.utils.appVersion
 import org.koin.compose.koinInject
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.LazyColumn
@@ -317,17 +319,17 @@ fun SettingsScreen(
             }
 
             // support options section
-            if (!BuildConfig.IS_PLAYSTORE_BUILD) {
+            if (!BuildConfig.IS_PLAYSTORE_BUILD && !isIos) {
                 SettingsSectionHeader(title = "Support & Navigation")
                 
                 SettingsCard {
                     SettingsSwitchRow(
                         icon = Icons.Rounded.Favorite,
                         title = "Support Tab in Navigation",
-                        checked = settings.hasDonationNavigationOn,
+                        checked = settings.hasSupportNavigationOn,
                         onCheckedChange = {
                             updateSettings(
-                                settings.copy(hasDonationNavigationOn = it)
+                                settings.copy(hasSupportNavigationOn = it)
                             )
                         }
                     )
@@ -387,6 +389,23 @@ fun SettingsScreen(
                     subtitle = if (settings.isEqEnabled) "Preset: ${settings.eqPreset} (Enabled)" else "Configure custom frequencies (Disabled)",
                     onClick = {
                         activeSheetMode = com.rld.justlisten.ui.settingsscreen.components.SheetMode.Equalizer
+                        coroutineScope.launch {
+                            scaffoldState.bottomSheetState.expand()
+                        }
+                    }
+                )
+            }
+
+            // Privacy & Moderation Section
+            SettingsSectionHeader(title = "Privacy & Moderation")
+            
+            SettingsCard {
+                SettingsClickableRow(
+                    icon = Icons.Rounded.Block,
+                    title = "Blocked Users",
+                    subtitle = "${settings.blockedUsers.size} users blocked",
+                    onClick = {
+                        activeSheetMode = com.rld.justlisten.ui.settingsscreen.components.SheetMode.BlockedUsers
                         coroutineScope.launch {
                             scaffoldState.bottomSheetState.expand()
                         }
@@ -512,7 +531,7 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "App Version 1.0.9-a",
+                        text = "App Version $appVersion",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                     )

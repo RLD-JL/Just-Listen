@@ -15,6 +15,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import co.touchlab.kermit.Logger
+import kotlinx.coroutines.CancellationException
 
 @Serializable
 data class TokenResponse(
@@ -128,6 +129,8 @@ open class ApiClient(
             } else {
                 throw Exception("HTTP error ${response.status.value} fetching $url")
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logger.e(e) { "Error fetching $url" }
             throw e
@@ -169,6 +172,8 @@ open class ApiClient(
             } else {
                 throw Exception("HTTP error ${response.status.value} posting to $url")
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logger.e(e) { "Error posting to $url" }
             throw e
@@ -210,6 +215,8 @@ open class ApiClient(
             } else {
                 throw Exception("HTTP error ${response.status.value} putting to $url")
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logger.e(e) { "Error putting to $url" }
             throw e
@@ -232,6 +239,8 @@ open class ApiClient(
             } else {
                 throw Exception("HTTP error ${response.status.value} deleting from $url")
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logger.e(e) { "Error deleting from $url" }
             throw e

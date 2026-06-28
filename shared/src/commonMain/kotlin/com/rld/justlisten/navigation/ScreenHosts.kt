@@ -11,7 +11,7 @@ import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.datalayer.repositories.LibraryRepository
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.ui.addplaylistscreen.AddPlaylistScreen
-import com.rld.justlisten.ui.donationscreen.DonationScreen
+import com.rld.justlisten.ui.supportscreen.SupportScreen
 import com.rld.justlisten.ui.libraryscreen.LibraryScreen
 import com.rld.justlisten.ui.playlistdetailscreen.PlaylistDetailScreen
 import com.rld.justlisten.ui.playlistscreen.PlaylistScreen
@@ -28,6 +28,7 @@ import com.rld.justlisten.viewmodel.screens.settings.SettingsState
 import com.rld.justlisten.viewmodel.seeall.SeeAllViewModel
 import com.rld.justlisten.ui.seeallscreen.SeeAllScreen
 import com.rld.justlisten.ui.actions.*
+import com.rld.justlisten.viewmodel.artistdashboard.ArtistDashboardViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -69,6 +70,7 @@ fun LibraryScreenHost(navController: NavHostController) {
                 LibraryScreenAction.TimeCapsulePressed -> viewModel.onTimeCapsuleClicked()
                 LibraryScreenAction.ExploreMusicPressed -> viewModel.onExploreMusicClicked()
                 LibraryScreenAction.MusicInsightsPressed -> viewModel.onMusicInsightsClicked()
+                LibraryScreenAction.ArtistDashboardPressed -> viewModel.onArtistDashboardClicked()
                 is LibraryScreenAction.ArtistClicked -> viewModel.onArtistClicked(action.artistId, action.artistName)
             }
         }
@@ -289,8 +291,8 @@ fun SettingsScreenHost(navController: NavHostController) {
             if (updated.isDarkThemeOn != state.isDarkThemeOn) {
                 viewModel.onDarkModeToggled(updated.isDarkThemeOn)
             }
-            if (updated.hasDonationNavigationOn != state.hasDonationNavigationOn) {
-                viewModel.onDonationToggled(updated.hasDonationNavigationOn)
+            if (updated.hasSupportNavigationOn != state.hasSupportNavigationOn) {
+                viewModel.onSupportToggled(updated.hasSupportNavigationOn)
             }
             if (updated.palletColor != state.palletColor) {
                 viewModel.onPaletteSelected(updated.palletColor)
@@ -346,8 +348,8 @@ fun SettingsScreenHost(navController: NavHostController) {
 }
 
 @Composable
-fun DonationScreenHost(navController: NavHostController) {
-    DonationScreen()
+fun SupportScreenHost(navController: NavHostController) {
+    SupportScreen()
 }
 
 @Composable
@@ -543,5 +545,18 @@ fun NotificationsScreenHost(navController: NavHostController) {
         onNavigateToArtist = { artistId, artistName ->
             navController.navigate(Route.ArtistProfile(artistId, artistName))
         }
+    )
+}
+
+@Composable
+fun ArtistDashboardScreenHost(navController: NavHostController) {
+    val viewModel: ArtistDashboardViewModel = koinViewModel()
+    val state by viewModel.state.collectAsState()
+
+    CollectNavigationEvents(viewModel, navController)
+
+    com.rld.justlisten.ui.artistdashboard.ArtistDashboardScreen(
+        state = state,
+        onBackPressed = { viewModel.handleBack() }
     )
 }

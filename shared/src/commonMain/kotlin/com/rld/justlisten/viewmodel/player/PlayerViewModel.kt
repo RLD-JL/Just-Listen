@@ -48,7 +48,7 @@ class PlayerViewModel(
     private var playNextWhenRecommendationsLoaded = false
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             val settings = settingsRepository.getSettingsInfo()
             _isAutoplayEnabled.value = settings.isOngoingStreamEnabled
         }
@@ -65,6 +65,7 @@ class PlayerViewModel(
                         lastTrackId = trackId
                         fetchDetailsJob?.cancel()
                         fetchDetailsJob = viewModelScope.launch {
+                            kotlinx.coroutines.delay(500)
                             try {
                                 val details = playlistRepository.fetchTrackDetails(trackId)
                                 if (details != null) {
@@ -93,9 +94,11 @@ class PlayerViewModel(
                     val playlist = musicPlayer.currentPlaylist.value
                     val lastTrackInPlaylist = playlist.lastOrNull()
                     if (lastTrackInPlaylist != null && lastTrackInPlaylist.id == lastPlayedTrackId) {
-                        val settingsInfo = settingsRepository.getSettingsInfo()
-                        if (settingsInfo.isOngoingStreamEnabled) {
-                            playNextAutoplaySong()
+                        viewModelScope.launch {
+                            val settingsInfo = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { settingsRepository.getSettingsInfo() }
+                            if (settingsInfo.isOngoingStreamEnabled) {
+                                playNextAutoplaySong()
+                            }
                         }
                     }
                 }
@@ -232,11 +235,13 @@ class PlayerViewModel(
                 val playlist = musicPlayer.currentPlaylist.value
                 val currentMedia = musicPlayer.playbackState.value.currentMedia
                 val currentIndex = playlist.indexOfFirst { it.id == currentMedia?.id }
-                val settings = settingsRepository.getSettingsInfo()
-                if (settings.isOngoingStreamEnabled && currentIndex == playlist.size - 1) {
-                    playNextAutoplaySong()
-                } else {
-                    musicPlayer.skipToNext()
+                viewModelScope.launch {
+                    val settings = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { settingsRepository.getSettingsInfo() }
+                    if (settings.isOngoingStreamEnabled && currentIndex == playlist.size - 1) {
+                        playNextAutoplaySong()
+                    } else {
+                        musicPlayer.skipToNext()
+                    }
                 }
             }
             PlayerAction.SkipPrevious -> {
@@ -246,7 +251,7 @@ class PlayerViewModel(
                 viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                     val settings = settingsRepository.getSettingsInfo()
                     settingsRepository.saveSettingsInfo(
-                        hasNavigationDonationOn = settings.hasNavigationDonationOn,
+                        hasNavigationSupportOn = settings.hasNavigationSupportOn,
                         isDarkThemeOn = settings.isDarkThemeOn,
                         palletColor = settings.palletColor,
                         customPrimary = settings.customPrimary,

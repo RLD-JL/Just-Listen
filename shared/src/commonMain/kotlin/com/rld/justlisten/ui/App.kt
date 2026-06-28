@@ -10,7 +10,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.rld.justlisten.BuildConfig
 import com.rld.justlisten.media.MusicPlayer
+import com.rld.justlisten.ui.utils.isIos
 import org.koin.compose.koinInject
 
 /**
@@ -52,7 +54,7 @@ fun JustListenApp(
                     }
                     JustListenScaffold(
                         navController = navController,
-                        showDonationTab = settingsState.hasDonationNavigationOn && !com.rld.justlisten.BuildConfig.IS_PLAYSTORE_BUILD,
+                        showSupportTab = settingsState.hasSupportNavigationOn && !BuildConfig.IS_PLAYSTORE_BUILD && !isIos,
                         startDestination = startDestination,
                         modifier = Modifier.fillMaxSize(),
                     )

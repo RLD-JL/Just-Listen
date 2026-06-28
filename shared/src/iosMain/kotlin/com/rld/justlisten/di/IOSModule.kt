@@ -36,13 +36,7 @@ fun iosModule() = module {
     }
     
     single {
-        LocalDb(
-            get(),
-            Repository.addPlaylistAdapter,
-            Repository.libraryAdapter,
-            Repository.playlistDetailAdapter,
-            Repository.syncQueueAdapter
-        )
+        DatabaseSchemaHelper.createDatabase(get())
     }
     
     single<SleepTimerService> {
@@ -57,12 +51,18 @@ fun iosModule() = module {
 
 // Swift bridge helper to start Koin on iOS
 fun initKoin(apiKey: String = "") {
-    startKoin {
-        modules(
-            iosModule(),
-            appModule(),
-            module { single { ApiClient(apiKey = apiKey, secureStorage = get()) } }
-        )
+    try {
+        val key = apiKey.ifEmpty { com.rld.justlisten.BuildConfig.AUDIUS_API_KEY }
+        startKoin {
+            modules(
+                iosModule(),
+                appModule(),
+                module { single { ApiClient(apiKey = key, secureStorage = get()) } }
+            )
+        }
+    } catch (e: Exception) {
+        co.touchlab.kermit.Logger.e(e) { "Koin initialization failed on iOS launch" }
+        throw e
     }
 }
 

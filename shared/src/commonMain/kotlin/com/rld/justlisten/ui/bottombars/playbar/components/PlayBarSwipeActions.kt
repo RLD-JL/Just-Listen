@@ -58,7 +58,8 @@ fun PlayBarSwipeActions(
     painterLoaded: (Painter) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     newDominantColor: (Int) -> Unit,
-    playBarMinimizedClicked: () -> Unit
+    playBarMinimizedClicked: () -> Unit,
+    playbackState: com.rld.justlisten.media.PlaybackState
 ) {
     var swipeOffset by remember { mutableStateOf(0f) }
     val animatableOffset = remember { Animatable(0f) }
@@ -89,7 +90,6 @@ fun PlayBarSwipeActions(
     // Fetch next and previous tracks from playlist queue
     val musicPlayer = LocalMusicPlayer.current
     val playlist by musicPlayer.currentPlaylist.collectAsState()
-    val playbackState by musicPlayer.playbackState.collectAsState()
     val currentMedia = playbackState.currentMedia
 
     val currentIndex = remember(playlist, currentMedia) {

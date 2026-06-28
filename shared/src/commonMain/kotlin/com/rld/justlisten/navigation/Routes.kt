@@ -52,7 +52,7 @@ sealed class Route {
     data object Settings : Route()
     
     @Serializable
-    data object Donation : Route()
+    data object Support : Route()
 
     @Serializable
     data object CustomTheme : Route()
@@ -67,6 +67,9 @@ sealed class Route {
     ) : Route()
     @Serializable
     data object Notifications : Route()
+
+    @Serializable
+    data object ArtistDashboard : Route()
 }
 
 /**
@@ -88,7 +91,7 @@ val Route.navigationLevel: NavigationLevel
         is Route.Feed,
         Route.Search,
         Route.Settings,
-        Route.Donation -> NavigationLevel.LEVEL_1
+        Route.Support -> NavigationLevel.LEVEL_1
         
         Route.Onboarding,
         Route.MusicInsights,
@@ -97,6 +100,7 @@ val Route.navigationLevel: NavigationLevel
         Route.CustomTheme,
         is Route.PlaylistDetail,
         Route.Notifications,
+        Route.ArtistDashboard,
         is Route.ArtistProfile -> NavigationLevel.LEVEL_2
     }
 
@@ -108,7 +112,7 @@ val BOTTOM_BAR_ROUTES = listOf(
     Route.Playlist,
     Route.Feed(),
     Route.Settings,
-    Route.Donation,
+    Route.Support,
 )
 
 /**
@@ -119,7 +123,7 @@ fun Route.getBottomBarLabel(): String = when (this) {
     Route.Playlist -> "Playlists"
     is Route.Feed -> "Feed"
     Route.Settings -> "Settings"
-    Route.Donation -> "Donate"
+    Route.Support -> "Support"
     else -> ""
 }
 
@@ -131,6 +135,6 @@ fun Route.getBottomBarIcon(): String = when (this) {
     Route.Playlist -> "playlist"
     is Route.Feed -> "feed"
     Route.Settings -> "settings"
-    Route.Donation -> "favorite"
+    Route.Support -> "favorite"
     else -> ""
 }

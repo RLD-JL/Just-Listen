@@ -18,9 +18,15 @@ data class SongIconList (
 
 fun String.toReliableAudiusUrl(): String {
     if (this.isBlank()) return ""
+    if (this.startsWith("http://") || this.startsWith("https://")) {
+        if (this.contains("creatornode2.audius.co")) {
+            return this.replace("creatornode2.audius.co", "creatornode.audius.co")
+        }
+        return this
+    }
     val contentIndex = this.indexOf("/content/")
     if (contentIndex != -1) {
-        return "https://creatornode2.audius.co" + this.substring(contentIndex)
+        return "https://creatornode.audius.co" + this.substring(contentIndex)
     }
     return this
 }

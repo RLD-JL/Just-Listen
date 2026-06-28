@@ -52,6 +52,7 @@ fun SeeAllScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
                 title = {
                     Text(
                         text = seeAllState.title,

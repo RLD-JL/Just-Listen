@@ -1,4 +1,4 @@
-@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
 package com.rld.justlisten.media
 
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -71,9 +71,11 @@ class IOSMusicPlayer(
     private var preloadedPlayerItem: AVPlayerItem? = null
     private var preloadedSongId: String? = null
     private var preloadJob: kotlinx.coroutines.Job? = null
+    private var playJob: kotlinx.coroutines.Job? = null
     
     private var playlistItems = mutableListOf<MediaMetadata>()
     private var currentIndex = -1
+    private var lastNowPlayingUpdateMs = 0L
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     
     private var shuffledIndices = listOf<Int>()
@@ -81,11 +83,24 @@ class IOSMusicPlayer(
     private var repeatMode = RepeatMode.NONE
     private var favoriteIdsSet = emptySet<String>()
 
-    private val eqStorage = nativeHeap.allocArray<FloatVar>(74).apply {
-        this[0] = 0.0f
-        this[71] = 0.0f
-        this[72] = 1.0f
-        this[73] = 0.0f
+    private val eqLock = kotlinx.atomicfu.locks.SynchronizedObject()
+    private val eqStorage: CPointer<FloatVar> by lazy {
+        nativeHeap.allocArray<FloatVar>(74).apply {
+            this[0] = 0.0f
+            this[71] = 0.0f
+            this[72] = 1.0f
+            this[73] = 0.0f
+        }
+    }
+    // Separate EQ filter state for the secondary player to prevent data races
+    // during crossfade when both players' audio taps run concurrently.
+    private val eqStorage2: CPointer<FloatVar> by lazy {
+        nativeHeap.allocArray<FloatVar>(74).apply {
+            this[0] = 0.0f
+            this[71] = 0.0f
+            this[72] = 1.0f
+            this[73] = 0.0f
+        }
     }
     
     private var lastLoadedArtworkUrl: String? = null
@@ -115,24 +130,38 @@ class IOSMusicPlayer(
     init {
         scope.launch {
             settingsViewModel.settingsState.collect { state ->
-                eqStorage[0] = if (state.isEqEnabled) 1.0f else 0.0f
-                for (i in 0 until 5) {
-                    val bandOffset = 1 + i * 14
-                    if (i < state.eqBands.size) {
-                        eqStorage[bandOffset + 0] = state.eqBands[i]
+                kotlinx.atomicfu.locks.synchronized(eqLock) {
+                    val eqEnabled = if (state.isEqEnabled) 1.0f else 0.0f
+                    val normEnabled = if (state.isVolumeNormalizationEnabled) 1.0f else 0.0f
+                    // Update both storages so both players use current EQ settings
+                    for (storage in arrayOf(eqStorage, eqStorage2)) {
+                        storage[0] = eqEnabled
+                        for (i in 0 until 5) {
+                            val bandOffset = 1 + i * 14
+                            if (i < state.eqBands.size) {
+                                storage[bandOffset + 0] = state.eqBands[i]
+                            }
+                        }
+                        storage[72] = 1.0f
+                        storage[73] = normEnabled
                     }
                 }
-                eqStorage[72] = 1.0f
-                eqStorage[73] = if (state.isVolumeNormalizationEnabled) 1.0f else 0.0f
             }
         }
 
         try {
             val audioSession = AVAudioSession.sharedInstance()
-            audioSession.setCategory(AVAudioSessionCategoryPlayback, error = null)
-            audioSession.setActive(true, error = null)
+            memScoped {
+                val categoryError = alloc<ObjCObjectVar<NSError?>>() 
+                audioSession.setCategory(AVAudioSessionCategoryPlayback, error = categoryError.ptr)
+                categoryError.value?.let { Logger.e { "Audio setCategory failed: ${it.localizedDescription}" } }
+                
+                val activeError = alloc<ObjCObjectVar<NSError?>>()
+                audioSession.setActive(true, error = activeError.ptr)
+                activeError.value?.let { Logger.e { "Audio setActive failed: ${it.localizedDescription}" } }
+            }
         } catch (e: Exception) {
-            Logger.e(e) { "Audio session category set error" }
+            Logger.e(e) { "Audio session setup error" }
         }
 
         // Register periodic time observer for progress updates
@@ -243,6 +272,40 @@ class IOSMusicPlayer(
         }
     }
 
+    override fun playMedia(mediaId: String, playlist: List<Item>) {
+        if (playlistItems.size != playlist.size || playlistItems.zip(playlist).any { it.first.id != it.second.id }) {
+            val mappedList = playlist.map {
+                MediaMetadata(
+                    id = it.id,
+                    title = it.title,
+                    artist = it.user,
+                    duration = it.duration.toLong() * 1000L,
+                    artworkUrl = it.songIconList.songImageURL480px,
+                    lowResArtworkUrl = it.songIconList.songImageURL150px,
+                    isFavorite = favoriteIdsSet.contains(it.id),
+                    repostCount = it.repostCount,
+                    favoriteCount = it.favoriteCount,
+                    commentCount = it.commentCount,
+                    playCount = it.playCount,
+                    artistId = it.userId
+                )
+            }.toMutableList()
+    
+            playlistItems = mappedList
+            _currentPlaylist.value = mappedList
+    
+            if (isShuffleEnabled) {
+                shuffledIndices = playlistItems.indices.shuffled()
+            }
+        }
+
+        val index = playlistItems.indexOfFirst { it.id == mediaId }
+        if (index != -1) {
+            currentIndex = index
+            playTrack(playlistItems[index])
+        }
+    }
+
     private fun getCacheFileUrl(songId: String): NSURL? {
         val fileManager = NSFileManager.defaultManager
         val cacheUrls = fileManager.URLsForDirectory(NSCachesDirectory, NSUserDomainMask)
@@ -275,7 +338,9 @@ class IOSMusicPlayer(
                                 fileManager.removeItemAtURL(localUrl, error = null)
                             }
                             fileManager.moveItemAtURL(location, toURL = localUrl, error = null)
-                            cleanCache()
+                            scope.launch(Dispatchers.Default) {
+                                cleanCache()
+                            }
                         }
                     } catch (e: Exception) {
                         Logger.e(e) { "Failed to save downloaded song $songId" }
@@ -323,7 +388,7 @@ class IOSMusicPlayer(
         }
     }
 
-    private fun createPlayerItem(songId: String): AVPlayerItem? {
+    private suspend fun createPlayerItem(songId: String, forSecondaryPlayer: Boolean = false): AVPlayerItem? = kotlinx.coroutines.withContext(Dispatchers.Default) {
         val cachedUrl = getCacheFileUrl(songId)
         val playerItem = if (cachedUrl != null && cachedUrl.path != null && NSFileManager.defaultManager.fileExistsAtPath(cachedUrl.path!!)) {
             AVPlayerItem.playerItemWithURL(cachedUrl)
@@ -333,23 +398,34 @@ class IOSMusicPlayer(
             val streamUrl = "$baseUrl/v1/tracks/$songId/stream?app_name=$appName"
             val nsUrl = NSURL.URLWithString(streamUrl)
             if (nsUrl != null) {
-                triggerBackgroundDownload(songId, nsUrl)
+                kotlinx.coroutines.withContext(Dispatchers.Main) {
+                    triggerBackgroundDownload(songId, nsUrl)
+                }
                 AVPlayerItem.playerItemWithURL(nsUrl)
             } else {
                 null
             }
         }
         if (playerItem != null) {
-            configureAudioProcessingTap(playerItem)
+            val (isEqEnabled, isNormEnabled) = kotlinx.coroutines.withContext(Dispatchers.Main) {
+                Pair(
+                    settingsRepository.getSettingsInfo().isEqEnabled,
+                    settingsRepository.isVolumeNormalizationEnabled
+                )
+            }
+            if (isEqEnabled || isNormEnabled) {
+                val storage = if (forSecondaryPlayer) eqStorage2 else eqStorage
+                configureAudioProcessingTap(playerItem, storage)
+            }
         }
-        return playerItem
+        playerItem
     }
 
-    private fun configureAudioProcessingTap(playerItem: AVPlayerItem) {
+    private fun configureAudioProcessingTap(playerItem: AVPlayerItem, storage: CPointer<FloatVar> = eqStorage) {
         memScoped {
             val callbacks = alloc<MTAudioProcessingTapCallbacks>()
             callbacks.version = kMTAudioProcessingTapCallbacksVersion_0
-            callbacks.clientInfo = eqStorage
+            callbacks.clientInfo = storage
             
             callbacks.init = staticCFunction { tap, clientInfo, tapStorageOut ->
                 tapStorageOut?.pointed?.value = clientInfo
@@ -370,48 +446,15 @@ class IOSMusicPlayer(
             }
             callbacks.process = staticCFunction { tap, numberFrames, flags, bufferListInOut, numberFramesOut, flagsOut ->
                 val status = MTAudioProcessingTapGetSourceAudio(tap, numberFrames, bufferListInOut, flagsOut, null, numberFramesOut)
-                if (status.toInt() != 0 || bufferListInOut == null) {
+                if (status != 0 || bufferListInOut == null) {
                     return@staticCFunction
                 }
 
                 val statePtr = MTAudioProcessingTapGetStorage(tap)?.reinterpret<FloatVar>() ?: return@staticCFunction
-                val isEqEnabled = statePtr[0] > 0.5f
-                val isNormEnabled = statePtr[73] > 0.5f
                 val framesToProcess = numberFramesOut?.pointed?.value ?: numberFrames
 
                 if (statePtr[72] > 0.5f) {
-                    val sampleRate = statePtr[71]
-                    if (sampleRate > 0f) {
-                        val centerFreqs = floatArrayOf(60f, 230f, 910f, 4000f, 14000f)
-                        val Qs = floatArrayOf(1.0f, 1.0f, 1.0f, 1.0f, 1.0f)
-                        for (i in 0 until 5) {
-                            val bandOffset = 1 + i * 14
-                            val gainDb = statePtr[bandOffset + 0]
-                            val A = 10.0.pow(gainDb.toDouble() / 40.0).toFloat()
-                            val w0 = (2.0f * kotlin.math.PI.toFloat() * centerFreqs[i] / sampleRate)
-                            val cosW0 = kotlin.math.cos(w0)
-                            val sinW0 = kotlin.math.sin(w0)
-                            val alpha = sinW0 / (2.0f * Qs[i])
-
-                            val b0 = 1.0f + alpha * A
-                            val b1 = -2.0f * cosW0
-                            val b2 = 1.0f - alpha * A
-                            val a0 = 1.0f + alpha / A
-                            val a1 = -2.0f * cosW0
-                            val a2 = 1.0f - alpha / A
-
-                            statePtr[bandOffset + 1] = b0 / a0
-                            statePtr[bandOffset + 2] = b1 / a0
-                            statePtr[bandOffset + 3] = b2 / a0
-                            statePtr[bandOffset + 4] = a1 / a0
-                            statePtr[bandOffset + 5] = a2 / a0
-                        }
-                        statePtr[72] = 0.0f
-                    }
-                }
-
-                if (!isEqEnabled && !isNormEnabled) {
-                    return@staticCFunction
+                    computeCoefficients(statePtr)
                 }
 
                 val bufferList = bufferListInOut.pointed
@@ -421,112 +464,14 @@ class IOSMusicPlayer(
                     val audioBuffer = bufferList.mBuffers[b]
                     val mData = audioBuffer.mData?.reinterpret<FloatVar>() ?: continue
                     val channels = audioBuffer.mNumberChannels.toInt()
-                    
-                    if (channels == 2) {
-                        for (f in 0 until framesToProcess.toInt()) {
-                            var sampleL = mData[f * 2]
-                            var sampleR = mData[f * 2 + 1]
-                            
-                            if (isEqEnabled) {
-                                for (i in 0 until 5) {
-                                    val bandOffset = 1 + i * 14
-                                    val b0 = statePtr[bandOffset + 1]
-                                    val b1 = statePtr[bandOffset + 2]
-                                    val b2 = statePtr[bandOffset + 3]
-                                    val a1 = statePtr[bandOffset + 4]
-                                    val a2 = statePtr[bandOffset + 5]
-                                    
-                                    val x1_l = statePtr[bandOffset + 6]
-                                    val x2_l = statePtr[bandOffset + 7]
-                                    val y1_l = statePtr[bandOffset + 8]
-                                    val y2_l = statePtr[bandOffset + 9]
-                                    
-                                    val outL = b0 * sampleL + b1 * x1_l + b2 * x2_l - a1 * y1_l - a2 * y2_l
-                                    statePtr[bandOffset + 7] = x1_l
-                                    statePtr[bandOffset + 6] = sampleL
-                                    statePtr[bandOffset + 9] = y1_l
-                                    statePtr[bandOffset + 8] = outL
-                                    sampleL = outL
-                                    
-                                    val x1_r = statePtr[bandOffset + 10]
-                                    val x2_r = statePtr[bandOffset + 11]
-                                    val y1_r = statePtr[bandOffset + 12]
-                                    val y2_r = statePtr[bandOffset + 13]
-                                    
-                                    val outR = b0 * sampleR + b1 * x1_r + b2 * x2_r - a1 * y1_r - a2 * y2_r
-                                    statePtr[bandOffset + 11] = x1_r
-                                    statePtr[bandOffset + 10] = sampleR
-                                    statePtr[bandOffset + 13] = y1_r
-                                    statePtr[bandOffset + 12] = outR
-                                    sampleR = outR
-                                }
-                            }
-                            
-                            if (isNormEnabled) {
-                                val limitValue = 0.5f // -6dB limit
-                                val absL = if (sampleL < 0f) -sampleL else sampleL
-                                val absR = if (sampleR < 0f) -sampleR else sampleR
-                                val maxVal = if (absL > absR) absL else absR
-                                if (maxVal > limitValue) {
-                                    val scale = limitValue / maxVal
-                                    sampleL *= scale
-                                    sampleR *= scale
-                                }
-                            }
-                            
-                            mData[f * 2] = sampleL
-                            mData[f * 2 + 1] = sampleR
-                        }
-                    } else {
-                        val chIndex = if (b == 0) 0 else 1
-                        for (f in 0 until framesToProcess.toInt()) {
-                            var sample = mData[f]
-                            
-                            if (isEqEnabled) {
-                                for (i in 0 until 5) {
-                                    val bandOffset = 1 + i * 14
-                                    val b0 = statePtr[bandOffset + 1]
-                                    val b1 = statePtr[bandOffset + 2]
-                                    val b2 = statePtr[bandOffset + 3]
-                                    val a1 = statePtr[bandOffset + 4]
-                                    val a2 = statePtr[bandOffset + 5]
-                                    
-                                    val x1Idx = if (chIndex == 0) 6 else 10
-                                    val x2Idx = if (chIndex == 0) 7 else 11
-                                    val y1Idx = if (chIndex == 0) 8 else 12
-                                    val y2Idx = if (chIndex == 0) 9 else 13
-                                    
-                                    val x1 = statePtr[bandOffset + x1Idx]
-                                    val x2 = statePtr[bandOffset + x2Idx]
-                                    val y1 = statePtr[bandOffset + y1Idx]
-                                    val y2 = statePtr[bandOffset + y2Idx]
-                                    
-                                    val out = b0 * sample + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2
-                                    statePtr[bandOffset + x2Idx] = x1
-                                    statePtr[bandOffset + x1Idx] = sample
-                                    statePtr[bandOffset + y2Idx] = y1
-                                    statePtr[bandOffset + y1Idx] = out
-                                    sample = out
-                                }
-                            }
-                            
-                            if (isNormEnabled) {
-                                val limitValue = 0.5f
-                                val absVal = if (sample < 0f) -sample else sample
-                                if (absVal > limitValue) {
-                                    sample *= (limitValue / absVal)
-                                }
-                            }
-                            
-                            mData[f] = sample
-                        }
-                    }
+                    val chIndex = if (b == 0) 0 else 1
+                    processAudioSamples(statePtr, mData, framesToProcess.toInt(), channels, chIndex)
                 }
             }
 
             val tapVar = alloc<MTAudioProcessingTapRefVar>()
             val status = MTAudioProcessingTapCreate(null, callbacks.ptr, kMTAudioProcessingTapCreationFlag_PreEffects, tapVar.ptr)
-            if (status.toInt() == 0) {
+            if (status == 0) {
                 val tap = tapVar.value
                 val audioMix = AVMutableAudioMix.audioMix()
                 val audioTracks = playerItem.asset.tracksWithMediaType(AVMediaTypeAudio)
@@ -545,25 +490,48 @@ class IOSMusicPlayer(
 
     private fun playTrack(metadata: MediaMetadata) {
         cancelCrossfade()
-        val playerItem = if (preloadedSongId == metadata.id && preloadedPlayerItem != null) {
-            preloadedPlayerItem!!
-        } else {
-            createPlayerItem(metadata.id)
-        }
-
-        if (playerItem != null) {
-            activePlayerItem = playerItem
-            currentPlayer.removeAllItems()
-            currentPlayer.insertItem(playerItem, afterItem = null)
-            currentPlayer.play()
+        playJob?.cancel()
+        
+        if (currentPlayer.items().size > 1 && preloadedSongId == metadata.id && preloadedPlayerItem != null) {
+            currentPlayer.advanceToNextItem()
+            val idx = playlistItems.indexOfFirst { it.id == metadata.id }
+            if (idx != -1) {
+                currentIndex = idx
+            }
+            activePlayerItem = preloadedPlayerItem
             updateState(PlaybackStatus.BUFFERING, metadata)
+            lastNowPlayingUpdateMs = 0L
             updateNowPlayingInfo(metadata, 0L)
             
             preloadedPlayerItem = null
             preloadedSongId = null
             preloadNextTrack()
-        } else {
-            updateState(PlaybackStatus.ERROR)
+            return
+        }
+
+        updateState(PlaybackStatus.BUFFERING, metadata)
+        lastNowPlayingUpdateMs = 0L
+        updateNowPlayingInfo(metadata, 0L)
+
+        playJob = scope.launch(Dispatchers.Main) {
+            val playerItem = if (preloadedSongId == metadata.id) {
+                preloadedPlayerItem
+            } else {
+                createPlayerItem(metadata.id)
+            }
+    
+            if (playerItem != null && isActive) {
+                activePlayerItem = playerItem
+                currentPlayer.removeAllItems()
+                currentPlayer.insertItem(playerItem, afterItem = null)
+                currentPlayer.play()
+                
+                preloadedPlayerItem = null
+                preloadedSongId = null
+                preloadNextTrack()
+            } else if (isActive) {
+                updateState(PlaybackStatus.ERROR)
+            }
         }
     }
 
@@ -677,7 +645,7 @@ class IOSMusicPlayer(
                 id = it.id,
                 title = it.title,
                 artist = it.user,
-                duration = 0L,
+                duration = it.duration.toLong() * 1000L,
                 artworkUrl = it.songIconList.songImageURL480px,
                 lowResArtworkUrl = it.songIconList.songImageURL150px,
                 isFavorite = favoriteIdsSet.contains(it.id),
@@ -703,7 +671,7 @@ class IOSMusicPlayer(
                 id = it.id,
                 title = it.title,
                 artist = it.user,
-                duration = 0L,
+                duration = it.duration.toLong() * 1000L,
                 artworkUrl = it.songIconList.songImageURL480px,
                 lowResArtworkUrl = it.songIconList.songImageURL150px,
                 isFavorite = favoriteIdsSet.contains(it.id),
@@ -808,6 +776,7 @@ class IOSMusicPlayer(
             if (isShuffleEnabled) {
                 shuffledIndices = playlistItems.indices.shuffled()
             }
+            preloadNextTrack()
         }
     }
 
@@ -826,6 +795,7 @@ class IOSMusicPlayer(
             }
             
             _currentPlaylist.value = playlistItems.toList()
+            preloadNextTrack()
         }
     }
 
@@ -860,7 +830,11 @@ class IOSMusicPlayer(
         val oldDuration = currentMedia?.duration ?: 0L
         val oldStatus = _playbackState.value.status
 
-        val updatedMedia = currentMedia?.copy(duration = durationMs)
+        val updatedMedia = if (currentMedia?.duration != durationMs) {
+            currentMedia?.copy(duration = durationMs)
+        } else {
+            currentMedia
+        }
 
         _playbackState.update { state ->
             state.copy(
@@ -870,9 +844,16 @@ class IOSMusicPlayer(
             )
         }
 
-        // Update system now playing info center when duration is resolved or playback status changes
-        if (updatedMedia != null && (durationMs != oldDuration || currentStatus != oldStatus)) {
+        val driftThresholdMs = 10000L
+        val shouldUpdateNowPlaying = updatedMedia != null && (
+            durationMs != oldDuration || 
+            currentStatus != oldStatus || 
+            (currentMs - lastNowPlayingUpdateMs) > driftThresholdMs ||
+            lastNowPlayingUpdateMs == 0L
+        )
+        if (shouldUpdateNowPlaying) {
             updateNowPlayingInfo(updatedMedia, currentMs)
+            lastNowPlayingUpdateMs = currentMs
         }
 
         // Handle crossfade logic on iOS
@@ -900,46 +881,59 @@ class IOSMusicPlayer(
         val secondary = secondaryPlayer
         isCrossfading = true
  
-        val nextMetadata = playlistItems[nextIndex]
-        val nextItem = if (preloadedSongId == nextMetadata.id && preloadedPlayerItem != null) {
-            preloadedPlayerItem!!
-        } else {
-            createPlayerItem(nextMetadata.id)
-        }
- 
-        if (nextItem == null) {
+        if (nextIndex < 0 || nextIndex >= playlistItems.size) {
             isCrossfading = false
             return
         }
- 
-        activePlayerItem = nextItem
-        secondary.removeAllItems()
-        secondary.insertItem(nextItem, afterItem = null)
-        secondary.volume = 0f
- 
-        // We do NOT swap currentPlayer/secondaryPlayer here.
-        // The playerbar continues to show the previous song (primary) and its progress.
- 
-        val style = settingsRepository.crossfadeStyle
-        val intervalMs = 100L
-        val durationMs = (durationSeconds * 1000).toLong()
-        val totalDurationMs = if (style == "Radio Segue") (durationMs * 1.5).toLong() else durationMs
-        val totalSteps = (totalDurationMs / intervalMs).coerceAtLeast(1L)
-        val baseSteps = (durationMs / intervalMs).coerceAtLeast(1L)
-        val halfSteps = if (style == "Radio Segue") baseSteps / 2 else totalSteps / 2
-        var secondaryStarted = false
+        val nextMetadata = playlistItems[nextIndex]
 
-        if (style == "Smooth Blend") {
-            secondary.play()
-            secondaryStarted = true
+        // Reset biquad delay-line state in eqStorage2 for the new crossfade
+        for (i in 0 until 5) {
+            val bandOffset = 1 + i * 14
+            for (j in 6..13) {
+                eqStorage2[bandOffset + j] = 0.0f
+            }
         }
-
         crossfadeJob = scope.launch(Dispatchers.Main) {
+            // Always create a fresh item with eqStorage2 for the secondary player.
+            // The preloaded item was configured with eqStorage (primary) and cannot
+            // be safely reused on the secondary player during crossfade.
+            val nextItem = createPlayerItem(nextMetadata.id, forSecondaryPlayer = true)
+     
+            if (nextItem == null) {
+                isCrossfading = false
+                return@launch
+            }
+     
+            activePlayerItem = nextItem
+            player1.removeItem(nextItem)
+            player2.removeItem(nextItem)
+            secondary.removeAllItems()
+            secondary.insertItem(nextItem, afterItem = null)
+            secondary.volume = 0f
+     
+            // We do NOT swap currentPlayer/secondaryPlayer here.
+            // The playerbar continues to show the previous song (primary) and its progress.
+     
+            val style = settingsRepository.crossfadeStyle
+            val intervalMs = 100L
+            val durationMs = (durationSeconds * 1000).toLong()
+            val totalDurationMs = if (style == "Radio Segue") (durationMs * 1.5).toLong() else durationMs
+            val totalSteps = (totalDurationMs / intervalMs).coerceAtLeast(1L)
+            val baseSteps = (durationMs / intervalMs).coerceAtLeast(1L)
+            val halfSteps = if (style == "Radio Segue") baseSteps / 2 else totalSteps / 2
+            var secondaryStarted = false
+    
+            if (style == "Smooth Blend") {
+                secondary.play()
+                secondaryStarted = true
+            }
+
             val initialActiveSongId = _playbackState.value.currentMedia?.id
  
             for (step in 1..totalSteps) {
-                // Check for manual interventions on the active (old) player, new player (if started), or active song id change
-                if (primary.rate == 0.0f || (secondaryStarted && secondary.rate == 0.0f) || _playbackState.value.currentMedia?.id != initialActiveSongId) {
+                // Check for manual interventions (e.g. active song id changed)
+                if (_playbackState.value.currentMedia?.id != initialActiveSongId) {
                     primary.volume = userVolume
                     secondary.volume = userVolume
                     secondary.pause()
@@ -1024,7 +1018,16 @@ class IOSMusicPlayer(
             // Update state and now playing metadata to show the next song (new player)
             currentIndex = nextIndex
             updateState(PlaybackStatus.PLAYING, nextMetadata)
-            updateNowPlayingInfo(nextMetadata, 0L)
+            lastNowPlayingUpdateMs = 0L
+            
+            // Get actual elapsed time of the new player to prevent progress jumps
+            val currentSec = CMTimeGetSeconds(currentPlayer.currentTime())
+            val currentMs = if (!currentSec.isNaN() && currentSec > 0.0) {
+                (currentSec * 1000).toLong()
+            } else {
+                0L
+            }
+            updateNowPlayingInfo(nextMetadata, currentMs)
  
             isCrossfading = false
             
@@ -1115,7 +1118,7 @@ class IOSMusicPlayer(
                             dispatch_async(dispatch_get_main_queue()) {
                                 if (lastLoadedArtworkUrl == artworkUrl) {
                                     if (artworkCache.size >= 15) {
-                                        artworkCache.clear()
+                                        artworkCache.keys.firstOrNull()?.let { artworkCache.remove(it) }
                                     }
                                     artworkCache[artworkUrl] = uiImage
                                     lastLoadedArtwork = uiImage
@@ -1158,21 +1161,30 @@ class IOSMusicPlayer(
         interruptionObserver = notificationCenter.addObserverForName(
             name = AVAudioSessionInterruptionNotification,
             `object` = null,
-            queue = null
+            queue = NSOperationQueue.mainQueue
         ) { notification ->
             val userInfo = notification?.userInfo
             if (userInfo != null) {
                 val typeNum = userInfo[AVAudioSessionInterruptionTypeKey] as? NSNumber
                 if (typeNum != null) {
                     val type = typeNum.unsignedLongValue
-                    dispatch_async(dispatch_get_main_queue()) {
-                        if (type == AVAudioSessionInterruptionTypeBegan) {
-                            pause()
-                        } else if (type == AVAudioSessionInterruptionTypeEnded) {
-                            val optionsNum = userInfo[AVAudioSessionInterruptionOptionKey] as? NSNumber
-                            val options = optionsNum?.unsignedLongValue ?: 0UL
-                            if ((options and AVAudioSessionInterruptionOptionShouldResume) != 0UL) {
+                    if (type == AVAudioSessionInterruptionTypeBegan) {
+                        pause()
+                    } else if (type == AVAudioSessionInterruptionTypeEnded) {
+                        val optionsNum = userInfo[AVAudioSessionInterruptionOptionKey] as? NSNumber
+                        val options = optionsNum?.unsignedLongValue ?: 0UL
+                        if ((options and AVAudioSessionInterruptionOptionShouldResume) != 0UL) {
+                            try {
+                                val audioSession = AVAudioSession.sharedInstance()
+                                memScoped {
+                                    val categoryError = alloc<ObjCObjectVar<NSError?>>()
+                                    audioSession.setCategory(AVAudioSessionCategoryPlayback, error = categoryError.ptr)
+                                    val activeError = alloc<ObjCObjectVar<NSError?>>()
+                                    audioSession.setActive(true, error = activeError.ptr)
+                                }
                                 play()
+                            } catch (e: Exception) {
+                                Logger.e(e) { "Audio session setup error" }
                             }
                         }
                     }
@@ -1184,7 +1196,7 @@ class IOSMusicPlayer(
         routeChangeObserver = notificationCenter.addObserverForName(
             name = AVAudioSessionRouteChangeNotification,
             `object` = null,
-            queue = null
+            queue = NSOperationQueue.mainQueue
         ) { notification ->
             val userInfo = notification?.userInfo
             if (userInfo != null) {
@@ -1192,9 +1204,7 @@ class IOSMusicPlayer(
                 if (reasonNum != null) {
                     val reason = reasonNum.unsignedLongValue
                     if (reason == AVAudioSessionRouteChangeReasonOldDeviceUnavailable) {
-                        dispatch_async(dispatch_get_main_queue()) {
-                            pause()
-                        }
+                        pause()
                     }
                 }
             }
@@ -1203,42 +1213,62 @@ class IOSMusicPlayer(
         playToEndObserver = notificationCenter.addObserverForName(
             name = AVPlayerItemDidPlayToEndTimeNotification,
             `object` = null,
-            queue = null
+            queue = NSOperationQueue.mainQueue
         ) { notification ->
-            dispatch_async(dispatch_get_main_queue()) {
-                if (isCrossfading) return@dispatch_async
-                val finishedItem = notification?.`object` as? AVPlayerItem
-                if (finishedItem != null && finishedItem == activePlayerItem) {
-                    if (repeatMode == RepeatMode.ONE) {
-                        activePlayerItem?.let { item ->
-                            currentPlayer.removeAllItems()
-                            currentPlayer.insertItem(item, afterItem = null)
-                            seekTo(0L)
-                            currentPlayer.play()
-                        }
-                    } else {
-                        val nextIndex = getNextTrackIndex()
-                        if (nextIndex != -1) {
-                            currentIndex = nextIndex
-                            val nextMetadata = playlistItems[currentIndex]
-                            
-                            if (preloadedPlayerItem != null && preloadedSongId == nextMetadata.id) {
-                                // The player has automatically transitioned to the next item
-                                activePlayerItem = preloadedPlayerItem
-                                updateState(PlaybackStatus.PLAYING, nextMetadata)
-                                updateNowPlayingInfo(nextMetadata, 0L)
-                                
-                                preloadedPlayerItem = null
-                                preloadedSongId = null
-                                preloadNextTrack()
-                            } else {
-                                // Fallback if preloading is not ready yet
-                                playTrack(nextMetadata)
+            if (isCrossfading) return@addObserverForName
+            val finishedItem = notification?.`object` as? AVPlayerItem
+            if (finishedItem != null && finishedItem == activePlayerItem) {
+                if (repeatMode == RepeatMode.ONE) {
+                    val metadata = playlistItems.getOrNull(currentIndex)
+                    if (metadata != null) {
+                        scope.launch(Dispatchers.Main) {
+                            val newItem = createPlayerItem(metadata.id)
+                            if (newItem != null) {
+                                activePlayerItem = newItem
+                                currentPlayer.removeAllItems()
+                                currentPlayer.insertItem(newItem, afterItem = null)
+                                currentPlayer.play()
+                                updateNowPlayingInfo(metadata, 0L)
                             }
-                        } else {
-                            stop()
                         }
                     }
+                } else {
+                    val nextIndex = getNextTrackIndex()
+                    if (nextIndex != -1) {
+                        currentIndex = nextIndex
+                        val nextMetadata = playlistItems[currentIndex]
+                        
+                        if (preloadedPlayerItem != null && preloadedSongId == nextMetadata.id) {
+                            // The player has automatically transitioned to the next item
+                            activePlayerItem = preloadedPlayerItem
+                            updateState(PlaybackStatus.PLAYING, nextMetadata)
+                            updateNowPlayingInfo(nextMetadata, 0L)
+                            
+                            preloadedPlayerItem = null
+                            preloadedSongId = null
+                            preloadNextTrack()
+                        } else {
+                            // Fallback if preloading is not ready yet
+                            playTrack(nextMetadata)
+                        }
+                    } else {
+                        stop()
+                    }
+                }
+            }
+        }
+
+        // 4. Listen for playback stalls and attempt recovery
+        notificationCenter.addObserverForName(
+            name = AVPlayerItemPlaybackStalledNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue
+        ) { _ ->
+            Logger.w { "Playback stalled, attempting recovery..." }
+            scope.launch(Dispatchers.Main) {
+                delay(1000)
+                if (_playbackState.value.status == PlaybackStatus.PLAYING) {
+                    currentPlayer.play()
                 }
             }
         }
@@ -1324,5 +1354,6 @@ class IOSMusicPlayer(
         lastLoadedArtwork = null
 
         nativeHeap.free(eqStorage)
+        nativeHeap.free(eqStorage2)
     }
 }

@@ -31,3 +31,8 @@ local.properties
 *.p12
 *.pfx
 *.pepk
+*.log
+
+# Fastlane configurations
+iosApp/fastlane/Appfile
+iosApp/fastlane/Fastfile

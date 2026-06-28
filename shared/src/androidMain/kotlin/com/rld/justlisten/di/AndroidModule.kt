@@ -47,13 +47,7 @@ fun androidModule(apiKey: String = "") = module {
         AndroidSqliteDriver(DatabaseSchemaHelper.SafeSchema, androidContext(), "Local.db")
     }
     single {
-        LocalDb(
-            get(),
-            Repository.addPlaylistAdapter,
-            Repository.libraryAdapter,
-            Repository.playlistDetailAdapter,
-            Repository.syncQueueAdapter
-        )
+        DatabaseSchemaHelper.createDatabase(get())
     }
     single { MusicSource() }
     single {

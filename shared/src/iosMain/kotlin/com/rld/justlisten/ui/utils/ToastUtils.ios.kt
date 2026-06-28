@@ -11,8 +11,9 @@ import co.touchlab.kermit.Logger
 actual fun showToast(message: String) {
     Logger.i { "iOS Toast: $message" }
     dispatch_async(dispatch_get_main_queue()) {
-        val window = UIApplication.sharedApplication.keyWindow
-            ?: UIApplication.sharedApplication.windows.firstOrNull() as? UIWindow
+        val window = UIApplication.sharedApplication.connectedScenes
+            .firstOrNull { it is UIWindowScene }
+            ?.let { scene -> (scene as UIWindowScene).windows.firstOrNull { (it as? UIWindow)?.isKeyWindow() == true } as? UIWindow }
         val view = window?.rootViewController?.view ?: return@dispatch_async
         
         val screenBounds = UIScreen.mainScreen.bounds
@@ -33,7 +34,8 @@ actual fun showToast(message: String) {
         val toastWidth = (width - 40.0).coerceAtMost(300.0)
         val toastHeight = 45.0
         val toastX = (width - toastWidth) / 2.0
-        val toastY = height - 120.0
+        val safeBottom = view.safeAreaInsets.useContents { bottom }
+        val toastY = height - 80.0 - safeBottom
         
         toastLabel.setFrame(CGRectMake(toastX, toastY, toastWidth, toastHeight))
         view.addSubview(toastLabel)

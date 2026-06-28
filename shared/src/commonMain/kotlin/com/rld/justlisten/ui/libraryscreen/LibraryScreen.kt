@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LibraryMusic
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import com.rld.justlisten.ui.utils.showToast
@@ -392,7 +394,8 @@ fun LibraryScreen(
             PremiumLibraryCards(
                 libraryState = libraryState,
                 onTimeCapsuleClicked = { onAction(LibraryScreenAction.TimeCapsulePressed) },
-                onMusicInsightsClicked = { onAction(LibraryScreenAction.MusicInsightsPressed) }
+                onMusicInsightsClicked = { onAction(LibraryScreenAction.MusicInsightsPressed) },
+                onArtistDashboardClicked = { onAction(LibraryScreenAction.ArtistDashboardPressed) }
             )
         }
     }
@@ -403,11 +406,13 @@ fun LibraryScreen(
 fun PremiumLibraryCards(
     libraryState: LibraryState,
     onTimeCapsuleClicked: () -> Unit,
-    onMusicInsightsClicked: () -> Unit
+    onMusicInsightsClicked: () -> Unit,
+    onArtistDashboardClicked: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
             .padding(top = 15.dp, bottom = 25.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -416,7 +421,7 @@ fun PremiumLibraryCards(
         // --- CARD 1: MUSIC INSIGHTS ---
         Card(
             modifier = Modifier
-                .weight(1f)
+                .width(150.dp)
                 .height(180.dp)
                 .clickable { onMusicInsightsClicked() },
             shape = RoundedCornerShape(18.dp),
@@ -489,7 +494,7 @@ fun PremiumLibraryCards(
         // --- CARD 2: TIME CAPSULE ---
         Card(
             modifier = Modifier
-                .weight(1f)
+                .width(150.dp)
                 .height(180.dp)
                 .clickable {
                     if (isNewUser) {
@@ -560,6 +565,69 @@ fun PremiumLibraryCards(
                                 lineHeight = 16.sp
                             )
                         }
+                    }
+                }
+            }
+        }
+
+        // --- CARD 3: ARTIST PORTAL ---
+        Card(
+            modifier = Modifier
+                .width(150.dp)
+                .height(180.dp)
+                .clickable { onArtistDashboardClicked() },
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(Color(0xFF00B4DB), Color(0xFF0083B0))
+                        )
+                    )
+                    .padding(14.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color.White.copy(alpha = 0.2f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.BarChart,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                    
+                    Column {
+                        Text(
+                            text = "Artist Portal",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "View monthly plays, track downloads, and digital sales counts.",
+                            color = Color.White.copy(alpha = 0.85f),
+                            fontSize = 11.sp,
+                            lineHeight = 14.sp
+                        )
                     }
                 }
             }
