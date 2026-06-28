@@ -15,11 +15,13 @@ val generateBuildConfig by tasks.registering {
     val apiKey = localProps.getProperty("AUDIUS_API_KEY") ?: System.getenv("AUDIUS_API_KEY") ?: ""
     val bearerToken = localProps.getProperty("AUDIUS_BEARER_TOKEN") ?: System.getenv("AUDIUS_BEARER_TOKEN") ?: ""
     val playstoreBuild = project.findProperty("playstoreBuild")?.toString()?.toBoolean() ?: false
+    val androidVersionName = libs.versions.android.versionName.get()
     val outputDir = layout.buildDirectory.dir("generated/buildconfig/commonMain/kotlin")
     
     inputs.property("playstoreBuild", playstoreBuild)
     inputs.property("apiKey", apiKey)
     inputs.property("bearerToken", bearerToken)
+    inputs.property("androidVersionName", androidVersionName)
     outputs.dir(outputDir)
     doLast {
         val outputFile = outputDir.get().file("com/rld/justlisten/BuildConfig.kt").asFile
@@ -31,6 +33,7 @@ val generateBuildConfig by tasks.registering {
                 const val IS_PLAYSTORE_BUILD: Boolean = $playstoreBuild
                 const val AUDIUS_API_KEY: String = "$apiKey"
                 const val AUDIUS_BEARER_TOKEN: String = "$bearerToken"
+                const val ANDROID_VERSION_NAME: String = "$androidVersionName"
             }
         """.trimIndent())
     }

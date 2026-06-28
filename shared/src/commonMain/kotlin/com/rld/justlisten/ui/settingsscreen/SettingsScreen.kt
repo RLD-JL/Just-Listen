@@ -33,6 +33,7 @@ import com.rld.justlisten.datalayer.repositories.SyncState
 import com.rld.justlisten.ui.utils.SleepTimerService
 import com.rld.justlisten.ui.utils.showToast
 import com.rld.justlisten.ui.utils.isIos
+import com.rld.justlisten.ui.utils.appVersion
 import org.koin.compose.koinInject
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.LazyColumn
@@ -513,7 +514,7 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "App Version 1.0.9-a",
+                        text = "App Version $appVersion",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                     )
