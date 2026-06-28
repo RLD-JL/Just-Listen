@@ -1,4 +1,4 @@
-package com.rld.justlisten.ui.donationscreen
+package com.rld.justlisten.ui.supportscreen
 
 import com.rld.justlisten.ui.utils.showToast
 import androidx.compose.foundation.clickable
@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
 @Composable
-fun DonationScreen() {
+actual fun SupportScreen() {
     val clipboard = LocalClipboard.current
     val coroutineScope = rememberCoroutineScope()
 

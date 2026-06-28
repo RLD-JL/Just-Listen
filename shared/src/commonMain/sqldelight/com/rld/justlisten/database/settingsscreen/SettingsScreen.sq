@@ -2,7 +2,7 @@ import kotlin.Boolean;
 
 CREATE TABLE SettingsInfo (
      id INTEGER PRIMARY KEY DEFAULT 1,
-     hasNavigationDonationOn INTEGER AS Boolean NOT NULL,
+     hasNavigationSupportOn INTEGER AS Boolean NOT NULL,
      isDarkThemeOn  INTEGER  AS Boolean  NOT NULL,
      palletColor  TEXT  NOT NULL,
      customPrimary TEXT,
@@ -16,14 +16,14 @@ CREATE TABLE SettingsInfo (
      eqBands TEXT NOT NULL DEFAULT '0.0,0.0,0.0,0.0,0.0'
 );
 
-INSERT INTO SettingsInfo(hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch, isOngoingStreamEnabled, isEqEnabled, eqPreset, eqBands) VALUES (0, 1, "Pink", NULL, NULL, NULL, NULL, 1, 1, 0, 'Flat', '0.0,0.0,0.0,0.0,0.0');
+INSERT INTO SettingsInfo(hasNavigationSupportOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch, isOngoingStreamEnabled, isEqEnabled, eqPreset, eqBands) VALUES (0, 1, "Pink", NULL, NULL, NULL, NULL, 1, 1, 0, 'Flat', '0.0,0.0,0.0,0.0,0.0');
 
 getSettingsInfo:
 SELECT * FROM SettingsInfo;
 
 upsertSettingsInfo {
-    REPLACE INTO SettingsInfo(id, hasNavigationDonationOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch, isOngoingStreamEnabled, isEqEnabled, eqPreset, eqBands)
-    VALUES(1, :hasNavigationDonationOn, :isDarkThemeOn, :palletColor, :customPrimary, :customSecondary, :customBackground, :customSurface, :isFirstLaunch, :isOngoingStreamEnabled, :isEqEnabled, :eqPreset, :eqBands) ;
+    REPLACE INTO SettingsInfo(id, hasNavigationSupportOn, isDarkThemeOn, palletColor, customPrimary, customSecondary, customBackground, customSurface, isFirstLaunch, isOngoingStreamEnabled, isEqEnabled, eqPreset, eqBands)
+    VALUES(1, :hasNavigationSupportOn, :isDarkThemeOn, :palletColor, :customPrimary, :customSecondary, :customBackground, :customSurface, :isFirstLaunch, :isOngoingStreamEnabled, :isEqEnabled, :eqPreset, :eqBands) ;
 }
 
 CREATE TABLE UserProfileOverrides (
@@ -73,3 +73,30 @@ VALUES(
 
 deleteUserProfileOverride:
 DELETE FROM UserProfileOverrides WHERE userId = :userId;
+
+CREATE TABLE BlockedUser (
+     userId TEXT NOT NULL PRIMARY KEY,
+     username TEXT NOT NULL
+);
+
+insertBlockedUser:
+INSERT OR REPLACE INTO BlockedUser(userId, username) VALUES (:userId, :username);
+
+deleteBlockedUser:
+DELETE FROM BlockedUser WHERE userId = :userId;
+
+getBlockedUsers:
+SELECT * FROM BlockedUser;
+
+CREATE TABLE HiddenComment (
+     commentId TEXT NOT NULL PRIMARY KEY
+);
+
+insertHiddenComment:
+INSERT OR REPLACE INTO HiddenComment(commentId) VALUES (:commentId);
+
+deleteHiddenComment:
+DELETE FROM HiddenComment WHERE commentId = :commentId;
+
+getHiddenComments:
+SELECT commentId FROM HiddenComment;

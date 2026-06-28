@@ -11,7 +11,7 @@ import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.datalayer.repositories.LibraryRepository
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.ui.addplaylistscreen.AddPlaylistScreen
-import com.rld.justlisten.ui.donationscreen.DonationScreen
+import com.rld.justlisten.ui.supportscreen.SupportScreen
 import com.rld.justlisten.ui.libraryscreen.LibraryScreen
 import com.rld.justlisten.ui.playlistdetailscreen.PlaylistDetailScreen
 import com.rld.justlisten.ui.playlistscreen.PlaylistScreen
@@ -291,8 +291,8 @@ fun SettingsScreenHost(navController: NavHostController) {
             if (updated.isDarkThemeOn != state.isDarkThemeOn) {
                 viewModel.onDarkModeToggled(updated.isDarkThemeOn)
             }
-            if (updated.hasDonationNavigationOn != state.hasDonationNavigationOn) {
-                viewModel.onDonationToggled(updated.hasDonationNavigationOn)
+            if (updated.hasSupportNavigationOn != state.hasSupportNavigationOn) {
+                viewModel.onSupportToggled(updated.hasSupportNavigationOn)
             }
             if (updated.palletColor != state.palletColor) {
                 viewModel.onPaletteSelected(updated.palletColor)
@@ -348,8 +348,8 @@ fun SettingsScreenHost(navController: NavHostController) {
 }
 
 @Composable
-fun DonationScreenHost(navController: NavHostController) {
-    DonationScreen()
+fun SupportScreenHost(navController: NavHostController) {
+    SupportScreen()
 }
 
 @Composable

@@ -43,7 +43,7 @@ import com.rld.justlisten.navigation.Route
 fun Level1BottomBar(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    showDonationTab: Boolean = false,
+    showSupportTab: Boolean = false,
     onItemClick: () -> Unit = {}
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -57,7 +57,7 @@ fun Level1BottomBar(
             "Feed" to Route.Feed(),
             "Search" to Route.Search,
             "Settings" to Route.Settings,
-            "Donation" to Route.Donation
+            "Support" to Route.Support
         )
     }
 
@@ -92,7 +92,7 @@ fun Level1BottomBar(
             }
             routeStr.contains("Search") -> Route.Search
             routeStr.contains("Settings") -> Route.Settings
-            routeStr.contains("Donation") -> Route.Donation
+            routeStr.contains("Support") -> Route.Support
             else -> null
         }
     }
@@ -121,9 +121,9 @@ fun Level1BottomBar(
                     currentTab = "Settings"
                     lastActiveRoutes["Settings"] = Route.Settings
                 }
-                is Route.Donation -> {
-                    currentTab = "Donation"
-                    lastActiveRoutes["Donation"] = Route.Donation
+                is Route.Support -> {
+                    currentTab = "Support"
+                    lastActiveRoutes["Support"] = Route.Support
                 }
                 is Route.PlaylistDetail -> {
                     lastActiveRoutes[currentTab] = currentRoute
@@ -259,26 +259,26 @@ fun Level1BottomBar(
                 indicatorColor = Color.Transparent
             )
         )
-        if (showDonationTab) {
+        if (showSupportTab) {
             NavigationBarItem(
                 icon = {
                     Icon(
-                        painter = if (currentTab == "Donation") painterResource(Res.drawable.ic_monetization_on_filled) else painterResource(Res.drawable.ic_monetization_on_outlined),
-                        contentDescription = "Donate",
+                        painter = if (currentTab == "Support") painterResource(Res.drawable.ic_monetization_on_filled) else painterResource(Res.drawable.ic_monetization_on_outlined),
+                        contentDescription = "Support",
                     )
                 },
                 label = { Text("Support", fontSize = 10.sp) },
-                selected = currentTab == "Donation",
+                selected = currentTab == "Support",
                 onClick = {
-                    if (currentTab == "Donation") {
-                        val isAtRoot = currentDestination?.route?.substringBefore('?') ?.substringBefore('/') == Route.Donation::class.qualifiedName
+                    if (currentTab == "Support") {
+                        val isAtRoot = currentDestination?.route?.substringBefore('?') ?.substringBefore('/') == Route.Support::class.qualifiedName
                         if (!isAtRoot) {
-                            navController.navigate(Route.Donation) {
-                                popUpTo(Route.Donation) { inclusive = false }
+                            navController.navigate(Route.Support) {
+                                popUpTo(Route.Support) { inclusive = false }
                             }
                         }
                     } else {
-                        navigateTo("Donation", Route.Donation)
+                        navigateTo("Support", Route.Support)
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(

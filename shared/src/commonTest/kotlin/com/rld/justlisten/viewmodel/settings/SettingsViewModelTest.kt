@@ -52,7 +52,7 @@ class SettingsViewModelTest {
         val state = viewModel.settingsState.value
         assertEquals("Blue", state.palletColor)
         assertTrue(state.isDarkThemeOn)
-        assertTrue(state.hasDonationNavigationOn)
+        assertTrue(state.hasSupportNavigationOn)
     }
 
     @Test
@@ -80,7 +80,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun testDonationToggled() = runTest(testDispatcher) {
+    fun testSupportToggled() = runTest(testDispatcher) {
         testDispatcher.scheduler.advanceUntilIdle()
         var retries = 100
         while (viewModel.settingsState.value.palletColor == "Pink" && retries > 0) {
@@ -89,18 +89,18 @@ class SettingsViewModelTest {
             retries--
         }
 
-        viewModel.onDonationToggled(false)
+        viewModel.onSupportToggled(false)
         testDispatcher.scheduler.advanceUntilIdle()
 
         retries = 100
-        while (fakeSettingsRepo.getSettingsInfo().hasNavigationDonationOn && retries > 0) {
+        while (fakeSettingsRepo.getSettingsInfo().hasNavigationSupportOn && retries > 0) {
             delay(10)
             retries--
         }
 
         val state = viewModel.settingsState.value
-        assertEquals(false, state.hasDonationNavigationOn)
-        assertEquals(false, fakeSettingsRepo.getSettingsInfo().hasNavigationDonationOn)
+        assertEquals(false, state.hasSupportNavigationOn)
+        assertEquals(false, fakeSettingsRepo.getSettingsInfo().hasNavigationSupportOn)
     }
 
     @Test
@@ -131,7 +131,7 @@ class SettingsViewModelTest {
 class FakeSettingsRepository : SettingsRepository {
     private var info = SettingsInfo(
         id = 1L,
-        hasNavigationDonationOn = true,
+        hasNavigationSupportOn = true,
         isDarkThemeOn = true,
         palletColor = "Blue",
         customPrimary = null,
@@ -146,7 +146,7 @@ class FakeSettingsRepository : SettingsRepository {
     )
 
     override fun saveSettingsInfo(
-        hasNavigationDonationOn: Boolean,
+        hasNavigationSupportOn: Boolean,
         isDarkThemeOn: Boolean,
         palletColor: String,
         customPrimary: String?,
@@ -161,7 +161,7 @@ class FakeSettingsRepository : SettingsRepository {
     ) {
         info = SettingsInfo(
             id = 1L,
-            hasNavigationDonationOn = hasNavigationDonationOn,
+            hasNavigationSupportOn = hasNavigationSupportOn,
             isDarkThemeOn = isDarkThemeOn,
             palletColor = palletColor,
             customPrimary = customPrimary,
@@ -181,6 +181,13 @@ class FakeSettingsRepository : SettingsRepository {
     override var crossfadeStyle: String = "Radio Segue"
     override var isVolumeNormalizationEnabled: Boolean = false
     override fun getSettingsInfo(): SettingsInfo = info
+
+    override fun blockUser(userId: String, username: String) {}
+    override fun unblockUser(userId: String) {}
+    override fun getBlockedUsers(): List<com.rld.justlisten.database.settingsscreen.BlockedUser> = emptyList()
+    override fun hideComment(commentId: String) {}
+    override fun unhideComment(commentId: String) {}
+    override fun getHiddenComments(): List<String> = emptyList()
 }
 
 class FakeAuthRepository : com.rld.justlisten.datalayer.repositories.AuthRepository {

@@ -60,7 +60,7 @@ enum class PlayBarState {
 @Composable
 fun JustListenScaffold(
     navController: NavHostController,
-    showDonationTab: Boolean,
+    showSupportTab: Boolean,
     startDestination: Route = Route.Playlist,
     modifier: Modifier = Modifier,
 ) {
@@ -239,7 +239,7 @@ fun JustListenScaffold(
             if (showBottomBar) {
                 Level1BottomBar(
                     navController = navController,
-                    showDonationTab = showDonationTab,
+                    showSupportTab = showSupportTab,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .offset {

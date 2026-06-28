@@ -326,10 +326,10 @@ fun SettingsScreen(
                     SettingsSwitchRow(
                         icon = Icons.Rounded.Favorite,
                         title = "Support Tab in Navigation",
-                        checked = settings.hasDonationNavigationOn,
+                        checked = settings.hasSupportNavigationOn,
                         onCheckedChange = {
                             updateSettings(
-                                settings.copy(hasDonationNavigationOn = it)
+                                settings.copy(hasSupportNavigationOn = it)
                             )
                         }
                     )
@@ -389,6 +389,23 @@ fun SettingsScreen(
                     subtitle = if (settings.isEqEnabled) "Preset: ${settings.eqPreset} (Enabled)" else "Configure custom frequencies (Disabled)",
                     onClick = {
                         activeSheetMode = com.rld.justlisten.ui.settingsscreen.components.SheetMode.Equalizer
+                        coroutineScope.launch {
+                            scaffoldState.bottomSheetState.expand()
+                        }
+                    }
+                )
+            }
+
+            // Privacy & Moderation Section
+            SettingsSectionHeader(title = "Privacy & Moderation")
+            
+            SettingsCard {
+                SettingsClickableRow(
+                    icon = Icons.Rounded.Block,
+                    title = "Blocked Users",
+                    subtitle = "${settings.blockedUsers.size} users blocked",
+                    onClick = {
+                        activeSheetMode = com.rld.justlisten.ui.settingsscreen.components.SheetMode.BlockedUsers
                         coroutineScope.launch {
                             scaffoldState.bottomSheetState.expand()
                         }

@@ -29,7 +29,7 @@ private fun androidx.navigation.NavBackStackEntry.getTabIndex(): Int {
         dest.hasRoute<Route.MusicInsights>() -> 1
         dest.hasRoute<Route.Feed>() -> 2
         dest.hasRoute<Route.Search>() -> 3
-        dest.hasRoute<Route.Donation>() -> 4
+        dest.hasRoute<Route.Support>() -> 4
         dest.hasRoute<Route.Settings>() -> 5
         dest.hasRoute<Route.CustomTheme>() -> 5
         else -> -1
@@ -219,8 +219,8 @@ fun AppNavigation(
             SettingsScreenHost(navController)
         }
         
-        composable<Route.Donation> {
-            DonationScreenHost(navController)
+        composable<Route.Support> {
+            SupportScreenHost(navController)
         }
 
         composable<Route.CustomTheme> {

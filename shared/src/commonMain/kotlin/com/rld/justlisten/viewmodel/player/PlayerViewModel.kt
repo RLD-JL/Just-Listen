@@ -251,7 +251,7 @@ class PlayerViewModel(
                 viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                     val settings = settingsRepository.getSettingsInfo()
                     settingsRepository.saveSettingsInfo(
-                        hasNavigationDonationOn = settings.hasNavigationDonationOn,
+                        hasNavigationSupportOn = settings.hasNavigationSupportOn,
                         isDarkThemeOn = settings.isDarkThemeOn,
                         palletColor = settings.palletColor,
                         customPrimary = settings.customPrimary,

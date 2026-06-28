@@ -18,9 +18,13 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.automirrored.filled.Send
+import com.rld.justlisten.viewmodel.settings.SettingsViewModel
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -58,6 +62,8 @@ fun CommentsView(
 ) {
     val apiClient = koinInject<ApiClient>()
     val authRepository = koinInject<AuthRepository>()
+    val settingsViewModel = koinInject<SettingsViewModel>()
+    val settingsState by settingsViewModel.settingsState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
     val sessionState by authRepository.sessionState.collectAsState()
@@ -366,17 +372,47 @@ fun CommentsView(
                     )
                 }
             } else {
+                val activeCommentsList = remember(commentsList, settingsState.blockedUsers) {
+                    commentsList.filter { comment ->
+                        settingsState.blockedUsers.none { it.userId == comment.userId }
+                    }
+                }
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(commentsList) { comment ->
-                        val commenter = usersMap[comment.userId]
-                        val commenterName = commenter?.name ?: "User"
-                        val commenterAvatar = commenter?.profilePicture?.songImageURL150px ?: "https://images.unsplash.com/photo-1534528741775-53994a69daeb"
+                    items(activeCommentsList) { comment ->
+                        val isCommentHidden = settingsState.hiddenComments.contains(comment.id)
+                        if (isCommentHidden) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Comment hidden",
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                )
+                                Text(
+                                    text = "Unhide",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.clickable {
+                                        settingsViewModel.unhideComment(comment.id)
+                                    }
+                                )
+                            }
+                        } else {
+                            val commenter = usersMap[comment.userId]
+                            val commenterName = commenter?.name ?: "User"
+                            val commenterAvatar = commenter?.profilePicture?.songImageURL150px ?: "https://images.unsplash.com/photo-1534528741775-53994a69daeb"
 
-                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.fillMaxWidth()) {
                             // "Liked by Artist" header (simulated for popular/reacted comments)
                             val hasLikes = comment.reactCount > 0 || comment.isArtistReacted
                             if (hasLikes) {
@@ -549,6 +585,30 @@ fun CommentsView(
                                                     },
                                                     leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
                                                 )
+                                                val isCommentHiddenMenu = settingsState.hiddenComments.contains(comment.id)
+                                                DropdownMenuItem(
+                                                    text = { Text(if (isCommentHiddenMenu) "Unhide Comment" else "Hide Comment") },
+                                                    onClick = {
+                                                        showMenu = false
+                                                        if (isCommentHiddenMenu) {
+                                                            settingsViewModel.unhideComment(comment.id)
+                                                        } else {
+                                                            settingsViewModel.hideComment(comment.id)
+                                                        }
+                                                    },
+                                                    leadingIcon = { Icon(if (isCommentHiddenMenu) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = null) }
+                                                )
+                                                val isUserBlocked = settingsState.blockedUsers.any { it.userId == comment.userId }
+                                                if (!isUserBlocked) {
+                                                    DropdownMenuItem(
+                                                        text = { Text("Block User") },
+                                                        onClick = {
+                                                            showMenu = false
+                                                            settingsViewModel.blockUser(comment.userId, commenterName)
+                                                        },
+                                                        leadingIcon = { Icon(Icons.Default.Block, contentDescription = null) }
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -773,6 +833,7 @@ fun CommentsView(
                             }
                         }
                     }
+                }
                 }
             }
         }

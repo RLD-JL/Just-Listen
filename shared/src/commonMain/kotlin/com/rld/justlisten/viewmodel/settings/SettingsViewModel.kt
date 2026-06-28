@@ -58,13 +58,21 @@ class SettingsViewModel(
                 val saved = withContext(Dispatchers.IO) {
                     settingsRepository.getSettingsInfo()
                 }
+                val blocked = withContext(Dispatchers.IO) {
+                    settingsRepository.getBlockedUsers()
+                }
+                val hidden = withContext(Dispatchers.IO) {
+                    settingsRepository.getHiddenComments()
+                }
                 val bands = try {
                     saved.eqBands.split(",").map { it.toFloat() }
                 } catch (e: Exception) {
                     listOf(0f, 0f, 0f, 0f, 0f)
                 }
                 _settingsState.value = _settingsState.value.copy(
-                    hasDonationNavigationOn = saved.hasNavigationDonationOn,
+                    hasSupportNavigationOn = saved.hasNavigationSupportOn,
+                    blockedUsers = blocked,
+                    hiddenComments = hidden,
                     isDarkThemeOn = saved.isDarkThemeOn,
                     palletColor = saved.palletColor,
                     customPrimary = saved.customPrimary,
@@ -99,7 +107,7 @@ class SettingsViewModel(
         settingsRepository.isVolumeNormalizationEnabled = state.isVolumeNormalizationEnabled
         viewModelScope.launch(Dispatchers.IO) {
             settingsRepository.saveSettingsInfo(
-                hasNavigationDonationOn = state.hasDonationNavigationOn,
+                hasNavigationSupportOn = state.hasSupportNavigationOn,
                 isDarkThemeOn = state.isDarkThemeOn,
                 palletColor = state.palletColor,
                 customPrimary = state.customPrimary,
@@ -215,8 +223,8 @@ class SettingsViewModel(
         persistSettings()
     }
     
-    fun onDonationToggled(hasDonationNavigationOn: Boolean) {
-        _settingsState.value = _settingsState.value.copy(hasDonationNavigationOn = hasDonationNavigationOn)
+    fun onSupportToggled(hasSupportNavigationOn: Boolean) {
+        _settingsState.value = _settingsState.value.copy(hasSupportNavigationOn = hasSupportNavigationOn)
         persistSettings()
     }
 
@@ -236,4 +244,51 @@ class SettingsViewModel(
         persistSettings()
     }
 
+    fun blockUser(userId: String, username: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                settingsRepository.blockUser(userId, username)
+            }
+            val blocked = withContext(Dispatchers.IO) {
+                settingsRepository.getBlockedUsers()
+            }
+            _settingsState.value = _settingsState.value.copy(blockedUsers = blocked)
+        }
+    }
+
+    fun unblockUser(userId: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                settingsRepository.unblockUser(userId)
+            }
+            val blocked = withContext(Dispatchers.IO) {
+                settingsRepository.getBlockedUsers()
+            }
+            _settingsState.value = _settingsState.value.copy(blockedUsers = blocked)
+        }
+    }
+
+    fun hideComment(commentId: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                settingsRepository.hideComment(commentId)
+            }
+            val hidden = withContext(Dispatchers.IO) {
+                settingsRepository.getHiddenComments()
+            }
+            _settingsState.value = _settingsState.value.copy(hiddenComments = hidden)
+        }
+    }
+
+    fun unhideComment(commentId: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                settingsRepository.unhideComment(commentId)
+            }
+            val hidden = withContext(Dispatchers.IO) {
+                settingsRepository.getHiddenComments()
+            }
+            _settingsState.value = _settingsState.value.copy(hiddenComments = hidden)
+        }
+    }
 }

@@ -54,7 +54,7 @@ fun JustListenApp(
                     }
                     JustListenScaffold(
                         navController = navController,
-                        showDonationTab = settingsState.hasDonationNavigationOn && !BuildConfig.IS_PLAYSTORE_BUILD && !isIos,
+                        showSupportTab = settingsState.hasSupportNavigationOn && !BuildConfig.IS_PLAYSTORE_BUILD && !isIos,
                         startDestination = startDestination,
                         modifier = Modifier.fillMaxSize(),
                     )

@@ -8,9 +8,11 @@ import com.rld.justlisten.datalayer.models.PlayListModel
 
 data class SettingsState(
     val isLoading: Boolean = false,
-    val hasDonationNavigationOn: Boolean = true,
+    val hasSupportNavigationOn: Boolean = true,
     val isDarkThemeOn: Boolean = true,
     val palletColor: String = "Pink",
+    val blockedUsers: List<com.rld.justlisten.database.settingsscreen.BlockedUser> = emptyList(),
+    val hiddenComments: List<String> = emptyList(),
     val customPrimary: String? = null,
     val customSecondary: String? = null,
     val customBackground: String? = null,

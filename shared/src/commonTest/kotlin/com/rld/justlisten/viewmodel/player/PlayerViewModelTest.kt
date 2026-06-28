@@ -732,7 +732,7 @@ class FakeFeedRepository : FeedRepository {
 class FakeSettingsRepository : SettingsRepository {
     private var info = SettingsInfo(
         id = 1L,
-        hasNavigationDonationOn = true,
+        hasNavigationSupportOn = true,
         isDarkThemeOn = true,
         palletColor = "Pink",
         customPrimary = null,
@@ -746,7 +746,7 @@ class FakeSettingsRepository : SettingsRepository {
         eqBands = ""
     )
     override fun saveSettingsInfo(
-        hasNavigationDonationOn: Boolean,
+        hasNavigationSupportOn: Boolean,
         isDarkThemeOn: Boolean,
         palletColor: String,
         customPrimary: String?,
@@ -761,7 +761,7 @@ class FakeSettingsRepository : SettingsRepository {
     ) {
         info = SettingsInfo(
             id = 1L,
-            hasNavigationDonationOn = hasNavigationDonationOn,
+            hasNavigationSupportOn = hasNavigationSupportOn,
             isDarkThemeOn = isDarkThemeOn,
             palletColor = palletColor,
             customPrimary = customPrimary,
@@ -780,4 +780,11 @@ class FakeSettingsRepository : SettingsRepository {
     override var crossfadeStyle: String = "Radio Segue"
     override var isVolumeNormalizationEnabled: Boolean = false
     override fun getSettingsInfo(): SettingsInfo = info
+
+    override fun blockUser(userId: String, username: String) {}
+    override fun unblockUser(userId: String) {}
+    override fun getBlockedUsers(): List<com.rld.justlisten.database.settingsscreen.BlockedUser> = emptyList()
+    override fun hideComment(commentId: String) {}
+    override fun unhideComment(commentId: String) {}
+    override fun getHiddenComments(): List<String> = emptyList()
 }

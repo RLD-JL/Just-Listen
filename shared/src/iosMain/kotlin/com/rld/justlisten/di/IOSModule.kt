@@ -36,13 +36,7 @@ fun iosModule() = module {
     }
     
     single {
-        LocalDb(
-            get(),
-            Repository.addPlaylistAdapter,
-            Repository.libraryAdapter,
-            Repository.playlistDetailAdapter,
-            Repository.syncQueueAdapter
-        )
+        DatabaseSchemaHelper.createDatabase(get())
     }
     
     single<SleepTimerService> {

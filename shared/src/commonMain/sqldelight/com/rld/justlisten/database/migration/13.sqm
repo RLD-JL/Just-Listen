@@ -1,0 +1,10 @@
+ALTER TABLE SettingsInfo RENAME COLUMN hasNavigationDonationOn TO hasNavigationSupportOn;
+
+CREATE TABLE BlockedUser (
+     userId TEXT NOT NULL PRIMARY KEY,
+     username TEXT NOT NULL
+);
+
+CREATE TABLE HiddenComment (
+     commentId TEXT NOT NULL PRIMARY KEY
+);

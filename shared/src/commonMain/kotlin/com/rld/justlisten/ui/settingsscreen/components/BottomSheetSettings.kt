@@ -12,7 +12,8 @@ import com.rld.justlisten.viewmodel.screens.settings.SettingsState
 enum class SheetMode {
     SleepTimer,
     Equalizer,
-    Crossfade
+    Crossfade,
+    BlockedUsers
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +45,13 @@ fun BottomSheetSettings(
                 CrossfadeSettingsSheet(
                     settings = settings,
                     updateSettings = updateSettings,
+                    scaffoldState = scaffoldState,
+                    coroutineScope = coroutineScope
+                )
+            }
+            SheetMode.BlockedUsers -> {
+                BlockedUsersListSheet(
+                    settings = settings,
                     scaffoldState = scaffoldState,
                     coroutineScope = coroutineScope
                 )

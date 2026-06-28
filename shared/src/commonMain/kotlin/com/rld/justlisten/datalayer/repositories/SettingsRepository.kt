@@ -2,12 +2,11 @@ package com.rld.justlisten.datalayer.repositories
 
 import com.rld.justlisten.LocalDb
 import com.rld.justlisten.database.settingsscreen.SettingsInfo
-import com.rld.justlisten.datalayer.localdb.settingsscreen.getSettingsInfo
-import com.rld.justlisten.datalayer.localdb.settingsscreen.saveSettingsInfo
+import com.rld.justlisten.datalayer.localdb.settingsscreen.*
 
 interface SettingsRepository {
     fun saveSettingsInfo(
-        hasNavigationDonationOn: Boolean,
+        hasNavigationSupportOn: Boolean,
         isDarkThemeOn: Boolean,
         palletColor: String,
         customPrimary: String?,
@@ -25,6 +24,13 @@ interface SettingsRepository {
     var crossfadeDurationSeconds: Double
     var crossfadeStyle: String
     var isVolumeNormalizationEnabled: Boolean
+
+    fun blockUser(userId: String, username: String)
+    fun unblockUser(userId: String)
+    fun getBlockedUsers(): List<com.rld.justlisten.database.settingsscreen.BlockedUser>
+    fun hideComment(commentId: String)
+    fun unhideComment(commentId: String)
+    fun getHiddenComments(): List<String>
 }
 
 class SettingsRepositoryImpl(
@@ -37,7 +43,7 @@ class SettingsRepositoryImpl(
     override var isVolumeNormalizationEnabled: Boolean = false
 
     override fun saveSettingsInfo(
-        hasNavigationDonationOn: Boolean,
+        hasNavigationSupportOn: Boolean,
         isDarkThemeOn: Boolean,
         palletColor: String,
         customPrimary: String?,
@@ -51,7 +57,7 @@ class SettingsRepositoryImpl(
         eqBands: String
     ) {
         localDb.saveSettingsInfo(
-            hasNavigationDonationOn = hasNavigationDonationOn,
+            hasNavigationSupportOn = hasNavigationSupportOn,
             isDarkThemeOn = isDarkThemeOn,
             palletColor = palletColor,
             customPrimary = customPrimary,
@@ -68,5 +74,29 @@ class SettingsRepositoryImpl(
 
     override fun getSettingsInfo(): SettingsInfo {
         return localDb.getSettingsInfo()
+    }
+
+    override fun blockUser(userId: String, username: String) {
+        localDb.blockUser(userId, username)
+    }
+
+    override fun unblockUser(userId: String) {
+        localDb.unblockUser(userId)
+    }
+
+    override fun getBlockedUsers(): List<com.rld.justlisten.database.settingsscreen.BlockedUser> {
+        return localDb.getBlockedUsers()
+    }
+
+    override fun hideComment(commentId: String) {
+        localDb.hideComment(commentId)
+    }
+
+    override fun unhideComment(commentId: String) {
+        localDb.unhideComment(commentId)
+    }
+
+    override fun getHiddenComments(): List<String> {
+        return localDb.getHiddenComments()
     }
 }
