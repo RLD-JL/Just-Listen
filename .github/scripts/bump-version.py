@@ -52,18 +52,6 @@ def get_and_bump_version(bump_type):
         content = re.sub(r'(android-versionName\s*=\s*)"[^"]+"', f'\\g<1>"{new_name}"', content)
         with open(file_path, "w") as f:
             f.write(content)
-        
-        # Update Info.plist
-        plist_path = "iosApp/iosApp/Info.plist"
-        if os.path.exists(plist_path):
-            with open(plist_path, "r") as f:
-                plist_content = f.read()
-            plist_content = re.sub(r'(<key>CFBundleShortVersionString</key>\s*<string>)[^<]+(</string>)', f'\\g<1>{new_name}\\g<2>', plist_content)
-            plist_content = re.sub(r'(<key>CFBundleVersion</key>\s*<string>)[^<]+(</string>)', f'\\g<1>{new_code}\\g<2>', plist_content)
-            with open(plist_path, "w") as f:
-                f.write(plist_content)
-            print(f"Updated iOS Info.plist to version {new_name} (build {new_code})")
-            
         print(f"Bumped version from {current_name} (code {current_code}) to {new_name} (code {new_code})")
     else:
         new_name = current_name
