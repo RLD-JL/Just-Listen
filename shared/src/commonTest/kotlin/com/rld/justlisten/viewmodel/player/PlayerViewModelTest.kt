@@ -288,6 +288,14 @@ class PlayerViewModelTest {
         val collectJob = launch { viewModel.playerUiState.collect {} }
         testDispatcher.scheduler.advanceUntilIdle()
 
+        // Wait for PlayerViewModel init's Dispatchers.IO load to finish
+        var initRetries = 100
+        while (initRetries > 0) {
+            delay(10)
+            testDispatcher.scheduler.runCurrent()
+            initRetries--
+        }
+
         // 1. Enable autoplay
         viewModel.onAction(PlayerAction.ToggleAutoplay(true))
         testDispatcher.scheduler.advanceUntilIdle()
@@ -366,6 +374,14 @@ class PlayerViewModelTest {
     fun testAutoplayPaginationAndReset() = runTest(testDispatcher) {
         val collectJob = launch { viewModel.playerUiState.collect {} }
         testDispatcher.scheduler.advanceUntilIdle()
+
+        // Wait for PlayerViewModel init's Dispatchers.IO load to finish
+        var initRetries = 100
+        while (initRetries > 0) {
+            delay(10)
+            testDispatcher.scheduler.runCurrent()
+            initRetries--
+        }
 
         // 1. Enable autoplay
         viewModel.onAction(PlayerAction.ToggleAutoplay(true))

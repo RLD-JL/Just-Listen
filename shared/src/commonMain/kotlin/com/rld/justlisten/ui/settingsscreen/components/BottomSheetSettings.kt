@@ -51,9 +51,7 @@ fun BottomSheetSettings(
             }
             SheetMode.BlockedUsers -> {
                 BlockedUsersListSheet(
-                    settings = settings,
-                    scaffoldState = scaffoldState,
-                    coroutineScope = coroutineScope
+                    settings = settings
                 )
             }
         }

@@ -16,14 +16,11 @@ import androidx.compose.ui.unit.sp
 import com.rld.justlisten.viewmodel.screens.settings.SettingsState
 import com.rld.justlisten.viewmodel.settings.SettingsViewModel
 import org.koin.compose.koinInject
-import kotlinx.coroutines.CoroutineScope
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlockedUsersListSheet(
-    settings: SettingsState,
-    scaffoldState: BottomSheetScaffoldState,
-    coroutineScope: CoroutineScope
+    settings: SettingsState
 ) {
     val settingsViewModel: SettingsViewModel = koinInject()
 
