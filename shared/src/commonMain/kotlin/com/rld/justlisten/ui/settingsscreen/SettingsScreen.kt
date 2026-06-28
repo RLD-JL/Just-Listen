@@ -32,6 +32,7 @@ import com.rld.justlisten.datalayer.repositories.SessionState
 import com.rld.justlisten.datalayer.repositories.SyncState
 import com.rld.justlisten.ui.utils.SleepTimerService
 import com.rld.justlisten.ui.utils.showToast
+import com.rld.justlisten.ui.utils.isIos
 import org.koin.compose.koinInject
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.LazyColumn
@@ -317,7 +318,7 @@ fun SettingsScreen(
             }
 
             // support options section
-            if (!BuildConfig.IS_PLAYSTORE_BUILD) {
+            if (!BuildConfig.IS_PLAYSTORE_BUILD && !isIos) {
                 SettingsSectionHeader(title = "Support & Navigation")
                 
                 SettingsCard {
