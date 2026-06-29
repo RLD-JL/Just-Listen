@@ -1,0 +1,15 @@
+Just Listen is a free and open-source music player client. It uses the Audius public APIs to search, stream, and play music.
+
+Features:
+- Search songs & playlists on the Audius infrastructure
+- Listen to songs and audiobooks in the background for free
+- Create your private playlists
+- Add songs to favorites
+- Track recent play history and most listened songs
+- Set a sleep timer to close the app automatically
+- Different UI themes
+- Shuffle and repeat play modes
+- Seamless transition between songs
+- Built with Kotlin Multiplatform
+
+Note: This FOSS version includes support features that are compliant with open-source guidelines. Streaming high-quality audio may consume significant network data.
