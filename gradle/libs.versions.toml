@@ -31,8 +31,8 @@ materialIconsVersion = "1.7.3"
 android-compileSdk = "37"
 android-targetSdk = "37"
 android-minSdk = "23"
-android-versionCode = "30"
-android-versionName = "2.0.2"
+android-versionCode = "31"
+android-versionName = "2.0.3"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutinesVersion" }
