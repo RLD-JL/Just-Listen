@@ -10,7 +10,13 @@ Available on <a href = "https://play.google.com/store/apps/details?id=com.rld.ju
 <br><br>
 
 <a href="https://github.com/RLD-JL/Just-Listen/releases/">
-<img border="0" src="https://img.shields.io/github/downloads/RLD-JL/Just-Listen/total?style=for-the-badge" width="128" height="32">
+  <img border="0" src="https://img.shields.io/github/downloads/RLD-JL/Just-Listen/total?style=for-the-badge">
+</a>
+<a href="https://apt.izzysoft.de/packages/com.rld.justlisten.android">
+  <img border="0" src="https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/com.rld.justlisten.android&label=IzzyOnDroid&style=for-the-badge">
+</a>
+<a href="https://apt.izzysoft.de/packages/com.rld.justlisten.android">
+  <img border="0" src="https://img.shields.io/badge/dynamic/json?url=https://dlstats.izzyondroid.org/iod-stats-collector/stats/basic/yearly/rolling.json&query=$.['com.rld.justlisten.android']&label=IzzyOnDroid%20yearly%20downloads&style=for-the-badge">
 </a>
 </div>
 
