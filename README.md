@@ -9,15 +9,7 @@ A music player for Android and iOS. It is using <a href="https://audius.org">Aud
 Available on <a href = "https://play.google.com/store/apps/details?id=com.rld.justlisten.android">Google Play</a>, <a href = "https://apt.izzysoft.de/fdroid/index/apk/com.rld.justlisten.android">F-Droid via IzzyOnDroid repo</a> and on <a href="https://github.com/RLD-JL/Just-Listen/releases/latest">Github</a>.
 <br><br>
 
-<a href="https://github.com/RLD-JL/Just-Listen/releases/">
-  <img border="0" src="https://img.shields.io/github/downloads/RLD-JL/Just-Listen/total?style=for-the-badge">
-</a>
-<a href="https://apt.izzysoft.de/packages/com.rld.justlisten.android">
-  <img border="0" src="https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/com.rld.justlisten.android&label=IzzyOnDroid&style=for-the-badge">
-</a>
-<a href="https://apt.izzysoft.de/packages/com.rld.justlisten.android">
-  <img border="0" src="https://img.shields.io/badge/dynamic/json?url=https://dlstats.izzyondroid.org/iod-stats-collector/stats/basic/yearly/rolling.json&query=$.['com.rld.justlisten.android']&label=IzzyOnDroid%20yearly%20downloads&style=for-the-badge">
-</a>
+<a href="https://github.com/RLD-JL/Just-Listen/releases/"><img border="0" src="https://img.shields.io/github/downloads/RLD-JL/Just-Listen/total?style=for-the-badge"></a><a href="https://apt.izzysoft.de/packages/com.rld.justlisten.android"><img border="0" src="https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/com.rld.justlisten.android&label=IzzyOnDroid&style=for-the-badge"></a><a href="https://apt.izzysoft.de/packages/com.rld.justlisten.android"><img border="0" src="https://img.shields.io/badge/dynamic/json?url=https://dlstats.izzyondroid.org/iod-stats-collector/stats/basic/yearly/rolling.json&query=$.['com.rld.justlisten.android']&label=IzzyOnDroid%20yearly%20downloads&style=for-the-badge"></a>
 </div>
 
 > [!NOTE]
