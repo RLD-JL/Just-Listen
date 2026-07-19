@@ -1,16 +1,11 @@
 <div align="center">
-  <img width = "150" height ="150" src="https://user-images.githubusercontent.com/106017010/172056412-091f0c8f-f5e9-43af-96bc-aa57e50b66df.png") /img>
+  <img height="150" src="assets/justlisten-logo.png" alt="Just Listen logo">
 <h1>Just Listen </h1>
+<a href="https://apps.apple.com/us/app/just-listen/id6784971396"><img alt="App Store" src="https://img.shields.io/badge/App%20Store-000000?logo=apple&logoColor=white"></a>&nbsp;<a href="https://play.google.com/store/apps/details?id=com.rld.justlisten.android"><img alt="Google Play" src="https://img.shields.io/badge/Google%20Play-414141?logo=google-play&logoColor=white"></a>&nbsp;<a href="https://github.com/RLD-JL/Just-Listen/releases/"><img border="0" src="https://img.shields.io/github/downloads/RLD-JL/Just-Listen/total"></a>&nbsp;<a href="https://apt.izzysoft.de/packages/com.rld.justlisten.android"><img border="0" src="https://img.shields.io/badge/dynamic/json?url=https://dlstats.izzyondroid.org/iod-stats-collector/stats/basic/yearly/rolling.json&query=$.['com.rld.justlisten.android']&label=IzzyOnDroid%20yearly%20downloads"></a><br><br>
 A music player for Android and iOS. It is using <a href="https://audius.org">Audius</a> public APIs to display and get the playlists/songs!
 </div> 
 
-<div align="center">
 <br>
-Available on <a href = "https://play.google.com/store/apps/details?id=com.rld.justlisten.android">Google Play</a>, <a href = "https://apt.izzysoft.de/fdroid/index/apk/com.rld.justlisten.android">F-Droid via IzzyOnDroid repo</a> and on <a href="https://github.com/RLD-JL/Just-Listen/releases/latest">Github</a>.
-<br><br>
-
-<a href="https://github.com/RLD-JL/Just-Listen/releases/"><img border="0" src="https://img.shields.io/github/downloads/RLD-JL/Just-Listen/total"></a>&nbsp;<a href="https://apt.izzysoft.de/packages/com.rld.justlisten.android"><img border="0" src="https://img.shields.io/badge/dynamic/json?url=https://dlstats.izzyondroid.org/iod-stats-collector/stats/basic/yearly/rolling.json&query=$.['com.rld.justlisten.android']&label=IzzyOnDroid%20yearly%20downloads"></a>
-</div>
 
 > [!NOTE]
 > The Google Play version has the support navigation tab and settings toggle completely removed to comply with Google Play's Developer Policy regarding donations/payments. The full FOSS version is available on GitHub and IzzyOnDroid.
@@ -80,4 +75,3 @@ ETH Address: 0x3A9b38ba07D4E9263c5595C2DbF1dD13a43b577C
 SOL Address: GjfvqY9ophJZ7r475Wka5GH8HafDj5kFirE86g1jpDYe
 
 Audius Address: 0x3A9b38ba07D4E9263c5595C2DbF1dD13a43b577C
-
