@@ -194,11 +194,23 @@ class PlaylistRepositoryImpl(
                 } ?: emptyList()
 
                 PlayListEnum.FAVORITE -> {
-                    localDb.getFavoritePlaylist().map { playlistModel ->
-                        val isFavorite = favoriteIds.contains(playlistModel.id)
-                        val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
-                        PlaylistItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
-                    }.toList()
+                    val localTracks = localDb.getFavoritePlaylist()
+                    localTracks.chunked(5).flatMap { chunk ->
+                        coroutineScope {
+                            chunk.map { localTrack ->
+                                async {
+                                    val track = runCatching {
+                                        webservices.getTrackDetails(localTrack.id)
+                                    }.getOrNull() ?: localTrack
+                                    if (track.hasCurrentUserReposted) {
+                                        setTrackReposted(track.id, true)
+                                    }
+                                    val isReposted = track.hasCurrentUserReposted || isTrackReposted(track.id)
+                                    PlaylistItem(track, isFavorite = true, isReposted = isReposted)
+                                }
+                            }.awaitAll()
+                        }
+                    }
                 }
 
                 PlayListEnum.MOST_PLAYED -> {
