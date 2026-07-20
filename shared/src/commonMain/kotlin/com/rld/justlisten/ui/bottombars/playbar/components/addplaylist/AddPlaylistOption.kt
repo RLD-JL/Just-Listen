@@ -6,8 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -85,17 +83,15 @@ fun AddPlaylistOption(
         }
 
         // Floating action button aligned to bottom-right corner
-        FloatingActionButton(
-            onClick = { openDialog.value = true },
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
+        Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 24.dp, end = 24.dp)
+                .size(56.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "New Playlist",
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            PlatformAddPlaylistButton(
+                onClick = { openDialog.value = true },
+                modifier = Modifier.fillMaxSize()
             )
         }
 

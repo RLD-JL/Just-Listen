@@ -4,6 +4,37 @@ private enum MiniPlayerLayout {
     static let height: CGFloat = 65
 }
 
+private struct MiniPlayerLoadingBars: View {
+    @State private var isAnimating = false
+
+    private let restingScales: [CGFloat] = [0.30, 0.15, 0.40]
+    private let activeScales: [CGFloat] = [0.95, 1.00, 0.80]
+    private let durations: [Double] = [0.50, 0.65, 0.40]
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 2.5) {
+            ForEach(0..<3, id: \.self) { index in
+                Capsule(style: .continuous)
+                    .fill(Color.primary)
+                    .frame(width: 4, height: 20)
+                    .scaleEffect(
+                        x: 1,
+                        y: isAnimating ? activeScales[index] : restingScales[index],
+                        anchor: .bottom
+                    )
+                    .animation(
+                        .easeInOut(duration: durations[index])
+                            .repeatForever(autoreverses: true),
+                        value: isAnimating
+                    )
+            }
+        }
+        .frame(width: 20, height: 20, alignment: .bottom)
+        .onAppear { isAnimating = true }
+        .accessibilityHidden(true)
+    }
+}
+
 // Native foreground is required here: tabViewBottomAccessory places SwiftUI
 // content above Liquid Glass, while an embedded Compose Metal layer is sampled
 // as part of the material backdrop and becomes blurred.
@@ -36,8 +67,7 @@ struct MiniPlayerAccessoryView: View {
             Button(action: onPlayPause) {
                 Group {
                     if state.isBuffering {
-                        ProgressView()
-                            .controlSize(.small)
+                        MiniPlayerLoadingBars()
                     } else {
                         Image(systemName: state.isPlaying ? "pause.fill" : "play.fill")
                             .font(.system(size: 20, weight: .semibold))
@@ -47,7 +77,7 @@ struct MiniPlayerAccessoryView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(state.isPlaying ? "Pause" : "Play")
+            .accessibilityLabel(state.isBuffering ? "Loading track" : (state.isPlaying ? "Pause" : "Play"))
 
             Button(action: onSkipNext) {
                 Image(systemName: "forward.end.fill")
