@@ -40,6 +40,9 @@ class FeedViewModel(
                         _feedState.update { it.copy(isGuest = true) }
                         refreshActiveTab()
                     }
+                    is SessionState.Restoring -> {
+                        _feedState.update { it.copy(isGuest = false) }
+                    }
                 }
             }
         }

@@ -10,6 +10,8 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.delay
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -126,6 +128,49 @@ class SettingsViewModelTest {
         assertEquals("Green", state.palletColor)
         assertEquals("Green", fakeSettingsRepo.getSettingsInfo().palletColor)
     }
+
+    @Test
+    fun testSessionRestorationRetriesUntilAuthenticated() = runTest(testDispatcher) {
+        val restoringAuthRepository = FakeAuthRepository().apply {
+            sessionState.value = com.rld.justlisten.datalayer.repositories.SessionState.Restoring
+            refreshSessionHandler = {
+                if (refreshSessionCalls >= 2) {
+                    sessionState.value = com.rld.justlisten.datalayer.repositories.SessionState.Authenticated(
+                        com.rld.justlisten.datalayer.webservices.apis.authcalls.MeResponse(
+                            userId = "user-id",
+                            name = "Listener",
+                            handle = "listener",
+                        )
+                    )
+                    true
+                } else {
+                    false
+                }
+            }
+        }
+        val restoringViewModel = SettingsViewModel(
+            fakeSettingsRepo,
+            restoringAuthRepository,
+            fakeSyncRepo,
+            apiClient,
+        )
+
+        runCurrent()
+        assertEquals(1, restoringAuthRepository.refreshSessionCalls)
+        assertTrue(
+            restoringViewModel.settingsState.value.sessionState is
+                com.rld.justlisten.datalayer.repositories.SessionState.Restoring
+        )
+
+        advanceTimeBy(1_001L)
+        runCurrent()
+
+        assertEquals(2, restoringAuthRepository.refreshSessionCalls)
+        assertTrue(
+            restoringViewModel.settingsState.value.sessionState is
+                com.rld.justlisten.datalayer.repositories.SessionState.Authenticated
+        )
+    }
 }
 
 class FakeSettingsRepository : SettingsRepository {
@@ -192,10 +237,15 @@ class FakeSettingsRepository : SettingsRepository {
 
 class FakeAuthRepository : com.rld.justlisten.datalayer.repositories.AuthRepository {
     override val sessionState = kotlinx.coroutines.flow.MutableStateFlow<com.rld.justlisten.datalayer.repositories.SessionState>(com.rld.justlisten.datalayer.repositories.SessionState.Guest)
+    var refreshSessionCalls = 0
+    var refreshSessionHandler: suspend FakeAuthRepository.() -> Boolean = { false }
     override fun getAuthUrl(redirectUri: String): String = ""
     override suspend fun loginWithCode(code: String, redirectUri: String): Boolean = false
     override fun logout() {}
-    override suspend fun refreshSession(): Boolean = false
+    override suspend fun refreshSession(): Boolean {
+        refreshSessionCalls += 1
+        return refreshSessionHandler()
+    }
     override fun getCustomName(userId: String): String? = null
     override fun getCustomBio(userId: String): String? = null
     override fun getCustomProfilePic(userId: String): String? = null

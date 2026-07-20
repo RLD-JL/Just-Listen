@@ -23,6 +23,19 @@ data class TokenResponse(
     @SerialName("refresh_token") val refreshToken: String
 )
 
+class ApiRequestException(
+    val statusCode: Int,
+    val isTransient: Boolean,
+    message: String,
+) : Exception(message)
+
+@PublishedApi
+internal enum class TokenRefreshResult {
+    Success,
+    Rejected,
+    Unavailable,
+}
+
 open class ApiClient(
     val apiKey: String = "",
     val secureStorage: SecureStorage
@@ -78,13 +91,15 @@ open class ApiClient(
         }
     }
 
-    suspend fun refreshToken(failedToken: String? = null): Boolean {
+    @PublishedApi
+    internal suspend fun refreshTokenResult(failedToken: String? = null): TokenRefreshResult {
         return tokenMutex.withLock {
             val currentToken = secureStorage.getToken("access_token")
-            if (!currentToken.isNullOrBlank() && currentToken != failedToken) {
-                return true
+            if (failedToken != null && !currentToken.isNullOrBlank() && currentToken != failedToken) {
+                return TokenRefreshResult.Success
             }
-            val refreshToken = secureStorage.getToken("refresh_token") ?: return false
+            val refreshToken = secureStorage.getToken("refresh_token")
+                ?: return TokenRefreshResult.Rejected
             val url = "${Constants.BASEURL}/v1/oauth/token"
             try {
                 val response = client.post(url) {
@@ -101,16 +116,24 @@ open class ApiClient(
                     val tokenResponse = response.body<TokenResponse>()
                     secureStorage.saveToken("access_token", tokenResponse.accessToken)
                     secureStorage.saveToken("refresh_token", tokenResponse.refreshToken)
-                    true
+                    TokenRefreshResult.Success
+                } else if (response.status.value in 400..499 &&
+                    response.status != HttpStatusCode.RequestTimeout &&
+                    response.status != HttpStatusCode.TooManyRequests
+                ) {
+                    TokenRefreshResult.Rejected
                 } else {
-                    false
+                    TokenRefreshResult.Unavailable
                 }
             } catch (e: Exception) {
                 Logger.e(e) { "Error refreshing token" }
-                false
+                TokenRefreshResult.Unavailable
             }
         }
     }
+
+    suspend fun refreshToken(failedToken: String? = null): Boolean =
+        refreshTokenResult(failedToken) == TokenRefreshResult.Success
 
     suspend inline fun <reified T : Any> getResponse(endpoint: String): T? {
         val url = "${Constants.BASEURL}/v1$endpoint"
@@ -119,15 +142,27 @@ open class ApiClient(
             val tokenBeforeRequest = secureStorage.getToken("access_token")
             var response = client.get(url)
             if (response.status == HttpStatusCode.Unauthorized) {
-                val refreshed = refreshToken(tokenBeforeRequest)
-                if (refreshed) {
-                    response = client.get(url)
+                when (refreshTokenResult(tokenBeforeRequest)) {
+                    TokenRefreshResult.Success -> response = client.get(url)
+                    TokenRefreshResult.Unavailable -> throw ApiRequestException(
+                        statusCode = response.status.value,
+                        isTransient = true,
+                        message = "Authentication could not be refreshed while the service is unavailable",
+                    )
+                    TokenRefreshResult.Rejected -> Unit
                 }
             }
             if (response.status.isSuccess()) {
                 response.body<T>()
             } else {
-                throw Exception("HTTP error ${response.status.value} fetching $url")
+                val statusCode = response.status.value
+                throw ApiRequestException(
+                    statusCode = statusCode,
+                    isTransient = statusCode >= 500 ||
+                        response.status == HttpStatusCode.RequestTimeout ||
+                        response.status == HttpStatusCode.TooManyRequests,
+                    message = "HTTP error $statusCode fetching $url",
+                )
             }
         } catch (e: CancellationException) {
             throw e

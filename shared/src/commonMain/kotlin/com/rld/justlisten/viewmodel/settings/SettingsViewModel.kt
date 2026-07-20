@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
@@ -34,7 +35,13 @@ class SettingsViewModel(
 
         // Check/refresh existing session on launch
         viewModelScope.launch {
-            authRepository.refreshSession()
+            var retryDelayMs = 1_000L
+            do {
+                authRepository.refreshSession()
+                if (authRepository.sessionState.value !is SessionState.Restoring) break
+                delay(retryDelayMs)
+                retryDelayMs = (retryDelayMs * 2).coerceAtMost(30_000L)
+            } while (true)
         }
 
         // Collect session state
