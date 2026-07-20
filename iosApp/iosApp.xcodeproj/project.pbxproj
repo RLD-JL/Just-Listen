@@ -10,6 +10,12 @@
 		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
 		7555FF83242A565900829871 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* ContentView.swift */; };
 		7555FF8E242A565B00829871 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7555FF8D242A565B00829871 /* Assets.xcassets */; };
+		A1B2C3D40000000000000001 /* NavigationCoordinators.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D50000000000000001 /* NavigationCoordinators.swift */; };
+		A1B2C3D40000000000000002 /* ComposeScreenViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D50000000000000002 /* ComposeScreenViews.swift */; };
+		A1B2C3D40000000000000003 /* NativeNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D50000000000000003 /* NativeNavigationView.swift */; };
+		A1B2C3D40000000000000004 /* MiniPlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D50000000000000004 /* MiniPlayerState.swift */; };
+		A1B2C3D40000000000000005 /* MiniPlayerAccessoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D50000000000000005 /* MiniPlayerAccessoryView.swift */; };
+		A1B2C3D40000000000000006 /* GlobalPlayerComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D50000000000000006 /* GlobalPlayerComposeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -32,6 +38,12 @@
 		7555FF8C242A565B00829871 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7555FF8D242A565B00829871 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7555FFB1242A642300829871 /* shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = shared.framework; path = "../shared/build/xcode-frameworks/shared.framework"; sourceTree = "<group>"; };
+		A1B2C3D50000000000000001 /* NavigationCoordinators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinators.swift; sourceTree = "<group>"; };
+		A1B2C3D50000000000000002 /* ComposeScreenViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeScreenViews.swift; sourceTree = "<group>"; };
+		A1B2C3D50000000000000003 /* NativeNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeNavigationView.swift; sourceTree = "<group>"; };
+		A1B2C3D50000000000000004 /* MiniPlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerState.swift; sourceTree = "<group>"; };
+		A1B2C3D50000000000000005 /* MiniPlayerAccessoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerAccessoryView.swift; sourceTree = "<group>"; };
+		A1B2C3D50000000000000006 /* GlobalPlayerComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalPlayerComposeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,11 +78,41 @@
 			isa = PBXGroup;
 			children = (
 				7555FF82242A565900829871 /* ContentView.swift */,
+				A1B2C3D60000000000000001 /* Navigation */,
+				A1B2C3D60000000000000002 /* MiniPlayer */,
+				A1B2C3D60000000000000003 /* Player */,
 				7555FF8C242A565B00829871 /* Info.plist */,
 				2152FB032600AC8F00CF470E /* iOSApp.swift */,
 				7555FF8D242A565B00829871 /* Assets.xcassets */,
 			);
 			path = iosApp;
+			sourceTree = "<group>";
+		};
+		A1B2C3D60000000000000001 /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D50000000000000001 /* NavigationCoordinators.swift */,
+				A1B2C3D50000000000000002 /* ComposeScreenViews.swift */,
+				A1B2C3D50000000000000003 /* NativeNavigationView.swift */,
+			);
+			path = Navigation;
+			sourceTree = "<group>";
+		};
+		A1B2C3D60000000000000002 /* MiniPlayer */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D50000000000000004 /* MiniPlayerState.swift */,
+				A1B2C3D50000000000000005 /* MiniPlayerAccessoryView.swift */,
+			);
+			path = MiniPlayer;
+			sourceTree = "<group>";
+		};
+		A1B2C3D60000000000000003 /* Player */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D50000000000000006 /* GlobalPlayerComposeView.swift */,
+			);
+			path = Player;
 			sourceTree = "<group>";
 		};
 		7555FFB0242A642200829871 /* Frameworks */ = {
@@ -175,6 +217,12 @@
 			files = (
 				2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */,
 				7555FF83242A565900829871 /* ContentView.swift in Sources */,
+				A1B2C3D40000000000000001 /* NavigationCoordinators.swift in Sources */,
+				A1B2C3D40000000000000002 /* ComposeScreenViews.swift in Sources */,
+				A1B2C3D40000000000000003 /* NativeNavigationView.swift in Sources */,
+				A1B2C3D40000000000000004 /* MiniPlayerState.swift in Sources */,
+				A1B2C3D40000000000000005 /* MiniPlayerAccessoryView.swift in Sources */,
+				A1B2C3D40000000000000006 /* GlobalPlayerComposeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
