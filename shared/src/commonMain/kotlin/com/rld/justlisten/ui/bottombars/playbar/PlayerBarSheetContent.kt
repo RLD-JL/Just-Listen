@@ -262,8 +262,8 @@ fun PlayerBarSheetContent(
                                 mutablePainter = mutablePainter,
                                 openSheet = openSheet,
                                 addPlaylistList = uiState.addPlaylistList,
-                                onAddPlaylistClicked = { name, desc ->
-                                    onAction(PlayerAction.CreatePlaylist(name, desc))
+                                onAddPlaylistClicked = { name, desc, isRemote, isPrivate ->
+                                    onAction(PlayerAction.CreatePlaylist(name, desc, isRemote, isPrivate))
                                 },
                                 getLatestPlaylist = {
                                     onAction(PlayerAction.LoadPlaylists)

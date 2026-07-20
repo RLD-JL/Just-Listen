@@ -23,19 +23,24 @@ import com.rld.justlisten.ui.components.CustomPlaceholderIcon
 import com.rld.justlisten.ui.addplaylistscreen.components.AddPlaylistDialog
 import com.rld.justlisten.ui.addplaylistscreen.components.PlaylistViewItem
 import com.rld.justlisten.database.addplaylistscreen.AddPlaylist
+import com.rld.justlisten.datalayer.repositories.AuthRepository
+import com.rld.justlisten.datalayer.repositories.SessionState
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
 @Composable
 fun AddPlaylistOption(
     title: String,
     addPlaylistList: List<AddPlaylist>,
-    onAddPlaylistClicked: (String, String?) -> Unit,
+    onAddPlaylistClicked: (String, String?, Boolean, Boolean) -> Unit,
     clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit,
     currentSongId: String? = null,
 ) {
     val openDialog = remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val sessionState by koinInject<AuthRepository>().sessionState.collectAsState()
+    val isUserLoggedIn = sessionState is SessionState.Authenticated
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).navigationBarsPadding()) {
         if (addPlaylistList.isEmpty()) {
@@ -104,7 +109,8 @@ fun AddPlaylistOption(
 
         AddPlaylistDialog(
             openDialog = openDialog,
-            onAddPlaylistClicked = onAddPlaylistClicked
+            isUserLoggedIn = isUserLoggedIn,
+            onAddPlaylistClickedFull = onAddPlaylistClicked
         )
     }
 }
@@ -163,4 +169,3 @@ fun EmptyPlaylistsPlaceholder() {
         )
     }
 }
-

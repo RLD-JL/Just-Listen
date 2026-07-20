@@ -76,12 +76,12 @@ fun SongListItem(
     onSongClicked: (String) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     onRepostPressed: (String, Boolean) -> Unit,
-    playlist: String,
     onArtistClicked: (String, String) -> Unit,
     isPlaying: Boolean = false,
     canDelete: Boolean = false,
     onDelete: () -> Unit = {},
-    showShareButton: Boolean = true
+    showShareButton: Boolean = true,
+    showLocalPlayHistory: Boolean = false
 ) {
     if (canDelete) {
         val showConfirmDialog = remember { mutableStateOf(false) }
@@ -130,10 +130,10 @@ fun SongListItem(
                     onSongClicked = onSongClicked,
                     onFavoritePressed = onFavoritePressed,
                     onRepostPressed = onRepostPressed,
-                    playlist = playlist,
                     onArtistClicked = onArtistClicked,
                     isPlaying = isPlaying,
-                    showShareButton = showShareButton
+                    showShareButton = showShareButton,
+                    showLocalPlayHistory = showLocalPlayHistory
                 )
             }
         )
@@ -152,10 +152,10 @@ fun SongListItem(
             onSongClicked = onSongClicked,
             onFavoritePressed = onFavoritePressed,
             onRepostPressed = onRepostPressed,
-            playlist = playlist,
             onArtistClicked = onArtistClicked,
             isPlaying = isPlaying,
-            showShareButton = showShareButton
+            showShareButton = showShareButton,
+            showLocalPlayHistory = showLocalPlayHistory
         )
     }
 }
@@ -166,10 +166,10 @@ private fun SongListItemContent(
     onSongClicked: (String) -> Unit,
     onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     onRepostPressed: (String, Boolean) -> Unit,
-    playlist: String,
     onArtistClicked: (String, String) -> Unit,
     isPlaying: Boolean,
-    showShareButton: Boolean
+    showShareButton: Boolean,
+    showLocalPlayHistory: Boolean
 ) {
     val clipboard = LocalClipboard.current
     val coroutineScope = rememberCoroutineScope()
@@ -278,7 +278,12 @@ private fun SongListItemContent(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1
                 )
-                val playsText = if (playlistItem.playCount == 1) "1 play" else "${formatCount(playlistItem.playCount)} plays"
+                val playCount = if (showLocalPlayHistory) {
+                    playlistItem.songCounter.toIntOrNull() ?: 0
+                } else {
+                    playlistItem.playCount
+                }
+                val playsText = if (playCount == 1) "1 play" else "${formatCount(playCount)} plays"
                 Text(
                     text = " • $playsText",
                     style = typography.titleSmall,
@@ -286,10 +291,6 @@ private fun SongListItemContent(
                     maxLines = 1
                 )
             }
-        }
-
-        if (playlist == "Most Played") {
-            Text(text = playlistItem.songCounter)
         }
 
         val isFavorite = playlistItem.isFavorite
@@ -376,4 +377,3 @@ private fun formatDuration(seconds: Int): String {
     val s = seconds % 60
     return "$m:${s.toString().padStart(2, '0')}"
 }
-

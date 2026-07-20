@@ -20,7 +20,12 @@ sealed interface PlayerAction {
     data object SkipPrevious : PlayerAction
     data object Collapse : PlayerAction
     data object ExpandMinibar : PlayerAction
-    data class CreatePlaylist(val name: String, val description: String?) : PlayerAction
+    data class CreatePlaylist(
+        val name: String,
+        val description: String?,
+        val isRemote: Boolean = false,
+        val isPrivate: Boolean = false,
+    ) : PlayerAction
     data class AddSongToPlaylist(
         val playlistTitle: String,
         val playlistDescription: String?,

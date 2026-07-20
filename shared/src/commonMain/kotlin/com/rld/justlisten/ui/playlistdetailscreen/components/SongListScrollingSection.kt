@@ -69,7 +69,6 @@ fun SongListScrollingSection(
             val isUserPlaylist = playlistDetailState.playlistEnum == "CREATED_BY_USER"
             val isPlaying = playlistItem.id == currentPlayingSongId
             SongListItem(
-                playlist = playlistDetailState.playlistName,
                 playlistItem = playlistItem,
                 onSongClicked = onSongClicked,
                 onFavoritePressed = onFavoritePressed,
@@ -78,7 +77,8 @@ fun SongListScrollingSection(
                 canDelete = isUserPlaylist,
                 onDelete = { onDeleteSong(playlistItem.id) },
                 isPlaying = isPlaying,
-                showShareButton = false
+                showShareButton = false,
+                showLocalPlayHistory = playlistDetailState.playlistEnum == "MOST_PLAYED"
             )
         }
     }

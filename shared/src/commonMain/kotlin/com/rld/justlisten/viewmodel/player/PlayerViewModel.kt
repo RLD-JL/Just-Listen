@@ -27,6 +27,7 @@ import com.rld.justlisten.datalayer.repositories.PlaylistRepository
 import com.rld.justlisten.datalayer.repositories.FeedRepository
 import com.rld.justlisten.datalayer.repositories.SettingsRepository
 import com.rld.justlisten.datalayer.repositories.SessionState
+import com.rld.justlisten.datalayer.repositories.SyncRepository
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import kotlinx.coroutines.IO
 
@@ -38,6 +39,7 @@ class PlayerViewModel(
     private val authRepository: AuthRepository,
     private val feedRepository: FeedRepository,
     private val settingsRepository: SettingsRepository,
+    private val syncRepository: SyncRepository,
 ) : BaseScreenViewModel() {
 
     private var fetchDetailsJob: kotlinx.coroutines.Job? = null
@@ -223,7 +225,7 @@ class PlayerViewModel(
                 _showConnectPrompt.value = false
             }
             is PlayerAction.CreatePlaylist -> {
-                savePlaylist(action.name, action.description)
+                savePlaylist(action.name, action.description, action.isRemote, action.isPrivate)
             }
             is PlayerAction.AddSongToPlaylist -> {
                 updatePlaylistSongs(action.playlistTitle, action.playlistDescription, action.songs)
@@ -296,9 +298,12 @@ class PlayerViewModel(
         }
     }
 
-    fun savePlaylist(name: String, description: String?) {
+    fun savePlaylist(name: String, description: String?, isRemote: Boolean, isPrivate: Boolean) {
         viewModelScope.launch {
-            libraryRepository.savePlaylist(name, description)
+            libraryRepository.savePlaylist(name, description, isRemote, isPrivate)
+            if (isRemote) {
+                syncRepository.enqueuePlaylistCreateTask(name, description, isPrivate)
+            }
             loadAddPlaylists()
         }
     }

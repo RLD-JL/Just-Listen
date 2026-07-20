@@ -54,6 +54,7 @@ class PlayerViewModelTest {
     private val fakeAuthRepo = FakeAuthRepository()
     private val fakeFeedRepo = FakeFeedRepository()
     private val fakeSettingsRepo = FakeSettingsRepository()
+    private val fakeSyncRepo = FakeSyncRepository()
 
     private lateinit var viewModel: PlayerViewModel
     private lateinit var playHistoryTracker: PlayHistoryTracker
@@ -70,7 +71,8 @@ class PlayerViewModelTest {
             musicPlayer = fakeMusicPlayer,
             authRepository = fakeAuthRepo,
             feedRepository = fakeFeedRepo,
-            settingsRepository = fakeSettingsRepo
+            settingsRepository = fakeSettingsRepo,
+            syncRepository = fakeSyncRepo
         )
     }
 
@@ -138,7 +140,12 @@ class PlayerViewModelTest {
 
     @Test
     fun testCreatePlaylist() = runTest(testDispatcher) {
-        val action = PlayerAction.CreatePlaylist("Gym Mix", "Workout music")
+        val action = PlayerAction.CreatePlaylist(
+            name = "Gym Mix",
+            description = "Workout music",
+            isRemote = true,
+            isPrivate = true
+        )
 
         viewModel.onAction(action)
         testDispatcher.scheduler.advanceUntilIdle()
@@ -146,6 +153,10 @@ class PlayerViewModelTest {
         val playlists = fakeLibraryRepo.getAddPlaylist()
         assertEquals(1, playlists.size)
         assertEquals("Gym Mix", playlists[0].playlistName)
+        assertTrue(playlists[0].isRemote)
+        assertTrue(playlists[0].isPrivate)
+        assertEquals("Gym Mix", fakeSyncRepo.createdPlaylistName)
+        assertTrue(fakeSyncRepo.createdPlaylistIsPrivate)
     }
 
     @Test
@@ -733,6 +744,26 @@ class FakeAuthRepository : AuthRepository {
     override fun getCustomWebsite(userId: String): String? = null
     override fun getCustomFanClubFlair(userId: String): String? = null
     override fun updateUserProfile(userId: String, name: String, bio: String?, profilePicUrl: String?, coverPhotoUrl: String?, location: String?, xHandle: String?, instagramHandle: String?, tiktokHandle: String?, website: String?, fanClubFlair: String?) {}
+}
+
+class FakeSyncRepository : com.rld.justlisten.datalayer.repositories.SyncRepository {
+    override val syncState = MutableStateFlow<com.rld.justlisten.datalayer.repositories.SyncState>(
+        com.rld.justlisten.datalayer.repositories.SyncState.Synced
+    )
+    var createdPlaylistName: String? = null
+    var createdPlaylistIsPrivate: Boolean = false
+
+    override fun enqueueFavoriteTask(trackId: String, isFavorite: Boolean) {}
+    override fun enqueuePlaylistCreateTask(name: String, description: String?, isPrivate: Boolean) {
+        createdPlaylistName = name
+        createdPlaylistIsPrivate = isPrivate
+    }
+    override fun enqueuePlaylistUpdateTask(playlistId: String, songs: List<String>) {}
+    override fun enqueuePlaylistDeleteTask(playlistId: String) {}
+    override fun enqueuePlaylistDetailsUpdateTask(playlistId: String, name: String, description: String?) {}
+    override fun triggerSync() {}
+    override fun clearQueue() {}
+    override suspend fun performInboundSync(userId: String) {}
 }
 
 class FakeFeedRepository : FeedRepository {

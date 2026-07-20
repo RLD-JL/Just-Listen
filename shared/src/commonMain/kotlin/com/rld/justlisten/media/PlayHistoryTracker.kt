@@ -24,6 +24,7 @@ class PlayHistoryTracker(
             var currentSongPlayTimeMs = 0L
             var playCompletedLogged = false
             var lastStatus: PlaybackStatus? = null
+            var lastPositionMs = 0L
 
             // 1. Observe state changes (flow collection) to handle song changes and pause/stop events.
             // Using standard collect to avoid cancellation on frequent progress ticks.
@@ -58,6 +59,21 @@ class PlayHistoryTracker(
                         lastActiveSongId = songId
                         currentSongPlayTimeMs = 0L
                         playCompletedLogged = false
+                    } else if (
+                        songId != null &&
+                        hasPlaybackRestarted(
+                            previousPositionMs = lastPositionMs,
+                            currentPositionMs = state.currentPosition,
+                            durationMs = media.duration
+                        )
+                    ) {
+                        // Repeat-one and queues containing the same track keep the same song id.
+                        // Treat the end-to-start position wrap as a new playback session.
+                        if (currentSongPlayTimeMs > 0) {
+                            saveIncrementalDuration(songId, currentSongPlayTimeMs, playCompletedLogged)
+                        }
+                        currentSongPlayTimeMs = 0L
+                        playCompletedLogged = false
                     } else if (state.status != PlaybackStatus.PLAYING && lastStatus == PlaybackStatus.PLAYING) {
                         // Transitioned from PLAYING to another state (paused/stopped): flush duration immediately
                         val activeSongId = lastActiveSongId
@@ -67,6 +83,7 @@ class PlayHistoryTracker(
                         }
                     }
                     lastStatus = state.status
+                    lastPositionMs = state.currentPosition
                 }
             }
 
@@ -133,4 +150,14 @@ class PlayHistoryTracker(
     fun release() {
         scope.cancel()
     }
+}
+
+internal fun hasPlaybackRestarted(
+    previousPositionMs: Long,
+    currentPositionMs: Long,
+    durationMs: Long
+): Boolean {
+    if (durationMs <= 0L || previousPositionMs <= currentPositionMs) return false
+    val endWindowStartMs = (durationMs - 2_000L).coerceAtLeast(0L)
+    return previousPositionMs >= endWindowStartMs && currentPositionMs <= 2_000L
 }
