@@ -35,6 +35,7 @@ import com.rld.justlisten.ui.bottombars.playbar.PlayerLayoutInfo
 import com.rld.justlisten.ui.bottombars.playbar.PlayerUiEvent
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.media.MusicPlayer
+import com.rld.justlisten.ui.utils.isIos
 
 @Composable
 fun PlayerBottomBar(
@@ -173,15 +174,17 @@ fun PlayerBottomBar(
             )
 
             // ── 3. Top section: collapse arrow + more (expanded only) ───────────
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.TopCenter)
-            ) {
-                PlayBarTopSection(
-                    currentFractionProvider = currentFractionProvider,
-                    onCollapsedClicked = { onUiEvent(PlayerUiEvent.Collapse) }
-                )
+            if (!isIos) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.TopCenter)
+                ) {
+                    PlayBarTopSection(
+                        currentFractionProvider = currentFractionProvider,
+                        onCollapsedClicked = { onUiEvent(PlayerUiEvent.Collapse) }
+                    )
+                }
             }
 
             // ── 4. Playback controls + seek bar (fade in after 40% expanded) ────

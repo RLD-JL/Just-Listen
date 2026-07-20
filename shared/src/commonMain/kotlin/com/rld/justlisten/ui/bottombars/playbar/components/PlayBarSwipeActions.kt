@@ -7,6 +7,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -74,6 +76,9 @@ fun PlayBarSwipeActions(
     val isExpandedOrExpanding = remember(currentFractionProvider) {
         derivedStateOf { currentFractionProvider() > 0.15f }
     }
+    val isExpanded = remember(currentFractionProvider) {
+        derivedStateOf { currentFractionProvider() > 0.85f }
+    }
 
     // Reset swipeOffset if user starts expanding the player
     LaunchedEffect(isExpandedOrExpanding.value) {
@@ -100,6 +105,31 @@ fun PlayBarSwipeActions(
     val currentIndex = remember(playlist, currentMedia) {
         playlist.indexOfFirst { it.id == currentMedia?.id }
     }
+    val pagerState = rememberPagerState(
+        initialPage = currentIndex.coerceAtLeast(0),
+        pageCount = { playlist.size }
+    )
+
+    LaunchedEffect(currentIndex, isExpanded.value, playlist.size) {
+        if (isExpanded.value &&
+            currentIndex in playlist.indices &&
+            !pagerState.isScrollInProgress &&
+            pagerState.currentPage != currentIndex
+        ) {
+            pagerState.animateScrollToPage(currentIndex)
+        }
+    }
+
+    val settledPage = pagerState.settledPage
+    LaunchedEffect(settledPage, isExpanded.value, playlist) {
+        if (isExpanded.value && currentIndex in playlist.indices) {
+            playlist.getOrNull(settledPage)?.let { track ->
+                if (track.id != currentMedia?.id) {
+                    musicPlayer.playMedia(track.id)
+                }
+            }
+        }
+    }
     val nextSong = remember(playlist, currentIndex) {
         if (currentIndex != -1 && currentIndex < playlist.size - 1) {
             playlist.getOrNull(currentIndex + 1)
@@ -120,8 +150,9 @@ fun PlayBarSwipeActions(
     }
 
     // Horizontal drag modifier to support swiping left/right to skip next/back
-    val dragModifier = Modifier.pointerInput(Unit) {
-        detectHorizontalDragGestures(
+    val minimizedDragModifier = if (isMinimized.value) {
+        Modifier.pointerInput(currentMedia?.id) {
+            detectHorizontalDragGestures(
             onDragEnd = {
                 val swipeableWidthPx = with(density) { swipeableWidth.dp.toPx() }
                 val thresholdPx = swipeableWidthPx * 0.30f
@@ -163,13 +194,14 @@ fun PlayBarSwipeActions(
                     }
                 }
             },
-            onHorizontalDrag = { change, dragAmount ->
-                if (currentFractionProvider() < 0.15f) {
+                onHorizontalDrag = { change, dragAmount ->
                     change.consume()
                     swipeOffset += dragAmount
                 }
-            }
-        )
+            )
+        }
+    } else {
+        Modifier
     }
 
     Box(
@@ -221,7 +253,7 @@ fun PlayBarSwipeActions(
                     enabled = isClickable.value,
                     onClick = playBarMinimizedClicked
                 )
-                .then(dragModifier)
+                .then(minimizedDragModifier)
                 .clipToBounds()
         ) {
             // Next and Previous tracks are only visible and layout-computed when minimized
@@ -289,14 +321,56 @@ fun PlayBarSwipeActions(
                         translationX = swipeOffset * (1f - fraction).coerceIn(0f, 1f)
                     }
             ) {
-                Image(
-                    painter = painter,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-                if (state is coil3.compose.AsyncImagePainter.State.Loading) {
-                    AnimatedShimmer(modifier = Modifier.fillMaxSize())
+                if (isExpanded.value && playlist.isNotEmpty()) {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize(),
+                        pageSpacing = offsetX(1f, screenWidth, screenHeight).dp,
+                        beyondViewportPageCount = 1,
+                    ) { page ->
+                        val track = playlist[page]
+                        val pagePainter = rememberAsyncImagePainter(
+                            model = ImageRequest.Builder(context)
+                                .data(track.artworkUrl ?: track.lowResArtworkUrl ?: "")
+                                .placeholderMemoryCacheKey(track.lowResArtworkUrl)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .crossfade(false)
+                                .build()
+                        )
+                        val pagePainterState by pagePainter.state.collectAsState()
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f)
+                                    .clip(RoundedCornerShape(16.dp))
+                            ) {
+                                Image(
+                                    painter = pagePainter,
+                                    contentDescription = "${track.title} artwork",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                                if (pagePainterState is coil3.compose.AsyncImagePainter.State.Loading) {
+                                    AnimatedShimmer(modifier = Modifier.fillMaxSize())
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    if (state is coil3.compose.AsyncImagePainter.State.Loading) {
+                        AnimatedShimmer(modifier = Modifier.fillMaxSize())
+                    }
                 }
             }
 
