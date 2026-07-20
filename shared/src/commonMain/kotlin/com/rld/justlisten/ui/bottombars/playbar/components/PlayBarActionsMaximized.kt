@@ -3,7 +3,6 @@ package com.rld.justlisten.ui.bottombars.playbar.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,13 +11,11 @@ import androidx.compose.material3.Slider
 import androidx.compose.ui.text.TextStyle
 import com.rld.justlisten.ui.components.SmartMarqueeText
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -28,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -342,17 +340,28 @@ fun PlaybackSeekBar(
         playbackState.currentPosition.toFloat() / duration.toFloat()
     } else 0f
 
-    val displayPosition = dragPosition ?: sliderPosition
+    val displayPosition = (dragPosition ?: sliderPosition).coerceIn(0f, 1f)
     val displayPositionMs = if (dragPosition != null) {
         (dragPosition!! * duration).toLong()
     } else {
         playbackState.currentPosition
     }
+    val progressTint = MaterialTheme.colorScheme.primary
+    val progressGradient = remember(progressTint) {
+        Brush.horizontalGradient(
+            colors = listOf(
+                progressTint.copy(alpha = 0.62f),
+                progressTint,
+            )
+        )
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
             Slider(
+                modifier = Modifier.fillMaxWidth().height(40.dp),
                 value = displayPosition,
+                enabled = duration > 0L,
                 onValueChange = {
                     seekJob?.cancel()
                     dragPosition = it
@@ -368,24 +377,52 @@ fun PlaybackSeekBar(
                     }
                 },
                 thumb = {
-                    SliderDefaults.Thumb(
-                        interactionSource = remember { MutableInteractionSource() },
-                        colors = SliderDefaults.colors(thumbColor = Color.White),
-                        thumbSize = DpSize(12.dp, 12.dp)
+                    Box(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .background(progressTint.copy(alpha = 0.24f), CircleShape)
+                            .padding(3.dp)
+                            .background(Color.White, CircleShape)
+                            .padding(4.dp)
+                            .background(progressTint, CircleShape)
                     )
                 },
-                colors = SliderDefaults.colors(
-                    activeTrackColor = Color.White,
-                    inactiveTrackColor = Color.White.copy(alpha = 0.2f)
-                )
+                track = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.14f))
+                    ) {
+                        if (displayPosition > 0f) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(displayPosition)
+                                    .fillMaxHeight()
+                                    .background(progressGradient)
+                            )
+                        }
+                    }
+                },
             )
         }
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = formatTime(displayPositionMs), color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
-            Text(text = formatTime(duration), color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
+            Text(
+                text = formatTime(displayPositionMs),
+                color = progressTint,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = formatTime(duration),
+                color = Color.White.copy(alpha = 0.58f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+            )
         }
     }
 }
