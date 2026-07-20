@@ -14,6 +14,7 @@ fun SettingsScreenHost(navController: NavHostController) {
     val viewModel: SettingsViewModel = koinInject()
     val state by viewModel.settingsState.collectAsState()
     val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+    val iosCallbacks = LocalIosNavigationCallbacks.current
 
     CollectNavigationEvents(viewModel, navController)
 
@@ -59,7 +60,8 @@ fun SettingsScreenHost(navController: NavHostController) {
             }
         },
         onNavigateToCustomTheme = {
-            navController.navigate(Route.CustomTheme)
+            iosCallbacks?.onNavigate?.invoke(Route.CustomTheme)
+                ?: navController.navigate(Route.CustomTheme)
         },
         onLogin = { redirectUri ->
             val authUrl = viewModel.getAuthUrl(redirectUri)
@@ -71,7 +73,9 @@ fun SettingsScreenHost(navController: NavHostController) {
         onRetrySync = viewModel::retryFailedSync,
         onClearSync = viewModel::clearFailedSync,
         onNavigateToMyProfile = { userId, name ->
-            navController.navigate(Route.ArtistProfile(userId, name))
+            val route = Route.ArtistProfile(userId, name)
+            iosCallbacks?.onNavigate?.invoke(route)
+                ?: navController.navigate(route)
         }
     )
 }
@@ -85,10 +89,14 @@ fun SupportScreenHost(navController: NavHostController) {
 fun CustomThemeScreenHost(navController: NavHostController) {
     val viewModel: SettingsViewModel = koinInject()
     val state by viewModel.settingsState.collectAsState()
+    val iosCallbacks = LocalIosNavigationCallbacks.current
 
     com.rld.justlisten.ui.settingsscreen.CustomThemeScreen(
         settings = state,
-        onBackPressed = { navController.popBackStack() },
+        onBackPressed = {
+            iosCallbacks?.onPopBackStack?.invoke()
+                ?: navController.popBackStack()
+        },
         onCustomColorsApplied = viewModel::updateCustomColors,
         onPaletteSelected = viewModel::onPaletteSelected
     )

@@ -56,6 +56,7 @@ struct NativeNavContentView: View {
     @State private var appCoordinator = AppNavigationCoordinator()
     @State private var playerExpanded = false
     @State private var miniPlayerState = MiniPlayerPresentationState()
+    @State private var nativeTint = Color(red: 1.0, green: 0.596, blue: 0.663)
 
     var body: some View {
         TabView(selection: Binding(
@@ -99,6 +100,7 @@ struct NativeNavContentView: View {
             }
         }
         .tabBarMinimizeBehavior(.never)
+        .tint(nativeTint)
         .tabViewBottomAccessory(isEnabled: miniPlayerState.visible && !playerExpanded) {
             MiniPlayerAccessoryView(
                 state: miniPlayerState,
@@ -117,9 +119,17 @@ struct NativeNavContentView: View {
             )
         }
         .background {
-            PlayerStateObserverComposeView { state in
-                if self.miniPlayerState != state {
-                    self.miniPlayerState = state
+            ZStack {
+                PlayerStateObserverComposeView { state in
+                    if self.miniPlayerState != state {
+                        self.miniPlayerState = state
+                    }
+                }
+
+                ThemeTintObserverView { hex in
+                    if let color = Color(themeHex: hex), self.nativeTint != color {
+                        self.nativeTint = color
+                    }
                 }
             }
             .frame(width: 1, height: 1)
@@ -146,5 +156,42 @@ struct NativeNavContentView: View {
             .ignoresSafeArea(.all)
             .presentationBackground(.black)
         }
+    }
+}
+
+@available(iOS 26.1, *)
+private struct ThemeTintObserverView: UIViewControllerRepresentable {
+    let onTintChanged: (String) -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let viewController = IosThemeTintBridgeKt.ThemeTintObserverViewController(
+            onTintChanged: { hex in
+                DispatchQueue.main.async {
+                    self.onTintChanged(hex)
+                }
+            }
+        )
+        viewController.view.backgroundColor = .clear
+        return viewController
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
+
+private extension Color {
+    init?(themeHex: String) {
+        let cleaned = themeHex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        guard (cleaned.count == 6 || cleaned.count == 8),
+              let value = UInt64(cleaned, radix: 16) else {
+            return nil
+        }
+
+        let hasAlpha = cleaned.count == 8
+        let red = Double((value >> (hasAlpha ? 24 : 16)) & 0xFF) / 255.0
+        let green = Double((value >> (hasAlpha ? 16 : 8)) & 0xFF) / 255.0
+        let blue = Double((value >> (hasAlpha ? 8 : 0)) & 0xFF) / 255.0
+        let alpha = hasAlpha ? Double(value & 0xFF) / 255.0 : 1.0
+
+        self.init(.sRGB, red: red, green: green, blue: blue, opacity: alpha)
     }
 }
