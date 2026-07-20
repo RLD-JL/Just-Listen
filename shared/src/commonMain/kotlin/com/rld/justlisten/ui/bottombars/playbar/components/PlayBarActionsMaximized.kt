@@ -51,6 +51,7 @@ import org.jetbrains.compose.resources.painterResource
 import justlisten.shared.generated.resources.Res
 import justlisten.shared.generated.resources.ic_repost
 import com.rld.justlisten.ui.seeallscreen.formatCount
+import com.rld.justlisten.util.rememberShareLauncher
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,6 +68,7 @@ fun PlayBarActionsMaximized(
     )
     val artist = playbackState.currentMedia?.artist ?: ""
     val title = playbackState.currentMedia?.title ?: ""
+    val shareLauncher = rememberShareLauncher()
 
     val bottomPadding = layoutInfo.bottomPadding
     val isVisible by remember(layoutInfo) {
@@ -174,7 +176,15 @@ fun PlayBarActionsMaximized(
                     }
                 }
                 item {
-                    SocialButton(icon = Icons.Outlined.Share, text = "Share")
+                    SocialButton(icon = Icons.Outlined.Share, text = "Share") {
+                        playbackState.currentMedia?.let { track ->
+                            val trackUrl = "https://justlisten.cloud/track/${track.id}"
+                            shareLauncher.share(
+                                text = "Listen to \"${track.title}\" by ${track.artist} on Just Listen\n$trackUrl",
+                                title = "Share ${track.title}",
+                            )
+                        }
+                    }
                 }
             }
 

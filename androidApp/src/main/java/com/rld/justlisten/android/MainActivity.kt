@@ -37,8 +37,8 @@ class MainActivity : ComponentActivity() {
 
     private fun handleIntent(intent: android.content.Intent?) {
         val data: android.net.Uri? = intent?.data
-        if (data != null && data.scheme == "justlisten") {
-            if (data.host == "oauth") {
+        if (data != null) {
+            if (data.scheme == "justlisten" && data.host == "oauth") {
                 val code = data.getQueryParameter("code")
                 if (code != null) {
                     val redirectUri = "justlisten://oauth/callback"
@@ -49,7 +49,10 @@ class MainActivity : ComponentActivity() {
                         e.printStackTrace()
                     }
                 }
-            } else {
+            } else if (
+                data.scheme == "justlisten" ||
+                (data.scheme == "https" && data.host == "justlisten.cloud")
+            ) {
                 com.rld.justlisten.util.DeepLinkRouter.handleDeepLink(data.toString())
             }
         }
@@ -60,7 +63,6 @@ class MainActivity : ComponentActivity() {
 fun JustListenAppContent() {
     JustListenApp()
 }
-
 
 
 

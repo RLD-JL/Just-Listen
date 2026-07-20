@@ -126,6 +126,10 @@ struct NativeNavContentView: View {
                     }
                 }
 
+                SharedTrackDeepLinkObserverView {
+                    self.playerExpanded = true
+                }
+
                 ThemeTintObserverView { hex in
                     if let color = Color(themeHex: hex), self.nativeTint != color {
                         self.nativeTint = color
@@ -156,6 +160,31 @@ struct NativeNavContentView: View {
             .ignoresSafeArea(.all)
             .presentationBackground(.black)
         }
+    }
+}
+
+@available(iOS 26.1, *)
+private struct SharedTrackDeepLinkObserverView: UIViewControllerRepresentable {
+    let onTrackLoaded: () -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let viewController = IosMiniPlayerBridgeKt.SharedTrackDeepLinkObserverViewController(
+            onTrackLoaded: {
+                DispatchQueue.main.async {
+                    self.onTrackLoaded()
+                }
+            }
+        )
+        viewController.view.backgroundColor = .clear
+        return viewController
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+
+    static func dismantleUIViewController(_ uiViewController: UIViewController, coordinator: ()) {
+        IosMiniPlayerBridgeKt.disposeSharedTrackDeepLinkObserverViewController(
+            controller: uiViewController
+        )
     }
 }
 

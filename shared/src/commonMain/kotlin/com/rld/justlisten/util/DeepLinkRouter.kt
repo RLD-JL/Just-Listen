@@ -1,11 +1,46 @@
 package com.rld.justlisten.util
 
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
+
+data class JustListenDeepLink(
+    val path: String,
+    val parameters: Map<String, String>,
+)
+
+fun parseJustListenDeepLink(url: String): JustListenDeepLink? {
+    val cleanUrl = url.substringBefore('#')
+
+    if (cleanUrl.startsWith("https://justlisten.cloud/track/", ignoreCase = true)) {
+        val trackId = cleanUrl
+            .substringAfter("https://justlisten.cloud/track/", missingDelimiterValue = "")
+            .substringBefore('?')
+            .trim('/')
+        return trackId.takeIf { it.isNotBlank() }?.let {
+            JustListenDeepLink(path = "track/share", parameters = mapOf("id" to it))
+        }
+    }
+
+    if (!cleanUrl.startsWith("justlisten://", ignoreCase = true)) return null
+
+    val path = cleanUrl.substringAfter("justlisten://").substringBefore('?')
+    val query = cleanUrl.substringAfter('?', missingDelimiterValue = "")
+    val parameters = if (query.isBlank()) {
+        emptyMap()
+    } else {
+        query.split('&').mapNotNull { item ->
+            val parts = item.split('=', limit = 2)
+            parts.takeIf { it.size == 2 }?.let { it[0] to it[1] }
+        }.toMap()
+    }
+    return JustListenDeepLink(path = path, parameters = parameters)
+}
 
 object DeepLinkRouter {
-    val deepLinkFlow = MutableSharedFlow<String>(extraBufferCapacity = 10)
+    private val pendingDeepLinks = Channel<String>(capacity = Channel.BUFFERED)
+    val deepLinkFlow = pendingDeepLinks.receiveAsFlow()
 
     fun handleDeepLink(url: String) {
-        deepLinkFlow.tryEmit(url)
+        pendingDeepLinks.trySend(url)
     }
 }

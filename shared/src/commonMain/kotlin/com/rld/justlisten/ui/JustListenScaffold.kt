@@ -166,7 +166,12 @@ fun JustListenScaffold(
                 ) {
                     AppNavigation(
                         navController = navController,
-                        startDestination = startDestination
+                        startDestination = startDestination,
+                        onExpandPlayer = {
+                            coroutineScope.launch {
+                                anchoredDraggableState.animateTo(PlayBarState.EXPANDED)
+                            }
+                        },
                     )
                 }
             }

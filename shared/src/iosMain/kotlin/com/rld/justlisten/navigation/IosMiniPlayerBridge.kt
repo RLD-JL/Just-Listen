@@ -5,9 +5,14 @@ import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.media.PlaybackState
 import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.media.RepeatMode
+import com.rld.justlisten.datalayer.repositories.PlaylistRepository
+import com.rld.justlisten.util.DeepLinkRouter
+import com.rld.justlisten.util.parseJustListenDeepLink
+import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -89,11 +94,60 @@ private class IosPlayerStateObserverController(
 
 }
 
+private class IosSharedTrackDeepLinkObserverController(
+    private val onTrackLoaded: () -> Unit,
+) : UIViewController(nibName = null, bundle = null) {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    override fun viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = UIColor.clearColor
+
+        val koin = KoinPlatform.getKoin()
+        val musicPlayer = koin.get<MusicPlayer>()
+        val playlistRepository = koin.get<PlaylistRepository>()
+
+        scope.launch {
+            DeepLinkRouter.deepLinkFlow.collect { url ->
+                val deepLink = parseJustListenDeepLink(url) ?: return@collect
+                if (deepLink.path != "track/share") return@collect
+
+                val trackId = deepLink.parameters["id"] ?: return@collect
+                val track = runCatching {
+                    playlistRepository.fetchTrackDetails(trackId)
+                }.getOrNull()
+
+                if (track != null) {
+                    musicPlayer.loadMedia(
+                        mediaId = track.id,
+                        playlist = listOf(PlaylistItem(_data = track)),
+                    )
+                    onTrackLoaded()
+                } else {
+                    com.rld.justlisten.ui.utils.showToast("Unable to open shared track")
+                }
+            }
+        }
+    }
+
+    fun dispose() = scope.cancel()
+}
+
 // A plain UIKit observer avoids creating another Compose/Metal surface beside
 // the selected tab's ComposeUIViewController.
 fun PlayerStateObserverViewController(
     onStateChanged: (IosMiniPlayerState) -> Unit,
 ): UIViewController = IosPlayerStateObserverController(onStateChanged)
+
+fun SharedTrackDeepLinkObserverViewController(
+    onTrackLoaded: () -> Unit,
+): UIViewController = IosSharedTrackDeepLinkObserverController(onTrackLoaded)
+
+fun disposeSharedTrackDeepLinkObserverViewController(
+    controller: UIViewController,
+) {
+    (controller as? IosSharedTrackDeepLinkObserverController)?.dispose()
+}
 
 fun iosPlayerTogglePlayback() {
     val player = KoinPlatform.getKoin().get<MusicPlayer>()
