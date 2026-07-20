@@ -1,0 +1,226 @@
+import SwiftUI
+import shared
+
+func getRouteTitle(_ route: Route) -> String {
+    if route is Route.Library { return "Library" }
+    if route is Route.Playlist { return "Playlists" }
+    if route is Route.Feed { return "Feed" }
+    if route is Route.Search { return "Search" }
+    if route is Route.Settings { return "Settings" }
+    if route is Route.Support { return "Support" }
+    if let detail = route as? Route.PlaylistDetail { return detail.playlistTitle }
+    if let seeAll = route as? Route.SeeAll { return seeAll.categoryName }
+    if let artist = route as? Route.ArtistProfile { return artist.artistName }
+    if route is Route.Notifications { return "Notifications" }
+    if route is Route.ArtistDashboard { return "Artist Dashboard" }
+    if route is Route.CustomTheme { return "Custom Theme" }
+    if route is Route.MusicInsights { return "Music Insights" }
+    return ""
+}
+
+@available(iOS 17.0, *)
+struct TabContentView: View {
+    let topLevelRoute: Route
+    let coordinator: TabNavigationCoordinator
+    let title: String
+
+    var body: some View {
+        NavigationStack(path: Binding(
+            get: { coordinator.path },
+            set: { coordinator.path = $0 }
+        )) {
+            NativeNavComposeView(
+                topLevelRoute: topLevelRoute,
+                coordinator: coordinator
+            )
+            .ignoresSafeArea(.all)
+            .navigationTitle(title)
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(for: RouteWrapper.self) { wrapper in
+                DetailComposeView(
+                    routeID: wrapper.id,
+                    route: wrapper.route,
+                    coordinator: coordinator
+                )
+                .ignoresSafeArea(.all)
+                .navigationTitle(getRouteTitle(wrapper.route))
+                .toolbar(.visible, for: .navigationBar)
+                .toolbarTitleDisplayMode(.inline)
+            }
+        }
+    }
+}
+
+@available(iOS 26.1, *)
+struct NativeNavContentView: View {
+    @State private var appCoordinator = AppNavigationCoordinator()
+    @State private var playerExpanded = false
+    @State private var miniPlayerState = MiniPlayerPresentationState()
+    @State private var nativeTint = Color(red: 1.0, green: 0.596, blue: 0.663)
+
+    var body: some View {
+        TabView(selection: Binding(
+            get: { appCoordinator.selectedTab },
+            set: { appCoordinator.selectedTab = $0 }
+        )) {
+            Tab("Playlists", systemImage: "music.note.list", value: AppNavigationCoordinator.AppTab.playlists) {
+                TabContentView(
+                    topLevelRoute: Route.Playlist.shared,
+                    coordinator: appCoordinator.playlistsCoordinator,
+                    title: "Playlists"
+                )
+            }
+            Tab("Library", systemImage: "books.vertical.fill", value: AppNavigationCoordinator.AppTab.library) {
+                TabContentView(
+                    topLevelRoute: Route.Library.shared,
+                    coordinator: appCoordinator.libraryCoordinator,
+                    title: "Library"
+                )
+            }
+            Tab("Feed", systemImage: "newspaper.fill", value: AppNavigationCoordinator.AppTab.feed) {
+                TabContentView(
+                    topLevelRoute: Route.Feed(category: nil, timeRange: nil),
+                    coordinator: appCoordinator.feedCoordinator,
+                    title: "Feed"
+                )
+            }
+            Tab("Search", systemImage: "magnifyingglass", value: AppNavigationCoordinator.AppTab.search) {
+                TabContentView(
+                    topLevelRoute: Route.Search.shared,
+                    coordinator: appCoordinator.searchCoordinator,
+                    title: "Search"
+                )
+            }
+            Tab("Settings", systemImage: "gearshape.fill", value: AppNavigationCoordinator.AppTab.settings) {
+                TabContentView(
+                    topLevelRoute: Route.Settings.shared,
+                    coordinator: appCoordinator.settingsCoordinator,
+                    title: "Settings"
+                )
+            }
+        }
+        .tabBarMinimizeBehavior(.never)
+        .tint(nativeTint)
+        .tabViewBottomAccessory(isEnabled: miniPlayerState.visible && !playerExpanded) {
+            MiniPlayerAccessoryView(
+                state: miniPlayerState,
+                onExpand: {
+                    self.playerExpanded = true
+                },
+                onPlayPause: {
+                    IosMiniPlayerBridgeKt.iosPlayerTogglePlayback()
+                },
+                onSkipNext: {
+                    IosMiniPlayerBridgeKt.iosPlayerSkipToNext()
+                },
+                onSkipPrevious: {
+                    IosMiniPlayerBridgeKt.iosPlayerSkipToPrevious()
+                }
+            )
+        }
+        .background {
+            ZStack {
+                PlayerStateObserverComposeView { state in
+                    if self.miniPlayerState != state {
+                        self.miniPlayerState = state
+                    }
+                }
+
+                SharedTrackDeepLinkObserverView {
+                    self.playerExpanded = true
+                }
+
+                ThemeTintObserverView { hex in
+                    if let color = Color(themeHex: hex), self.nativeTint != color {
+                        self.nativeTint = color
+                    }
+                }
+            }
+            .frame(width: 1, height: 1)
+            .allowsHitTesting(false)
+        }
+        .fullScreenCover(isPresented: $playerExpanded) {
+            GlobalPlayerComposeView(
+                initialExpanded: true,
+                onNavigate: { route in
+                    self.playerExpanded = false
+                    switch appCoordinator.selectedTab {
+                    case .playlists: appCoordinator.playlistsCoordinator.push(route)
+                    case .library: appCoordinator.libraryCoordinator.push(route)
+                    case .feed: appCoordinator.feedCoordinator.push(route)
+                    case .search: appCoordinator.searchCoordinator.push(route)
+                    case .settings: appCoordinator.settingsCoordinator.push(route)
+                    }
+                },
+                onHeightChanged: { expanded in
+                    self.playerExpanded = expanded
+                },
+                onVisibilityChanged: { _ in }
+            )
+            .ignoresSafeArea(.all)
+            .presentationBackground(.black)
+        }
+    }
+}
+
+@available(iOS 26.1, *)
+private struct SharedTrackDeepLinkObserverView: UIViewControllerRepresentable {
+    let onTrackLoaded: () -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let viewController = IosMiniPlayerBridgeKt.SharedTrackDeepLinkObserverViewController(
+            onTrackLoaded: {
+                DispatchQueue.main.async {
+                    self.onTrackLoaded()
+                }
+            }
+        )
+        viewController.view.backgroundColor = .clear
+        return viewController
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+
+    static func dismantleUIViewController(_ uiViewController: UIViewController, coordinator: ()) {
+        IosMiniPlayerBridgeKt.disposeSharedTrackDeepLinkObserverViewController(
+            controller: uiViewController
+        )
+    }
+}
+
+@available(iOS 26.1, *)
+private struct ThemeTintObserverView: UIViewControllerRepresentable {
+    let onTintChanged: (String) -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let viewController = IosThemeTintBridgeKt.ThemeTintObserverViewController(
+            onTintChanged: { hex in
+                DispatchQueue.main.async {
+                    self.onTintChanged(hex)
+                }
+            }
+        )
+        viewController.view.backgroundColor = .clear
+        return viewController
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
+
+private extension Color {
+    init?(themeHex: String) {
+        let cleaned = themeHex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        guard (cleaned.count == 6 || cleaned.count == 8),
+              let value = UInt64(cleaned, radix: 16) else {
+            return nil
+        }
+
+        let hasAlpha = cleaned.count == 8
+        let red = Double((value >> (hasAlpha ? 24 : 16)) & 0xFF) / 255.0
+        let green = Double((value >> (hasAlpha ? 16 : 8)) & 0xFF) / 255.0
+        let blue = Double((value >> (hasAlpha ? 8 : 0)) & 0xFF) / 255.0
+        let alpha = hasAlpha ? Double(value & 0xFF) / 255.0 : 1.0
+
+        self.init(.sRGB, red: red, green: green, blue: blue, opacity: alpha)
+    }
+}

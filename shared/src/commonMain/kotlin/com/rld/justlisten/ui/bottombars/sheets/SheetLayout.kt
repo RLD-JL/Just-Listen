@@ -14,7 +14,7 @@ fun SheetLayout(
     mutablePainter: MutableState<Painter?>,
     openSheet: (BottomSheetScreen) -> Unit,
     addPlaylistList: List<AddPlaylist>,
-    onAddPlaylistClicked: (String, String?) -> Unit,
+    onAddPlaylistClicked: (String, String?, Boolean, Boolean) -> Unit,
     getLatestPlaylist: () -> Unit,
     clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit,
     currentSongId: String? = null,

@@ -283,6 +283,7 @@ class IOSMusicPlayer(
                     artworkUrl = it.songIconList.songImageURL480px,
                     lowResArtworkUrl = it.songIconList.songImageURL150px,
                     isFavorite = favoriteIdsSet.contains(it.id),
+                    isReposted = it.isReposted,
                     repostCount = it.repostCount,
                     favoriteCount = it.favoriteCount,
                     commentCount = it.commentCount,
@@ -303,6 +304,54 @@ class IOSMusicPlayer(
         if (index != -1) {
             currentIndex = index
             playTrack(playlistItems[index])
+        }
+    }
+
+    override fun loadMedia(mediaId: String, playlist: List<Item>) {
+        updatePlaylist(playlist)
+        val index = playlistItems.indexOfFirst { it.id == mediaId }
+        if (index == -1) return
+
+        currentIndex = index
+        val metadata = playlistItems[index]
+
+        cancelCrossfade()
+        playJob?.cancel()
+        currentPlayer.pause()
+        currentPlayer.removeAllItems()
+        secondaryPlayer.pause()
+        secondaryPlayer.removeAllItems()
+        activePlayerItem = null
+        invalidatePreload()
+
+        _playbackState.update { state ->
+            state.copy(
+                status = PlaybackStatus.BUFFERING,
+                currentPosition = 0L,
+                currentMedia = metadata
+            )
+        }
+        lastNowPlayingUpdateMs = 0L
+        updateNowPlayingInfo(metadata, 0L)
+
+        playJob = scope.launch(Dispatchers.Main) {
+            val playerItem = createPlayerItem(metadata.id)
+            if (playerItem != null && isActive) {
+                activePlayerItem = playerItem
+                currentPlayer.insertItem(playerItem, afterItem = null)
+                currentPlayer.pause()
+                _playbackState.update { state ->
+                    state.copy(
+                        status = PlaybackStatus.PAUSED,
+                        currentPosition = 0L,
+                        currentMedia = metadata
+                    )
+                }
+                updateNowPlayingInfo(metadata, 0L)
+                preloadNextTrack()
+            } else if (isActive) {
+                updateState(PlaybackStatus.ERROR, metadata)
+            }
         }
     }
 
@@ -649,6 +698,7 @@ class IOSMusicPlayer(
                 artworkUrl = it.songIconList.songImageURL480px,
                 lowResArtworkUrl = it.songIconList.songImageURL150px,
                 isFavorite = favoriteIdsSet.contains(it.id),
+                isReposted = it.isReposted,
                 repostCount = it.repostCount,
                 favoriteCount = it.favoriteCount,
                 commentCount = it.commentCount,
@@ -675,6 +725,7 @@ class IOSMusicPlayer(
                 artworkUrl = it.songIconList.songImageURL480px,
                 lowResArtworkUrl = it.songIconList.songImageURL150px,
                 isFavorite = favoriteIdsSet.contains(it.id),
+                isReposted = it.isReposted,
                 repostCount = it.repostCount,
                 favoriteCount = it.favoriteCount,
                 commentCount = it.commentCount,
@@ -729,8 +780,29 @@ class IOSMusicPlayer(
         }
     }
 
+    override fun updateCurrentTrackRepostState(
+        songId: String,
+        isReposted: Boolean,
+        repostCount: Int,
+    ) {
+        _playbackState.update { state ->
+            val currentMedia = state.currentMedia
+            if (currentMedia?.id == songId) {
+                state.copy(
+                    currentMedia = currentMedia.copy(
+                        isReposted = isReposted,
+                        repostCount = repostCount,
+                    )
+                )
+            } else {
+                state
+            }
+        }
+    }
+
     override fun updateTrackMetadata(
         songId: String,
+        isReposted: Boolean,
         repostCount: Int,
         favoriteCount: Int,
         commentCount: Int,
@@ -741,6 +813,7 @@ class IOSMusicPlayer(
         if (index != -1) {
             val song = playlistItems[index]
             val updated = song.copy(
+                isReposted = isReposted,
                 repostCount = repostCount,
                 favoriteCount = favoriteCount,
                 commentCount = commentCount,
@@ -756,6 +829,7 @@ class IOSMusicPlayer(
                 _playbackState.update { state ->
                     state.copy(
                         currentMedia = currentMedia.copy(
+                            isReposted = isReposted,
                             repostCount = repostCount,
                             favoriteCount = favoriteCount,
                             commentCount = commentCount,

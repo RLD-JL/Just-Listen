@@ -33,6 +33,7 @@ import com.rld.justlisten.datalayer.repositories.SyncState
 import com.rld.justlisten.ui.utils.SleepTimerService
 import com.rld.justlisten.ui.utils.showToast
 import com.rld.justlisten.ui.utils.isIos
+import com.rld.justlisten.ui.utils.supportsLiquidGlassNavigation
 import com.rld.justlisten.ui.utils.appVersion
 import org.koin.compose.koinInject
 import kotlinx.coroutines.launch
@@ -49,6 +50,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.platform.LocalUriHandler
 import com.rld.justlisten.BuildConfig
+import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +67,7 @@ fun SettingsScreen(
     val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineScope = rememberCoroutineScope()
     val sleepTimerService: SleepTimerService = koinInject()
+    val bottomContentPadding = LocalNativeBottomOverlayPadding.current
 
     var activeSheetMode by remember { mutableStateOf(com.rld.justlisten.ui.settingsscreen.components.SheetMode.SleepTimer) }
 
@@ -157,6 +160,34 @@ fun SettingsScreen(
             
             SettingsCard {
                 when (val session = settings.sessionState) {
+                    is SessionState.Restoring -> {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column {
+                                Text(
+                                    text = "Restoring Audius account",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Your saved session will reconnect automatically",
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+                    }
                     is SessionState.Guest -> {
                         SettingsClickableRow(
                             icon = Icons.Rounded.Person,
@@ -316,6 +347,24 @@ fun SettingsScreen(
                         )
                     }
                 )
+
+                if (isIos && supportsLiquidGlassNavigation) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                        thickness = 0.5.dp,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+
+                    SettingsSwitchRow(
+                        icon = Icons.Rounded.AutoAwesome,
+                        title = "Liquid Glass Navigation",
+                        subtitle = "Use the native iOS tab bar and mini-player",
+                        checked = settings.useLiquidGlassNavigation,
+                        onCheckedChange = {
+                            updateSettings(settings.copy(useLiquidGlassNavigation = it))
+                        }
+                    )
+                }
             }
 
             // support options section
@@ -568,7 +617,9 @@ fun SettingsScreen(
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(bottomContentPadding))
         }
+
     }
 }
 
@@ -650,6 +701,7 @@ fun SettingsClickableRow(
 fun SettingsSwitchRow(
     icon: ImageVector? = null,
     title: String,
+    subtitle: String? = null,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
@@ -676,13 +728,22 @@ fun SettingsSwitchRow(
             }
             Spacer(modifier = Modifier.width(16.dp))
         }
-        Text(
-            text = title,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f)
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                )
+            }
+        }
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
@@ -693,8 +754,3 @@ fun SettingsSwitchRow(
         )
     }
 }
-
-
-
-
-

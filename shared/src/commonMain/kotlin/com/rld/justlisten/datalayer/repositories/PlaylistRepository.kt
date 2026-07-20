@@ -4,7 +4,7 @@ import com.rld.justlisten.LocalDb
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getCustomPlaylistSongs
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getFavoritePlaylist
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getFavoritePlaylistWithId
-import com.rld.justlisten.datalayer.localdb.libraryscreen.getMostPlayedSongs
+import com.rld.justlisten.datalayer.localdb.libraryscreen.getMostPlayedSongsFromHistory
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getSongWithId
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getTimeCapsuleSongs
 import com.rld.justlisten.datalayer.models.PlayListModel
@@ -23,6 +23,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 interface PlaylistRepository {
     suspend fun getPlaylist(
@@ -85,7 +88,7 @@ class PlaylistRepositoryImpl(
     override suspend fun repostTrack(trackId: String): Boolean {
         return runCatching {
             val response = webservices.repostTrack(trackId)
-            if (response?.error == null) {
+            if (response != null && response.error == null) {
                 setTrackReposted(trackId, true)
                 true
             } else {
@@ -97,7 +100,7 @@ class PlaylistRepositoryImpl(
     override suspend fun unrepostTrack(trackId: String): Boolean {
         return runCatching {
             val response = webservices.unrepostTrack(trackId)
-            if (response?.error == null) {
+            if (response != null && response.error == null) {
                 setTrackReposted(trackId, false)
                 true
             } else {
@@ -109,7 +112,7 @@ class PlaylistRepositoryImpl(
     override suspend fun repostPlaylist(playlistId: String): Boolean {
         return runCatching {
             val response = webservices.repostPlaylist(playlistId)
-            if (response?.error == null) {
+            if (response != null && response.error == null) {
                 setPlaylistReposted(playlistId, true)
                 true
             } else {
@@ -121,7 +124,7 @@ class PlaylistRepositoryImpl(
     override suspend fun unrepostPlaylist(playlistId: String): Boolean {
         return runCatching {
             val response = webservices.unrepostPlaylist(playlistId)
-            if (response?.error == null) {
+            if (response != null && response.error == null) {
                 setPlaylistReposted(playlistId, false)
                 true
             } else {
@@ -191,19 +194,47 @@ class PlaylistRepositoryImpl(
                 } ?: emptyList()
 
                 PlayListEnum.FAVORITE -> {
-                    localDb.getFavoritePlaylist().map { playlistModel ->
-                        val isFavorite = favoriteIds.contains(playlistModel.id)
-                        val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
-                        PlaylistItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
-                    }.toList()
+                    val localTracks = localDb.getFavoritePlaylist()
+                    localTracks.chunked(5).flatMap { chunk ->
+                        coroutineScope {
+                            chunk.map { localTrack ->
+                                async {
+                                    val track = runCatching {
+                                        webservices.getTrackDetails(localTrack.id)
+                                    }.getOrNull() ?: localTrack
+                                    if (track.hasCurrentUserReposted) {
+                                        setTrackReposted(track.id, true)
+                                    }
+                                    val isReposted = track.hasCurrentUserReposted || isTrackReposted(track.id)
+                                    PlaylistItem(track, isFavorite = true, isReposted = isReposted)
+                                }
+                            }.awaitAll()
+                        }
+                    }
                 }
 
                 PlayListEnum.MOST_PLAYED -> {
-                    localDb.getMostPlayedSongs(20).map { playlistModel ->
-                        val isFavorite = favoriteIds.contains(playlistModel.id)
-                        val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
-                        PlaylistItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
-                    }.toList()
+                    val localTracks = localDb.getMostPlayedSongsFromHistory(limit = 20, offset = 0)
+                    localTracks.chunked(5).flatMap { chunk ->
+                        coroutineScope {
+                            chunk.map { localTrack ->
+                                async {
+                                    val track = runCatching {
+                                        webservices.getTrackDetails(localTrack.id)
+                                    }.getOrNull()?.copy(
+                                        songCounter = localTrack.songCounter,
+                                        durationPlayedSec = localTrack.durationPlayedSec
+                                    ) ?: localTrack
+                                    if (track.hasCurrentUserReposted) {
+                                        setTrackReposted(track.id, true)
+                                    }
+                                    val isFavorite = favoriteIds.contains(track.id)
+                                    val isReposted = track.hasCurrentUserReposted || isTrackReposted(track.id)
+                                    PlaylistItem(track, isFavorite = isFavorite, isReposted = isReposted)
+                                }
+                            }.awaitAll()
+                        }
+                    }
                 }
 
                 PlayListEnum.CREATED_BY_USER -> {

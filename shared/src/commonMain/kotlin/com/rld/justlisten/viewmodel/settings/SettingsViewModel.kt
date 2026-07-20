@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
@@ -34,7 +35,13 @@ class SettingsViewModel(
 
         // Check/refresh existing session on launch
         viewModelScope.launch {
-            authRepository.refreshSession()
+            var retryDelayMs = 1_000L
+            do {
+                authRepository.refreshSession()
+                if (authRepository.sessionState.value !is SessionState.Restoring) break
+                delay(retryDelayMs)
+                retryDelayMs = (retryDelayMs * 2).coerceAtMost(30_000L)
+            } while (true)
         }
 
         // Collect session state
@@ -88,11 +95,13 @@ class SettingsViewModel(
                     crossfadeDurationSeconds = settingsRepository.crossfadeDurationSeconds,
                     crossfadeStyle = settingsRepository.crossfadeStyle,
                     isVolumeNormalizationEnabled = settingsRepository.isVolumeNormalizationEnabled,
+                    useLiquidGlassNavigation = com.rld.justlisten.ui.utils.isLiquidGlassNavigationEnabled(),
                     isSettingsLoaded = true
                 )
             } catch (_: Exception) {
                 // First run — use defaults
                 _settingsState.value = _settingsState.value.copy(
+                    useLiquidGlassNavigation = com.rld.justlisten.ui.utils.isLiquidGlassNavigationEnabled(),
                     isSettingsLoaded = true
                 )
             }
@@ -105,6 +114,7 @@ class SettingsViewModel(
         settingsRepository.crossfadeDurationSeconds = state.crossfadeDurationSeconds
         settingsRepository.crossfadeStyle = state.crossfadeStyle
         settingsRepository.isVolumeNormalizationEnabled = state.isVolumeNormalizationEnabled
+        com.rld.justlisten.ui.utils.setLiquidGlassNavigationEnabled(state.useLiquidGlassNavigation)
         viewModelScope.launch(Dispatchers.IO) {
             settingsRepository.saveSettingsInfo(
                 hasNavigationSupportOn = state.hasSupportNavigationOn,
@@ -170,7 +180,7 @@ class SettingsViewModel(
          persistSettings()
      }
 
-     fun onVolumeNormalizationToggled(enabled: Boolean) {
+    fun onVolumeNormalizationToggled(enabled: Boolean) {
          _settingsState.value = _settingsState.value.copy(isVolumeNormalizationEnabled = enabled)
          persistSettings()
      }
@@ -187,6 +197,11 @@ class SettingsViewModel(
 
     fun getAuthUrl(redirectUri: String): String {
         return authRepository.getAuthUrl(redirectUri)
+    }
+
+    fun onLiquidGlassNavigationToggled(enabled: Boolean) {
+        _settingsState.value = _settingsState.value.copy(useLiquidGlassNavigation = enabled)
+        persistSettings()
     }
 
     fun loginWithCode(code: String, redirectUri: String) {

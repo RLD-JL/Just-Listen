@@ -160,6 +160,21 @@ class AndroidMusicPlayer(
         }
     }
 
+    override fun loadMedia(mediaId: String, playlist: List<com.rld.justlisten.viewmodel.interfaces.Item>) {
+        scope.launch {
+            var attempts = 0
+            while (musicServiceConnection.mediaController == null && attempts < 30) {
+                delay(100)
+                attempts++
+            }
+            musicServiceConnection.mediaController?.let { controller ->
+                val startIndex = playlist.indexOfFirst { it.id == mediaId }.coerceAtLeast(0)
+                controller.pause()
+                musicServiceConnection.updatePlaylist(playlist, startIndex)
+            }
+        }
+    }
+
     override fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>) {
         musicServiceConnection.updatePlaylist(list)
     }
@@ -168,8 +183,28 @@ class AndroidMusicPlayer(
         updateState(musicServiceConnection.playbackState.value, musicServiceConnection.currentPlayingSong.value)
     }
 
+    override fun updateCurrentTrackRepostState(
+        songId: String,
+        isReposted: Boolean,
+        repostCount: Int,
+    ) {
+        val currentMedia = playbackState.value.currentMedia
+        if (currentMedia?.id == songId) {
+            updateTrackMetadata(
+                songId = songId,
+                isReposted = isReposted,
+                repostCount = repostCount,
+                favoriteCount = currentMedia.favoriteCount,
+                commentCount = currentMedia.commentCount,
+                playCount = currentMedia.playCount,
+                artistId = currentMedia.artistId,
+            )
+        }
+    }
+
     override fun updateTrackMetadata(
         songId: String,
+        isReposted: Boolean,
         repostCount: Int,
         favoriteCount: Int,
         commentCount: Int,
@@ -181,20 +216,28 @@ class AndroidMusicPlayer(
         if (songIndex != -1) {
             val song = currentPlaylist[songIndex]
             val updatedSong = when (song) {
-                is TrackItem -> song.copy(_data = song._data.copy(
+                is TrackItem -> song.copy(
+                    _data = song._data.copy(
+                        repostCount = repostCount,
+                        favoriteCount = favoriteCount,
+                        commentCount = commentCount,
+                        playCount = playCount,
+                        user = song._data.user.copy(id = artistId)
+                    ),
+                    isReposted = isReposted,
                     repostCount = repostCount,
-                    favoriteCount = favoriteCount,
-                    commentCount = commentCount,
-                    playCount = playCount,
-                    user = song._data.user.copy(id = artistId)
-                ))
-                is PlaylistItem -> song.copy(_data = song._data.copy(
+                )
+                is PlaylistItem -> song.copy(
+                    _data = song._data.copy(
+                        repostCount = repostCount,
+                        favoriteCount = favoriteCount,
+                        commentCount = commentCount,
+                        playCount = playCount,
+                        user = song._data.user.copy(id = artistId)
+                    ),
+                    isReposted = isReposted,
                     repostCount = repostCount,
-                    favoriteCount = favoriteCount,
-                    commentCount = commentCount,
-                    playCount = playCount,
-                    user = song._data.user.copy(id = artistId)
-                ))
+                )
                 else -> song
             }
             val newList = currentPlaylist.toMutableList()

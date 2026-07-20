@@ -45,6 +45,7 @@ fun AppNavigation(
     navController: NavHostController,
     startDestination: Route = Route.Playlist,
     modifier: Modifier = Modifier,
+    onExpandPlayer: () -> Unit = {},
 ) {
     val localDb: com.rld.justlisten.LocalDb = org.koin.compose.koinInject()
     val playlistRepository: com.rld.justlisten.datalayer.repositories.PlaylistRepository = org.koin.compose.koinInject()
@@ -54,29 +55,16 @@ fun AppNavigation(
     val activeImportPlaylistState = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<Route.PlaylistDetail?>(null) }
     val activeImportPlaylist = activeImportPlaylistState.value
 
-    val activeImportTrackIdState = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
-    val activeImportTrackId = activeImportTrackIdState.value
-
-    val activeImportTrackModelState = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<com.rld.justlisten.datalayer.models.PlayListModel?>(null) }
-    val activeImportTrackModel = activeImportTrackModelState.value
-
-    val isFetchingTrackDetailsState = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
-    val isFetchingTrackDetails = isFetchingTrackDetailsState.value
-
     val showCommentsTrackIdState = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
     val showCommentsTrackId = showCommentsTrackIdState.value
 
     androidx.compose.runtime.LaunchedEffect(navController) {
         com.rld.justlisten.util.DeepLinkRouter.deepLinkFlow.collect { url ->
             try {
-                val hostPath = url.substringAfter("justlisten://").substringBefore("?")
-                val queryString = url.substringAfter("?", "")
-                val params = if (queryString.isEmpty()) emptyMap() else {
-                    queryString.split("&").mapNotNull {
-                        val parts = it.split("=")
-                        if (parts.size == 2) parts[0] to parts[1] else null
-                    }.toMap()
-                }
+                val deepLink = com.rld.justlisten.util.parseJustListenDeepLink(url)
+                    ?: return@collect
+                val hostPath = deepLink.path
+                val params = deepLink.parameters
 
                 if (hostPath == "playlist/import") {
                     val data = params["data"]
@@ -89,13 +77,18 @@ fun AppNavigation(
                 } else if (hostPath == "track/share") {
                     val trackId = params["id"]
                     if (trackId != null) {
-                        activeImportTrackIdState.value = trackId
-                        activeImportTrackModelState.value = null
-                        isFetchingTrackDetailsState.value = true
                         launch {
-                            val details = playlistRepository.fetchTrackDetails(trackId)
-                            activeImportTrackModelState.value = details
-                            isFetchingTrackDetailsState.value = false
+                            val track = runCatching {
+                                playlistRepository.fetchTrackDetails(trackId)
+                            }.getOrNull()
+
+                            if (track != null) {
+                                val playlistItem = com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem(_data = track)
+                                musicPlayer.loadMedia(track.id, listOf(playlistItem))
+                                onExpandPlayer()
+                            } else {
+                                com.rld.justlisten.ui.utils.showToast("Unable to open shared track")
+                            }
                         }
                     }
                 } else if (hostPath == "comments/share") {
@@ -309,66 +302,6 @@ fun AppNavigation(
         )
     }
 
-    val trackIdVal = activeImportTrackId
-    if (trackIdVal != null) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { activeImportTrackIdState.value = null },
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-            title = {
-                androidx.compose.material3.Text(
-                    text = "Play Shared Track",
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                    fontSize = 20.sp
-                )
-            },
-            text = {
-                if (isFetchingTrackDetails) {
-                    androidx.compose.foundation.layout.Box(
-                        modifier = Modifier.fillMaxWidth().height(60.dp),
-                        contentAlignment = androidx.compose.ui.Alignment.Center
-                    ) {
-                        androidx.compose.material3.CircularProgressIndicator()
-                    }
-                } else {
-                    val track = activeImportTrackModel
-                    if (track != null) {
-                        androidx.compose.foundation.layout.Column {
-                            androidx.compose.material3.Text(
-                                text = track.title,
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
-                                fontSize = 16.sp
-                            )
-                            androidx.compose.material3.Text(text = "by ${track.user.username}")
-                        }
-                    } else {
-                        androidx.compose.material3.Text("Unable to fetch track details. Please check connection.")
-                    }
-                }
-            },
-            confirmButton = {
-                val track = activeImportTrackModel
-                androidx.compose.material3.Button(
-                    enabled = track != null,
-                    onClick = {
-                        track?.let {
-                            val playlistItem = com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem(_data = it)
-                            musicPlayer.updatePlaylist(listOf(playlistItem))
-                            musicPlayer.playMedia(it.id)
-                        }
-                        activeImportTrackIdState.value = null
-                    }
-                ) {
-                    androidx.compose.material3.Text("Play")
-                }
-            },
-            dismissButton = {
-                androidx.compose.material3.TextButton(onClick = { activeImportTrackIdState.value = null }) {
-                    androidx.compose.material3.Text("Cancel")
-                }
-            }
-        )
-    }
-
     val commTrackId = showCommentsTrackId
     if (commTrackId != null) {
         androidx.compose.material3.AlertDialog(
@@ -386,5 +319,3 @@ fun AppNavigation(
         )
     }
 }
-
-

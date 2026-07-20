@@ -5,8 +5,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import com.rld.justlisten.ui.components.MusicLoadingSpinner
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
@@ -17,26 +15,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.rld.justlisten.media.PlaybackStatus
-import com.rld.justlisten.datalayer.models.SongIconList
-import com.rld.justlisten.datalayer.models.UserModel
 
 @Composable
 fun PlayBarActionsMinimized(
+    modifier: Modifier = Modifier,
     currentFractionProvider: () -> Float,
     status: PlaybackStatus,
-    isFavorite: Boolean,
-    songId: String?,
-    songTitle: String?,
-    songArtist: String?,
-    songArtistId: String?,
-    songArtworkUrl: String?,
     onPlayPause: () -> Unit,
-    onSkipNextPressed: () -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit
+    onSkipNextPressed: () -> Unit
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             // Exactly 65dp — same as minibar height in JustListenScaffold
             .height(65.dp)
             .graphicsLayer {
@@ -46,30 +35,6 @@ fun PlayBarActionsMinimized(
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(Modifier.weight(1f))
-
-        IconButton(onClick = {
-            if (songId != null) {
-                onFavoritePressed(
-                    songId,
-                    songTitle ?: "",
-                    UserModel(username = songArtist ?: "", id = songArtistId ?: ""),
-                    SongIconList(
-                        songArtworkUrl ?: "",
-                        songArtworkUrl ?: "",
-                        songArtworkUrl ?: ""
-                    ),
-                    !isFavorite
-                )
-            }
-        }) {
-            Icon(
-                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                contentDescription = null,
-                tint = if (isFavorite) Color.Red else Color.White
-            )
-        }
-
         IconButton(onClick = onPlayPause) {
             if (status == PlaybackStatus.BUFFERING) {
                 MusicLoadingSpinner(

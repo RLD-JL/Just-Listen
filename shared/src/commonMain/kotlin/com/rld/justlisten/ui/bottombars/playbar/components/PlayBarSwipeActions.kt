@@ -7,6 +7,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +22,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
@@ -39,8 +42,6 @@ import com.rld.justlisten.ui.utils.offsetX
 import com.rld.justlisten.ui.utils.offsetY
 import com.rld.justlisten.ui.utils.widthSize
 import com.rld.justlisten.ui.utils.image.getImageDominantColor
-import com.rld.justlisten.datalayer.models.SongIconList
-import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.ui.LocalMusicPlayer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -56,12 +57,12 @@ fun PlayBarSwipeActions(
     onSkipNextPressed: () -> Unit,
     onSkipPreviousPressed: () -> Unit,
     painterLoaded: (Painter) -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     newDominantColor: (Int) -> Unit,
     playBarMinimizedClicked: () -> Unit,
     playbackState: com.rld.justlisten.media.PlaybackState
 ) {
     var swipeOffset by remember { mutableStateOf(0f) }
+    var controlsWidthPx by remember { mutableIntStateOf(0) }
     val animatableOffset = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
@@ -75,6 +76,9 @@ fun PlayBarSwipeActions(
     val isExpandedOrExpanding = remember(currentFractionProvider) {
         derivedStateOf { currentFractionProvider() > 0.15f }
     }
+    val isExpanded = remember(currentFractionProvider) {
+        derivedStateOf { currentFractionProvider() > 0.85f }
+    }
 
     // Reset swipeOffset if user starts expanding the player
     LaunchedEffect(isExpandedOrExpanding.value) {
@@ -85,7 +89,13 @@ fun PlayBarSwipeActions(
 
     val screenWidth = constraints.maxWidth.value
     val screenHeight = constraints.maxHeight.value
-    val swipeableWidth = screenWidth - 144f // 144dp reserved for buttons on the right
+    val controlsGap = 8.dp
+    val controlsWidth = with(density) { controlsWidthPx.toDp().value }
+    val swipeableWidth = if (controlsWidthPx == 0) {
+        0f
+    } else {
+        (screenWidth - controlsWidth - controlsGap.value).coerceAtLeast(0f)
+    }
 
     // Fetch next and previous tracks from playlist queue
     val musicPlayer = LocalMusicPlayer.current
@@ -94,6 +104,31 @@ fun PlayBarSwipeActions(
 
     val currentIndex = remember(playlist, currentMedia) {
         playlist.indexOfFirst { it.id == currentMedia?.id }
+    }
+    val pagerState = rememberPagerState(
+        initialPage = currentIndex.coerceAtLeast(0),
+        pageCount = { playlist.size }
+    )
+
+    LaunchedEffect(currentIndex, isExpanded.value, playlist.size) {
+        if (isExpanded.value &&
+            currentIndex in playlist.indices &&
+            !pagerState.isScrollInProgress &&
+            pagerState.currentPage != currentIndex
+        ) {
+            pagerState.animateScrollToPage(currentIndex)
+        }
+    }
+
+    val settledPage = pagerState.settledPage
+    LaunchedEffect(settledPage, isExpanded.value, playlist) {
+        if (isExpanded.value && currentIndex in playlist.indices) {
+            playlist.getOrNull(settledPage)?.let { track ->
+                if (track.id != currentMedia?.id) {
+                    musicPlayer.playMedia(track.id)
+                }
+            }
+        }
     }
     val nextSong = remember(playlist, currentIndex) {
         if (currentIndex != -1 && currentIndex < playlist.size - 1) {
@@ -115,8 +150,9 @@ fun PlayBarSwipeActions(
     }
 
     // Horizontal drag modifier to support swiping left/right to skip next/back
-    val dragModifier = Modifier.pointerInput(Unit) {
-        detectHorizontalDragGestures(
+    val minimizedDragModifier = if (isMinimized.value) {
+        Modifier.pointerInput(currentMedia?.id) {
+            detectHorizontalDragGestures(
             onDragEnd = {
                 val swipeableWidthPx = with(density) { swipeableWidth.dp.toPx() }
                 val thresholdPx = swipeableWidthPx * 0.30f
@@ -158,13 +194,14 @@ fun PlayBarSwipeActions(
                     }
                 }
             },
-            onHorizontalDrag = { change, dragAmount ->
-                if (currentFractionProvider() < 0.15f) {
+                onHorizontalDrag = { change, dragAmount ->
                     change.consume()
                     swipeOffset += dragAmount
                 }
-            }
-        )
+            )
+        }
+    } else {
+        Modifier
     }
 
     Box(
@@ -216,7 +253,7 @@ fun PlayBarSwipeActions(
                     enabled = isClickable.value,
                     onClick = playBarMinimizedClicked
                 )
-                .then(dragModifier)
+                .then(minimizedDragModifier)
                 .clipToBounds()
         ) {
             // Next and Previous tracks are only visible and layout-computed when minimized
@@ -284,14 +321,56 @@ fun PlayBarSwipeActions(
                         translationX = swipeOffset * (1f - fraction).coerceIn(0f, 1f)
                     }
             ) {
-                Image(
-                    painter = painter,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-                if (state is coil3.compose.AsyncImagePainter.State.Loading) {
-                    AnimatedShimmer(modifier = Modifier.fillMaxSize())
+                if (isExpanded.value && playlist.isNotEmpty()) {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize(),
+                        pageSpacing = offsetX(1f, screenWidth, screenHeight).dp,
+                        beyondViewportPageCount = 1,
+                    ) { page ->
+                        val track = playlist[page]
+                        val pagePainter = rememberAsyncImagePainter(
+                            model = ImageRequest.Builder(context)
+                                .data(track.artworkUrl ?: track.lowResArtworkUrl ?: "")
+                                .placeholderMemoryCacheKey(track.lowResArtworkUrl)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .crossfade(false)
+                                .build()
+                        )
+                        val pagePainterState by pagePainter.state.collectAsState()
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f)
+                                    .clip(RoundedCornerShape(16.dp))
+                            ) {
+                                Image(
+                                    painter = pagePainter,
+                                    contentDescription = "${track.title} artwork",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                                if (pagePainterState is coil3.compose.AsyncImagePainter.State.Loading) {
+                                    AnimatedShimmer(modifier = Modifier.fillMaxSize())
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    if (state is coil3.compose.AsyncImagePainter.State.Loading) {
+                        AnimatedShimmer(modifier = Modifier.fillMaxSize())
+                    }
                 }
             }
 
@@ -335,19 +414,15 @@ fun PlayBarSwipeActions(
             }
         }
 
-        // Fixed Minimized controls (Favorite, Play/Pause, SkipNext)
+        // Fixed minimized controls (Play/Pause, SkipNext)
         PlayBarActionsMinimized(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .onSizeChanged { controlsWidthPx = it.width },
             currentFractionProvider = currentFractionProvider,
             status = playbackState.status,
-            isFavorite = playbackState.currentMedia?.isFavorite == true,
-            songId = playbackState.currentMedia?.id,
-            songTitle = playbackState.currentMedia?.title,
-            songArtist = playbackState.currentMedia?.artist,
-            songArtistId = playbackState.currentMedia?.artistId,
-            songArtworkUrl = playbackState.currentMedia?.artworkUrl,
             onPlayPause = { if (playbackState.status == com.rld.justlisten.media.PlaybackStatus.PLAYING) musicPlayer.pause() else musicPlayer.play() },
-            onSkipNextPressed = onSkipNextPressed,
-            onFavoritePressed = onFavoritePressed
+            onSkipNextPressed = onSkipNextPressed
         )
     }
 }

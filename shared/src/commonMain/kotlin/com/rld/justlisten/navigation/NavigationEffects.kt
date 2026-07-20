@@ -13,24 +13,32 @@ fun CollectNavigationEvents(
     viewModel: BaseScreenViewModel,
     navController: NavHostController,
 ) {
-    LaunchedEffect(viewModel, navController) {
+    val iosCallbacks = LocalIosNavigationCallbacks.current
+    LaunchedEffect(viewModel, navController, iosCallbacks) {
         viewModel.navigationEvents.collect { event ->
-            when (event) {
-                is NavigationEvent.NavigateTo -> {
-                    val route = event.route
-                    if (route.navigationLevel == NavigationLevel.LEVEL_1) {
-                        navController.navigate(route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    } else {
-                        navController.navigate(route)
-                    }
+            if (iosCallbacks != null) {
+                when (event) {
+                    is NavigationEvent.NavigateTo -> iosCallbacks.onNavigate(event.route)
+                    NavigationEvent.PopBackStack -> iosCallbacks.onPopBackStack()
                 }
-                NavigationEvent.PopBackStack -> navController.popBackStack()
+            } else {
+                when (event) {
+                    is NavigationEvent.NavigateTo -> {
+                        val route = event.route
+                        if (route.navigationLevel == NavigationLevel.LEVEL_1) {
+                            navController.navigate(route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        } else {
+                            navController.navigate(route)
+                        }
+                    }
+                    NavigationEvent.PopBackStack -> navController.popBackStack()
+                }
             }
         }
     }

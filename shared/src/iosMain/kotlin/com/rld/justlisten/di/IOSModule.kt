@@ -7,6 +7,7 @@ import com.rld.justlisten.datalayer.Repository
 import com.rld.justlisten.datalayer.webservices.ApiClient
 import com.rld.justlisten.media.IOSMusicPlayer
 import com.rld.justlisten.media.MusicPlayer
+import com.rld.justlisten.media.PlayHistoryTracker
 import com.rld.justlisten.ui.utils.SleepTimerService
 import com.rld.justlisten.ui.utils.IosSleepTimerService
 import com.rld.justlisten.util.SecureStorage
@@ -53,13 +54,18 @@ fun iosModule() = module {
 fun initKoin(apiKey: String = "") {
     try {
         val key = apiKey.ifEmpty { com.rld.justlisten.BuildConfig.AUDIUS_API_KEY }
-        startKoin {
+        val koinApplication = startKoin {
             modules(
                 iosModule(),
                 appModule(),
                 module { single { ApiClient(apiKey = key, secureStorage = get()) } }
             )
         }
+
+        // PlayHistoryTracker starts collecting playback state in its initializer.
+        // Koin singletons are lazy, so resolve it explicitly at app startup; otherwise
+        // iOS never creates the tracker and Music Insights remains empty.
+        koinApplication.koin.get<PlayHistoryTracker>()
     } catch (e: Exception) {
         co.touchlab.kermit.Logger.e(e) { "Koin initialization failed on iOS launch" }
         throw e

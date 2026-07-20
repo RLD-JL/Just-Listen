@@ -48,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import com.rld.justlisten.ui.actions.LibraryScreenAction
 import com.rld.justlisten.ui.addplaylistscreen.components.AddPlaylistDialog
 import com.rld.justlisten.ui.libraryscreen.components.RowListOfRecentActivity
+import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
 
 @Composable
 fun LibraryScreen(
@@ -55,6 +56,7 @@ fun LibraryScreen(
     libraryState: LibraryState,
     onAction: (LibraryScreenAction) -> Unit
 ) {
+    val bottomContentPadding = LocalNativeBottomOverlayPadding.current
     Box(modifier = Modifier
         .fillMaxSize()
         .padding(5.dp)) {
@@ -397,6 +399,7 @@ fun LibraryScreen(
                 onMusicInsightsClicked = { onAction(LibraryScreenAction.MusicInsightsPressed) },
                 onArtistDashboardClicked = { onAction(LibraryScreenAction.ArtistDashboardPressed) }
             )
+            Spacer(modifier = Modifier.height(maxOf(15.dp, bottomContentPadding)))
         }
     }
 }
@@ -634,4 +637,3 @@ fun PremiumLibraryCards(
         }
     }
 }
-

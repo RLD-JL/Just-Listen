@@ -1,6 +1,7 @@
 package com.rld.justlisten.datalayer.repositories
 
 import com.rld.justlisten.datalayer.webservices.ApiClient
+import com.rld.justlisten.datalayer.webservices.ApiRequestException
 import com.rld.justlisten.datalayer.webservices.apis.authcalls.MeResponse
 import com.rld.justlisten.datalayer.webservices.apis.authcalls.exchangeCodeForTokens
 import com.rld.justlisten.datalayer.webservices.apis.authcalls.getMe
@@ -9,6 +10,7 @@ import com.rld.justlisten.util.SecureStorage
 import com.rld.justlisten.LocalDb
 import com.rld.justlisten.datalayer.webservices.apis.authcalls.ProfileImages
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 sealed interface SessionState {
     object Guest : SessionState
+    object Restoring : SessionState
     data class Authenticated(val userProfile: MeResponse) : SessionState
 }
 
@@ -61,11 +64,65 @@ class AuthRepositoryImpl(
     private val clientID: String = apiClient.apiKey
 ) : AuthRepository {
 
-    private val _sessionState = MutableStateFlow<SessionState>(SessionState.Guest)
+    private val _sessionState = MutableStateFlow(restoredSessionState())
     override val sessionState: StateFlow<SessionState> = _sessionState.asStateFlow()
 
     private var currentVerifier: String? = null
     private val repositoryScope = CoroutineScope(Dispatchers.Default + kotlinx.coroutines.SupervisorJob())
+
+    private fun restoredSessionState(): SessionState {
+        if (secureStorage.getToken("access_token").isNullOrBlank()) return SessionState.Guest
+
+        val userId = secureStorage.getToken("cached_user_id") ?: return SessionState.Restoring
+        val name = secureStorage.getToken("cached_user_name") ?: return SessionState.Restoring
+        val handle = secureStorage.getToken("cached_user_handle") ?: return SessionState.Restoring
+        val profilePicture = secureStorage.getToken("cached_user_profile_picture")
+
+        return SessionState.Authenticated(
+            MeResponse(
+                userId = userId,
+                name = name,
+                handle = handle,
+                verified = secureStorage.getToken("cached_user_verified") == "true",
+                profilePicture = profilePicture?.let {
+                    ProfileImages(image150 = it, image480 = it, image1000 = it)
+                },
+            )
+        )
+    }
+
+    private fun cacheProfile(profile: MeResponse) {
+        profile.userId?.takeIf { it.isNotBlank() }?.let {
+            secureStorage.saveToken("user_id", it)
+            secureStorage.saveToken("cached_user_id", it)
+        }
+        secureStorage.saveToken("cached_user_name", profile.name)
+        secureStorage.saveToken("cached_user_handle", profile.handle)
+        secureStorage.saveToken("cached_user_verified", profile.verified.toString())
+        profile.profilePicture?.image150?.takeIf { it.isNotBlank() }?.let {
+            secureStorage.saveToken("cached_user_profile_picture", it)
+        }
+    }
+
+    private fun publishAuthenticated(profile: MeResponse) {
+        cacheProfile(profile)
+        _sessionState.value = SessionState.Authenticated(profile)
+        profile.userId?.takeIf { it.isNotBlank() }?.let { userId ->
+            repositoryScope.launch {
+                syncRepository.performInboundSync(userId)
+            }
+        }
+    }
+
+    private fun preserveSessionAfter(exception: Throwable) {
+        val credentialsWereRejected = exception is ApiRequestException &&
+            !exception.isTransient && exception.statusCode in 400..499
+        if (credentialsWereRejected) {
+            _sessionState.value = SessionState.Guest
+        } else if (_sessionState.value !is SessionState.Authenticated) {
+            _sessionState.value = SessionState.Restoring
+        }
+    }
 
     override fun getAuthUrl(redirectUri: String): String {
         val verifier = pkceCrypto.generateCodeVerifier()
@@ -115,10 +172,7 @@ class AuthRepositoryImpl(
                     userProfile
                 }
 
-                _sessionState.value = SessionState.Authenticated(finalProfile)
-                repositoryScope.launch {
-                    syncRepository.performInboundSync(userId.toString())
-                }
+                publishAuthenticated(finalProfile)
                 true
             } else {
                 false
@@ -130,11 +184,14 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun refreshSession(): Boolean {
-        return runCatching {
+        return try {
             val accessToken = secureStorage.getToken("access_token")
             if (accessToken.isNullOrBlank()) {
                 _sessionState.value = SessionState.Guest
                 return false
+            }
+            if (_sessionState.value !is SessionState.Authenticated) {
+                _sessionState.value = SessionState.Restoring
             }
             val userProfile = apiClient.getMe()
             if (userProfile != null) {
@@ -162,53 +219,19 @@ class AuthRepositoryImpl(
                     userProfile
                 }
 
-                _sessionState.value = SessionState.Authenticated(finalProfile)
-                repositoryScope.launch {
-                    syncRepository.performInboundSync(userId.toString())
-                }
+                publishAuthenticated(finalProfile)
                 true
             } else {
-                val refreshed = apiClient.refreshToken()
-                if (refreshed) {
-                    val profile = apiClient.getMe()
-                    if (profile != null) {
-                        val userId = profile.userId
-                        if (!userId.isNullOrBlank()) {
-                            secureStorage.saveToken("user_id", userId)
-                        }
-                        
-                        val override = if (!userId.isNullOrBlank()) {
-                            localDb.settingsScreenQueries.getUserProfileOverride(userId).executeAsOneOrNull()
-                        } else null
-                        
-                        val finalProfile = if (override != null) {
-                            profile.copy(
-                                name = override.customName ?: profile.name,
-                                profilePicture = if (!override.customProfilePic.isNullOrBlank()) {
-                                    ProfileImages(
-                                        image150 = override.customProfilePic,
-                                        image480 = override.customProfilePic,
-                                        image1000 = override.customProfilePic
-                                    )
-                                } else profile.profilePicture
-                            )
-                        } else {
-                            profile
-                        }
-
-                        _sessionState.value = SessionState.Authenticated(finalProfile)
-                        repositoryScope.launch {
-                            syncRepository.performInboundSync(userId.toString())
-                        }
-                        return true
-                    }
+                if (_sessionState.value !is SessionState.Authenticated) {
+                    _sessionState.value = SessionState.Restoring
                 }
-                _sessionState.value = SessionState.Guest
                 false
             }
-        }.getOrElse { exception ->
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Throwable) {
             co.touchlab.kermit.Logger.e(exception) { "AuthRepository: refreshSession failed" }
-            _sessionState.value = SessionState.Guest
+            preserveSessionAfter(exception)
             false
         }
     }

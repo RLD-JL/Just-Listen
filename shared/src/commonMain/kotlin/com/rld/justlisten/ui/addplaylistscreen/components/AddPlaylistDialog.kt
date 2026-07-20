@@ -1,11 +1,13 @@
 package com.rld.justlisten.ui.addplaylistscreen.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.*
@@ -32,6 +34,7 @@ fun AddPlaylistDialog(
 ) {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val isKeyboardVisible = WindowInsets.ime.asPaddingValues().calculateBottomPadding() > 20.dp
 
     var title by remember { mutableStateOf("") }
     var isRemote by remember { mutableStateOf(false) }
@@ -46,47 +49,61 @@ fun AddPlaylistDialog(
             title = null,
             text = {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Header Decoration Badge
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(Color(0xFF9C27B0), Color(0xFF00BCD4))
+                    if (!isKeyboardVisible) {
+                        // Hide decorative content while typing so account options remain visible
+                        // above the compact iOS keyboard area.
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        colors = listOf(Color(0xFF9C27B0), Color(0xFF00BCD4))
+                                    ),
+                                    shape = CircleShape
                                 ),
-                                shape = CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MusicNote,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MusicNote,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "Create Playlist",
+                            fontWeight = FontWeight.Black,
+                            fontSize = 22.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center
                         )
+
+                        Text(
+                            text = "Curate your own musical soundtrack",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+                    } else {
+                        Text(
+                            text = "Create Playlist",
+                            fontWeight = FontWeight.Black,
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Create Playlist",
-                        fontWeight = FontWeight.Black,
-                        fontSize = 22.sp,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
-                    )
-                    
-                    Text(
-                        text = "Curate your own musical soundtrack",
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
 
                     // Title Input Field
                     OutlinedTextField(

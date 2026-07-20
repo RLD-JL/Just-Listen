@@ -26,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rld.justlisten.viewmodel.screens.settings.SettingsState
+import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
+import com.rld.justlisten.navigation.LocalUseNativeNavigation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +38,8 @@ fun CustomThemeScreen(
     onPaletteSelected: (color: String) -> Unit
 ) {
     val scrollState = rememberScrollState()
+    val useNativeNavigation = LocalUseNativeNavigation.current
+    val bottomContentPadding = LocalNativeBottomOverlayPadding.current
 
     // Bespoke customizer local states (backed by loaded state or initial premium defaults)
     val customPrimary = remember { mutableStateOf(settings.customPrimary ?: "388E67") }
@@ -62,39 +66,46 @@ fun CustomThemeScreen(
     val surfaceOptions = listOf("1D1D1D", "272323", "1C1C1E", "121D3F", "112D21", "1B1233", "37474F")
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
-                title = {
-                    Text(
-                        "Theme Customizer",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackPressed) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
+        contentWindowInsets = if (useNativeNavigation) {
+            WindowInsets(0, 0, 0, 0)
+        } else {
+            ScaffoldDefaults.contentWindowInsets
         },
-        containerColor = MaterialTheme.colorScheme.background
+        topBar = {
+            if (!useNativeNavigation) {
+                TopAppBar(
+                    windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
+                    title = {
+                        Text(
+                            "Theme Customizer",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBackPressed) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
+                )
+            }
+        },
+        containerColor = if (useNativeNavigation) Color.Transparent else MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(scrollState)
-                .padding(horizontal = 16.dp, vertical = 16.dp),
+                .padding(start = 16.dp, top = 16.dp, end = 16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // Live Real-Time Miniature UI Preview
@@ -405,6 +416,7 @@ fun CustomThemeScreen(
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(maxOf(16.dp, bottomContentPadding)))
         }
     }
 }

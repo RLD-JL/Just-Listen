@@ -34,4 +34,5 @@ data class SettingsState(
     val crossfadeDurationSeconds: Double = 5.0,
     val crossfadeStyle: String = "Radio Segue",
     val isVolumeNormalizationEnabled: Boolean = false,
+    val useLiquidGlassNavigation: Boolean = true,
 ) : ScreenState

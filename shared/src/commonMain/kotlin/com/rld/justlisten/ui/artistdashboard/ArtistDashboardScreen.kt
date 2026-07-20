@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.sp
 import com.rld.justlisten.datalayer.models.MonthlyAggregatePlay
 import com.rld.justlisten.viewmodel.screens.artistdashboard.ArtistDashboardState
 import androidx.compose.foundation.BorderStroke
+import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
+import com.rld.justlisten.navigation.LocalUseNativeNavigation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,32 +41,40 @@ fun ArtistDashboardScreen(
     onBackPressed: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val useNativeNavigation = LocalUseNativeNavigation.current
     Scaffold(
-        topBar = {
-            TopAppBar(
-                windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
-                title = {
-                    Text(
-                        text = "Artist Portal",
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackPressed) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
+        contentWindowInsets = if (useNativeNavigation) {
+            WindowInsets(0, 0, 0, 0)
+        } else {
+            ScaffoldDefaults.contentWindowInsets
         },
-        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            if (!useNativeNavigation) {
+                TopAppBar(
+                    windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
+                    title = {
+                        Text(
+                            text = "Artist Portal",
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBackPressed) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
+                )
+            }
+        },
+        containerColor = if (useNativeNavigation) Color.Transparent else MaterialTheme.colorScheme.background,
         modifier = modifier.fillMaxSize()
     ) { paddingValues ->
         Box(
@@ -114,6 +124,7 @@ fun ArtistDashboardScreen(
 
 @Composable
 private fun DashboardContent(state: ArtistDashboardState) {
+    val bottomContentPadding = LocalNativeBottomOverlayPadding.current
     // 1. Calculations
     val totalPlays = remember(state.monthlyListens) {
         state.monthlyListens.values.sumOf { it.totalListens }
@@ -141,7 +152,9 @@ private fun DashboardContent(state: ArtistDashboardState) {
             .fillMaxSize()
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(bottom = 32.dp)
+        contentPadding = PaddingValues(
+            bottom = maxOf(32.dp, bottomContentPadding)
+        )
     ) {
         // --- SECTION: WELCOME & SUMMARY ---
         item {

@@ -3,32 +3,43 @@ import shared
 
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
-        return ScreenHosts_iosKt.MainViewController()
+        ScreenHosts_iosKt.MainViewController()
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 }
 
 struct ContentView: View {
+    @AppStorage("useLiquidGlassNavigation") private var useLiquidGlassNavigation = true
+
     var body: some View {
-        ComposeView()
-            .ignoresSafeArea(.all)
-            .onOpenURL { url in
+        Group {
+            if #available(iOS 26.1, *), useLiquidGlassNavigation {
+                NativeNavContentView()
+            } else {
+                ComposeView()
+                    .ignoresSafeArea(.all)
+            }
+        }
+        .onOpenURL(perform: handleDeepLink)
+        .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+            if let url = activity.webpageURL {
                 handleDeepLink(url)
             }
+        }
+        .preferredColorScheme(.dark)
     }
-    
+
     private func handleDeepLink(_ url: URL) {
-        guard url.scheme == "justlisten" else { return }
-        
-        if url.host == "oauth" {
+        if url.scheme == "justlisten", url.host == "oauth" {
             if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
                let queryItems = components.queryItems,
                let code = queryItems.first(where: { $0.name == "code" })?.value {
                 let redirectUri = "justlisten://oauth/callback"
                 IOSModuleKt.loginWithCode(code: code, redirectUri: redirectUri)
             }
-        } else {
+        } else if url.scheme == "justlisten" ||
+                    (url.scheme == "https" && url.host == "justlisten.cloud") {
             IOSModuleKt.handleDeepLink(url: url.absoluteString)
         }
     }

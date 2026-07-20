@@ -198,7 +198,7 @@ fun CommentsView(
                     Row(
                         modifier = Modifier
                             .weight(1f)
-                            .height(44.dp)
+                            .height(56.dp)
                             .clip(RoundedCornerShape(24.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                             .padding(horizontal = 16.dp),
@@ -216,9 +216,7 @@ fun CommentsView(
                                 errorBorderColor = Color.Transparent,
                                 cursorColor = MaterialTheme.colorScheme.primary
                             ),
-                            modifier = Modifier
-                                .weight(1f)
-                                .offset(y = (-4).dp),
+                            modifier = Modifier.weight(1f),
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
                                 imeAction = ImeAction.Send

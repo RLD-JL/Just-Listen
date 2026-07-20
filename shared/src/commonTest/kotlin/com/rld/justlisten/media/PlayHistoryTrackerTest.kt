@@ -17,6 +17,8 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayHistoryTrackerTest {
@@ -73,6 +75,28 @@ class PlayHistoryTrackerTest {
 
         // Cancel the tracker scope to stop the background delay loop and prevent test hang
         scope.cancel()
+    }
+
+    @Test
+    fun playbackPositionWrappingAtTrackEndStartsANewPlay() {
+        assertTrue(
+            hasPlaybackRestarted(
+                previousPositionMs = 332_000L,
+                currentPositionMs = 500L,
+                durationMs = 333_000L
+            )
+        )
+    }
+
+    @Test
+    fun ordinaryBackwardSeekDoesNotStartANewPlay() {
+        assertFalse(
+            hasPlaybackRestarted(
+                previousPositionMs = 120_000L,
+                currentPositionMs = 60_000L,
+                durationMs = 333_000L
+            )
+        )
     }
 
     class FakeLibraryRepo : LibraryRepository {
@@ -143,8 +167,14 @@ class PlayHistoryTrackerTest {
         override fun playMedia(mediaId: String) {}
         override fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>) {}
         override fun refreshMetadata() {}
+        override fun updateCurrentTrackRepostState(
+            songId: String,
+            isReposted: Boolean,
+            repostCount: Int,
+        ) {}
         override fun updateTrackMetadata(
             songId: String,
+            isReposted: Boolean,
             repostCount: Int,
             favoriteCount: Int,
             commentCount: Int,

@@ -3,6 +3,7 @@ package com.rld.justlisten.ui.addplaylistscreen
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.HorizontalDivider
@@ -21,6 +22,8 @@ import com.rld.justlisten.ui.addplaylistscreen.components.PlaylistViewItem
 import com.rld.justlisten.viewmodel.screens.addplaylist.AddPlaylistState
 
 import com.rld.justlisten.ui.actions.AddPlaylistAction
+import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
+import com.rld.justlisten.navigation.LocalUseNativeNavigation
 
 @Composable
 fun AddPlaylistScreen(
@@ -28,14 +31,21 @@ fun AddPlaylistScreen(
     onAction: (AddPlaylistAction) -> Unit
 ) {
     val openDialog = remember { mutableStateOf(false) }
+    val useNativeNavigation = LocalUseNativeNavigation.current
+    val bottomContentPadding = LocalNativeBottomOverlayPadding.current
     Column(Modifier.fillMaxWidth()) {
-        IconButton(modifier = Modifier.size(48.dp), onClick = { onAction(AddPlaylistAction.BackPressed(true)) }) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = null,
-            )
+        if (!useNativeNavigation) {
+            IconButton(modifier = Modifier.size(48.dp), onClick = { onAction(AddPlaylistAction.BackPressed(true)) }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = null,
+                )
+            }
         }
-        LazyColumn(Modifier.fillMaxWidth()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(bottom = bottomContentPadding)
+        ) {
             item { AddPlaylistRow(openDialog) }
             item { HorizontalDivider(thickness = 2.dp) }
             item { 
