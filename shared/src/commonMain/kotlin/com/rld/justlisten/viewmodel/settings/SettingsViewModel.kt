@@ -88,11 +88,13 @@ class SettingsViewModel(
                     crossfadeDurationSeconds = settingsRepository.crossfadeDurationSeconds,
                     crossfadeStyle = settingsRepository.crossfadeStyle,
                     isVolumeNormalizationEnabled = settingsRepository.isVolumeNormalizationEnabled,
+                    useLiquidGlassNavigation = com.rld.justlisten.ui.utils.isLiquidGlassNavigationEnabled(),
                     isSettingsLoaded = true
                 )
             } catch (_: Exception) {
                 // First run — use defaults
                 _settingsState.value = _settingsState.value.copy(
+                    useLiquidGlassNavigation = com.rld.justlisten.ui.utils.isLiquidGlassNavigationEnabled(),
                     isSettingsLoaded = true
                 )
             }
@@ -105,6 +107,7 @@ class SettingsViewModel(
         settingsRepository.crossfadeDurationSeconds = state.crossfadeDurationSeconds
         settingsRepository.crossfadeStyle = state.crossfadeStyle
         settingsRepository.isVolumeNormalizationEnabled = state.isVolumeNormalizationEnabled
+        com.rld.justlisten.ui.utils.setLiquidGlassNavigationEnabled(state.useLiquidGlassNavigation)
         viewModelScope.launch(Dispatchers.IO) {
             settingsRepository.saveSettingsInfo(
                 hasNavigationSupportOn = state.hasSupportNavigationOn,
@@ -170,7 +173,7 @@ class SettingsViewModel(
          persistSettings()
      }
 
-     fun onVolumeNormalizationToggled(enabled: Boolean) {
+    fun onVolumeNormalizationToggled(enabled: Boolean) {
          _settingsState.value = _settingsState.value.copy(isVolumeNormalizationEnabled = enabled)
          persistSettings()
      }
@@ -187,6 +190,11 @@ class SettingsViewModel(
 
     fun getAuthUrl(redirectUri: String): String {
         return authRepository.getAuthUrl(redirectUri)
+    }
+
+    fun onLiquidGlassNavigationToggled(enabled: Boolean) {
+        _settingsState.value = _settingsState.value.copy(useLiquidGlassNavigation = enabled)
+        persistSettings()
     }
 
     fun loginWithCode(code: String, redirectUri: String) {

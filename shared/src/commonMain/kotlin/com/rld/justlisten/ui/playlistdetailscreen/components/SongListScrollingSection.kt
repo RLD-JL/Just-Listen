@@ -32,6 +32,7 @@ import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import com.rld.justlisten.viewmodel.screens.playlistdetail.PlaylistDetailState
+import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
 
 @Composable
 fun SongListScrollingSection(
@@ -47,7 +48,11 @@ fun SongListScrollingSection(
     onDeleteSong: (String) -> Unit,
     currentPlayingSongId: String? = null
 ) {
-    LazyColumn(Modifier.padding(top = 25.dp)) {
+    val nativeBottomOverlayPadding = LocalNativeBottomOverlayPadding.current
+    LazyColumn(
+        modifier = Modifier.padding(top = 25.dp),
+        contentPadding = PaddingValues(bottom = nativeBottomOverlayPadding)
+    ) {
         item {
             BoxTopSection(
                 scrollState = scrollState,
@@ -60,7 +65,7 @@ fun SongListScrollingSection(
             ShuffleButton(onShuffleClicked)
             DownloadedRow()
         }
-        itemsIndexed(playlist, key = { _, item -> item.id }) { index, playlistItem ->
+        itemsIndexed(playlist, key = { index, item -> "${item.id}-$index" }) { index, playlistItem ->
             val isUserPlaylist = playlistDetailState.playlistEnum == "CREATED_BY_USER"
             val isPlaying = playlistItem.id == currentPlayingSongId
             SongListItem(

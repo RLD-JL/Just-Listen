@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
@@ -39,8 +40,6 @@ import com.rld.justlisten.ui.utils.offsetX
 import com.rld.justlisten.ui.utils.offsetY
 import com.rld.justlisten.ui.utils.widthSize
 import com.rld.justlisten.ui.utils.image.getImageDominantColor
-import com.rld.justlisten.datalayer.models.SongIconList
-import com.rld.justlisten.datalayer.models.UserModel
 import com.rld.justlisten.ui.LocalMusicPlayer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -56,12 +55,12 @@ fun PlayBarSwipeActions(
     onSkipNextPressed: () -> Unit,
     onSkipPreviousPressed: () -> Unit,
     painterLoaded: (Painter) -> Unit,
-    onFavoritePressed: (String, String, UserModel, SongIconList, Boolean) -> Unit,
     newDominantColor: (Int) -> Unit,
     playBarMinimizedClicked: () -> Unit,
     playbackState: com.rld.justlisten.media.PlaybackState
 ) {
     var swipeOffset by remember { mutableStateOf(0f) }
+    var controlsWidthPx by remember { mutableIntStateOf(0) }
     val animatableOffset = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
@@ -85,7 +84,13 @@ fun PlayBarSwipeActions(
 
     val screenWidth = constraints.maxWidth.value
     val screenHeight = constraints.maxHeight.value
-    val swipeableWidth = screenWidth - 144f // 144dp reserved for buttons on the right
+    val controlsGap = 8.dp
+    val controlsWidth = with(density) { controlsWidthPx.toDp().value }
+    val swipeableWidth = if (controlsWidthPx == 0) {
+        0f
+    } else {
+        (screenWidth - controlsWidth - controlsGap.value).coerceAtLeast(0f)
+    }
 
     // Fetch next and previous tracks from playlist queue
     val musicPlayer = LocalMusicPlayer.current
@@ -335,19 +340,15 @@ fun PlayBarSwipeActions(
             }
         }
 
-        // Fixed Minimized controls (Favorite, Play/Pause, SkipNext)
+        // Fixed minimized controls (Play/Pause, SkipNext)
         PlayBarActionsMinimized(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .onSizeChanged { controlsWidthPx = it.width },
             currentFractionProvider = currentFractionProvider,
             status = playbackState.status,
-            isFavorite = playbackState.currentMedia?.isFavorite == true,
-            songId = playbackState.currentMedia?.id,
-            songTitle = playbackState.currentMedia?.title,
-            songArtist = playbackState.currentMedia?.artist,
-            songArtistId = playbackState.currentMedia?.artistId,
-            songArtworkUrl = playbackState.currentMedia?.artworkUrl,
             onPlayPause = { if (playbackState.status == com.rld.justlisten.media.PlaybackStatus.PLAYING) musicPlayer.pause() else musicPlayer.play() },
-            onSkipNextPressed = onSkipNextPressed,
-            onFavoritePressed = onFavoritePressed
+            onSkipNextPressed = onSkipNextPressed
         )
     }
 }

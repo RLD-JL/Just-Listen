@@ -47,6 +47,8 @@ import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 import com.rld.justlisten.datalayer.models.PlayListModel
 import com.rld.justlisten.datalayer.repositories.LibraryRepository
 import com.rld.justlisten.media.MusicPlayer
+import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
+import com.rld.justlisten.navigation.LocalUseNativeNavigation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +58,8 @@ fun ArtistProfileScreen(
     libraryRepository: LibraryRepository,
     onAction: (ArtistProfileAction) -> Unit
 ) {
+    val useNativeNavigation = LocalUseNativeNavigation.current
+    val bottomContentPadding = LocalNativeBottomOverlayPadding.current
     var showEditDialog by remember { mutableStateOf(false) }
     val showEditState = remember { mutableStateOf(false) }
     LaunchedEffect(showEditDialog) {
@@ -287,6 +291,12 @@ fun ArtistProfileScreen(
     }
 
     Scaffold(
+        contentWindowInsets = if (useNativeNavigation) {
+            WindowInsets(0, 0, 0, 0)
+        } else {
+            ScaffoldDefaults.contentWindowInsets
+        },
+        containerColor = if (useNativeNavigation) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
@@ -336,7 +346,9 @@ fun ArtistProfileScreen(
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 24.dp)
+                    contentPadding = PaddingValues(
+                        bottom = maxOf(24.dp, bottomContentPadding)
+                    )
                 ) {
                     // 1. Banner Image with Gradient overlay
                     item {

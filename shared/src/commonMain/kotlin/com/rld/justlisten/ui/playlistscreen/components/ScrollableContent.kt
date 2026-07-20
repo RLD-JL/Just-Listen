@@ -30,12 +30,15 @@ import androidx.compose.ui.util.fastForEachIndexed
 import coil3.compose.rememberAsyncImagePainter
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
+import coil3.request.CachePolicy
+import coil3.request.crossfade
 import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.ui.actions.PlaylistScreenAction
 import com.rld.justlisten.ui.theme.typography
 import com.rld.justlisten.viewmodel.screens.playlist.*
 import com.rld.justlisten.viewmodel.screens.search.TrackItem
 import com.rld.justlisten.ui.utils.getGreetingText
+import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
 
 import com.rld.justlisten.ui.components.MusicLoadingSpinner
 import com.rld.justlisten.ui.LocalMusicPlayer
@@ -57,6 +60,7 @@ fun ScrollableContent(
     val currentPlayingSongId = playbackState.currentMedia?.id
     val currentlyPlayingPlaylistId = musicPlayer.currentlyPlayingPlaylistId
     val isPlaying = playbackState.status == PlaybackStatus.PLAYING
+    val bottomContentPadding = LocalNativeBottomOverlayPadding.current
 
     Column(
         modifier = Modifier
@@ -319,7 +323,7 @@ fun ScrollableContent(
             isPlaying = isPlaying
         )
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(maxOf(24.dp, bottomContentPadding)))
     }
 }
 
@@ -331,10 +335,16 @@ fun TrackCardItem(
     isPlaying: Boolean = false
 ) {
     val context = LocalPlatformContext.current
+    val artworkUrl = track.songIconList.songImageURL150px.ifBlank {
+        track.songIconList.songImageURL480px
+    }
     val painter = rememberAsyncImagePainter(
-        model = remember(track.songIconList.songImageURL480px, context) {
+        model = remember(artworkUrl, context) {
             ImageRequest.Builder(context)
-                .data(track.songIconList.songImageURL480px)
+                .data(artworkUrl)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .crossfade(false)
                 .build()
         }
     )

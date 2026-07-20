@@ -306,6 +306,9 @@ fun SettingsScreenHost(navController: NavHostController) {
             if (updated.isVolumeNormalizationEnabled != state.isVolumeNormalizationEnabled) {
                 viewModel.onVolumeNormalizationToggled(updated.isVolumeNormalizationEnabled)
             }
+            if (updated.useLiquidGlassNavigation != state.useLiquidGlassNavigation) {
+                viewModel.onLiquidGlassNavigationToggled(updated.useLiquidGlassNavigation)
+            }
             if (updated.crossfadeDurationSeconds != state.crossfadeDurationSeconds) {
                 viewModel.onCrossfadeDurationChanged(updated.crossfadeDurationSeconds)
             }
@@ -415,6 +418,7 @@ fun ArtistProfileScreenHost(
     val musicPlayer = LocalMusicPlayer.current
     val repository: LibraryRepository = koinInject()
     val state by viewModel.artistProfileState.collectAsState()
+    val iosCallbacks = LocalIosNavigationCallbacks.current
 
     LaunchedEffect(args) { viewModel.load(args) }
     CollectNavigationEvents(viewModel, navController)
@@ -442,7 +446,11 @@ fun ArtistProfileScreenHost(
                 is com.rld.justlisten.ui.actions.ArtistProfileAction.DismissConnectPrompt -> viewModel.dismissConnectPrompt()
                 is com.rld.justlisten.ui.actions.ArtistProfileAction.ConnectAudiusPressed -> {
                     viewModel.dismissConnectPrompt()
-                    navController.navigate(Route.Settings)
+                    if (iosCallbacks != null) {
+                        iosCallbacks.onNavigate(Route.Settings)
+                    } else {
+                        navController.navigate(Route.Settings)
+                    }
                 }
                 is com.rld.justlisten.ui.actions.ArtistProfileAction.TabSelected -> viewModel.onTabSelected(action.index)
                 is com.rld.justlisten.ui.actions.ArtistProfileAction.EditProfileSaved -> viewModel.onEditProfileSaved(
@@ -476,6 +484,7 @@ fun FeedScreenHost(
     val musicPlayer = LocalMusicPlayer.current
     val repository: LibraryRepository = koinInject()
     val state by viewModel.feedState.collectAsState()
+    val iosCallbacks = LocalIosNavigationCallbacks.current
 
     LaunchedEffect(args) {
         if (args.category != null || args.timeRange != null) {
@@ -523,7 +532,11 @@ fun FeedScreenHost(
                 com.rld.justlisten.ui.actions.FeedAction.DismissConnectPrompt -> viewModel.dismissConnectPrompt()
                 com.rld.justlisten.ui.actions.FeedAction.ConnectAudiusPressed -> {
                     viewModel.dismissConnectPrompt()
-                    navController.navigate(Route.Settings)
+                    if (iosCallbacks != null) {
+                        iosCallbacks.onNavigate(Route.Settings)
+                    } else {
+                        navController.navigate(Route.Settings)
+                    }
                 }
                 com.rld.justlisten.ui.actions.FeedAction.LoadMore -> viewModel.loadMore()
                 is com.rld.justlisten.ui.actions.FeedAction.SelectTab -> viewModel.selectTab(action.tab)

@@ -61,17 +61,22 @@ fun AnimatedToolBar(
             )
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        IconButton(modifier = Modifier.size(48.dp), onClick = { onBackButtonPressed(true) }) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = null,
+        val useNativeNav = com.rld.justlisten.navigation.LocalUseNativeNavigation.current
+        if (!useNativeNav) {
+            IconButton(modifier = Modifier.size(48.dp), onClick = { onBackButtonPressed(true) }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = null,
+                )
+            }
+            Text(
+                text = playlistDetailState.playlistName,
+                modifier = Modifier
+                    .alpha(((-scrollState.value + 0.010f) / 1000).coerceIn(0f, 1f))
             )
+        } else {
+            Spacer(modifier = Modifier.weight(1f))
         }
-        Text(
-            text = playlistDetailState.playlistName,
-            modifier = Modifier
-                .alpha(((-scrollState.value + 0.010f) / 1000).coerceIn(0f, 1f))
-        )
         val clipboard = LocalClipboard.current
         val coroutineScope = rememberCoroutineScope()
         Box {

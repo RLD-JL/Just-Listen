@@ -12,6 +12,12 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.layout.layout
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.runtime.*
@@ -90,91 +96,133 @@ fun PlayerBottomBar(
                     blue  = lerp(minibarBackground.blue,  animatedColor.blue  * 0.7f, eased).coerceIn(0f, 1f),
                     alpha = 1f
                 )
-                drawRect(color = blendedBackground)
+
+                val cornerRadiusPx = (16f * (1f - eased)).dp.toPx()
+                val horizontalInsetPx = (16f * (1f - eased)).dp.toPx()
+
+                drawRoundRect(
+                    color = blendedBackground,
+                    topLeft = Offset(x = horizontalInsetPx, y = 0f),
+                    size = Size(
+                        width = size.width - (horizontalInsetPx * 2),
+                        height = size.height
+                    ),
+                    cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx)
+                )
             }
             .noRippleClickable { onUiEvent(PlayerUiEvent.CloseSheet) }
     ) {
-        val constraints = this@BoxWithConstraints
-
-        // ── 1. Progress bar (minibar only) ──────────────────────────────────
-        MiniProgressBar(
-            musicPlayer = musicPlayer,
-            currentFractionProvider = currentFractionProvider,
-            animatedColor = animatedColor
-        )
-
-        // ── 2. Album art + minimized controls ───────────────────────────────
-        PlayBarSwipeActions(
-            songIcon = songIcon,
-            highResIcon = artworkUrl,
-            currentFractionProvider = currentFractionProvider,
-            constraints = constraints,
-            title = title,
-            onSkipNextPressed = { onAction(PlayerAction.SkipNext) },
-            onSkipPreviousPressed = { onAction(PlayerAction.SkipPrevious) },
-            painterLoaded = { onUiEvent(PlayerUiEvent.PainterLoaded(it)) },
-            onFavoritePressed = { songId, songTitle, songUser, songIconList, isFav ->
-                onAction(PlayerAction.ToggleFavorite(songId, songTitle, songUser, songIconList, isFav))
-            },
-            newDominantColor = { color ->
-                val extracted = Color(color)
-                targetColor = androidx.compose.ui.graphics.lerp(extracted, primaryThemeColor, 0.3f)
-                onUiEvent(PlayerUiEvent.DominantColorExtracted(color))
-            },
-            playBarMinimizedClicked = { onUiEvent(PlayerUiEvent.Expand) },
-            playbackState = playbackState
-        )
-
-        // ── 3. Top section: collapse arrow + more (expanded only) ───────────
-        Box(
+        BoxWithConstraints(
             modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopCenter)
-        ) {
-            PlayBarTopSection(
+                .fillMaxSize()
+                .layout { measurable, constraints ->
+                    val fraction = currentFractionProvider()
+                    val eased = FastOutSlowInEasing.transform(fraction)
+                    val horizontalPaddingPx = (16f * (1f - eased)).dp.toPx().toInt()
+
+                    val minWidth = (constraints.minWidth - horizontalPaddingPx * 2).coerceAtLeast(0)
+                    val maxWidth = (constraints.maxWidth - horizontalPaddingPx * 2).coerceAtLeast(0)
+
+                    val placeable = measurable.measure(
+                        androidx.compose.ui.unit.Constraints(
+                            minWidth = minWidth,
+                            maxWidth = maxWidth,
+                            minHeight = constraints.minHeight,
+                            maxHeight = constraints.maxHeight
+                        )
+                    )
+
+                    layout(constraints.maxWidth, constraints.maxHeight) {
+                        placeable.place(horizontalPaddingPx, 0)
+                    }
+                }
+                .graphicsLayer {
+                    val fraction = currentFractionProvider()
+                    val eased = FastOutSlowInEasing.transform(fraction)
+                    val cornerRadiusPx = (16f * (1f - eased)).dp.toPx()
+                    shape = RoundedCornerShape(cornerRadiusPx)
+                    clip = true
+                }
+        ) playerBox@ {
+            val playerConstraints = this@playerBox
+
+            // ── 1. Progress bar (minibar only) ──────────────────────────────────
+            MiniProgressBar(
+                musicPlayer = musicPlayer,
                 currentFractionProvider = currentFractionProvider,
-                onCollapsedClicked = { onUiEvent(PlayerUiEvent.Collapse) }
+                animatedColor = animatedColor
             )
-        }
 
-        // ── 4. Playback controls + seek bar (fade in after 40% expanded) ────
-        AnimatedVisibility(
-            visible = isMaximizedControlsVisible,
-            enter = fadeIn(tween(220)) + slideInVertically(
-                tween(280), initialOffsetY = { it / 3 }
-            ),
-            exit = fadeOut(tween(160)) + slideOutVertically(
-                tween(200), targetOffsetY = { it / 3 }
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 56.dp + bottomSafeArea)
-        ) {
-            PlayBarActionsMaximized(
-                uiState = uiState,
-                layoutInfo = layoutInfo,
-                onAction = onAction,
-                onUiEvent = onUiEvent
+            // ── 2. Album art + minimized controls ───────────────────────────────
+            PlayBarSwipeActions(
+                songIcon = songIcon,
+                highResIcon = artworkUrl,
+                currentFractionProvider = currentFractionProvider,
+                constraints = playerConstraints,
+                title = title,
+                onSkipNextPressed = { onAction(PlayerAction.SkipNext) },
+                onSkipPreviousPressed = { onAction(PlayerAction.SkipPrevious) },
+                painterLoaded = { onUiEvent(PlayerUiEvent.PainterLoaded(it)) },
+                newDominantColor = { color ->
+                    val extracted = Color(color)
+                    targetColor = androidx.compose.ui.graphics.lerp(extracted, primaryThemeColor, 0.3f)
+                    onUiEvent(PlayerUiEvent.DominantColorExtracted(color))
+                },
+                playBarMinimizedClicked = { onUiEvent(PlayerUiEvent.Expand) },
+                playbackState = playbackState
             )
-        }
 
-        // ── 5. Bottom tabs (UP NEXT / LYRICS / RELATED) ─────────────────────
-        AnimatedVisibility(
-            visible = isBottomTabsVisible,
-            enter = fadeIn(tween(180)) + slideInVertically(
-                tween(220), initialOffsetY = { it / 2 }
-            ),
-            exit = fadeOut(tween(130)) + slideOutVertically(
-                tween(160), targetOffsetY = { it / 2 }
-            )
-        ) {
-            PlayerBottomTabs(
-                maxHeight = constraints.maxHeight,
-                bottomPadding = bottomPadding,
-                uiState = uiState,
-                onAction = onAction
-            )
+            // ── 3. Top section: collapse arrow + more (expanded only) ───────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+            ) {
+                PlayBarTopSection(
+                    currentFractionProvider = currentFractionProvider,
+                    onCollapsedClicked = { onUiEvent(PlayerUiEvent.Collapse) }
+                )
+            }
+
+            // ── 4. Playback controls + seek bar (fade in after 40% expanded) ────
+            AnimatedVisibility(
+                visible = isMaximizedControlsVisible,
+                enter = fadeIn(tween(220)) + slideInVertically(
+                    tween(280), initialOffsetY = { it / 3 }
+                ),
+                exit = fadeOut(tween(160)) + slideOutVertically(
+                    tween(200), targetOffsetY = { it / 3 }
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 56.dp + bottomSafeArea)
+            ) {
+                PlayBarActionsMaximized(
+                    uiState = uiState,
+                    layoutInfo = layoutInfo,
+                    onAction = onAction,
+                    onUiEvent = onUiEvent
+                )
+            }
+
+            // ── 5. Bottom tabs (UP NEXT / LYRICS / RELATED) ─────────────────────
+            AnimatedVisibility(
+                visible = isBottomTabsVisible,
+                enter = fadeIn(tween(180)) + slideInVertically(
+                    tween(220), initialOffsetY = { it / 2 }
+                ),
+                exit = fadeOut(tween(130)) + slideOutVertically(
+                    tween(160), targetOffsetY = { it / 2 }
+                )
+            ) {
+                PlayerBottomTabs(
+                    maxHeight = playerConstraints.maxHeight,
+                    bottomPadding = bottomPadding,
+                    uiState = uiState,
+                    onAction = onAction
+                )
+            }
         }
     }
 }

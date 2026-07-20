@@ -58,6 +58,8 @@ import com.rld.justlisten.ui.actions.FeedAction
 import com.rld.justlisten.ui.artistprofile.components.ConnectPromptDialog
 import com.rld.justlisten.ui.components.AnimatedShimmer
 import com.rld.justlisten.ui.components.MusicLoadingScreen
+import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
+import com.rld.justlisten.navigation.LocalUseNativeNavigation
 import com.rld.justlisten.ui.seeallscreen.formatCount
 import com.rld.justlisten.ui.theme.typography
 import com.rld.justlisten.viewmodel.feed.FeedState
@@ -86,6 +88,8 @@ fun FeedScreen(
     val playbackState by musicPlayer.playbackState.collectAsState()
     val currentPlayingSongId = playbackState.currentMedia?.id
     val isPlaying = playbackState.status == PlaybackStatus.PLAYING
+    val useNativeNavigation = LocalUseNativeNavigation.current
+    val bottomContentPadding = maxOf(80.dp, LocalNativeBottomOverlayPadding.current)
     if (feedState.showConnectPrompt) {
         ConnectPromptDialog(
             onDismissRequest = { onAction(FeedAction.DismissConnectPrompt) },
@@ -94,6 +98,12 @@ fun FeedScreen(
     }
 
     Scaffold(
+        contentWindowInsets = if (useNativeNavigation) {
+            WindowInsets(0, 0, 0, 0)
+        } else {
+            ScaffoldDefaults.contentWindowInsets
+        },
+        containerColor = if (useNativeNavigation) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
@@ -276,7 +286,10 @@ fun FeedScreen(
                             LazyColumn(
                                 state = listState,
                                 modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(top = 8.dp, bottom = 80.dp)
+                                contentPadding = PaddingValues(
+                                    top = 8.dp,
+                                    bottom = bottomContentPadding
+                                )
                             ) {
                                 itemsIndexed(feedState.items, key = { _, item -> item.id }) { index, item ->
                                     val isPlayingThisSong = isPlaying && item.id == currentPlayingSongId

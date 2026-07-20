@@ -33,6 +33,8 @@ import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.ui.components.MusicLoadingSpinner
 import com.rld.justlisten.ui.utils.playMusicFromId
 import com.rld.justlisten.viewmodel.screens.library.LibraryState
+import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
+import com.rld.justlisten.navigation.LocalUseNativeNavigation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +46,8 @@ fun MusicInsightsScreen(
     onLoadMoreMostPlayed: (Int) -> Unit
 ) {
     val context = LocalPlatformContext.current
+    val useNativeNavigation = LocalUseNativeNavigation.current
+    val bottomContentPadding = LocalNativeBottomOverlayPadding.current
     val totalPlays = libraryState.totalPlays
     val isNewUser = totalPlays == 0
     val topArtistName = libraryState.topArtistName
@@ -71,6 +75,12 @@ fun MusicInsightsScreen(
     val hoursListened = libraryState.hoursPlayed
 
     Scaffold(
+        contentWindowInsets = if (useNativeNavigation) {
+            WindowInsets(0, 0, 0, 0)
+        } else {
+            ScaffoldDefaults.contentWindowInsets
+        },
+        containerColor = if (useNativeNavigation) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
@@ -183,7 +193,9 @@ fun MusicInsightsScreen(
                     .padding(innerPadding)
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(bottom = 24.dp)
+                contentPadding = PaddingValues(
+                    bottom = maxOf(24.dp, bottomContentPadding)
+                )
             ) {
                 // 1. Core Stats Row Grid
                 item {
@@ -518,4 +530,3 @@ fun MusicInsightsScreen(
         }
     }
 }
-

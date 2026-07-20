@@ -16,6 +16,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import coil3.compose.rememberAsyncImagePainter
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
+import coil3.request.CachePolicy
+import coil3.request.crossfade
 import coil3.asImage
 import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.ui.loadingscreen.LoadingScreen
@@ -63,7 +65,11 @@ fun PlaylistDetailScreen(
         val painter = rememberAsyncImagePainter(
             model = remember(imageUrl, context) {
                 ImageRequest.Builder(context = context)
-                    .data(imageUrl).build()
+                    .data(imageUrl)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .crossfade(false)
+                    .build()
             }
         )
 
@@ -139,4 +145,3 @@ fun PlaylistDetailScreen(
         }
     }
 }
-

@@ -65,6 +65,7 @@ import com.rld.justlisten.viewmodel.screens.search.SearchScreenState
 import com.rld.justlisten.viewmodel.screens.search.SearchSeeAllType
 import com.rld.justlisten.viewmodel.screens.search.TrackItem
 import com.rld.justlisten.ui.actions.SearchScreenAction
+import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalComposeUiApi
@@ -75,6 +76,7 @@ fun SearchScreen(
 ) {
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState(0)
+    val bottomContentPadding = LocalNativeBottomOverlayPadding.current
     var active by rememberSaveable { mutableStateOf(false) }
 
     Box(
@@ -124,6 +126,7 @@ fun SearchScreen(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .verticalScroll(rememberScrollState())
+                                .padding(bottom = bottomContentPadding)
                         ) {
                             if (searchScreenState.searchFor.isBlank()) {
                                 ShowPreviousSearches(
@@ -165,6 +168,7 @@ fun SearchScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(scrollState)
+                            .padding(bottom = bottomContentPadding)
                     ) {
                         when {
                             searchScreenState.isLoading -> {
@@ -217,6 +221,7 @@ fun SeeAllSearchContainer(
     searchScreenState: SearchScreenState,
     onAction: (SearchScreenAction) -> Unit
 ) {
+    val bottomContentPadding = LocalNativeBottomOverlayPadding.current
     val title = when (searchScreenState.seeAllType) {
         SearchSeeAllType.SONGS -> "Songs"
         SearchSeeAllType.PLAYLISTS -> "Playlists & Albums"
@@ -276,7 +281,9 @@ fun SeeAllSearchContainer(
                     LazyColumn(
                         state = listState,
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 16.dp)
+                        contentPadding = PaddingValues(
+                            bottom = maxOf(16.dp, bottomContentPadding)
+                        )
                     ) {
                         items(searchScreenState.seeAllTracks, key = { it.id }) { track ->
                             TrackSeeAllRow(
@@ -330,7 +337,12 @@ fun SeeAllSearchContainer(
                         columns = GridCells.Fixed(2),
                         state = gridState,
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            top = 8.dp,
+                            end = 16.dp,
+                            bottom = maxOf(8.dp, bottomContentPadding)
+                        ),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
@@ -387,7 +399,12 @@ fun SeeAllSearchContainer(
                         columns = GridCells.Fixed(3),
                         state = gridState,
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            top = 8.dp,
+                            end = 16.dp,
+                            bottom = maxOf(8.dp, bottomContentPadding)
+                        ),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {

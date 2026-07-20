@@ -5,3 +5,6 @@ import android.os.Build
 actual val hasDynamicThemeSupport: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 actual val isIos: Boolean = false
 actual val appVersion: String = com.rld.justlisten.BuildConfig.ANDROID_VERSION_NAME
+actual val supportsLiquidGlassNavigation: Boolean = false
+actual fun isLiquidGlassNavigationEnabled(): Boolean = false
+actual fun setLiquidGlassNavigationEnabled(enabled: Boolean) = Unit

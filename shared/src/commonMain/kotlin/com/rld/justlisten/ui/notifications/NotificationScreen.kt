@@ -32,6 +32,8 @@ import com.rld.justlisten.datalayer.webservices.ApiClient
 import com.rld.justlisten.datalayer.webservices.apis.writecalls.followUser
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
+import com.rld.justlisten.navigation.LocalUseNativeNavigation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +45,8 @@ fun NotificationScreen(
     val notificationRepository = koinInject<NotificationRepository>()
     val apiClient = koinInject<ApiClient>()
     val coroutineScope = rememberCoroutineScope()
+    val useNativeNavigation = LocalUseNativeNavigation.current
+    val bottomContentPadding = LocalNativeBottomOverlayPadding.current
 
     var notifications by remember { mutableStateOf<List<FollowNotificationUIModel>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -59,6 +63,12 @@ fun NotificationScreen(
     }
 
     Scaffold(
+        contentWindowInsets = if (useNativeNavigation) {
+            WindowInsets(0, 0, 0, 0)
+        } else {
+            ScaffoldDefaults.contentWindowInsets
+        },
+        containerColor = if (useNativeNavigation) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
@@ -111,7 +121,12 @@ fun NotificationScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        top = 16.dp,
+                        end = 16.dp,
+                        bottom = maxOf(16.dp, bottomContentPadding)
+                    ),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(notifications) { notification ->
