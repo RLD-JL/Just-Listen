@@ -23,6 +23,7 @@ import com.rld.justlisten.viewmodel.screens.addplaylist.AddPlaylistState
 
 import com.rld.justlisten.ui.actions.AddPlaylistAction
 import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
+import com.rld.justlisten.navigation.LocalUseNativeNavigation
 
 @Composable
 fun AddPlaylistScreen(
@@ -30,13 +31,16 @@ fun AddPlaylistScreen(
     onAction: (AddPlaylistAction) -> Unit
 ) {
     val openDialog = remember { mutableStateOf(false) }
+    val useNativeNavigation = LocalUseNativeNavigation.current
     val bottomContentPadding = LocalNativeBottomOverlayPadding.current
     Column(Modifier.fillMaxWidth()) {
-        IconButton(modifier = Modifier.size(48.dp), onClick = { onAction(AddPlaylistAction.BackPressed(true)) }) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = null,
-            )
+        if (!useNativeNavigation) {
+            IconButton(modifier = Modifier.size(48.dp), onClick = { onAction(AddPlaylistAction.BackPressed(true)) }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = null,
+                )
+            }
         }
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
