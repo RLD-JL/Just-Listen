@@ -167,8 +167,14 @@ class PlayHistoryTrackerTest {
         override fun playMedia(mediaId: String) {}
         override fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>) {}
         override fun refreshMetadata() {}
+        override fun updateCurrentTrackRepostState(
+            songId: String,
+            isReposted: Boolean,
+            repostCount: Int,
+        ) {}
         override fun updateTrackMetadata(
             songId: String,
+            isReposted: Boolean,
             repostCount: Int,
             favoriteCount: Int,
             commentCount: Int,

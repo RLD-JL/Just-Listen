@@ -48,6 +48,13 @@ class PlayerViewModel(
     private var recommendedOffset = 0
     private val autoplayedTrackIds = mutableSetOf<String>()
     private var playNextWhenRecommendationsLoaded = false
+    private data class RepostOperation(
+        var desiredState: Boolean,
+        var confirmedState: Boolean,
+        var confirmedCount: Int,
+    )
+
+    private val repostOperations = mutableMapOf<String, RepostOperation>()
 
     init {
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
@@ -73,6 +80,8 @@ class PlayerViewModel(
                                 if (details != null) {
                                     musicPlayer.updateTrackMetadata(
                                         songId = trackId,
+                                        isReposted = details.hasCurrentUserReposted ||
+                                            playlistRepository.isTrackReposted(trackId),
                                         repostCount = details.repostCount,
                                         favoriteCount = details.favoriteCount,
                                         commentCount = details.commentCount,
@@ -316,19 +325,99 @@ class PlayerViewModel(
     }
 
     fun toggleRepost(songId: String, isRepost: Boolean) {
-        if (authRepository.sessionState.value is com.rld.justlisten.datalayer.repositories.SessionState.Guest) {
-            _showConnectPrompt.value = true
+        if (authRepository.sessionState.value !is SessionState.Authenticated) {
+            if (authRepository.sessionState.value is SessionState.Guest) {
+                _showConnectPrompt.value = true
+            }
             return
         }
-        viewModelScope.launch {
-            val success = if (isRepost) {
-                playlistRepository.repostTrack(songId)
+
+        val currentMedia = musicPlayer.playbackState.value.currentMedia
+        val existingOperation = repostOperations[songId]
+        val operation = existingOperation ?: RepostOperation(
+            desiredState = isRepost,
+            confirmedState = currentMedia?.isReposted ?: !isRepost,
+            confirmedCount = currentMedia?.repostCount ?: 0,
+        ).also { repostOperations[songId] = it }
+        operation.desiredState = isRepost
+
+        val optimisticRepostCount = currentMedia?.let { media ->
+            if (media.isReposted == isRepost) {
+                media.repostCount
             } else {
-                playlistRepository.unrepostTrack(songId)
+                (media.repostCount + if (isRepost) 1 else -1).coerceAtLeast(0)
             }
-            if (success) {
-                musicPlayer.refreshMetadata()
+        } ?: operation.confirmedCount
+
+        currentMedia?.takeIf { it.id == songId }?.let {
+            musicPlayer.updateCurrentTrackRepostState(
+                songId = songId,
+                isReposted = isRepost,
+                repostCount = optimisticRepostCount,
+            )
+        }
+
+        // An existing worker will observe desiredState after its current request
+        // finishes and perform the next operation if the user tapped again.
+        if (existingOperation != null) return
+
+        viewModelScope.launch {
+            try {
+                while (true) {
+                    val activeOperation = repostOperations[songId] ?: break
+                    val requestedState = activeOperation.desiredState
+
+                    if (requestedState != activeOperation.confirmedState) {
+                        val success = if (requestedState) {
+                            playlistRepository.repostTrack(songId)
+                        } else {
+                            playlistRepository.unrepostTrack(songId)
+                        }
+
+                        if (success) {
+                            activeOperation.confirmedCount = (
+                                activeOperation.confirmedCount + if (requestedState) 1 else -1
+                            ).coerceAtLeast(0)
+                            activeOperation.confirmedState = requestedState
+                        } else if (activeOperation.desiredState == requestedState) {
+                            // No newer tap superseded the failed request, so return
+                            // the visible control to the last server-confirmed state.
+                            updateVisibleRepostState(songId, activeOperation)
+                            break
+                        }
+                    }
+
+                    if (activeOperation.desiredState == activeOperation.confirmedState) {
+                        syncRepostStateToQueue(songId, activeOperation)
+                        break
+                    }
+                }
+            } finally {
+                repostOperations.remove(songId)
             }
+        }
+    }
+
+    private fun updateVisibleRepostState(songId: String, operation: RepostOperation) {
+        musicPlayer.updateCurrentTrackRepostState(
+            songId = songId,
+            isReposted = operation.confirmedState,
+            repostCount = operation.confirmedCount,
+        )
+    }
+
+    private fun syncRepostStateToQueue(songId: String, operation: RepostOperation) {
+        val media = musicPlayer.playbackState.value.currentMedia
+        if (media?.id == songId) {
+            musicPlayer.updateTrackMetadata(
+                songId = songId,
+                isReposted = operation.confirmedState,
+                repostCount = operation.confirmedCount,
+                favoriteCount = media.favoriteCount,
+                commentCount = media.commentCount,
+                playCount = media.playCount,
+                artistId = media.artistId,
+            )
         }
     }
 }

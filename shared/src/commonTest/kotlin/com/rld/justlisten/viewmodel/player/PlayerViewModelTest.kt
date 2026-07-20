@@ -22,6 +22,7 @@ import com.rld.justlisten.datalayer.repositories.FeedRepository
 import com.rld.justlisten.datalayer.repositories.SettingsRepository
 import com.rld.justlisten.database.settingsscreen.SettingsInfo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -239,23 +240,106 @@ class PlayerViewModelTest {
             verified = false
         )
         fakeAuthRepo.setSessionState(SessionState.Authenticated(dummyProfile))
+        fakeMusicPlayer.setPlaybackMedia(
+            MediaMetadata(
+                id = "song123",
+                title = "Song",
+                artist = "Artist",
+                duration = 180_000L,
+                repostCount = 3,
+            )
+        )
 
         viewModel.onAction(PlayerAction.ToggleRepost("song123", isRepost = true))
+
+        // The visible player state changes before the network coroutine runs.
+        assertTrue(fakeMusicPlayer.playbackState.value.currentMedia?.isReposted == true)
+        assertEquals(4, fakeMusicPlayer.playbackState.value.currentMedia?.repostCount)
+
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertFalse(viewModel.playerUiState.value.showConnectPrompt)
         assertTrue(fakePlaylistRepo.isTrackReposted("song123"))
-        assertTrue(fakeMusicPlayer.refreshMetadataCalled)
+        assertTrue(fakeMusicPlayer.playbackState.value.currentMedia?.isReposted == true)
+        assertEquals(4, fakeMusicPlayer.playbackState.value.currentMedia?.repostCount)
 
         // Now unrepost
-        fakeMusicPlayer.refreshMetadataCalled = false
         viewModel.onAction(PlayerAction.ToggleRepost("song123", isRepost = false))
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertFalse(fakePlaylistRepo.isTrackReposted("song123"))
-        assertTrue(fakeMusicPlayer.refreshMetadataCalled)
+        assertFalse(fakeMusicPlayer.playbackState.value.currentMedia?.isReposted == true)
+        assertEquals(3, fakeMusicPlayer.playbackState.value.currentMedia?.repostCount)
 
         collectJob.cancel()
+    }
+
+    @Test
+    fun testToggleRepostRollsBackWhenRequestFails() = runTest(testDispatcher) {
+        fakeAuthRepo.setSessionState(
+            SessionState.Authenticated(
+                com.rld.justlisten.datalayer.webservices.apis.authcalls.MeResponse(
+                    userId = "user123",
+                    name = "Test User",
+                    handle = "testuser",
+                )
+            )
+        )
+        fakePlaylistRepo.repostRequestSucceeds = false
+        fakeMusicPlayer.setPlaybackMedia(
+            MediaMetadata(
+                id = "song123",
+                title = "Song",
+                artist = "Artist",
+                duration = 180_000L,
+                repostCount = 3,
+            )
+        )
+
+        viewModel.onAction(PlayerAction.ToggleRepost("song123", isRepost = true))
+        testDispatcher.scheduler.runCurrent()
+
+        assertFalse(fakeMusicPlayer.playbackState.value.currentMedia?.isReposted == true)
+        assertEquals(3, fakeMusicPlayer.playbackState.value.currentMedia?.repostCount)
+    }
+
+    @Test
+    fun testToggleRepostAcceptsSecondTapWhileRequestIsRunning() = runTest(testDispatcher) {
+        fakeAuthRepo.setSessionState(
+            SessionState.Authenticated(
+                com.rld.justlisten.datalayer.webservices.apis.authcalls.MeResponse(
+                    userId = "user123",
+                    name = "Test User",
+                    handle = "testuser",
+                )
+            )
+        )
+        val repostGate = CompletableDeferred<Unit>()
+        fakePlaylistRepo.repostRequestGate = repostGate
+        fakeMusicPlayer.setPlaybackMedia(
+            MediaMetadata(
+                id = "song123",
+                title = "Song",
+                artist = "Artist",
+                duration = 180_000L,
+                repostCount = 3,
+            )
+        )
+
+        viewModel.onAction(PlayerAction.ToggleRepost("song123", isRepost = true))
+        testDispatcher.scheduler.runCurrent()
+        assertTrue(fakeMusicPlayer.playbackState.value.currentMedia?.isReposted == true)
+
+        viewModel.onAction(PlayerAction.ToggleRepost("song123", isRepost = false))
+        assertFalse(fakeMusicPlayer.playbackState.value.currentMedia?.isReposted == true)
+        assertEquals(3, fakeMusicPlayer.playbackState.value.currentMedia?.repostCount)
+
+        repostGate.complete(Unit)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertFalse(fakePlaylistRepo.isTrackReposted("song123"))
+        assertFalse(fakeMusicPlayer.playbackState.value.currentMedia?.isReposted == true)
+        assertEquals(3, fakeMusicPlayer.playbackState.value.currentMedia?.repostCount)
     }
 
     @Test
@@ -647,14 +731,62 @@ class FakeMusicPlayer : MusicPlayer {
         refreshMetadataCalled = true
     }
 
+    override fun updateCurrentTrackRepostState(
+        songId: String,
+        isReposted: Boolean,
+        repostCount: Int,
+    ) {
+        _playbackState.value = _playbackState.value.copy(
+            currentMedia = _playbackState.value.currentMedia?.let { media ->
+                if (media.id == songId) {
+                    media.copy(isReposted = isReposted, repostCount = repostCount)
+                } else {
+                    media
+                }
+            }
+        )
+    }
+
     override fun updateTrackMetadata(
         songId: String,
+        isReposted: Boolean,
         repostCount: Int,
         favoriteCount: Int,
         commentCount: Int,
         playCount: Int,
         artistId: String
-    ) {}
+    ) {
+        _currentPlaylist.value = _currentPlaylist.value.map { media ->
+            if (media.id == songId) {
+                media.copy(
+                    isReposted = isReposted,
+                    repostCount = repostCount,
+                    favoriteCount = favoriteCount,
+                    commentCount = commentCount,
+                    playCount = playCount,
+                    artistId = artistId,
+                )
+            } else {
+                media
+            }
+        }
+        _playbackState.value = _playbackState.value.copy(
+            currentMedia = _playbackState.value.currentMedia?.let { media ->
+                if (media.id == songId) {
+                    media.copy(
+                        isReposted = isReposted,
+                        repostCount = repostCount,
+                        favoriteCount = favoriteCount,
+                        commentCount = commentCount,
+                        playCount = playCount,
+                        artistId = artistId,
+                    )
+                } else {
+                    media
+                }
+            }
+        )
+    }
 
     fun setPlaybackStatus(status: PlaybackStatus) {
         _playbackState.value = _playbackState.value.copy(status = status)
@@ -677,6 +809,8 @@ class FakePlaylistRepository : PlaylistRepository {
     override val repostedPlaylistIdsFlow = _repostedPlaylistIds.asStateFlow()
 
     var mockTracks: List<TrackItem> = emptyList()
+    var repostRequestSucceeds = true
+    var repostRequestGate: CompletableDeferred<Unit>? = null
 
     override fun isTrackReposted(id: String): Boolean = _repostedTrackIds.value.contains(id)
     override fun setTrackReposted(id: String, reposted: Boolean) {
@@ -688,10 +822,13 @@ class FakePlaylistRepository : PlaylistRepository {
     }
 
     override suspend fun repostTrack(trackId: String): Boolean {
+        repostRequestGate?.await()
+        if (!repostRequestSucceeds) return false
         setTrackReposted(trackId, true)
         return true
     }
     override suspend fun unrepostTrack(trackId: String): Boolean {
+        if (!repostRequestSucceeds) return false
         setTrackReposted(trackId, false)
         return true
     }

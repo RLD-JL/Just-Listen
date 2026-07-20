@@ -88,7 +88,7 @@ class PlaylistRepositoryImpl(
     override suspend fun repostTrack(trackId: String): Boolean {
         return runCatching {
             val response = webservices.repostTrack(trackId)
-            if (response?.error == null) {
+            if (response != null && response.error == null) {
                 setTrackReposted(trackId, true)
                 true
             } else {
@@ -100,7 +100,7 @@ class PlaylistRepositoryImpl(
     override suspend fun unrepostTrack(trackId: String): Boolean {
         return runCatching {
             val response = webservices.unrepostTrack(trackId)
-            if (response?.error == null) {
+            if (response != null && response.error == null) {
                 setTrackReposted(trackId, false)
                 true
             } else {
@@ -112,7 +112,7 @@ class PlaylistRepositoryImpl(
     override suspend fun repostPlaylist(playlistId: String): Boolean {
         return runCatching {
             val response = webservices.repostPlaylist(playlistId)
-            if (response?.error == null) {
+            if (response != null && response.error == null) {
                 setPlaylistReposted(playlistId, true)
                 true
             } else {
@@ -124,7 +124,7 @@ class PlaylistRepositoryImpl(
     override suspend fun unrepostPlaylist(playlistId: String): Boolean {
         return runCatching {
             val response = webservices.unrepostPlaylist(playlistId)
-            if (response?.error == null) {
+            if (response != null && response.error == null) {
                 setPlaylistReposted(playlistId, false)
                 true
             } else {

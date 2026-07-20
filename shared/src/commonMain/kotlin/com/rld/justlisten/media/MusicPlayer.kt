@@ -59,8 +59,14 @@ interface MusicPlayer {
     }
     fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>)
     fun refreshMetadata()
+    fun updateCurrentTrackRepostState(
+        songId: String,
+        isReposted: Boolean,
+        repostCount: Int,
+    )
     fun updateTrackMetadata(
         songId: String,
+        isReposted: Boolean,
         repostCount: Int,
         favoriteCount: Int,
         commentCount: Int,
