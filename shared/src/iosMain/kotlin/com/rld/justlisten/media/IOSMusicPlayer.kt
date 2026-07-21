@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.suspendCancellableCoroutine
 import platform.CoreFoundation.CFRelease
 import com.rld.justlisten.viewmodel.interfaces.Item
 import com.rld.justlisten.datalayer.repositories.FavoritesRepository
@@ -32,6 +33,7 @@ import platform.UIKit.UIImage
 import platform.MediaToolbox.*
 import platform.AudioToolbox.*
 import kotlin.math.pow
+import kotlin.coroutines.resume
 
 class IOSMusicPlayer(
     private val favoritesRepository: FavoritesRepository,
@@ -83,25 +85,12 @@ class IOSMusicPlayer(
     private var repeatMode = RepeatMode.NONE
     private var favoriteIdsSet = emptySet<String>()
 
-    private val eqLock = kotlinx.atomicfu.locks.SynchronizedObject()
-    private val eqStorage: CPointer<FloatVar> by lazy {
-        nativeHeap.allocArray<FloatVar>(74).apply {
-            this[0] = 0.0f
-            this[71] = 0.0f
-            this[72] = 1.0f
-            this[73] = 0.0f
-        }
-    }
-    // Separate EQ filter state for the secondary player to prevent data races
-    // during crossfade when both players' audio taps run concurrently.
-    private val eqStorage2: CPointer<FloatVar> by lazy {
-        nativeHeap.allocArray<FloatVar>(74).apply {
-            this[0] = 0.0f
-            this[71] = 0.0f
-            this[72] = 1.0f
-            this[73] = 0.0f
-        }
-    }
+    // Each physical AVQueuePlayer has its own native EQ. During a crossfade both
+    // units render concurrently, so they must not share render state.
+    private val eqProcessor1 = NativeAudioUnitEqProcessor()
+    private val eqProcessor2 = NativeAudioUnitEqProcessor()
+    private val eqProcessorRef1 = StableRef.create(eqProcessor1)
+    private val eqProcessorRef2 = StableRef.create(eqProcessor2)
     
     private var lastLoadedArtworkUrl: String? = null
     private var lastLoadedArtwork: UIImage? = null
@@ -130,21 +119,12 @@ class IOSMusicPlayer(
     init {
         scope.launch {
             settingsViewModel.settingsState.collect { state ->
-                kotlinx.atomicfu.locks.synchronized(eqLock) {
-                    val eqEnabled = if (state.isEqEnabled) 1.0f else 0.0f
-                    val normEnabled = if (state.isVolumeNormalizationEnabled) 1.0f else 0.0f
-                    // Update both storages so both players use current EQ settings
-                    for (storage in arrayOf(eqStorage, eqStorage2)) {
-                        storage[0] = eqEnabled
-                        for (i in 0 until 5) {
-                            val bandOffset = 1 + i * 14
-                            if (i < state.eqBands.size) {
-                                storage[bandOffset + 0] = state.eqBands[i]
-                            }
-                        }
-                        storage[72] = 1.0f
-                        storage[73] = normEnabled
-                    }
+                for (processor in arrayOf(eqProcessor1, eqProcessor2)) {
+                    processor.update(
+                        enabled = state.isEqEnabled,
+                        gains = state.eqBands,
+                        normalizeVolume = state.isVolumeNormalizationEnabled,
+                    )
                 }
             }
         }
@@ -456,25 +436,45 @@ class IOSMusicPlayer(
             }
         }
         if (playerItem != null) {
-            val (isEqEnabled, isNormEnabled) = kotlinx.coroutines.withContext(Dispatchers.Main) {
-                Pair(
-                    settingsRepository.getSettingsInfo().isEqEnabled,
-                    settingsRepository.isVolumeNormalizationEnabled
-                )
-            }
-            if (isEqEnabled || isNormEnabled) {
-                val storage = if (forSecondaryPlayer) eqStorage2 else eqStorage
-                configureAudioProcessingTap(playerItem, storage)
+            // Always attach the native processor and bypass it when disabled. If
+            // attachment depended on persisted settings, enabling EQ while a song
+            // was already playing only changed the UI; that item had no EQ path.
+            val targetPlayer = if (forSecondaryPlayer) secondaryPlayer else currentPlayer
+            val processorRef = if (targetPlayer === player1) eqProcessorRef1 else eqProcessorRef2
+            val audioTracks = loadAudioTracks(playerItem.asset)
+            if (audioTracks.isNotEmpty()) {
+                configureAudioProcessingTap(playerItem, audioTracks, processorRef)
+            } else {
+                // An empty AVAudioMix can silence an otherwise valid player
+                // item. Keep normal playback if iOS cannot expose the track.
+                Logger.w { "Skipping audio processing tap: asset has no loaded audio tracks" }
             }
         }
         playerItem
     }
 
-    private fun configureAudioProcessingTap(playerItem: AVPlayerItem, storage: CPointer<FloatVar> = eqStorage) {
+    private suspend fun loadAudioTracks(asset: AVAsset): List<AVAssetTrack> =
+        suspendCancellableCoroutine { continuation ->
+            asset.loadTracksWithMediaType(AVMediaTypeAudio) { tracks, error ->
+                if (error != null) {
+                    Logger.e { "Failed to load audio tracks for processing tap: ${error.localizedDescription}" }
+                }
+
+                if (continuation.isActive) {
+                    continuation.resume(tracks?.mapNotNull { it as? AVAssetTrack } ?: emptyList())
+                }
+            }
+        }
+
+    private fun configureAudioProcessingTap(
+        playerItem: AVPlayerItem,
+        audioTracks: List<AVAssetTrack>,
+        processorRef: StableRef<NativeAudioUnitEqProcessor>,
+    ) {
         memScoped {
             val callbacks = alloc<MTAudioProcessingTapCallbacks>()
             callbacks.version = kMTAudioProcessingTapCallbacksVersion_0
-            callbacks.clientInfo = storage
+            callbacks.clientInfo = processorRef.asCPointer()
             
             callbacks.init = staticCFunction { tap, clientInfo, tapStorageOut ->
                 tapStorageOut?.pointed?.value = clientInfo
@@ -483,39 +483,33 @@ class IOSMusicPlayer(
                 // Owned by player
             }
             callbacks.prepare = staticCFunction { tap, maxFrames, processingFormat ->
-                val statePtr = MTAudioProcessingTapGetStorage(tap)?.reinterpret<FloatVar>()
-                if (statePtr != null && processingFormat != null) {
-                    val asbd = processingFormat.pointed
-                    statePtr[71] = asbd.mSampleRate.toFloat()
-                    statePtr[72] = 1.0f // request recalculation
+                val stablePointer = MTAudioProcessingTapGetStorage(tap)
+                if (stablePointer != null && processingFormat != null) {
+                    stablePointer.asStableRef<NativeAudioUnitEqProcessor>().get().prepare(
+                        stableRefPointer = stablePointer,
+                        maximumFrames = maxFrames,
+                        processingFormat = processingFormat,
+                    )
                 }
             }
             callbacks.unprepare = staticCFunction { tap ->
-                // No-op
+                MTAudioProcessingTapGetStorage(tap)
+                    ?.asStableRef<NativeAudioUnitEqProcessor>()
+                    ?.get()
+                    ?.unprepare()
             }
             callbacks.process = staticCFunction { tap, numberFrames, flags, bufferListInOut, numberFramesOut, flagsOut ->
+                val processor = MTAudioProcessingTapGetStorage(tap)
+                    ?.asStableRef<NativeAudioUnitEqProcessor>()
+                    ?.get()
+                    ?: return@staticCFunction
                 val status = MTAudioProcessingTapGetSourceAudio(tap, numberFrames, bufferListInOut, flagsOut, null, numberFramesOut)
                 if (status != 0 || bufferListInOut == null) {
                     return@staticCFunction
                 }
 
-                val statePtr = MTAudioProcessingTapGetStorage(tap)?.reinterpret<FloatVar>() ?: return@staticCFunction
                 val framesToProcess = numberFramesOut?.pointed?.value ?: numberFrames
-
-                if (statePtr[72] > 0.5f) {
-                    computeCoefficients(statePtr)
-                }
-
-                val bufferList = bufferListInOut.pointed
-                val numBuffers = bufferList.mNumberBuffers.toInt()
-                
-                for (b in 0 until numBuffers) {
-                    val audioBuffer = bufferList.mBuffers[b]
-                    val mData = audioBuffer.mData?.reinterpret<FloatVar>() ?: continue
-                    val channels = audioBuffer.mNumberChannels.toInt()
-                    val chIndex = if (b == 0) 0 else 1
-                    processAudioSamples(statePtr, mData, framesToProcess.toInt(), channels, chIndex)
-                }
+                processor.process(bufferListInOut, framesToProcess)
             }
 
             val tapVar = alloc<MTAudioProcessingTapRefVar>()
@@ -523,10 +517,8 @@ class IOSMusicPlayer(
             if (status == 0) {
                 val tap = tapVar.value
                 val audioMix = AVMutableAudioMix.audioMix()
-                val audioTracks = playerItem.asset.tracksWithMediaType(AVMediaTypeAudio)
                 val inputParametersList = mutableListOf<AVMutableAudioMixInputParameters>()
-                for (trackObj in audioTracks) {
-                    val track = trackObj as? AVAssetTrack ?: continue
+                for (track in audioTracks) {
                     val inputParams = AVMutableAudioMixInputParameters.audioMixInputParametersWithTrack(track)
                     inputParams.setAudioTapProcessor(tap)
                     inputParametersList.add(inputParams)
@@ -961,17 +953,8 @@ class IOSMusicPlayer(
         }
         val nextMetadata = playlistItems[nextIndex]
 
-        // Reset biquad delay-line state in eqStorage2 for the new crossfade
-        for (i in 0 until 5) {
-            val bandOffset = 1 + i * 14
-            for (j in 6..13) {
-                eqStorage2[bandOffset + j] = 0.0f
-            }
-        }
         crossfadeJob = scope.launch(Dispatchers.Main) {
-            // Always create a fresh item with eqStorage2 for the secondary player.
-            // The preloaded item was configured with eqStorage (primary) and cannot
-            // be safely reused on the secondary player during crossfade.
+            // Use a fresh item bound to the secondary physical player's EQ unit.
             val nextItem = createPlayerItem(nextMetadata.id, forSecondaryPlayer = true)
      
             if (nextItem == null) {
@@ -1427,7 +1410,9 @@ class IOSMusicPlayer(
         artworkCache.clear()
         lastLoadedArtwork = null
 
-        nativeHeap.free(eqStorage)
-        nativeHeap.free(eqStorage2)
+        eqProcessor1.unprepare()
+        eqProcessor2.unprepare()
+        eqProcessorRef1.dispose()
+        eqProcessorRef2.dispose()
     }
 }

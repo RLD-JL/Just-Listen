@@ -6,6 +6,42 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.PI
 
+internal const val AUDIO_PROCESSOR_STATE_SIZE = 77
+internal const val AUDIO_TAP_FORMAT_SUPPORTED_INDEX = 74
+internal const val AUDIO_TAP_PROCESS_LOGGED_INDEX = 75
+internal const val AUDIO_TAP_PREPARE_LOGGED_INDEX = 76
+internal const val AUDIO_FORMAT_LINEAR_PCM: UInt = 0x6C70636Du // 'lpcm'
+internal const val AUDIO_FORMAT_FLAG_IS_FLOAT: UInt = 1u
+internal const val AUDIO_FORMAT_FLAG_IS_BIG_ENDIAN: UInt = 2u
+internal const val AUDIO_FORMAT_FLAG_IS_NON_INTERLEAVED: UInt = 32u
+
+internal fun isSupportedFloat32PcmFormat(
+    formatId: UInt,
+    formatFlags: UInt,
+    bitsPerChannel: UInt,
+    bytesPerFrame: UInt,
+    channelsPerFrame: UInt,
+): Boolean {
+    if (formatId != AUDIO_FORMAT_LINEAR_PCM) return false
+    if ((formatFlags and AUDIO_FORMAT_FLAG_IS_FLOAT) == 0u) return false
+    if ((formatFlags and AUDIO_FORMAT_FLAG_IS_BIG_ENDIAN) != 0u) return false
+    if (bitsPerChannel != 32u || channelsPerFrame !in 1u..2u) return false
+
+    val isNonInterleaved = (formatFlags and AUDIO_FORMAT_FLAG_IS_NON_INTERLEAVED) != 0u
+    val expectedBytesPerFrame = if (isNonInterleaved) 4u else 4u * channelsPerFrame
+    return bytesPerFrame == expectedBytesPerFrame
+}
+
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
+fun resetAudioFilterHistory(statePtr: CPointer<FloatVar>) {
+    for (i in 0 until 5) {
+        val bandOffset = 1 + i * 14
+        for (j in 6..13) {
+            statePtr[bandOffset + j] = 0.0f
+        }
+    }
+}
+
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 fun computeCoefficients(statePtr: CPointer<FloatVar>) {
     val sampleRate = statePtr[71]
@@ -16,7 +52,11 @@ fun computeCoefficients(statePtr: CPointer<FloatVar>) {
         val bandOffset = 1 + i * 14
         val gainDb = statePtr[bandOffset + 0]
         val A = 10.0.pow(gainDb.toDouble() / 40.0).toFloat()
-        val w0 = (2.0f * PI.toFloat() * centerFreqs[i] / sampleRate)
+        // A biquad center frequency at or above Nyquist is unstable. Some tracks
+        // are decoded at 22.05 kHz, where the 14 kHz band used to poison the
+        // filter state with infinities and make the rest of the song silent.
+        val safeCenterFrequency = centerFreqs[i].coerceAtMost(sampleRate * 0.45f)
+        val w0 = (2.0f * PI.toFloat() * safeCenterFrequency / sampleRate)
         val cosW0 = cos(w0)
         val sinW0 = sin(w0)
         val alpha = sinW0 / (2.0f * Qs[i])
@@ -64,11 +104,15 @@ fun processAudioSamples(statePtr: CPointer<FloatVar>, mData: CPointer<FloatVar>,
                     val y2_l = statePtr[bandOffset + 9]
 
                     val outL = b0 * sampleL + b1 * x1_l + b2 * x2_l - a1 * y1_l - a2 * y2_l
-                    statePtr[bandOffset + 7] = x1_l
-                    statePtr[bandOffset + 6] = sampleL
-                    statePtr[bandOffset + 9] = y1_l
-                    statePtr[bandOffset + 8] = outL
-                    sampleL = outL
+                    if (outL.isFinite()) {
+                        statePtr[bandOffset + 7] = x1_l
+                        statePtr[bandOffset + 6] = sampleL
+                        statePtr[bandOffset + 9] = y1_l
+                        statePtr[bandOffset + 8] = outL
+                        sampleL = outL
+                    } else {
+                        for (j in 6..9) statePtr[bandOffset + j] = 0.0f
+                    }
 
                     val x1_r = statePtr[bandOffset + 10]
                     val x2_r = statePtr[bandOffset + 11]
@@ -76,11 +120,15 @@ fun processAudioSamples(statePtr: CPointer<FloatVar>, mData: CPointer<FloatVar>,
                     val y2_r = statePtr[bandOffset + 13]
 
                     val outR = b0 * sampleR + b1 * x1_r + b2 * x2_r - a1 * y1_r - a2 * y2_r
-                    statePtr[bandOffset + 11] = x1_r
-                    statePtr[bandOffset + 10] = sampleR
-                    statePtr[bandOffset + 13] = y1_r
-                    statePtr[bandOffset + 12] = outR
-                    sampleR = outR
+                    if (outR.isFinite()) {
+                        statePtr[bandOffset + 11] = x1_r
+                        statePtr[bandOffset + 10] = sampleR
+                        statePtr[bandOffset + 13] = y1_r
+                        statePtr[bandOffset + 12] = outR
+                        sampleR = outR
+                    } else {
+                        for (j in 10..13) statePtr[bandOffset + j] = 0.0f
+                    }
                 }
             }
 
@@ -123,11 +171,18 @@ fun processAudioSamples(statePtr: CPointer<FloatVar>, mData: CPointer<FloatVar>,
                     val y2 = statePtr[bandOffset + y2Idx]
 
                     val out = b0 * sample + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2
-                    statePtr[bandOffset + x2Idx] = x1
-                    statePtr[bandOffset + x1Idx] = sample
-                    statePtr[bandOffset + y2Idx] = y1
-                    statePtr[bandOffset + y1Idx] = out
-                    sample = out
+                    if (out.isFinite()) {
+                        statePtr[bandOffset + x2Idx] = x1
+                        statePtr[bandOffset + x1Idx] = sample
+                        statePtr[bandOffset + y2Idx] = y1
+                        statePtr[bandOffset + y1Idx] = out
+                        sample = out
+                    } else {
+                        statePtr[bandOffset + x1Idx] = 0.0f
+                        statePtr[bandOffset + x2Idx] = 0.0f
+                        statePtr[bandOffset + y1Idx] = 0.0f
+                        statePtr[bandOffset + y2Idx] = 0.0f
+                    }
                 }
             }
 

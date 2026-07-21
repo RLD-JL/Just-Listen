@@ -66,7 +66,10 @@ fun LibraryScreen(
             RowListOfRecentActivity(
                 libraryState,
                 onSongClicked = { item ->
-                    playMusicFromId(musicPlayer, libraryState.recentSongsItems, item.id)
+                    // A Last Played item is an individual play request. Keeping
+                    // the queue to one song lets autoplay continue with similar
+                    // music instead of walking backward through listening history.
+                    playMusicFromId(musicPlayer, listOf(item), item.id)
                 },
                 lasItemReached = { onAction(LibraryScreenAction.LastItemReached(it)) },
                 lastIndexReached = libraryState.lastIndexReached,

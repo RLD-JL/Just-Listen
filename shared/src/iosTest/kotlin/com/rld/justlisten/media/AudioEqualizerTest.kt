@@ -6,6 +6,7 @@ import kotlin.math.PI
 import kotlin.math.sqrt
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
@@ -185,5 +186,82 @@ class AudioEqualizerTest {
             nativeHeap.free(buffer)
             nativeHeap.free(state)
         }
+    }
+
+    @Test
+    fun testLowSampleRatePresetsRemainFiniteAndAudible() {
+        val sampleRate = 22050f
+        val numSamples = 4096
+        val inputSignal = generateSineWave(1000f, sampleRate, numSamples, amplitude = 0.1f)
+        val presets = mapOf(
+            "Flat" to listOf(0f, 0f, 0f, 0f, 0f),
+            "Bass Booster" to listOf(6f, 4f, 0f, 0f, 0f),
+            "Rock" to listOf(4f, 2f, -2f, 2f, 5f),
+            "Pop" to listOf(-2f, 1f, 4f, 2f, -2f),
+            "Classical" to listOf(4f, 2f, 0f, 3f, 4f),
+            "Vocal Booster" to listOf(-3f, 0f, 5f, 4f, -1f),
+        )
+
+        presets.forEach { (name, bands) ->
+            val state = nativeHeap.allocArray<FloatVar>(AUDIO_PROCESSOR_STATE_SIZE)
+            for (i in 0 until AUDIO_PROCESSOR_STATE_SIZE) state[i] = 0.0f
+            state[0] = 1.0f
+            state[71] = sampleRate
+            bands.forEachIndexed { index, gain ->
+                state[1 + index * 14] = gain
+            }
+            computeCoefficients(state)
+
+            val buffer = nativeHeap.allocArray<FloatVar>(numSamples)
+            for (i in 0 until numSamples) buffer[i] = inputSignal[i]
+            processAudioSamples(state, buffer, numSamples, channels = 1)
+
+            val output = FloatArray(numSamples) { buffer[it] }
+            assertTrue(output.all { it.isFinite() }, "$name produced non-finite samples")
+            assertTrue(calculateRMS(output) > 0.001f, "$name unexpectedly muted the signal")
+
+            nativeHeap.free(buffer)
+            nativeHeap.free(state)
+        }
+    }
+
+    @Test
+    fun testTapFormatValidation() {
+        assertTrue(
+            isSupportedFloat32PcmFormat(
+                formatId = AUDIO_FORMAT_LINEAR_PCM,
+                formatFlags = AUDIO_FORMAT_FLAG_IS_FLOAT,
+                bitsPerChannel = 32u,
+                bytesPerFrame = 8u,
+                channelsPerFrame = 2u,
+            )
+        )
+        assertTrue(
+            isSupportedFloat32PcmFormat(
+                formatId = AUDIO_FORMAT_LINEAR_PCM,
+                formatFlags = AUDIO_FORMAT_FLAG_IS_FLOAT or AUDIO_FORMAT_FLAG_IS_NON_INTERLEAVED,
+                bitsPerChannel = 32u,
+                bytesPerFrame = 4u,
+                channelsPerFrame = 2u,
+            )
+        )
+        assertFalse(
+            isSupportedFloat32PcmFormat(
+                formatId = AUDIO_FORMAT_LINEAR_PCM,
+                formatFlags = 0u,
+                bitsPerChannel = 16u,
+                bytesPerFrame = 4u,
+                channelsPerFrame = 2u,
+            )
+        )
+        assertFalse(
+            isSupportedFloat32PcmFormat(
+                formatId = AUDIO_FORMAT_LINEAR_PCM,
+                formatFlags = AUDIO_FORMAT_FLAG_IS_FLOAT or AUDIO_FORMAT_FLAG_IS_BIG_ENDIAN,
+                bitsPerChannel = 32u,
+                bytesPerFrame = 8u,
+                channelsPerFrame = 2u,
+            )
+        )
     }
 }

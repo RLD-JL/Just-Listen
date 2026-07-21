@@ -130,6 +130,35 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun testEqualizerPreviewCanCancelOrSave() = runTest(testDispatcher) {
+        testDispatcher.scheduler.advanceUntilIdle()
+        val rockBands = listOf(4f, 2f, -2f, 2f, 5f)
+
+        viewModel.previewEqualizerSettings(true, "Rock", rockBands)
+        assertTrue(viewModel.settingsState.value.isEqEnabled)
+        assertEquals(rockBands, viewModel.settingsState.value.eqBands)
+        assertEquals(false, fakeSettingsRepo.getSettingsInfo().isEqEnabled)
+
+        viewModel.cancelEqualizerPreview()
+        assertEquals(false, viewModel.settingsState.value.isEqEnabled)
+        assertEquals("Flat", viewModel.settingsState.value.eqPreset)
+
+        viewModel.previewEqualizerSettings(true, "Rock", rockBands)
+        viewModel.saveEqualizerPreview(true, "Rock", rockBands)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        var retries = 100
+        while (!fakeSettingsRepo.getSettingsInfo().isEqEnabled && retries > 0) {
+            delay(10)
+            retries--
+        }
+
+        assertTrue(fakeSettingsRepo.getSettingsInfo().isEqEnabled)
+        assertEquals("Rock", fakeSettingsRepo.getSettingsInfo().eqPreset)
+        assertEquals(rockBands.joinToString(","), fakeSettingsRepo.getSettingsInfo().eqBands)
+    }
+
+    @Test
     fun testSessionRestorationRetriesUntilAuthenticated() = runTest(testDispatcher) {
         val restoringAuthRepository = FakeAuthRepository().apply {
             sessionState.value = com.rld.justlisten.datalayer.repositories.SessionState.Restoring

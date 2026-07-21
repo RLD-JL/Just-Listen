@@ -26,6 +26,13 @@ class SettingsViewModel(
     private val syncRepository: SyncRepository,
     private val apiClient: ApiClient,
 ) : BaseScreenViewModel() {
+    private data class EqualizerDraft(
+        val enabled: Boolean,
+        val preset: String,
+        val bands: List<Float>,
+    )
+
+    private var equalizerPreviewOriginal: EqualizerDraft? = null
     
     private val _settingsState = MutableStateFlow(SettingsState())
     val settingsState: StateFlow<SettingsState> = _settingsState.asStateFlow()
@@ -162,10 +169,41 @@ class SettingsViewModel(
     }
 
     fun onEqualizerSettingsChanged(enabled: Boolean, preset: String, bands: List<Float>) {
+        saveEqualizerPreview(enabled, preset, bands)
+    }
+
+    fun previewEqualizerSettings(enabled: Boolean, preset: String, bands: List<Float>) {
+        if (equalizerPreviewOriginal == null) {
+            val current = _settingsState.value
+            equalizerPreviewOriginal = EqualizerDraft(
+                enabled = current.isEqEnabled,
+                preset = current.eqPreset,
+                bands = current.eqBands.toList(),
+            )
+        }
         _settingsState.value = _settingsState.value.copy(
             isEqEnabled = enabled,
             eqPreset = preset,
-            eqBands = bands
+            eqBands = bands.toList(),
+        )
+    }
+
+    fun cancelEqualizerPreview() {
+        val original = equalizerPreviewOriginal ?: return
+        equalizerPreviewOriginal = null
+        _settingsState.value = _settingsState.value.copy(
+            isEqEnabled = original.enabled,
+            eqPreset = original.preset,
+            eqBands = original.bands,
+        )
+    }
+
+    fun saveEqualizerPreview(enabled: Boolean, preset: String, bands: List<Float>) {
+        equalizerPreviewOriginal = null
+        _settingsState.value = _settingsState.value.copy(
+            isEqEnabled = enabled,
+            eqPreset = preset,
+            eqBands = bands.toList(),
         )
         persistSettings()
     }

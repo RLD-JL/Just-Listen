@@ -22,6 +22,9 @@ fun BottomSheetSettings(
     sheetMode: SheetMode,
     settings: SettingsState,
     updateSettings: (SettingsState) -> Unit,
+    previewEqualizerSettings: (Boolean, String, List<Float>) -> Unit,
+    saveEqualizerSettings: (Boolean, String, List<Float>) -> Unit,
+    cancelEqualizerPreview: () -> Unit,
     scaffoldState: BottomSheetScaffoldState,
     coroutineScope: CoroutineScope
 ) {
@@ -36,7 +39,9 @@ fun BottomSheetSettings(
             SheetMode.Equalizer -> {
                 EqualizerEditorSheet(
                     settings = settings,
-                    updateSettings = updateSettings,
+                    previewSettings = previewEqualizerSettings,
+                    saveSettings = saveEqualizerSettings,
+                    cancelPreview = cancelEqualizerPreview,
                     scaffoldState = scaffoldState,
                     coroutineScope = coroutineScope
                 )

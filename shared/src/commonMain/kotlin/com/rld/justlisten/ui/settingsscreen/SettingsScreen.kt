@@ -57,6 +57,9 @@ import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
 fun SettingsScreen(
     settings: SettingsState,
     updateSettings: (SettingsState) -> Unit,
+    previewEqualizerSettings: (Boolean, String, List<Float>) -> Unit = { _, _, _ -> },
+    saveEqualizerSettings: (Boolean, String, List<Float>) -> Unit = { _, _, _ -> },
+    cancelEqualizerPreview: () -> Unit = {},
     onNavigateToCustomTheme: () -> Unit,
     onLogin: (String) -> Unit = {},
     onLogout: () -> Unit = {},
@@ -90,6 +93,9 @@ fun SettingsScreen(
                 sheetMode = activeSheetMode,
                 settings = settings,
                 updateSettings = updateSettings,
+                previewEqualizerSettings = previewEqualizerSettings,
+                saveEqualizerSettings = saveEqualizerSettings,
+                cancelEqualizerPreview = cancelEqualizerPreview,
                 scaffoldState = scaffoldState,
                 coroutineScope = coroutineScope
             )

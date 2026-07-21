@@ -59,6 +59,9 @@ fun SettingsScreenHost(navController: NavHostController) {
                 )
             }
         },
+        previewEqualizerSettings = viewModel::previewEqualizerSettings,
+        saveEqualizerSettings = viewModel::saveEqualizerPreview,
+        cancelEqualizerPreview = viewModel::cancelEqualizerPreview,
         onNavigateToCustomTheme = {
             iosCallbacks?.onNavigate?.invoke(Route.CustomTheme)
                 ?: navController.navigate(Route.CustomTheme)
