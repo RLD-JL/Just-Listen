@@ -73,6 +73,7 @@ fun SettingsScreenHost(navController: NavHostController) {
             }
         },
         onLogout = viewModel::logout,
+        onRetrySessionRestoration = viewModel::retrySessionRestoration,
         onRetrySync = viewModel::retryFailedSync,
         onClearSync = viewModel::clearFailedSync,
         onNavigateToMyProfile = { userId, name ->

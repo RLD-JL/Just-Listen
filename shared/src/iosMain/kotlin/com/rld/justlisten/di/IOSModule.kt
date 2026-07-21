@@ -81,6 +81,16 @@ fun loginWithCode(code: String, redirectUri: String) {
     }
 }
 
+fun retrySessionRestoration() {
+    try {
+        val settingsViewModel = org.koin.mp.KoinPlatform.getKoin()
+            .get<com.rld.justlisten.viewmodel.settings.SettingsViewModel>()
+        settingsViewModel.retrySessionRestoration()
+    } catch (e: Exception) {
+        co.touchlab.kermit.Logger.e(e) { "Unable to retry iOS session restoration" }
+    }
+}
+
 fun handleDeepLink(url: String) {
     try {
         com.rld.justlisten.util.DeepLinkRouter.handleDeepLink(url)

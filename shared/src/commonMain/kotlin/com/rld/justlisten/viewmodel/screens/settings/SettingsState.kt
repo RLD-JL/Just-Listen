@@ -20,6 +20,7 @@ data class SettingsState(
     val isFirstLaunch: Boolean = true,
     val isSettingsLoaded: Boolean = false,
     val sessionState: SessionState = SessionState.Guest,
+    val isSessionRecoveryExhausted: Boolean = false,
     val syncState: SyncState = SyncState.Synced,
     val favoriteTracks: List<PlayListModel> = emptyList(),
     val favoritePlaylists: List<PlayListModel> = emptyList(),

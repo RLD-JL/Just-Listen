@@ -11,6 +11,7 @@ struct ComposeView: UIViewControllerRepresentable {
 
 struct ContentView: View {
     @AppStorage("useLiquidGlassNavigation") private var useLiquidGlassNavigation = true
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
@@ -25,6 +26,11 @@ struct ContentView: View {
         .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
             if let url = activity.webpageURL {
                 handleDeepLink(url)
+            }
+        }
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .active {
+                IOSModuleKt.retrySessionRestoration()
             }
         }
         .preferredColorScheme(.dark)

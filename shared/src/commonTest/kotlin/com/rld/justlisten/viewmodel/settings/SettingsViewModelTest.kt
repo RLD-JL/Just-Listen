@@ -185,7 +185,7 @@ class SettingsViewModelTest {
         )
 
         runCurrent()
-        assertEquals(1, restoringAuthRepository.refreshSessionCalls)
+        assertEquals(0, restoringAuthRepository.refreshSessionCalls)
         assertTrue(
             restoringViewModel.settingsState.value.sessionState is
                 com.rld.justlisten.datalayer.repositories.SessionState.Restoring
@@ -194,9 +194,63 @@ class SettingsViewModelTest {
         advanceTimeBy(1_001L)
         runCurrent()
 
+        assertEquals(1, restoringAuthRepository.refreshSessionCalls)
+        advanceTimeBy(2_001L)
+        runCurrent()
+
         assertEquals(2, restoringAuthRepository.refreshSessionCalls)
         assertTrue(
             restoringViewModel.settingsState.value.sessionState is
+                com.rld.justlisten.datalayer.repositories.SessionState.Authenticated
+        )
+    }
+
+    @Test
+    fun testSessionRestorationStopsAfterFiveAttempts() = runTest(testDispatcher) {
+        val restoringAuthRepository = FakeAuthRepository().apply {
+            sessionState.value = com.rld.justlisten.datalayer.repositories.SessionState.Restoring
+        }
+        val restoringViewModel = SettingsViewModel(
+            fakeSettingsRepo,
+            restoringAuthRepository,
+            fakeSyncRepo,
+            apiClient,
+        )
+
+        runCurrent()
+        advanceTimeBy(31_001L)
+        runCurrent()
+
+        assertEquals(5, restoringAuthRepository.refreshSessionCalls)
+        assertTrue(restoringViewModel.settingsState.value.isSessionRecoveryExhausted)
+    }
+
+    @Test
+    fun testOAuthProfileFailureStartsSessionRestoration() = runTest(testDispatcher) {
+        fakeAuthRepo.loginWithCodeHandler = {
+            sessionState.value = com.rld.justlisten.datalayer.repositories.SessionState.Restoring
+            false
+        }
+        fakeAuthRepo.refreshSessionHandler = {
+            sessionState.value = com.rld.justlisten.datalayer.repositories.SessionState.Authenticated(
+                com.rld.justlisten.datalayer.webservices.apis.authcalls.MeResponse(
+                    userId = "user-id",
+                    name = "Listener",
+                    handle = "listener",
+                )
+            )
+            true
+        }
+
+        viewModel.loginWithCode("code", "justlisten://oauth/callback")
+        runCurrent()
+        advanceTimeBy(1_001L)
+        runCurrent()
+
+        assertEquals(1, fakeAuthRepo.loginWithCodeCalls)
+        assertEquals(1, fakeAuthRepo.refreshSessionCalls)
+        assertTrue(
+            viewModel.settingsState.value.sessionState is
                 com.rld.justlisten.datalayer.repositories.SessionState.Authenticated
         )
     }
@@ -268,8 +322,13 @@ class FakeAuthRepository : com.rld.justlisten.datalayer.repositories.AuthReposit
     override val sessionState = kotlinx.coroutines.flow.MutableStateFlow<com.rld.justlisten.datalayer.repositories.SessionState>(com.rld.justlisten.datalayer.repositories.SessionState.Guest)
     var refreshSessionCalls = 0
     var refreshSessionHandler: suspend FakeAuthRepository.() -> Boolean = { false }
+    var loginWithCodeCalls = 0
+    var loginWithCodeHandler: suspend FakeAuthRepository.() -> Boolean = { false }
     override fun getAuthUrl(redirectUri: String): String = ""
-    override suspend fun loginWithCode(code: String, redirectUri: String): Boolean = false
+    override suspend fun loginWithCode(code: String, redirectUri: String): Boolean {
+        loginWithCodeCalls += 1
+        return loginWithCodeHandler()
+    }
     override fun logout() {}
     override suspend fun refreshSession(): Boolean {
         refreshSessionCalls += 1

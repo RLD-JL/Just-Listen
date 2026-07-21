@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
@@ -33,6 +34,7 @@ class SettingsViewModel(
     )
 
     private var equalizerPreviewOriginal: EqualizerDraft? = null
+    private var sessionRestorationJob: Job? = null
     
     private val _settingsState = MutableStateFlow(SettingsState())
     val settingsState: StateFlow<SettingsState> = _settingsState.asStateFlow()
@@ -40,21 +42,23 @@ class SettingsViewModel(
     init {
         loadSettings()
 
-        // Check/refresh existing session on launch
-        viewModelScope.launch {
-            var retryDelayMs = 1_000L
-            do {
-                authRepository.refreshSession()
-                if (authRepository.sessionState.value !is SessionState.Restoring) break
-                delay(retryDelayMs)
-                retryDelayMs = (retryDelayMs * 2).coerceAtMost(30_000L)
-            } while (true)
+        // Check/refresh an existing session on launch. Guest is already a
+        // resolved state, so it does not need a network request.
+        if (authRepository.sessionState.value !is SessionState.Guest) {
+            startSessionRestoration()
         }
 
         // Collect session state
         viewModelScope.launch {
             authRepository.sessionState.collect { session ->
-                _settingsState.value = _settingsState.value.copy(sessionState = session)
+                _settingsState.value = _settingsState.value.copy(
+                    sessionState = session,
+                    isSessionRecoveryExhausted = if (session is SessionState.Restoring) {
+                        _settingsState.value.isSessionRecoveryExhausted
+                    } else {
+                        false
+                    },
+                )
             }
         }
 
@@ -243,12 +247,47 @@ class SettingsViewModel(
     }
 
     fun loginWithCode(code: String, redirectUri: String) {
+        sessionRestorationJob?.cancel()
+        sessionRestorationJob = null
         viewModelScope.launch {
-            _settingsState.value = _settingsState.value.copy(isLoading = true)
+            _settingsState.value = _settingsState.value.copy(
+                isLoading = true,
+                isSessionRecoveryExhausted = false,
+            )
             val success = authRepository.loginWithCode(code, redirectUri)
             _settingsState.value = _settingsState.value.copy(isLoading = false)
             if (success) {
                 completeOnboarding()
+            } else if (authRepository.sessionState.value is SessionState.Restoring) {
+                startSessionRestoration()
+            }
+        }
+    }
+
+    fun retrySessionRestoration() {
+        if (authRepository.sessionState.value is SessionState.Restoring) {
+            startSessionRestoration()
+        }
+    }
+
+    private fun startSessionRestoration() {
+        if (sessionRestorationJob?.isActive == true) return
+
+        _settingsState.value = _settingsState.value.copy(isSessionRecoveryExhausted = false)
+        sessionRestorationJob = viewModelScope.launch {
+            for (delayMs in SESSION_RESTORE_DELAYS_MS) {
+                if (authRepository.sessionState.value !is SessionState.Restoring) return@launch
+                if (delayMs > 0L) delay(delayMs)
+                if (authRepository.sessionState.value !is SessionState.Restoring) return@launch
+
+                authRepository.refreshSession()
+                if (authRepository.sessionState.value !is SessionState.Restoring) return@launch
+            }
+
+            if (authRepository.sessionState.value is SessionState.Restoring) {
+                _settingsState.value = _settingsState.value.copy(
+                    isSessionRecoveryExhausted = true,
+                )
             }
         }
     }
@@ -345,3 +384,5 @@ class SettingsViewModel(
         }
     }
 }
+
+private val SESSION_RESTORE_DELAYS_MS = longArrayOf(1_000L, 2_000L, 4_000L, 8_000L, 16_000L)
