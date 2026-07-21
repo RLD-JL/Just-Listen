@@ -139,12 +139,18 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun loginWithCode(code: String, redirectUri: String): Boolean {
-        return runCatching {
+        var credentialsStored = false
+        return try {
             val verifier = currentVerifier ?: secureStorage.getToken("code_verifier") ?: return false
             val tokenResponse = apiClient.exchangeCodeForTokens(code, verifier, redirectUri) ?: return false
             secureStorage.saveToken("access_token", tokenResponse.accessToken)
             secureStorage.saveToken("refresh_token", tokenResponse.refreshToken)
-            
+            credentialsStored = true
+            // Token exchange and profile loading are separate network requests.
+            // Publish the intermediate state so a transient /me failure can be
+            // retried without requiring the app to restart.
+            _sessionState.value = SessionState.Restoring
+
             // Fetch user profile
             val userProfile = apiClient.getMe()
             if (userProfile != null) {
@@ -177,8 +183,11 @@ class AuthRepositoryImpl(
             } else {
                 false
             }
-        }.getOrElse { exception ->
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Throwable) {
             co.touchlab.kermit.Logger.e(exception) { "AuthRepository: loginWithCode failed" }
+            if (credentialsStored) preserveSessionAfter(exception)
             false
         }
     }
