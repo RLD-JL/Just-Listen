@@ -104,13 +104,12 @@ class PlayerViewModel(
                 if (state.status == PlaybackStatus.STOPPED) {
                     val playlist = musicPlayer.currentPlaylist.value
                     val lastTrackInPlaylist = playlist.lastOrNull()
-                    if (lastTrackInPlaylist != null && lastTrackInPlaylist.id == lastPlayedTrackId) {
-                        viewModelScope.launch {
-                            val settingsInfo = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { settingsRepository.getSettingsInfo() }
-                            if (settingsInfo.isOngoingStreamEnabled) {
-                                playNextAutoplaySong()
-                            }
-                        }
+                    if (
+                        _isAutoplayEnabled.value &&
+                        lastTrackInPlaylist != null &&
+                        lastTrackInPlaylist.id == lastPlayedTrackId
+                    ) {
+                        playNextAutoplaySong()
                     }
                 }
             }
@@ -259,6 +258,10 @@ class PlayerViewModel(
                 musicPlayer.skipToPrevious()
             }
             is PlayerAction.ToggleAutoplay -> {
+                // Update playback behavior immediately. Persistence should not
+                // create a window where the UI says autoplay is enabled but an
+                // ending queue still observes the previous database value.
+                _isAutoplayEnabled.value = action.enabled
                 viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                     val settings = settingsRepository.getSettingsInfo()
                     settingsRepository.saveSettingsInfo(
@@ -272,7 +275,6 @@ class PlayerViewModel(
                         isFirstLaunch = settings.isFirstLaunch,
                         isOngoingStreamEnabled = action.enabled
                     )
-                    _isAutoplayEnabled.value = action.enabled
                 }
             }
             is PlayerAction.PlayRecommendedTrack -> {

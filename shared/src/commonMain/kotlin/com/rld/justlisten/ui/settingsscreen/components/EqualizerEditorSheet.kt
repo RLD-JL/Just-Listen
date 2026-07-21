@@ -28,15 +28,21 @@ import kotlinx.coroutines.launch
 @Composable
 fun EqualizerEditorSheet(
     settings: SettingsState,
-    updateSettings: (SettingsState) -> Unit,
+    previewSettings: (Boolean, String, List<Float>) -> Unit,
+    saveSettings: (Boolean, String, List<Float>) -> Unit,
+    cancelPreview: () -> Unit,
     scaffoldState: BottomSheetScaffoldState,
     coroutineScope: CoroutineScope
 ) {
     val isExpanded = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
     // Local state to allow saving on confirm rather than instant persist
-    var tempIsEqEnabled by remember(settings.isEqEnabled, isExpanded) { mutableStateOf(settings.isEqEnabled) }
-    var tempEqPreset by remember(settings.eqPreset, isExpanded) { mutableStateOf(settings.eqPreset) }
-    var tempEqBands by remember(settings.eqBands, isExpanded) { mutableStateOf(settings.eqBands) }
+    var tempIsEqEnabled by remember(isExpanded) { mutableStateOf(settings.isEqEnabled) }
+    var tempEqPreset by remember(isExpanded) { mutableStateOf(settings.eqPreset) }
+    var tempEqBands by remember(isExpanded) { mutableStateOf(settings.eqBands) }
+
+    LaunchedEffect(isExpanded) {
+        if (!isExpanded) cancelPreview()
+    }
 
     val presetsMap = mapOf(
         "Flat" to listOf(0f, 0f, 0f, 0f, 0f),
@@ -87,7 +93,10 @@ fun EqualizerEditorSheet(
             }
             Switch(
                 checked = tempIsEqEnabled,
-                onCheckedChange = { enabled -> tempIsEqEnabled = enabled },
+                onCheckedChange = { enabled ->
+                    tempIsEqEnabled = enabled
+                    previewSettings(enabled, tempEqPreset, tempEqBands)
+                },
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = MaterialTheme.colorScheme.primary,
                     checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
@@ -111,6 +120,7 @@ fun EqualizerEditorSheet(
                             tempEqPreset = presetName
                             presetsMap[presetName]?.let { bands ->
                                 tempEqBands = bands
+                                previewSettings(tempIsEqEnabled, presetName, bands)
                             }
                         },
                         label = { Text(presetName) },
@@ -268,6 +278,7 @@ fun EqualizerEditorSheet(
                                         updatedBands[i] = (newValue * 2).toInt() / 2f
                                         tempEqBands = updatedBands
                                         tempEqPreset = "Custom"
+                                        previewSettings(tempIsEqEnabled, "Custom", updatedBands)
                                     }
                                 },
                                 valueRange = -15f..15f,
@@ -324,6 +335,7 @@ fun EqualizerEditorSheet(
         ) {
             OutlinedButton(
                 onClick = {
+                    cancelPreview()
                     coroutineScope.launch {
                         scaffoldState.bottomSheetState.partialExpand()
                     }
@@ -338,13 +350,7 @@ fun EqualizerEditorSheet(
 
             Button(
                 onClick = {
-                    updateSettings(
-                        settings.copy(
-                            isEqEnabled = tempIsEqEnabled,
-                            eqPreset = tempEqPreset,
-                            eqBands = tempEqBands
-                        )
-                    )
+                    saveSettings(tempIsEqEnabled, tempEqPreset, tempEqBands)
                     coroutineScope.launch {
                         scaffoldState.bottomSheetState.partialExpand()
                     }

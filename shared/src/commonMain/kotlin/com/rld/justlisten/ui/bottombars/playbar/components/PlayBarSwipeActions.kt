@@ -113,15 +113,25 @@ fun PlayBarSwipeActions(
     LaunchedEffect(currentIndex, isExpanded.value, playlist.size) {
         if (isExpanded.value &&
             currentIndex in playlist.indices &&
-            !pagerState.isScrollInProgress &&
             pagerState.currentPage != currentIndex
         ) {
-            pagerState.animateScrollToPage(currentIndex)
+            // A playback transition is authoritative. In particular, a
+            // crossfade can complete while the pager is still settling from an
+            // earlier gesture/animation. Skipping here left the expanded
+            // artwork permanently on the outgoing track because none of these
+            // keys changed again. scrollToPage cancels that stale motion and
+            // synchronizes the image immediately with currentMedia.
+            pagerState.scrollToPage(currentIndex)
         }
     }
 
     val settledPage = pagerState.settledPage
-    LaunchedEffect(settledPage, isExpanded.value, playlist) {
+    // React only when the pager itself settles on another page. Including
+    // expansion or playlist updates as keys made opening the full player race
+    // with the currentMedia -> pager synchronization above: the stale visible
+    // page could start the outgoing song again and produce a back-and-forth
+    // flicker between tracks.
+    LaunchedEffect(settledPage) {
         if (isExpanded.value && currentIndex in playlist.indices) {
             playlist.getOrNull(settledPage)?.let { track ->
                 if (track.id != currentMedia?.id) {
@@ -327,6 +337,7 @@ fun PlayBarSwipeActions(
                         modifier = Modifier.fillMaxSize(),
                         pageSpacing = offsetX(1f, screenWidth, screenHeight).dp,
                         beyondViewportPageCount = 1,
+                        key = { page -> playlist[page].id },
                     ) { page ->
                         val track = playlist[page]
                         val pagePainter = rememberAsyncImagePainter(
