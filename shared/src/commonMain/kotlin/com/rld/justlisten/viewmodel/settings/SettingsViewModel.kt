@@ -385,4 +385,4 @@ class SettingsViewModel(
     }
 }
 
-private val SESSION_RESTORE_DELAYS_MS = longArrayOf(0L, 1_000L, 2_000L, 4_000L, 8_000L)
+private val SESSION_RESTORE_DELAYS_MS = longArrayOf(1_000L, 2_000L, 4_000L, 8_000L, 16_000L)

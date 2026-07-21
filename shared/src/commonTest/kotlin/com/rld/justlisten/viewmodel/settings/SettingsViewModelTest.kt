@@ -185,13 +185,17 @@ class SettingsViewModelTest {
         )
 
         runCurrent()
-        assertEquals(1, restoringAuthRepository.refreshSessionCalls)
+        assertEquals(0, restoringAuthRepository.refreshSessionCalls)
         assertTrue(
             restoringViewModel.settingsState.value.sessionState is
                 com.rld.justlisten.datalayer.repositories.SessionState.Restoring
         )
 
         advanceTimeBy(1_001L)
+        runCurrent()
+
+        assertEquals(1, restoringAuthRepository.refreshSessionCalls)
+        advanceTimeBy(2_001L)
         runCurrent()
 
         assertEquals(2, restoringAuthRepository.refreshSessionCalls)
@@ -214,7 +218,7 @@ class SettingsViewModelTest {
         )
 
         runCurrent()
-        advanceTimeBy(15_001L)
+        advanceTimeBy(31_001L)
         runCurrent()
 
         assertEquals(5, restoringAuthRepository.refreshSessionCalls)
@@ -239,6 +243,8 @@ class SettingsViewModelTest {
         }
 
         viewModel.loginWithCode("code", "justlisten://oauth/callback")
+        runCurrent()
+        advanceTimeBy(1_001L)
         runCurrent()
 
         assertEquals(1, fakeAuthRepo.loginWithCodeCalls)
