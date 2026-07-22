@@ -485,7 +485,7 @@ fun SettingsScreen(
                 SettingsClickableRow(
                     icon = Icons.Rounded.Snooze,
                     title = "Sleep Timer",
-                    subtitle = "Automatically close the application after timeout",
+                    subtitle = "Automatically pause playback after a set time",
                     onClick = {
                         activeSheetMode = com.rld.justlisten.ui.settingsscreen.components.SheetMode.SleepTimer
                         coroutineScope.launch {
@@ -523,7 +523,7 @@ fun SettingsScreen(
                                 tint = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "Sleeper active: closes in $countdownText",
+                                text = "Sleeper active: pauses in $countdownText",
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 fontSize = 15.sp
