@@ -312,7 +312,11 @@ fun AppNavigation(
                 androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth().height(450.dp)) {
                     com.rld.justlisten.ui.bottombars.sheets.components.CommentsView(
                         trackId = commTrackId,
-                        onCloseBottomSheet = { showCommentsTrackIdState.value = null }
+                        onCloseBottomSheet = { showCommentsTrackIdState.value = null },
+                        onUserProfileClick = { userId, userName ->
+                            showCommentsTrackIdState.value = null
+                            navController.navigate(Route.ArtistProfile(userId, userName))
+                        },
                     )
                 }
             }

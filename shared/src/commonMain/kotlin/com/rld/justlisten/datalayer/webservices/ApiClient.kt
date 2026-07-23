@@ -77,7 +77,10 @@ open class ApiClient(
                 header("Authorization", "Bearer $accessToken")
             }
             val userId = secureStorage.getToken("user_id")
-            if (!userId.isNullOrBlank() && !url.encodedPath.endsWith("/oauth/token")) {
+            if (!userId.isNullOrBlank() &&
+                !url.encodedPath.endsWith("/oauth/token") &&
+                url.parameters["user_id"].isNullOrBlank()
+            ) {
                 url.parameters.append("user_id", userId)
             }
         }
@@ -172,7 +175,10 @@ open class ApiClient(
         }
     }
 
-    suspend inline fun <reified T : Any> postResponse(endpoint: String, body: Any? = null): T? {
+    suspend inline fun <reified T : Any> postResponse(endpoint: String): T? =
+        postResponse<T, String>(endpoint, null)
+
+    suspend inline fun <reified T : Any, reified B : Any> postResponse(endpoint: String, body: B?): T? {
         val url = "${Constants.BASEURL}/v1$endpoint"
         Logger.d { "ApiClient: POST request to: $url" }
         return try {
@@ -258,15 +264,39 @@ open class ApiClient(
         }
     }
 
-    suspend inline fun <reified T : Any> deleteResponse(endpoint: String): T? {
+    suspend inline fun <reified T : Any> deleteResponse(endpoint: String): T? =
+        deleteResponse<T, String>(endpoint, null)
+
+    suspend inline fun <reified T : Any, reified B : Any> deleteResponse(
+        endpoint: String,
+        body: B?,
+    ): T? {
         val url = "${Constants.BASEURL}/v1$endpoint"
         return try {
             val tokenBeforeRequest = secureStorage.getToken("access_token")
-            var response = client.delete(url)
+            var response = client.delete(url) {
+                if (body != null) {
+                    if (body is String) {
+                        contentType(ContentType.Application.FormUrlEncoded)
+                    } else {
+                        contentType(ContentType.Application.Json)
+                    }
+                    setBody(body)
+                }
+            }
             if (response.status == HttpStatusCode.Unauthorized) {
                 val refreshed = refreshToken(tokenBeforeRequest)
                 if (refreshed) {
-                    response = client.delete(url)
+                    response = client.delete(url) {
+                        if (body != null) {
+                            if (body is String) {
+                                contentType(ContentType.Application.FormUrlEncoded)
+                            } else {
+                                contentType(ContentType.Application.Json)
+                            }
+                            setBody(body)
+                        }
+                    }
                 }
             }
             if (response.status.isSuccess()) {

@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 
 import com.rld.justlisten.datalayer.repositories.AuthRepository
@@ -40,6 +41,7 @@ class PlayerViewModel(
     private val feedRepository: FeedRepository,
     private val settingsRepository: SettingsRepository,
     private val syncRepository: SyncRepository,
+    private val ioDispatcher: CoroutineDispatcher,
 ) : BaseScreenViewModel() {
 
     private var fetchDetailsJob: kotlinx.coroutines.Job? = null
@@ -57,7 +59,7 @@ class PlayerViewModel(
     private val repostOperations = mutableMapOf<String, RepostOperation>()
 
     init {
-        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             val settings = settingsRepository.getSettingsInfo()
             _isAutoplayEnabled.value = settings.isOngoingStreamEnabled
         }
@@ -246,7 +248,7 @@ class PlayerViewModel(
                 val currentMedia = musicPlayer.playbackState.value.currentMedia
                 val currentIndex = playlist.indexOfFirst { it.id == currentMedia?.id }
                 viewModelScope.launch {
-                    val settings = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { settingsRepository.getSettingsInfo() }
+                    val settings = kotlinx.coroutines.withContext(ioDispatcher) { settingsRepository.getSettingsInfo() }
                     if (settings.isOngoingStreamEnabled && currentIndex == playlist.size - 1) {
                         playNextAutoplaySong()
                     } else {
@@ -262,7 +264,7 @@ class PlayerViewModel(
                 // create a window where the UI says autoplay is enabled but an
                 // ending queue still observes the previous database value.
                 _isAutoplayEnabled.value = action.enabled
-                viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                viewModelScope.launch(ioDispatcher) {
                     val settings = settingsRepository.getSettingsInfo()
                     settingsRepository.saveSettingsInfo(
                         hasNavigationSupportOn = settings.hasNavigationSupportOn,

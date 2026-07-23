@@ -73,7 +73,8 @@ class PlayerViewModelTest {
             authRepository = fakeAuthRepo,
             feedRepository = fakeFeedRepo,
             settingsRepository = fakeSettingsRepo,
-            syncRepository = fakeSyncRepo
+            syncRepository = fakeSyncRepo,
+            ioDispatcher = testDispatcher,
         )
     }
 
@@ -351,26 +352,12 @@ class PlayerViewModelTest {
         viewModel.onAction(PlayerAction.ToggleAutoplay(false))
         testDispatcher.scheduler.advanceUntilIdle()
 
-        var retries = 100
-        while (viewModel.playerUiState.value.isAutoplayEnabled && retries > 0) {
-            delay(10)
-            testDispatcher.scheduler.runCurrent()
-            retries--
-        }
-
         assertFalse(viewModel.playerUiState.value.isAutoplayEnabled)
         assertFalse(fakeSettingsRepo.getSettingsInfo().isOngoingStreamEnabled)
 
         // Toggle ON
         viewModel.onAction(PlayerAction.ToggleAutoplay(true))
         testDispatcher.scheduler.advanceUntilIdle()
-
-        retries = 100
-        while (!viewModel.playerUiState.value.isAutoplayEnabled && retries > 0) {
-            delay(10)
-            testDispatcher.scheduler.runCurrent()
-            retries--
-        }
 
         assertTrue(viewModel.playerUiState.value.isAutoplayEnabled)
         assertTrue(fakeSettingsRepo.getSettingsInfo().isOngoingStreamEnabled)

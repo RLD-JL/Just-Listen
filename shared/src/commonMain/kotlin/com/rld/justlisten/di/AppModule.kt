@@ -7,6 +7,8 @@ import com.rld.justlisten.viewmodel.playlistdetail.PlaylistDetailViewModel
 import com.rld.justlisten.viewmodel.search.SearchViewModel
 import com.rld.justlisten.viewmodel.settings.SettingsViewModel
 import com.rld.justlisten.viewmodel.player.PlayerViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import com.rld.justlisten.viewmodel.seeall.SeeAllViewModel
 import com.rld.justlisten.viewmodel.artistprofile.ArtistProfileViewModel
 import com.rld.justlisten.viewmodel.feed.FeedViewModel
@@ -44,5 +46,5 @@ fun appModule() = module {
     viewModel { FeedViewModel(get(), get(), get(), get()) }
     viewModel { ArtistDashboardViewModel(get(), get()) }
     single { SettingsViewModel(get(), get(), get(), get()) }
-    viewModel { PlayerViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { PlayerViewModel(get(), get(), get(), get(), get(), get(), get(), get(), Dispatchers.IO) }
 }

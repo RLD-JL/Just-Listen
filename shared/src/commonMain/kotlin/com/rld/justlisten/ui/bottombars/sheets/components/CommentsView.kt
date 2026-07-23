@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -30,9 +31,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.rld.justlisten.util.clipEntryOf
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -40,17 +48,26 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.Velocity
 import coil3.compose.rememberAsyncImagePainter
 import com.rld.justlisten.datalayer.models.Comment
 import com.rld.justlisten.datalayer.models.CommentUserProfile
+import com.rld.justlisten.datalayer.models.SongIconList
 import com.rld.justlisten.datalayer.repositories.AuthRepository
 import com.rld.justlisten.datalayer.repositories.SessionState
 import com.rld.justlisten.datalayer.webservices.ApiClient
 import com.rld.justlisten.datalayer.webservices.apis.commentcalls.getTrackComments
+import com.rld.justlisten.datalayer.webservices.apis.commentcalls.deleteComment
 import com.rld.justlisten.datalayer.webservices.apis.commentcalls.postComment
 import com.rld.justlisten.datalayer.webservices.apis.commentcalls.reactToComment
+import com.rld.justlisten.datalayer.webservices.apis.authcalls.getUserProfile
 import com.rld.justlisten.ui.LocalMusicPlayer
+import com.rld.justlisten.ui.extensions.noRippleClickable
 import com.rld.justlisten.ui.theme.typography
+import co.touchlab.kermit.Logger
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -58,13 +75,16 @@ import org.koin.compose.koinInject
 @Composable
 fun CommentsView(
     trackId: String,
-    onCloseBottomSheet: () -> Unit
+    onCloseBottomSheet: () -> Unit,
+    onUserProfileClick: (userId: String, userName: String) -> Unit,
 ) {
     val apiClient = koinInject<ApiClient>()
     val authRepository = koinInject<AuthRepository>()
     val settingsViewModel = koinInject<SettingsViewModel>()
     val settingsState by settingsViewModel.settingsState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     val sessionState by authRepository.sessionState.collectAsState()
     val isUserLoggedIn = sessionState is SessionState.Authenticated
@@ -75,28 +95,138 @@ fun CommentsView(
     var isLoading by remember { mutableStateOf(true) }
     var commentText by remember { mutableStateOf("") }
     var isPosting by remember { mutableStateOf(false) }
-    var selectedFilter by remember { mutableStateOf("Top") }
+    var commentErrorMessage by remember { mutableStateOf<String?>(null) }
+    var commentPendingDeletion by remember { mutableStateOf<Comment?>(null) }
+    var isDeletingComment by remember { mutableStateOf(false) }
+    var selectedFilter by remember { mutableStateOf(CommentSortOption.Top) }
+    var isCommentInputFocused by remember { mutableStateOf(false) }
+    var reactingCommentIds by remember { mutableStateOf(emptySet<String>()) }
+
+    val latestCommentInputFocused = rememberUpdatedState(isCommentInputFocused)
+    val dismissKeyboardOnDownwardSwipe = remember(focusManager, keyboardController) {
+        object : NestedScrollConnection {
+            private var isDismissingKeyboardForGesture = false
+
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (
+                    source == NestedScrollSource.UserInput &&
+                    available.y > 0f &&
+                    latestCommentInputFocused.value
+                ) {
+                    isDismissingKeyboardForGesture = true
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                }
+
+                return if (isDismissingKeyboardForGesture) available else Offset.Zero
+            }
+
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                if (!isDismissingKeyboardForGesture) return Velocity.Zero
+                isDismissingKeyboardForGesture = false
+                return available
+            }
+        }
+    }
 
     // Replying state representation
     var replyingToComment by remember { mutableStateOf<Comment?>(null) }
 
-    // Resolve track artist information for simulated reply interactions or references
     val musicPlayer = LocalMusicPlayer.current
     val currentMedia = musicPlayer.playbackState.collectAsState().value.currentMedia
-    val trackArtist = currentMedia?.artist ?: "Artist"
-    val trackArtistAvatar = currentMedia?.lowResArtworkUrl ?: currentMedia?.artworkUrl ?: "https://images.unsplash.com/photo-1534528741775-53994a69daeb"
 
     // Fetch comments function
     val loadComments: () -> Unit = {
         coroutineScope.launch {
             isLoading = true
-            val response = apiClient.getTrackComments(trackId, limit = 50, offset = 0)
-            if (response != null) {
-                commentsList = response.data
-                val users = response.related?.users ?: emptyList()
-                usersMap = users.associateBy { it.id }
+            try {
+                val response = apiClient.getTrackComments(trackId, limit = 50, offset = 0)
+                if (response != null) {
+                    commentsList = response.data
+                    val users = response.related?.users ?: emptyList()
+                    val relatedUsers = users.associateBy { it.id }
+                    usersMap = relatedUsers
+                    isLoading = false
+
+                    // Audius omits nested reply authors from related.users. Resolve only
+                    // those missing profiles so replies show their real name and avatar.
+                    val missingReplyAuthorIds = response.data
+                        .flatMap { it.replies.orEmpty() }
+                        .map { it.userId }
+                        .distinct()
+                        .filterNot(relatedUsers::containsKey)
+                    val replyAuthors = missingReplyAuthorIds.map { userId ->
+                        async {
+                            try {
+                                apiClient.getUserProfile(userId)?.let { profile ->
+                                    CommentUserProfile(
+                                        id = profile.id,
+                                        name = profile.name,
+                                        handle = profile.handle,
+                                        profilePicture = profile.profilePicture?.let { images ->
+                                            SongIconList(
+                                                songImageURL150px = images.image150.orEmpty(),
+                                                songImageURL480px = images.image480.orEmpty(),
+                                                songImageURL1000px = images.image1000.orEmpty(),
+                                            )
+                                        },
+                                        isVerified = profile.isVerified,
+                                    )
+                                }
+                            } catch (error: CancellationException) {
+                                throw error
+                            } catch (error: Exception) {
+                                Logger.w(error) { "Unable to load reply author $userId" }
+                                null
+                            }
+                        }
+                    }.awaitAll().filterNotNull()
+                    if (replyAuthors.isNotEmpty()) {
+                        usersMap = relatedUsers + replyAuthors.associateBy { it.id }
+                    }
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Logger.e(error) { "Unable to load comments for track $trackId" }
+            } finally {
+                isLoading = false
             }
-            isLoading = false
+        }
+    }
+
+    val submitComment: () -> Unit = submitComment@{
+        val text = commentText.trim()
+        val userId = currentUserId
+        if (text.isEmpty() || userId == null || isPosting) return@submitComment
+
+        isPosting = true
+        commentErrorMessage = null
+        coroutineScope.launch {
+            try {
+                val response = apiClient.postComment(
+                    userId = userId,
+                    trackId = trackId,
+                    message = text,
+                    parentId = replyingToComment?.id
+                )
+                if (response != null && response.error == null) {
+                    commentText = ""
+                    replyingToComment = null
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                    loadComments()
+                } else {
+                    commentErrorMessage = response?.error ?: "Comment could not be posted. Please try again."
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Logger.e(error) { "Unable to post comment for track $trackId" }
+                commentErrorMessage = "Comment could not be posted. Please try again."
+            } finally {
+                isPosting = false
+            }
         }
     }
 
@@ -104,11 +234,73 @@ fun CommentsView(
         loadComments()
     }
 
+    commentPendingDeletion?.let { comment ->
+        AlertDialog(
+            onDismissRequest = {
+                if (!isDeletingComment) commentPendingDeletion = null
+            },
+            title = { Text("Delete comment?") },
+            text = { Text("This comment will be permanently deleted from Audius.") },
+            confirmButton = {
+                TextButton(
+                    enabled = !isDeletingComment,
+                    onClick = {
+                        val userId = currentUserId ?: return@TextButton
+                        isDeletingComment = true
+                        commentErrorMessage = null
+                        coroutineScope.launch {
+                            try {
+                                val response = apiClient.deleteComment(userId, comment.id)
+                                if (response != null && response.error == null) {
+                                    commentsList = commentsList.filterNot { it.id == comment.id }
+                                    commentPendingDeletion = null
+                                    com.rld.justlisten.ui.utils.showToast("Comment deleted")
+                                    loadComments()
+                                } else {
+                                    commentErrorMessage = response?.error
+                                        ?: "Comment could not be deleted. Please try again."
+                                }
+                            } catch (error: CancellationException) {
+                                throw error
+                            } catch (error: Exception) {
+                                Logger.e(error) { "Unable to delete comment ${comment.id}" }
+                                commentErrorMessage = "Comment could not be deleted. Please try again."
+                            } finally {
+                                isDeletingComment = false
+                            }
+                        }
+                    },
+                ) {
+                    if (isDeletingComment) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    } else {
+                        Text("Delete", color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !isDeletingComment,
+                    onClick = { commentPendingDeletion = null },
+                ) {
+                    Text("Cancel")
+                }
+            },
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
             .background(MaterialTheme.colorScheme.background, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .noRippleClickable {
+                focusManager.clearFocus()
+                keyboardController?.hide()
+            }
             .padding(bottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding())
     ) {
         // Drag Handle / Header
@@ -186,12 +378,19 @@ fun CommentsView(
                         ?: "https://images.unsplash.com/photo-1534528741775-53994a69daeb"
                     Image(
                         painter = rememberAsyncImagePainter(currentUserAvatar),
-                        contentDescription = null,
+                        contentDescription = "Open your profile",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable {
+                                val profile = (sessionState as? SessionState.Authenticated)?.userProfile
+                                val userId = profile?.userId
+                                if (!userId.isNullOrBlank()) {
+                                    onUserProfileClick(userId, profile.name)
+                                }
+                            }
                     )
 
                     // Text Field Container Row
@@ -206,7 +405,10 @@ fun CommentsView(
                     ) {
                         OutlinedTextField(
                             value = commentText,
-                            onValueChange = { commentText = it },
+                            onValueChange = {
+                                commentText = it
+                                commentErrorMessage = null
+                            },
                             placeholder = { Text(if (replyingToComment != null) "Add a reply..." else "Add a comment...", fontSize = 13.sp) },
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
@@ -216,56 +418,20 @@ fun CommentsView(
                                 errorBorderColor = Color.Transparent,
                                 cursorColor = MaterialTheme.colorScheme.primary
                             ),
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .onFocusChanged { isCommentInputFocused = it.isFocused },
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
                                 imeAction = ImeAction.Send
                             ),
                             keyboardActions = KeyboardActions(
-                                onSend = {
-                                    val text = commentText.trim()
-                                    if (text.isNotEmpty() && currentUserId != null && !isPosting) {
-                                        coroutineScope.launch {
-                                            isPosting = true
-                                            val success = apiClient.postComment(
-                                                userId = currentUserId,
-                                                trackId = trackId,
-                                                message = text,
-                                                parentId = replyingToComment?.id
-                                            )
-                                            if (success != null && success.error == null) {
-                                                commentText = ""
-                                                replyingToComment = null
-                                                loadComments()
-                                            }
-                                            isPosting = false
-                                        }
-                                    }
-                                }
+                                onSend = { submitComment() }
                             )
                         )
 
                         IconButton(
-                            onClick = {
-                                val text = commentText.trim()
-                                if (text.isNotEmpty() && currentUserId != null && !isPosting) {
-                                    coroutineScope.launch {
-                                        isPosting = true
-                                        val success = apiClient.postComment(
-                                            userId = currentUserId,
-                                            trackId = trackId,
-                                            message = text,
-                                            parentId = replyingToComment?.id
-                                        )
-                                        if (success != null && success.error == null) {
-                                            commentText = ""
-                                            replyingToComment = null
-                                            loadComments()
-                                        }
-                                        isPosting = false
-                                    }
-                                }
-                            },
+                            onClick = submitComment,
                             enabled = commentText.trim().isNotEmpty() && !isPosting,
                             modifier = Modifier.size(32.dp)
                         ) {
@@ -306,14 +472,23 @@ fun CommentsView(
             }
         }
 
-        // Filter Chips Row (Top, Newest, Timestamp)
+        commentErrorMessage?.let { errorMessage ->
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(horizontal = 64.dp)
+            )
+        }
+
+        // Comment ordering
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            listOf("Top", "Newest", "Timestamp").forEach { filter ->
+            CommentSortOption.entries.forEach { filter ->
                 val isSelected = filter == selectedFilter
                 Box(
                     modifier = Modifier
@@ -333,7 +508,7 @@ fun CommentsView(
                         .padding(horizontal = 16.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = filter,
+                        text = filter.label,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (isSelected) MaterialTheme.colorScheme.onPrimary
@@ -370,17 +545,23 @@ fun CommentsView(
                     )
                 }
             } else {
-                val activeCommentsList = remember(commentsList, settingsState.blockedUsers) {
+                val activeCommentsList = remember(
+                    commentsList,
+                    settingsState.blockedUsers,
+                    selectedFilter,
+                ) {
                     commentsList.filter { comment ->
                         settingsState.blockedUsers.none { it.userId == comment.userId }
-                    }
+                    }.sortedForDisplay(selectedFilter)
                 }
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(dismissKeyboardOnDownwardSwipe),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(activeCommentsList) { comment ->
+                    items(activeCommentsList, key = Comment::id) { comment ->
                         val isCommentHidden = settingsState.hiddenComments.contains(comment.id)
                         if (isCommentHidden) {
                             Row(
@@ -434,12 +615,15 @@ fun CommentsView(
                                 // User Avatar
                                 Image(
                                     painter = rememberAsyncImagePainter(commenterAvatar),
-                                    contentDescription = null,
+                                    contentDescription = "Open $commenterName profile",
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
                                         .size(36.dp)
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.surfaceVariant)
+                                        .clickable {
+                                            onUserProfileClick(comment.userId, commenterName)
+                                        }
                                 )
 
                                 // Comment Content Column
@@ -452,7 +636,10 @@ fun CommentsView(
                                             text = commenterName,
                                             fontSize = 13.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier.clickable {
+                                                onUserProfileClick(comment.userId, commenterName)
+                                            },
                                         )
 
                                         // Render verified checkmark if user is verified
@@ -510,20 +697,52 @@ fun CommentsView(
                                     ) {
                                         // Like Heart Toggle
                                         val isLiked = comment.isCurrentUserReacted
+                                        val isUpdatingReaction = comment.id in reactingCommentIds
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                                             modifier = Modifier.clickable {
                                                 if (isUserLoggedIn && currentUserId != null) {
+                                                    if (comment.id in reactingCommentIds) return@clickable
+                                                    reactingCommentIds = reactingCommentIds + comment.id
+                                                    commentErrorMessage = null
                                                     coroutineScope.launch {
-                                                        val success = apiClient.reactToComment(
-                                                            userId = currentUserId,
-                                                            commentId = comment.id,
-                                                            trackId = trackId,
-                                                            react = !isLiked
-                                                        )
-                                                        if (success != null && success.error == null) {
-                                                            loadComments()
+                                                        try {
+                                                            val updatedIsLiked = !isLiked
+                                                            val success = apiClient.reactToComment(
+                                                                userId = currentUserId,
+                                                                commentId = comment.id,
+                                                                trackId = trackId,
+                                                                react = updatedIsLiked
+                                                            )
+                                                            if (success != null && success.error == null) {
+                                                                commentsList = commentsList.map { currentComment ->
+                                                                    if (currentComment.id == comment.id) {
+                                                                        currentComment.copy(
+                                                                            isCurrentUserReacted = updatedIsLiked,
+                                                                            reactCount = (
+                                                                                currentComment.reactCount +
+                                                                                    if (updatedIsLiked) 1 else -1
+                                                                                ).coerceAtLeast(0),
+                                                                        )
+                                                                    } else {
+                                                                        currentComment
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                commentErrorMessage = success?.error
+                                                                    ?: "Comment reaction could not be updated. Please try again."
+                                                            }
+                                                        } catch (error: CancellationException) {
+                                                            throw error
+                                                        } catch (error: Exception) {
+                                                            Logger.e(error) {
+                                                                "Unable to update reaction for comment ${comment.id}"
+                                                            }
+                                                            commentErrorMessage =
+                                                                "Comment reaction could not be updated. Please try again."
+                                                        } finally {
+                                                            reactingCommentIds = reactingCommentIds - comment.id
                                                         }
                                                     }
                                                 }
@@ -532,7 +751,11 @@ fun CommentsView(
                                             Icon(
                                                 imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                                                 contentDescription = "Like",
-                                                tint = if (isLiked) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                                tint = when {
+                                                    isUpdatingReaction -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+                                                    isLiked -> Color(0xFFE91E63)
+                                                    else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                                },
                                                 modifier = Modifier.size(14.dp)
                                             )
                                             Text(
@@ -583,6 +806,27 @@ fun CommentsView(
                                                     },
                                                     leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
                                                 )
+                                                if (comment.userId == currentUserId) {
+                                                    DropdownMenuItem(
+                                                        text = {
+                                                            Text(
+                                                                text = "Delete Comment",
+                                                                color = MaterialTheme.colorScheme.error,
+                                                            )
+                                                        },
+                                                        onClick = {
+                                                            showMenu = false
+                                                            commentPendingDeletion = comment
+                                                        },
+                                                        leadingIcon = {
+                                                            Icon(
+                                                                imageVector = Icons.Default.Delete,
+                                                                contentDescription = null,
+                                                                tint = MaterialTheme.colorScheme.error,
+                                                            )
+                                                        },
+                                                    )
+                                                }
                                                 val isCommentHiddenMenu = settingsState.hiddenComments.contains(comment.id)
                                                 DropdownMenuItem(
                                                     text = { Text(if (isCommentHiddenMenu) "Unhide Comment" else "Hide Comment") },
@@ -647,22 +891,45 @@ fun CommentsView(
                                                 repliesList.forEach { reply ->
                                                     val replier = usersMap[reply.userId]
                                                     val replierName = replier?.name ?: "User"
-                                                    val replierAvatar = replier?.profilePicture?.songImageURL150px ?: "https://images.unsplash.com/photo-1534528741775-53994a69daeb"
+                                                    val replierAvatar = replier?.profilePicture?.songImageURL150px.orEmpty()
                                                     val isReplierArtist = reply.userId == currentMedia?.artistId
 
                                                     Row(
                                                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                                                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                                                     ) {
-                                                        Image(
-                                                            painter = rememberAsyncImagePainter(replierAvatar),
-                                                            contentDescription = null,
-                                                            contentScale = ContentScale.Crop,
-                                                            modifier = Modifier
-                                                                .size(28.dp)
-                                                                .clip(CircleShape)
-                                                                .background(MaterialTheme.colorScheme.surfaceVariant)
-                                                        )
+                                                        if (replierAvatar.isNotBlank()) {
+                                                            Image(
+                                                                painter = rememberAsyncImagePainter(replierAvatar),
+                                                                contentDescription = "Open $replierName profile",
+                                                                contentScale = ContentScale.Crop,
+                                                                modifier = Modifier
+                                                                    .size(28.dp)
+                                                                    .clip(CircleShape)
+                                                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                                                    .clickable {
+                                                                        onUserProfileClick(reply.userId, replierName)
+                                                                    }
+                                                            )
+                                                        } else {
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .size(28.dp)
+                                                                    .clip(CircleShape)
+                                                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
+                                                                    .clickable {
+                                                                        onUserProfileClick(reply.userId, replierName)
+                                                                    },
+                                                                contentAlignment = Alignment.Center,
+                                                            ) {
+                                                                Text(
+                                                                    text = replierName.firstOrNull()?.uppercase() ?: "?",
+                                                                    fontSize = 12.sp,
+                                                                    fontWeight = FontWeight.Bold,
+                                                                    color = MaterialTheme.colorScheme.primary,
+                                                                )
+                                                            }
+                                                        }
 
                                                         Column(modifier = Modifier.weight(1f)) {
                                                             Row(
@@ -673,7 +940,10 @@ fun CommentsView(
                                                                     text = replierName,
                                                                     fontSize = 12.sp,
                                                                     fontWeight = FontWeight.Bold,
-                                                                    color = if (isReplierArtist) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                                                    color = if (isReplierArtist) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                                                    modifier = Modifier.clickable {
+                                                                        onUserProfileClick(reply.userId, replierName)
+                                                                    },
                                                                 )
 
                                                                 if (replier?.isVerified == true) {
@@ -716,110 +986,6 @@ fun CommentsView(
                                                                 fontSize = 12.sp,
                                                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                                 lineHeight = 16.sp
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            } else {
-                                                // Fallback to simulated artist reply
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                                ) {
-                                                    Image(
-                                                        painter = rememberAsyncImagePainter(trackArtistAvatar),
-                                                        contentDescription = null,
-                                                        contentScale = ContentScale.Crop,
-                                                        modifier = Modifier
-                                                            .size(28.dp)
-                                                            .clip(CircleShape)
-                                                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                                                    )
-
-                                                    Column(modifier = Modifier.weight(1f)) {
-                                                        Row(
-                                                            verticalAlignment = Alignment.CenterVertically,
-                                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                                        ) {
-                                                            Text(
-                                                                text = "@${trackArtist.replace(" ", "")}",
-                                                                fontSize = 12.sp,
-                                                                fontWeight = FontWeight.Bold,
-                                                                color = MaterialTheme.colorScheme.primary
-                                                            )
-
-                                                            Icon(
-                                                                imageVector = Icons.Default.Verified,
-                                                                contentDescription = "Verified",
-                                                                tint = MaterialTheme.colorScheme.primary,
-                                                                modifier = Modifier.size(12.dp)
-                                                            )
-
-                                                            Text(
-                                                                text = "• 7d",
-                                                                fontSize = 11.sp,
-                                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                                            )
-
-                                                            Spacer(modifier = Modifier.weight(1f))
-
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .clip(RoundedCornerShape(4.dp))
-                                                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
-                                                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                                                            ) {
-                                                                Text(
-                                                                    text = "★ Artist",
-                                                                    fontSize = 9.sp,
-                                                                    fontWeight = FontWeight.Bold,
-                                                                    color = MaterialTheme.colorScheme.primary
-                                                                )
-                                                            }
-                                                        }
-
-                                                        Spacer(modifier = Modifier.height(2.dp))
-
-                                                        Text(
-                                                            text = "@${commenterName.replace(" ", "")} Much Appreciated my man! 🙏❤️🔥👊",
-                                                            fontSize = 12.sp,
-                                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                            lineHeight = 16.sp
-                                                        )
-
-                                                        Spacer(modifier = Modifier.height(4.dp))
-
-                                                        Row(
-                                                            verticalAlignment = Alignment.CenterVertically,
-                                                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                                        ) {
-                                                            Row(
-                                                                verticalAlignment = Alignment.CenterVertically,
-                                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                                            ) {
-                                                                Icon(
-                                                                    imageVector = Icons.Default.Favorite,
-                                                                    contentDescription = "Like",
-                                                                    tint = Color(0xFFE91E63),
-                                                                    modifier = Modifier.size(12.dp)
-                                                                )
-                                                                Text(
-                                                                    text = "2",
-                                                                    fontSize = 11.sp,
-                                                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                                                )
-                                                            }
-                                                            Text(
-                                                                text = "Reply",
-                                                                fontSize = 11.sp,
-                                                                fontWeight = FontWeight.Bold,
-                                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                                            )
-                                                            Icon(
-                                                                imageVector = Icons.Default.MoreHoriz,
-                                                                contentDescription = "More",
-                                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                                                modifier = Modifier.size(14.dp)
                                                             )
                                                         }
                                                     }
