@@ -41,15 +41,15 @@ data class TrackCommentsResponse(
 
 @Serializable
 data class CreateCommentRequestBody(
-    @SerialName("message") val message: String,
-    @SerialName("entity_id") val entityId: String,
-    @SerialName("entity_type") val entityType: String = "track",
-    @SerialName("parent_id") val parentId: String? = null,
-    @SerialName("track_timestamp_s") val trackTimestampS: Int? = null
+    @SerialName("body") val message: String,
+    @SerialName("entityId") val entityId: Long,
+    @SerialName("entityType") val entityType: String,
+    @SerialName("parentId") val parentId: Long? = null,
+    @SerialName("trackTimestampS") val trackTimestampS: Int? = null
 )
 
 @Serializable
 data class ReactCommentRequestBody(
-    @SerialName("entity_type") val entityType: String = "track",
-    @SerialName("entity_id") val entityId: String
+    @SerialName("entityType") val entityType: String,
+    @SerialName("entityId") val entityId: Long
 )

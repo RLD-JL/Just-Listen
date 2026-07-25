@@ -56,6 +56,53 @@ fun PlayerBarSheetContent(
     val openSheet: (BottomSheetScreen) -> Unit = {
         currentBottomSheet = it
     }
+    val secondarySheetContent: @Composable (BottomSheetScreen, () -> Unit) -> Unit =
+        { currentSheet, onClose ->
+            Column(modifier = Modifier.fillMaxSize()) {
+                TopSection(
+                    title = playbackState.currentMedia?.title.orEmpty(),
+                    artist = playbackState.currentMedia?.artist,
+                    painter = mutablePainter
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+                androidx.compose.material3.HorizontalDivider(
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                )
+
+                Box(modifier = Modifier.weight(1f)) {
+                    SheetLayout(
+                        currentScreen = currentSheet,
+                        onCloseBottomSheet = onClose,
+                        title = playbackState.currentMedia?.title.orEmpty(),
+                        mutablePainter = mutablePainter,
+                        openSheet = openSheet,
+                        addPlaylistList = uiState.addPlaylistList,
+                        onAddPlaylistClicked = { name, desc, isRemote, isPrivate ->
+                            onAction(PlayerAction.CreatePlaylist(name, desc, isRemote, isPrivate))
+                        },
+                        getLatestPlaylist = {
+                            onAction(PlayerAction.LoadPlaylists)
+                        },
+                        clickedToAddSongToPlaylist = { playlistTitle, playlistDescription, songList ->
+                            onAction(
+                                PlayerAction.AddSongToPlaylist(
+                                    playlistTitle,
+                                    playlistDescription,
+                                    songList
+                                )
+                            )
+                        },
+                        onUserProfileClick = { userId, userName ->
+                            currentBottomSheet = null
+                            onUiEvent(PlayerUiEvent.NavigateToArtist(userId, userName))
+                        },
+                        currentSongId = playbackState.currentMedia?.id
+                    )
+                }
+            }
+        }
 
     // Root box fills whatever space the AnchoredDraggable gives it
     Box(modifier = Modifier.fillMaxSize()) {
@@ -79,58 +126,29 @@ fun PlayerBarSheetContent(
         )
 
         currentBottomSheet?.let { currentSheet ->
-            ModalBottomSheet(
-                onDismissRequest = { currentBottomSheet = null },
-                sheetState = secondarySheetState,
-                containerColor = MaterialTheme.colorScheme.background,
-                scrimColor = Color.Black.copy(alpha = 0.5f),
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                dragHandle = { BottomSheetDefaults.DragHandle() }
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(
-                            if (currentSheet is BottomSheetScreen.Comments) 0.95f else 0.75f
-                        )
+            when (currentSheet) {
+                is BottomSheetScreen.Comments -> {
+                    DraggableCommentsSheet(
+                        onDismissRequest = { currentBottomSheet = null },
+                    ) { dismiss ->
+                        secondarySheetContent(currentSheet, dismiss)
+                    }
+                }
+
+                else -> ModalBottomSheet(
+                    onDismissRequest = { currentBottomSheet = null },
+                    sheetState = secondarySheetState,
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrimColor = Color.Black.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                    dragHandle = { BottomSheetDefaults.DragHandle() }
                 ) {
-                    TopSection(
-                        title = playbackState.currentMedia?.title.orEmpty(),
-                        artist = playbackState.currentMedia?.artist,
-                        painter = mutablePainter
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-                    androidx.compose.material3.HorizontalDivider(
-                        thickness = 1.dp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
-                    )
-
-                    Box(modifier = Modifier.weight(1f)) {
-                        SheetLayout(
-                            currentScreen = currentSheet,
-                            onCloseBottomSheet = closeSheet,
-                            title = playbackState.currentMedia?.title.orEmpty(),
-                            mutablePainter = mutablePainter,
-                            openSheet = openSheet,
-                            addPlaylistList = uiState.addPlaylistList,
-                            onAddPlaylistClicked = { name, desc, isRemote, isPrivate ->
-                                onAction(PlayerAction.CreatePlaylist(name, desc, isRemote, isPrivate))
-                            },
-                            getLatestPlaylist = {
-                                onAction(PlayerAction.LoadPlaylists)
-                            },
-                            clickedToAddSongToPlaylist = { playlistTitle, playlistDescription, songList ->
-                                onAction(
-                                    PlayerAction.AddSongToPlaylist(
-                                        playlistTitle,
-                                        playlistDescription,
-                                        songList
-                                    )
-                                )
-                            },
-                            currentSongId = playbackState.currentMedia?.id
-                        )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.75f)
+                    ) {
+                        secondarySheetContent(currentSheet, closeSheet)
                     }
                 }
             }

@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 /** Routes a SwiftUI navigation destination to its shared Compose screen. */
 @Composable
 internal fun IosScreenContent(route: Route, navController: NavHostController) {
+    val iosCallbacks = LocalIosNavigationCallbacks.current
     when (route) {
         Route.Library -> LibraryScreenHost(navController)
         Route.Playlist -> PlaylistScreenHost(navController)
@@ -17,6 +18,20 @@ internal fun IosScreenContent(route: Route, navController: NavHostController) {
         is Route.AddPlaylist -> AddPlaylistScreenHost(navController, route)
         is Route.SeeAll -> SeeAllScreenHost(navController, route)
         is Route.ArtistProfile -> ArtistProfileScreenHost(navController, route)
+        is Route.Comments -> {
+            com.rld.justlisten.ui.bottombars.sheets.components.CommentsView(
+                trackId = route.trackId,
+                targetCommentId = route.targetCommentId,
+                onCloseBottomSheet = {
+                    iosCallbacks?.onPopBackStack?.invoke() ?: navController.popBackStack()
+                },
+                onUserProfileClick = { userId, userName ->
+                    val destination = Route.ArtistProfile(userId, userName)
+                    iosCallbacks?.onNavigate?.invoke(destination)
+                        ?: navController.navigate(destination)
+                },
+            )
+        }
         Route.Notifications -> NotificationsScreenHost(navController)
         Route.ArtistDashboard -> ArtistDashboardScreenHost(navController)
         Route.CustomTheme -> CustomThemeScreenHost(navController)

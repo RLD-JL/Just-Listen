@@ -9,7 +9,7 @@ import platform.darwin.*
 import platform.UIKit.*
 
 class IosSleepTimerService : SleepTimerService {
-    private var endTimeMs: Long = 0L
+    private val timerState = SleepTimerState { getCurrentTimeMs() }
     private var fadeOutOption: Boolean = true
     private var sleepJob: Job? = null
     private var nativeTimer: dispatch_source_t = null
@@ -21,8 +21,7 @@ class IosSleepTimerService : SleepTimerService {
     }
 
     override fun getRemainingTimeMs(): Long {
-        val now = getCurrentTimeMs()
-        return if (endTimeMs > now) endTimeMs - now else 0L
+        return timerState.remainingTimeMs()
     }
 
     private fun startBackgroundTask() {
@@ -44,9 +43,12 @@ class IosSleepTimerService : SleepTimerService {
         cancelTimer()
         fadeOutOption = fadeOut
         
-        val delayMs = minutes * 60 * 1000L
-        endTimeMs = getCurrentTimeMs() + delayMs
+        val delayMs = timerState.start(minutes)
 
+        scheduleTimer(delayMs)
+    }
+
+    private fun scheduleTimer(delayMs: Long) {
         val queue = dispatch_get_main_queue()
         val timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0uL, 0uL, queue)
         nativeTimer = timer
@@ -65,21 +67,26 @@ class IosSleepTimerService : SleepTimerService {
         sleepJob = scope.launch {
             try {
                 val iosPlayer = musicPlayer as? IOSMusicPlayer
-                if (fadeOutOption && iosPlayer != null) {
-                    val startVolume = iosPlayer.volume
-                    val steps = 10
+                val fadePlan = if (fadeOutOption && iosPlayer != null) {
+                    createSleepTimerFadePlan(iosPlayer.volume)
+                } else {
+                    null
+                }
+                if (fadePlan != null && iosPlayer != null) {
                     val delayStepMs = 1500L // 15 seconds total fade out
-                    for (i in steps downTo 0) {
-                        iosPlayer.volume = startVolume * (i.toFloat() / steps)
-                        delay(delayStepMs)
+                    fadePlan.rampDownVolumes.forEachIndexed { index, volume ->
+                        iosPlayer.volume = volume
+                        if (index < fadePlan.rampDownVolumes.lastIndex) {
+                            delay(delayStepMs)
+                        }
                     }
                 }
                 
                 musicPlayer.pause()
                 
-                // Restore player volume level to default after pausing
-                if (fadeOutOption && iosPlayer != null) {
-                    iosPlayer.volume = 1.0f
+                // Restore the exact pre-fade level while playback is paused.
+                if (fadePlan != null && iosPlayer != null) {
+                    iosPlayer.volume = fadePlan.restoreVolume
                 }
             } finally {
                 cancelTimer()
@@ -89,12 +96,10 @@ class IosSleepTimerService : SleepTimerService {
     }
 
     override fun extendTimer(minutes: Int) {
-        val now = getCurrentTimeMs()
-        val baseTimeMs = if (endTimeMs > now) endTimeMs else now
-        val newEndTimeMs = baseTimeMs + minutes * 60 * 1000L
-        val minsLeft = (newEndTimeMs - now) / (60 * 1000L)
-        
-        setTimer(maxOf(1, minsLeft.toInt()), fadeOutOption)
+        val newDelayMs = timerState.extend(minutes)
+        nativeTimer?.let { dispatch_source_cancel(it) }
+        nativeTimer = null
+        scheduleTimer(newDelayMs)
     }
 
     override fun cancelTimer() {
@@ -104,7 +109,7 @@ class IosSleepTimerService : SleepTimerService {
         nativeTimer = null
         sleepJob?.cancel()
         sleepJob = null
-        endTimeMs = 0L
+        timerState.clear()
         endBackgroundTask()
     }
 }

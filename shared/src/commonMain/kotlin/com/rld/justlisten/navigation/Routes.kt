@@ -65,6 +65,13 @@ sealed class Route {
         val artistId: String,
         val artistName: String
     ) : Route()
+
+    @Serializable
+    data class Comments(
+        val trackId: String,
+        val targetCommentId: String? = null,
+    ) : Route()
+
     @Serializable
     data object Notifications : Route()
 
@@ -101,7 +108,8 @@ val Route.navigationLevel: NavigationLevel
         is Route.PlaylistDetail,
         Route.Notifications,
         Route.ArtistDashboard,
-        is Route.ArtistProfile -> NavigationLevel.LEVEL_2
+        is Route.ArtistProfile,
+        is Route.Comments -> NavigationLevel.LEVEL_2
     }
 
 /**

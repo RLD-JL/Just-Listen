@@ -17,6 +17,7 @@ fun SheetLayout(
     onAddPlaylistClicked: (String, String?, Boolean, Boolean) -> Unit,
     getLatestPlaylist: () -> Unit,
     clickedToAddSongToPlaylist: (String, String?, List<String>) -> Unit,
+    onUserProfileClick: (String, String) -> Unit,
     currentSongId: String? = null,
 ) {
     when (currentScreen) {
@@ -33,7 +34,8 @@ fun SheetLayout(
         is BottomSheetScreen.Comments -> {
             com.rld.justlisten.ui.bottombars.sheets.components.CommentsView(
                 trackId = currentScreen.trackId,
-                onCloseBottomSheet = onCloseBottomSheet
+                onCloseBottomSheet = onCloseBottomSheet,
+                onUserProfileClick = onUserProfileClick,
             )
         }
     }

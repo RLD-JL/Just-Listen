@@ -175,7 +175,7 @@ fun TimerSetup(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Gradually lower volume before app stops",
+                        text = "Gradually lower volume before playback pauses",
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
@@ -209,7 +209,7 @@ fun TimerSetup(
                     sleepTimerService.setTimer(minutesVal, fadeOutEnabled.value)
 
                     coroutineScope.launch { scaffoldState.bottomSheetState.partialExpand() }
-                    showToast("Sleeper active: closes in $minutesVal minutes")
+                    showToast("Sleeper active: pauses playback in $minutesVal minutes")
                 },
                 modifier = Modifier
                     .weight(1f)

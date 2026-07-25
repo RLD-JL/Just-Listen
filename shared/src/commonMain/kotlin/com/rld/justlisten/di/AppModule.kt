@@ -7,6 +7,9 @@ import com.rld.justlisten.viewmodel.playlistdetail.PlaylistDetailViewModel
 import com.rld.justlisten.viewmodel.search.SearchViewModel
 import com.rld.justlisten.viewmodel.settings.SettingsViewModel
 import com.rld.justlisten.viewmodel.player.PlayerViewModel
+import com.rld.justlisten.viewmodel.comments.CommentsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import com.rld.justlisten.viewmodel.seeall.SeeAllViewModel
 import com.rld.justlisten.viewmodel.artistprofile.ArtistProfileViewModel
 import com.rld.justlisten.viewmodel.feed.FeedViewModel
@@ -29,6 +32,7 @@ fun appModule() = module {
     single<AuthRepository> { AuthRepositoryImpl(apiClient = get(), secureStorage = get(), pkceCrypto = get(), syncRepository = get(), localDb = get()) }
     single<SyncRepository> { SyncRepositoryImpl(localDb = get(), apiClient = get()) }
     single<FeedRepository> { FeedRepositoryImpl(get(), get(), get()) }
+    single<CommentsRepository> { CommentsRepositoryImpl(get()) }
     single<NotificationRepository> { NotificationRepositoryImpl(get()) }
     single<ArtistDashboardRepository> { ArtistDashboardRepositoryImpl(get()) }
     single { PlayHistoryTracker(get(), get()) }
@@ -43,6 +47,7 @@ fun appModule() = module {
     viewModel { ArtistProfileViewModel(get(), get(), get()) }
     viewModel { FeedViewModel(get(), get(), get(), get()) }
     viewModel { ArtistDashboardViewModel(get(), get()) }
+    viewModel { CommentsViewModel(get(), get()) }
     single { SettingsViewModel(get(), get(), get(), get()) }
-    viewModel { PlayerViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { PlayerViewModel(get(), get(), get(), get(), get(), get(), get(), get(), Dispatchers.IO) }
 }

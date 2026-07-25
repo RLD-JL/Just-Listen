@@ -96,6 +96,7 @@ private class IosPlayerStateObserverController(
 
 private class IosSharedTrackDeepLinkObserverController(
     private val onTrackLoaded: () -> Unit,
+    private val onNavigate: (Route) -> Unit,
 ) : UIViewController(nibName = null, bundle = null) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -110,21 +111,33 @@ private class IosSharedTrackDeepLinkObserverController(
         scope.launch {
             DeepLinkRouter.deepLinkFlow.collect { url ->
                 val deepLink = parseJustListenDeepLink(url) ?: return@collect
-                if (deepLink.path != "track/share") return@collect
+                when (deepLink.path) {
+                    "track/share" -> {
+                        val trackId = deepLink.parameters["id"] ?: return@collect
+                        val track = runCatching {
+                            playlistRepository.fetchTrackDetails(trackId)
+                        }.getOrNull()
 
-                val trackId = deepLink.parameters["id"] ?: return@collect
-                val track = runCatching {
-                    playlistRepository.fetchTrackDetails(trackId)
-                }.getOrNull()
+                        if (track != null) {
+                            musicPlayer.loadMedia(
+                                mediaId = track.id,
+                                playlist = listOf(PlaylistItem(_data = track)),
+                            )
+                            onTrackLoaded()
+                        } else {
+                            com.rld.justlisten.ui.utils.showToast("Unable to open shared track")
+                        }
+                    }
 
-                if (track != null) {
-                    musicPlayer.loadMedia(
-                        mediaId = track.id,
-                        playlist = listOf(PlaylistItem(_data = track)),
-                    )
-                    onTrackLoaded()
-                } else {
-                    com.rld.justlisten.ui.utils.showToast("Unable to open shared track")
+                    "comments/share" -> {
+                        val trackId = deepLink.parameters["trackId"] ?: return@collect
+                        onNavigate(
+                            Route.Comments(
+                                trackId = trackId,
+                                targetCommentId = deepLink.parameters["commentId"],
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -141,7 +154,8 @@ fun PlayerStateObserverViewController(
 
 fun SharedTrackDeepLinkObserverViewController(
     onTrackLoaded: () -> Unit,
-): UIViewController = IosSharedTrackDeepLinkObserverController(onTrackLoaded)
+    onNavigate: (Route) -> Unit,
+): UIViewController = IosSharedTrackDeepLinkObserverController(onTrackLoaded, onNavigate)
 
 fun disposeSharedTrackDeepLinkObserverViewController(
     controller: UIViewController,

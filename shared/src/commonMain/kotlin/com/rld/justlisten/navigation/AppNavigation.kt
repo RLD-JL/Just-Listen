@@ -14,10 +14,7 @@ import com.rld.justlisten.datalayer.localdb.addplaylistscreen.updatePlaylistSong
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxSize
 
 
 private fun androidx.navigation.NavBackStackEntry.getTabIndex(): Int {
@@ -55,9 +52,6 @@ fun AppNavigation(
     val activeImportPlaylistState = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<Route.PlaylistDetail?>(null) }
     val activeImportPlaylist = activeImportPlaylistState.value
 
-    val showCommentsTrackIdState = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
-    val showCommentsTrackId = showCommentsTrackIdState.value
-
     androidx.compose.runtime.LaunchedEffect(navController) {
         com.rld.justlisten.util.DeepLinkRouter.deepLinkFlow.collect { url ->
             try {
@@ -94,7 +88,12 @@ fun AppNavigation(
                 } else if (hostPath == "comments/share") {
                     val trackId = params["trackId"]
                     if (trackId != null) {
-                        showCommentsTrackIdState.value = trackId
+                        navController.navigate(
+                            Route.Comments(
+                                trackId = trackId,
+                                targetCommentId = params["commentId"],
+                            )
+                        )
                     }
                 }
             } catch (e: Exception) {
@@ -225,6 +224,20 @@ fun AppNavigation(
             ArtistProfileScreenHost(navController, args)
         }
 
+        composable<Route.Comments> { backStackEntry ->
+            val args: Route.Comments = backStackEntry.toRoute()
+            androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
+                com.rld.justlisten.ui.bottombars.sheets.components.CommentsView(
+                    trackId = args.trackId,
+                    targetCommentId = args.targetCommentId,
+                    onCloseBottomSheet = navController::popBackStack,
+                    onUserProfileClick = { userId, userName ->
+                        navController.navigate(Route.ArtistProfile(userId, userName))
+                    },
+                )
+            }
+        }
+
         composable<Route.Feed> { backStackEntry ->
             val args: Route.Feed = backStackEntry.toRoute()
             FeedScreenHost(navController, args)
@@ -302,20 +315,4 @@ fun AppNavigation(
         )
     }
 
-    val commTrackId = showCommentsTrackId
-    if (commTrackId != null) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { showCommentsTrackIdState.value = null },
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-            confirmButton = {},
-            text = {
-                androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth().height(450.dp)) {
-                    com.rld.justlisten.ui.bottombars.sheets.components.CommentsView(
-                        trackId = commTrackId,
-                        onCloseBottomSheet = { showCommentsTrackIdState.value = null }
-                    )
-                }
-            }
-        )
-    }
 }

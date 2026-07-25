@@ -4,11 +4,11 @@ import android.content.Context
 import com.rld.justlisten.media.exoplayer.MusicServiceConnection
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.rld.justlisten.ui.utils.createSleepTimerFadePlan
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import kotlin.system.exitProcess
 
 class SleepWorker(val context: Context, parameters: WorkerParameters) : 
     CoroutineWorker(context, parameters), KoinComponent {
@@ -30,16 +30,18 @@ class SleepWorker(val context: Context, parameters: WorkerParameters) :
         }
 
         if (fadeOutEnabled) {
+            val fadePlan = createSleepTimerFadePlan(originalVolume)
             // Volume changes on ExoPlayer must occur on the Main dispatcher
             withContext(Dispatchers.Main) {
                 runCatching {
                     val controller = musicServiceConnection.mediaController
                     if (controller != null && controller.isPlaying) {
-                        val steps = 10
                         val delayStepMs = 1500L // 15 seconds total fade out duration
-                        for (i in steps downTo 0) {
-                            controller.volume = originalVolume * (i.toFloat() / steps)
-                            kotlinx.coroutines.delay(delayStepMs)
+                        fadePlan.rampDownVolumes.forEachIndexed { index, volume ->
+                            controller.volume = volume
+                            if (index < fadePlan.rampDownVolumes.lastIndex) {
+                                kotlinx.coroutines.delay(delayStepMs)
+                            }
                         }
                     }
                 }
@@ -51,12 +53,12 @@ class SleepWorker(val context: Context, parameters: WorkerParameters) :
             .putLong("sleep_timer_end_time_ms", 0L)
             .apply()
 
-        // Cleanly stop the player and let OS manage process lifecycle
+        // Pause playback without stopping the service or terminating the app.
         withContext(Dispatchers.Main) {
             runCatching {
                 val controller = musicServiceConnection.mediaController
-                controller?.stop()
-                controller?.volume = originalVolume
+                controller?.pause()
+                controller?.volume = createSleepTimerFadePlan(originalVolume).restoreVolume
             }
         }
         return Result.success()

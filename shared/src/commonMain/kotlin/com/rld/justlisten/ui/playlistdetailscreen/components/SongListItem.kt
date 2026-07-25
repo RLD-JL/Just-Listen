@@ -22,6 +22,8 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.ui.platform.LocalClipboard
 import com.rld.justlisten.util.clipEntryOf
+import com.rld.justlisten.util.commentsShareUrl
+import com.rld.justlisten.util.rememberShareLauncher
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 
@@ -173,6 +175,7 @@ private fun SongListItemContent(
 ) {
     val clipboard = LocalClipboard.current
     val coroutineScope = rememberCoroutineScope()
+    val shareLauncher = rememberShareLauncher()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -358,11 +361,10 @@ private fun SongListItemContent(
                         text = { Text("Share Comments") },
                         onClick = {
                             showShareMenu = false
-                            val url = "justlisten://comments/share?trackId=${playlistItem.id}"
-                            coroutineScope.launch {
-                                clipboard.setClipEntry(clipEntryOf(url))
-                            }
-                            com.rld.justlisten.ui.utils.showToast("Comments link copied!")
+                            shareLauncher.share(
+                                text = commentsShareUrl(playlistItem.id),
+                                title = "Share comments",
+                            )
                         },
                         leadingIcon = { Icon(Icons.Default.MoreHoriz, contentDescription = null) }
                     )

@@ -30,6 +30,9 @@ import platform.CoreMedia.CMTimeMake
 import platform.CoreMedia.CMTimeGetSeconds
 import kotlinx.cinterop.*
 import platform.UIKit.UIImage
+import platform.UIKit.UIApplication
+import platform.UIKit.UIBackgroundTaskIdentifier
+import platform.UIKit.UIBackgroundTaskInvalid
 import platform.MediaToolbox.*
 import platform.AudioToolbox.*
 import kotlin.math.pow
@@ -40,8 +43,8 @@ class IOSMusicPlayer(
     private val settingsRepository: com.rld.justlisten.datalayer.repositories.SettingsRepository,
     private val settingsViewModel: com.rld.justlisten.viewmodel.settings.SettingsViewModel
 ) : MusicPlayer {
-    private val player1 = AVQueuePlayer()
-    private val player2 = AVQueuePlayer()
+    private var player1 = AVQueuePlayer()
+    private var player2 = AVQueuePlayer()
     private var currentPlayer = player1
     private var secondaryPlayer = player2
     private var isCrossfading = false
@@ -74,6 +77,10 @@ class IOSMusicPlayer(
     private var preloadedSongId: String? = null
     private var preloadJob: kotlinx.coroutines.Job? = null
     private var playJob: kotlinx.coroutines.Job? = null
+    private var stallRecoveryJob: kotlinx.coroutines.Job? = null
+    private var transitionBackgroundTaskId: UIBackgroundTaskIdentifier = UIBackgroundTaskInvalid
+    private var transitionBackgroundTaskGeneration = 0L
+    private var stallBackgroundTaskId: UIBackgroundTaskIdentifier = UIBackgroundTaskInvalid
     
     private var playlistItems = mutableListOf<MediaMetadata>()
     private var currentIndex = -1
@@ -87,10 +94,10 @@ class IOSMusicPlayer(
 
     // Each physical AVQueuePlayer has its own native EQ. During a crossfade both
     // units render concurrently, so they must not share render state.
-    private val eqProcessor1 = NativeAudioUnitEqProcessor()
-    private val eqProcessor2 = NativeAudioUnitEqProcessor()
-    private val eqProcessorRef1 = StableRef.create(eqProcessor1)
-    private val eqProcessorRef2 = StableRef.create(eqProcessor2)
+    private var eqProcessor1 = NativeAudioUnitEqProcessor()
+    private var eqProcessor2 = NativeAudioUnitEqProcessor()
+    private var eqProcessorRef1 = StableRef.create(eqProcessor1)
+    private var eqProcessorRef2 = StableRef.create(eqProcessor2)
     
     private var lastLoadedArtworkUrl: String? = null
     private var lastLoadedArtwork: UIImage? = null
@@ -101,10 +108,46 @@ class IOSMusicPlayer(
     private var interruptionObserver: Any? = null
     private var routeChangeObserver: Any? = null
     private var playToEndObserver: Any? = null
+    private var playbackStalledObserver: Any? = null
+    private var mediaServicesLostObserver: Any? = null
+    private var mediaServicesResetObserver: Any? = null
     private val artworkCache = mutableMapOf<String, UIImage>()
+    private val mediaServicesRecovery = MediaServicesRecoveryState()
 
 
     private var userVolume: Float = 1.0f
+
+    private fun beginTransitionBackgroundTask(): Long {
+        transitionBackgroundTaskGeneration += 1L
+        if (transitionBackgroundTaskId == UIBackgroundTaskInvalid) {
+            transitionBackgroundTaskId = UIApplication.sharedApplication.beginBackgroundTaskWithExpirationHandler {
+                endTransitionBackgroundTask()
+            }
+        }
+        return transitionBackgroundTaskGeneration
+    }
+
+    private fun endTransitionBackgroundTask(generation: Long? = null) {
+        if (generation != null && generation != transitionBackgroundTaskGeneration) return
+        if (transitionBackgroundTaskId == UIBackgroundTaskInvalid) return
+        UIApplication.sharedApplication.endBackgroundTask(transitionBackgroundTaskId)
+        transitionBackgroundTaskId = UIBackgroundTaskInvalid
+    }
+
+    private fun beginStallBackgroundTask() {
+        if (stallBackgroundTaskId != UIBackgroundTaskInvalid) return
+        stallBackgroundTaskId = UIApplication.sharedApplication.beginBackgroundTaskWithExpirationHandler {
+            stallRecoveryJob?.cancel()
+            stallRecoveryJob = null
+            endStallBackgroundTask()
+        }
+    }
+
+    private fun endStallBackgroundTask() {
+        if (stallBackgroundTaskId == UIBackgroundTaskInvalid) return
+        UIApplication.sharedApplication.endBackgroundTask(stallBackgroundTaskId)
+        stallBackgroundTaskId = UIBackgroundTaskInvalid
+    }
 
     // Public property to allow volume fading from Sleep Timer
     var volume: Float
@@ -115,6 +158,97 @@ class IOSMusicPlayer(
                 currentPlayer.volume = value
             }
         }
+
+    private fun configureAudioSession(activate: Boolean): Boolean {
+        return try {
+            val audioSession = AVAudioSession.sharedInstance()
+            var succeeded = true
+            memScoped {
+                val categoryError = alloc<ObjCObjectVar<NSError?>>()
+                audioSession.setCategory(AVAudioSessionCategoryPlayback, error = categoryError.ptr)
+                categoryError.value?.let {
+                    succeeded = false
+                    Logger.e { "Audio setCategory failed: ${it.localizedDescription}" }
+                }
+
+                if (activate) {
+                    val activeError = alloc<ObjCObjectVar<NSError?>>()
+                    audioSession.setActive(true, error = activeError.ptr)
+                    activeError.value?.let {
+                        succeeded = false
+                        Logger.e { "Audio setActive failed: ${it.localizedDescription}" }
+                    }
+                }
+            }
+            succeeded
+        } catch (e: Exception) {
+            Logger.e(e) { "Audio session setup error" }
+            false
+        }
+    }
+
+    private fun installPeriodicTimeObservers() {
+        val interval = CMTimeMake(250, 1000)
+        timeObserverToken = player1.addPeriodicTimeObserverForInterval(
+            interval = interval,
+            queue = dispatch_get_main_queue(),
+            usingBlock = { _ ->
+                if (currentPlayer === player1) updateProgress()
+            }
+        )
+        timeObserverToken2 = player2.addPeriodicTimeObserverForInterval(
+            interval = interval,
+            queue = dispatch_get_main_queue(),
+            usingBlock = { _ ->
+                if (currentPlayer === player2) updateProgress()
+            }
+        )
+    }
+
+    private fun removePeriodicTimeObservers() {
+        timeObserverToken?.let { player1.removeTimeObserver(it) }
+        timeObserverToken = null
+        timeObserverToken2?.let { player2.removeTimeObserver(it) }
+        timeObserverToken2 = null
+    }
+
+    private fun disposeAudioPipeline() {
+        removePeriodicTimeObservers()
+        player1.pause()
+        player1.removeAllItems()
+        player2.pause()
+        player2.removeAllItems()
+        activePlayerItem = null
+        preloadedPlayerItem = null
+        preloadedSongId = null
+        eqProcessor1.unprepare()
+        eqProcessor2.unprepare()
+        eqProcessorRef1.dispose()
+        eqProcessorRef2.dispose()
+    }
+
+    private fun createAudioPipeline() {
+        player1 = AVQueuePlayer()
+        player2 = AVQueuePlayer()
+        currentPlayer = player1
+        secondaryPlayer = player2
+        player1.volume = userVolume
+        player2.volume = userVolume
+
+        eqProcessor1 = NativeAudioUnitEqProcessor()
+        eqProcessor2 = NativeAudioUnitEqProcessor()
+        eqProcessorRef1 = StableRef.create(eqProcessor1)
+        eqProcessorRef2 = StableRef.create(eqProcessor2)
+        val settings = settingsViewModel.settingsState.value
+        for (processor in arrayOf(eqProcessor1, eqProcessor2)) {
+            processor.update(
+                enabled = settings.isEqEnabled,
+                gains = settings.eqBands,
+                normalizeVolume = settings.isVolumeNormalizationEnabled,
+            )
+        }
+        installPeriodicTimeObservers()
+    }
 
     init {
         scope.launch {
@@ -129,37 +263,8 @@ class IOSMusicPlayer(
             }
         }
 
-        try {
-            val audioSession = AVAudioSession.sharedInstance()
-            memScoped {
-                val categoryError = alloc<ObjCObjectVar<NSError?>>() 
-                audioSession.setCategory(AVAudioSessionCategoryPlayback, error = categoryError.ptr)
-                categoryError.value?.let { Logger.e { "Audio setCategory failed: ${it.localizedDescription}" } }
-                
-                val activeError = alloc<ObjCObjectVar<NSError?>>()
-                audioSession.setActive(true, error = activeError.ptr)
-                activeError.value?.let { Logger.e { "Audio setActive failed: ${it.localizedDescription}" } }
-            }
-        } catch (e: Exception) {
-            Logger.e(e) { "Audio session setup error" }
-        }
-
-        // Register periodic time observer for progress updates
-        val interval = CMTimeMake(250, 1000)
-        timeObserverToken = player1.addPeriodicTimeObserverForInterval(
-            interval = interval,
-            queue = dispatch_get_main_queue(),
-            usingBlock = { _ ->
-                if (currentPlayer == player1) updateProgress()
-            }
-        )
-        timeObserverToken2 = player2.addPeriodicTimeObserverForInterval(
-            interval = interval,
-            queue = dispatch_get_main_queue(),
-            usingBlock = { _ ->
-                if (currentPlayer == player2) updateProgress()
-            }
-        )
+        configureAudioSession(activate = true)
+        installPeriodicTimeObservers()
 
         // Periodically monitor network at a relaxed interval (5s)
         scope.launch(Dispatchers.Main) {
@@ -217,12 +322,97 @@ class IOSMusicPlayer(
     override val networkError: StateFlow<Boolean> = _networkError.asStateFlow()
 
     override fun play() {
+        when (val recoveryDecision = mediaServicesRecovery.beginResume()) {
+            MediaServicesResumeDecision.AwaitingReset -> return
+            MediaServicesResumeDecision.AlreadyResuming -> return
+            MediaServicesResumeDecision.NoRecovery -> Unit
+            is MediaServicesResumeDecision.Start -> {
+                resumeAfterMediaServicesReset(recoveryDecision)
+                return
+            }
+        }
+
+        if (!configureAudioSession(activate = true)) {
+            updateState(PlaybackStatus.ERROR)
+            return
+        }
+        val metadata = _playbackState.value.currentMedia
+        if (currentPlayer.currentItem == null) {
+            if (metadata == null) {
+                updateState(PlaybackStatus.ERROR)
+            } else {
+                Logger.w { "Play requested with an empty AVPlayer queue; rebuilding ${metadata.id}" }
+                playTrack(metadata, protectBackgroundTransition = true)
+            }
+            return
+        }
+
         currentPlayer.play()
-        updateState(PlaybackStatus.PLAYING)
-        updateNowPlayingInfo(_playbackState.value.currentMedia, _playbackState.value.currentPosition)
+        val status = if (currentPlayer.timeControlStatus == AVPlayerTimeControlStatusPlaying) {
+            PlaybackStatus.PLAYING
+        } else {
+            PlaybackStatus.BUFFERING
+        }
+        updateState(status)
+        updateNowPlayingInfo(metadata, _playbackState.value.currentPosition)
+    }
+
+    private fun resumeAfterMediaServicesReset(decision: MediaServicesResumeDecision.Start) {
+        val metadata = _playbackState.value.currentMedia
+        if (metadata == null || metadata.id != decision.snapshot.mediaId) {
+            mediaServicesRecovery.clear()
+            updateState(PlaybackStatus.ERROR)
+            return
+        }
+
+        updateState(PlaybackStatus.BUFFERING, metadata)
+        updateNowPlayingInfo(metadata, decision.snapshot.positionMs)
+        playJob = scope.launch(Dispatchers.Main) {
+            if (!configureAudioSession(activate = true)) {
+                if (mediaServicesRecovery.resumeFailed(decision)) {
+                    updateState(PlaybackStatus.ERROR, metadata)
+                    updateNowPlayingInfo(metadata, decision.snapshot.positionMs)
+                }
+                return@launch
+            }
+
+            val playerItem = createPlayerItem(metadata.id)
+            if (!isActive || !mediaServicesRecovery.isCurrent(decision)) return@launch
+            if (playerItem == null) {
+                if (mediaServicesRecovery.resumeFailed(decision)) {
+                    updateState(PlaybackStatus.ERROR, metadata)
+                    updateNowPlayingInfo(metadata, decision.snapshot.positionMs)
+                }
+                return@launch
+            }
+
+            activePlayerItem = playerItem
+            currentPlayer.removeAllItems()
+            currentPlayer.insertItem(playerItem, afterItem = null)
+            currentPlayer.seekToTime(CMTimeMake(decision.snapshot.positionMs, 1000))
+            if (!mediaServicesRecovery.resumeSucceeded(decision)) {
+                currentPlayer.removeAllItems()
+                activePlayerItem = null
+                return@launch
+            }
+
+            currentPlayer.play()
+            _playbackState.update { state ->
+                state.copy(
+                    status = PlaybackStatus.PLAYING,
+                    currentPosition = decision.snapshot.positionMs,
+                    currentMedia = metadata,
+                )
+            }
+            updateNowPlayingInfo(metadata, decision.snapshot.positionMs)
+            preloadNextTrack()
+        }
     }
 
     override fun pause() {
+        if (mediaServicesRecovery.cancelResume()) {
+            playJob?.cancel()
+        }
         if (isCrossfading) {
             cancelCrossfade(pauseActivePlayer = true)
         } else {
@@ -233,6 +423,8 @@ class IOSMusicPlayer(
     }
 
     override fun stop() {
+        playJob?.cancel()
+        mediaServicesRecovery.clear()
         cancelCrossfade()
         currentPlayer.pause()
         currentPlayer.removeAllItems()
@@ -288,6 +480,7 @@ class IOSMusicPlayer(
     }
 
     override fun loadMedia(mediaId: String, playlist: List<Item>) {
+        mediaServicesRecovery.clear()
         updatePlaylist(playlist)
         val index = playlistItems.indexOfFirst { it.id == mediaId }
         if (index == -1) return
@@ -346,6 +539,42 @@ class IOSMusicPlayer(
         val url = getCacheFileUrl(songId) ?: return false
         val path = url.path ?: return false
         return NSFileManager.defaultManager.fileExistsAtPath(path)
+    }
+
+    private fun getStreamUrl(songId: String): NSURL? {
+        val baseUrl = com.rld.justlisten.datalayer.utils.Constants.BASEURL
+        val appName = com.rld.justlisten.datalayer.utils.Constants.appName.replace(" ", "%20")
+        return NSURL.URLWithString("$baseUrl/v1/tracks/$songId/stream?app_name=$appName")
+    }
+
+    private suspend fun getOrDownloadLocalSongUrl(songId: String): NSURL? {
+        getCacheFileUrl(songId)?.takeIf { cachedUrl ->
+            cachedUrl.path?.let(NSFileManager.defaultManager::fileExistsAtPath) == true
+        }?.let { return it }
+
+        val streamUrl = getStreamUrl(songId) ?: return null
+        kotlinx.coroutines.withContext(Dispatchers.Main) {
+            triggerBackgroundDownload(songId, streamUrl)
+        }
+
+        // Audius stream redirects can land on nodes that ignore HTTP byte-range
+        // requests. AVFoundation rejects those URLs as ServerIncorrectlyConfigured.
+        // NSURLSession can still download the complete response, so only hand a
+        // fully local file to AVPlayer.
+        repeat(600) {
+            getCacheFileUrl(songId)?.takeIf { cachedUrl ->
+                cachedUrl.path?.let(NSFileManager.defaultManager::fileExistsAtPath) == true
+            }?.let { return it }
+
+            val downloadIsActive = kotlinx.coroutines.withContext(Dispatchers.Main) {
+                activeDownloads.containsKey(songId)
+            }
+            if (!downloadIsActive) return null
+            delay(100L)
+        }
+
+        Logger.e { "Timed out downloading local playback file for $songId" }
+        return null
     }
 
     private fun triggerBackgroundDownload(songId: String, nsUrl: NSURL) {
@@ -418,37 +647,20 @@ class IOSMusicPlayer(
     }
 
     private suspend fun createPlayerItem(songId: String, forSecondaryPlayer: Boolean = false): AVPlayerItem? = kotlinx.coroutines.withContext(Dispatchers.Default) {
-        val cachedUrl = getCacheFileUrl(songId)
-        val playerItem = if (cachedUrl != null && cachedUrl.path != null && NSFileManager.defaultManager.fileExistsAtPath(cachedUrl.path!!)) {
-            AVPlayerItem.playerItemWithURL(cachedUrl)
+        val localUrl = getOrDownloadLocalSongUrl(songId) ?: return@withContext null
+        val playerItem = AVPlayerItem.playerItemWithURL(localUrl)
+        // Always attach the native processor and bypass it when disabled. If
+        // attachment depended on persisted settings, enabling EQ while a song
+        // was already playing only changed the UI; that item had no EQ path.
+        val targetPlayer = if (forSecondaryPlayer) secondaryPlayer else currentPlayer
+        val processorRef = if (targetPlayer === player1) eqProcessorRef1 else eqProcessorRef2
+        val audioTracks = loadAudioTracks(playerItem.asset)
+        if (audioTracks.isNotEmpty()) {
+            configureAudioProcessingTap(playerItem, audioTracks, processorRef)
         } else {
-            val baseUrl = com.rld.justlisten.datalayer.utils.Constants.BASEURL
-            val appName = com.rld.justlisten.datalayer.utils.Constants.appName.replace(" ", "%20")
-            val streamUrl = "$baseUrl/v1/tracks/$songId/stream?app_name=$appName"
-            val nsUrl = NSURL.URLWithString(streamUrl)
-            if (nsUrl != null) {
-                kotlinx.coroutines.withContext(Dispatchers.Main) {
-                    triggerBackgroundDownload(songId, nsUrl)
-                }
-                AVPlayerItem.playerItemWithURL(nsUrl)
-            } else {
-                null
-            }
-        }
-        if (playerItem != null) {
-            // Always attach the native processor and bypass it when disabled. If
-            // attachment depended on persisted settings, enabling EQ while a song
-            // was already playing only changed the UI; that item had no EQ path.
-            val targetPlayer = if (forSecondaryPlayer) secondaryPlayer else currentPlayer
-            val processorRef = if (targetPlayer === player1) eqProcessorRef1 else eqProcessorRef2
-            val audioTracks = loadAudioTracks(playerItem.asset)
-            if (audioTracks.isNotEmpty()) {
-                configureAudioProcessingTap(playerItem, audioTracks, processorRef)
-            } else {
-                // An empty AVAudioMix can silence an otherwise valid player
-                // item. Keep normal playback if iOS cannot expose the track.
-                Logger.w { "Skipping audio processing tap: asset has no loaded audio tracks" }
-            }
+            // An empty AVAudioMix can silence an otherwise valid player
+            // item. Keep normal playback if iOS cannot expose the track.
+            Logger.w { "Skipping audio processing tap: asset has no loaded audio tracks" }
         }
         playerItem
     }
@@ -529,49 +741,78 @@ class IOSMusicPlayer(
         }
     }
 
-    private fun playTrack(metadata: MediaMetadata) {
+    private fun hasAcceptedPreloadedTransition(expectedSongId: String, expectedItem: AVPlayerItem?): Boolean {
+        val currentItemMatches = expectedItem != null && currentPlayer.currentItem == expectedItem
+        return canAcceptPreloadedTransition(
+            expectedSongId = expectedSongId,
+            preloadedSongId = preloadedSongId,
+            hasPreloadedItem = expectedItem != null,
+            currentItemMatchesPreload = currentItemMatches,
+            preloadedItemFailed = expectedItem?.status == AVPlayerItemStatusFailed,
+        )
+    }
+
+    private fun playTrack(metadata: MediaMetadata, protectBackgroundTransition: Boolean = false) {
+        mediaServicesRecovery.clear()
         cancelCrossfade()
         playJob?.cancel()
-        
-        if (currentPlayer.items().size > 1 && preloadedSongId == metadata.id && preloadedPlayerItem != null) {
-            currentPlayer.advanceToNextItem()
-            val idx = playlistItems.indexOfFirst { it.id == metadata.id }
-            if (idx != -1) {
-                currentIndex = idx
-            }
-            activePlayerItem = preloadedPlayerItem
-            updateState(PlaybackStatus.BUFFERING, metadata)
-            lastNowPlayingUpdateMs = 0L
-            updateNowPlayingInfo(metadata, 0L)
-            
-            preloadedPlayerItem = null
-            preloadedSongId = null
-            preloadNextTrack()
+        if (!configureAudioSession(activate = true)) {
+            updateState(PlaybackStatus.ERROR, metadata)
             return
         }
+        
+        val queuedPreload = preloadedPlayerItem
+        if (currentPlayer.items().size > 1 && preloadedSongId == metadata.id && queuedPreload != null) {
+            currentPlayer.advanceToNextItem()
+            if (hasAcceptedPreloadedTransition(metadata.id, queuedPreload)) {
+                val idx = playlistItems.indexOfFirst { it.id == metadata.id }
+                if (idx != -1) {
+                    currentIndex = idx
+                }
+                activePlayerItem = queuedPreload
+                updateState(PlaybackStatus.BUFFERING, metadata)
+                lastNowPlayingUpdateMs = 0L
+                updateNowPlayingInfo(metadata, 0L)
+
+                preloadedPlayerItem = null
+                preloadedSongId = null
+                preloadNextTrack()
+                return
+            }
+
+            Logger.w { "Queued preload for ${metadata.id} did not become AVPlayer.currentItem; rebuilding" }
+        }
+
+        invalidatePreload()
 
         updateState(PlaybackStatus.BUFFERING, metadata)
         lastNowPlayingUpdateMs = 0L
         updateNowPlayingInfo(metadata, 0L)
 
+        val backgroundTaskGeneration = if (protectBackgroundTransition) {
+            beginTransitionBackgroundTask()
+        } else null
+
         playJob = scope.launch(Dispatchers.Main) {
-            val playerItem = if (preloadedSongId == metadata.id) {
-                preloadedPlayerItem
-            } else {
-                createPlayerItem(metadata.id)
-            }
-    
-            if (playerItem != null && isActive) {
-                activePlayerItem = playerItem
-                currentPlayer.removeAllItems()
-                currentPlayer.insertItem(playerItem, afterItem = null)
-                currentPlayer.play()
-                
-                preloadedPlayerItem = null
-                preloadedSongId = null
-                preloadNextTrack()
-            } else if (isActive) {
-                updateState(PlaybackStatus.ERROR)
+            try {
+                val playerItem = createPlayerItem(metadata.id)
+
+                if (playerItem != null && isActive) {
+                    activePlayerItem = playerItem
+                    currentPlayer.removeAllItems()
+                    currentPlayer.insertItem(playerItem, afterItem = null)
+                    currentPlayer.play()
+
+                    preloadedPlayerItem = null
+                    preloadedSongId = null
+                    preloadNextTrack()
+                } else if (isActive) {
+                    updateState(PlaybackStatus.ERROR)
+                }
+            } finally {
+                if (backgroundTaskGeneration != null) {
+                    endTransitionBackgroundTask(backgroundTaskGeneration)
+                }
             }
         }
     }
@@ -597,8 +838,6 @@ class IOSMusicPlayer(
         val nextMetadata = playlistItems[nextIndex]
         
         preloadJob = scope.launch(Dispatchers.Main) {
-            delay(2000L)
-            
             if (repeatMode == RepeatMode.ONE) {
                 return@launch
             }
@@ -640,19 +879,8 @@ class IOSMusicPlayer(
         val nextIndex = getNextTrackIndex()
         if (nextIndex != -1) {
             val nextItem = playlistItems[nextIndex]
-            if (currentPlayer.items().size > 1 && preloadedSongId == nextItem.id && preloadedPlayerItem != null) {
-                currentPlayer.advanceToNextItem()
-                currentIndex = nextIndex
-                activePlayerItem = preloadedPlayerItem
-                updateState(PlaybackStatus.BUFFERING, nextItem)
-                updateNowPlayingInfo(nextItem, 0L)
-                preloadedPlayerItem = null
-                preloadedSongId = null
-                preloadNextTrack()
-            } else {
-                currentIndex = nextIndex
-                playTrack(playlistItems[currentIndex])
-            }
+            currentIndex = nextIndex
+            playTrack(nextItem)
         } else {
             stop()
         }
@@ -1211,8 +1439,122 @@ class IOSMusicPlayer(
 
     // --- Audio Interruptions and Route Changes ---
 
+    private fun handleMediaServicesLost() {
+        val playback = _playbackState.value
+        val metadata = playback.currentMedia
+        val shouldPreserveTrack = metadata != null && playback.status in setOf(
+            PlaybackStatus.PLAYING,
+            PlaybackStatus.PAUSED,
+            PlaybackStatus.BUFFERING,
+        )
+
+        playJob?.cancel()
+        playJob = null
+        invalidatePreload()
+        cancelCrossfade()
+
+        if (metadata != null && shouldPreserveTrack) {
+            mediaServicesRecovery.onLost(
+                MediaServicesRecoverySnapshot(
+                    mediaId = metadata.id,
+                    positionMs = playback.currentPosition,
+                    wasPlaying = playback.status == PlaybackStatus.PLAYING,
+                )
+            )
+            _playbackState.update { state ->
+                state.copy(
+                    status = PlaybackStatus.PAUSED,
+                    currentPosition = playback.currentPosition,
+                    currentMedia = metadata,
+                )
+            }
+            updateNowPlayingInfo(metadata, playback.currentPosition)
+        } else {
+            mediaServicesRecovery.clear()
+        }
+        Logger.w { "Media services lost; deferring Play commands until reset completes" }
+    }
+
+    private fun handleMediaServicesReset() {
+        val playback = _playbackState.value
+        val metadata = playback.currentMedia
+        val shouldPreserveTrack = metadata != null && playback.status in setOf(
+            PlaybackStatus.PLAYING,
+            PlaybackStatus.PAUSED,
+            PlaybackStatus.BUFFERING,
+        )
+        val recoverableMetadata = metadata?.takeIf { shouldPreserveTrack }
+
+        playJob?.cancel()
+        playJob = null
+        invalidatePreload()
+        cancelCrossfade()
+
+        val shouldResumeAfterReset = if (recoverableMetadata != null) {
+            mediaServicesRecovery.onReset(
+                MediaServicesRecoverySnapshot(
+                    mediaId = recoverableMetadata.id,
+                    positionMs = playback.currentPosition,
+                    wasPlaying = playback.status == PlaybackStatus.PLAYING,
+                )
+            )
+        } else {
+            mediaServicesRecovery.clear()
+            false
+        }
+
+        // A media-server restart leaves AVPlayer and AudioUnit instances
+        // orphaned. Recreate the complete pipeline, but don't reactivate it or
+        // resume playback until the user explicitly presses Play.
+        disposeAudioPipeline()
+        createAudioPipeline()
+        activePlayerItem = null
+        preloadedPlayerItem = null
+        preloadedSongId = null
+        isCrossfading = false
+        lastNowPlayingUpdateMs = 0L
+        configureAudioSession(activate = false)
+
+        if (recoverableMetadata != null) {
+            _playbackState.update { state ->
+                state.copy(
+                    status = PlaybackStatus.PAUSED,
+                    currentPosition = playback.currentPosition,
+                    currentMedia = recoverableMetadata,
+                )
+            }
+            updateNowPlayingInfo(recoverableMetadata, playback.currentPosition)
+        } else {
+            updateNowPlayingInfo(null, 0L)
+        }
+        Logger.w { "Media services reset; rebuilt the audio pipeline and waiting for Play" }
+
+        if (shouldResumeAfterReset) {
+            val decision = mediaServicesRecovery.beginResume()
+            if (decision is MediaServicesResumeDecision.Start) {
+                resumeAfterMediaServicesReset(decision)
+            }
+        }
+    }
+
     private fun setupAudioObservers() {
         val notificationCenter = NSNotificationCenter.defaultCenter
+
+        mediaServicesLostObserver = notificationCenter.addObserverForName(
+            name = AVAudioSessionMediaServicesWereLostNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue,
+        ) { _ ->
+            handleMediaServicesLost()
+        }
+
+        mediaServicesResetObserver = notificationCenter.addObserverForName(
+            name = AVAudioSessionMediaServicesWereResetNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue,
+        ) { _ ->
+            handleMediaServicesReset()
+        }
         
         // 1. Listen to Audio Interruption Notifications (phone call, alarm)
         interruptionObserver = notificationCenter.addObserverForName(
@@ -1292,21 +1634,41 @@ class IOSMusicPlayer(
                 } else {
                     val nextIndex = getNextTrackIndex()
                     if (nextIndex != -1) {
-                        currentIndex = nextIndex
-                        val nextMetadata = playlistItems[currentIndex]
-                        
-                        if (preloadedPlayerItem != null && preloadedSongId == nextMetadata.id) {
-                            // The player has automatically transitioned to the next item
-                            activePlayerItem = preloadedPlayerItem
-                            updateState(PlaybackStatus.PLAYING, nextMetadata)
-                            updateNowPlayingInfo(nextMetadata, 0L)
-                            
-                            preloadedPlayerItem = null
-                            preloadedSongId = null
-                            preloadNextTrack()
-                        } else {
-                            // Fallback if preloading is not ready yet
-                            playTrack(nextMetadata)
+                        val nextMetadata = playlistItems[nextIndex]
+                        val expectedPreload = preloadedPlayerItem
+                        val backgroundTaskGeneration = beginTransitionBackgroundTask()
+
+                        scope.launch(Dispatchers.Main) {
+                            try {
+                                // AVQueuePlayer advances asynchronously after the end
+                                // notification. Let its currentItem settle before using it
+                                // as the source of truth.
+                                delay(50L)
+                                if (activePlayerItem != finishedItem) return@launch
+
+                                currentIndex = nextIndex
+                                if (hasAcceptedPreloadedTransition(nextMetadata.id, expectedPreload)) {
+                                    activePlayerItem = expectedPreload
+                                    val status = if (currentPlayer.timeControlStatus == AVPlayerTimeControlStatusPlaying) {
+                                        PlaybackStatus.PLAYING
+                                    } else {
+                                        PlaybackStatus.BUFFERING
+                                    }
+                                    updateState(status, nextMetadata)
+                                    updateNowPlayingInfo(nextMetadata, 0L)
+
+                                    preloadedPlayerItem = null
+                                    preloadedSongId = null
+                                    preloadNextTrack()
+                                } else {
+                                    Logger.w {
+                                        "Automatic transition to ${nextMetadata.id} left AVPlayer without the expected item; rebuilding"
+                                    }
+                                    playTrack(nextMetadata, protectBackgroundTransition = true)
+                                }
+                            } finally {
+                                endTransitionBackgroundTask(backgroundTaskGeneration)
+                            }
                         }
                     } else {
                         stop()
@@ -1316,16 +1678,29 @@ class IOSMusicPlayer(
         }
 
         // 4. Listen for playback stalls and attempt recovery
-        notificationCenter.addObserverForName(
+        playbackStalledObserver = notificationCenter.addObserverForName(
             name = AVPlayerItemPlaybackStalledNotification,
             `object` = null,
             queue = NSOperationQueue.mainQueue
         ) { _ ->
             Logger.w { "Playback stalled, attempting recovery..." }
-            scope.launch(Dispatchers.Main) {
-                delay(1000)
-                if (_playbackState.value.status == PlaybackStatus.PLAYING) {
-                    currentPlayer.play()
+            if (stallRecoveryJob?.isActive == true) {
+                return@addObserverForName
+            }
+            beginStallBackgroundTask()
+            stallRecoveryJob = scope.launch(Dispatchers.Main) {
+                try {
+                    delay(1000)
+                    if (shouldAttemptPlaybackStallRecovery(_playbackState.value.status)) {
+                        if (configureAudioSession(activate = true)) {
+                            currentPlayer.play()
+                        } else {
+                            updateState(PlaybackStatus.ERROR)
+                        }
+                    }
+                } finally {
+                    stallRecoveryJob = null
+                    endStallBackgroundTask()
                 }
             }
         }
@@ -1363,29 +1738,31 @@ class IOSMusicPlayer(
 
     override fun release() {
         cancelCrossfade()
+        stallRecoveryJob?.cancel()
+        stallRecoveryJob = null
+        endTransitionBackgroundTask()
+        endStallBackgroundTask()
         scope.cancel()
         preloadJob?.cancel()
         
         activeDownloads.values.forEach { it.cancel() }
         activeDownloads.clear()
-        
-        timeObserverToken?.let {
-            player1.removeTimeObserver(it)
-        }
-        timeObserverToken = null
-        timeObserverToken2?.let {
-            player2.removeTimeObserver(it)
-        }
-        timeObserverToken2 = null
+        mediaServicesRecovery.clear()
         
         val notificationCenter = NSNotificationCenter.defaultCenter
         interruptionObserver?.let { notificationCenter.removeObserver(it) }
         routeChangeObserver?.let { notificationCenter.removeObserver(it) }
         playToEndObserver?.let { notificationCenter.removeObserver(it) }
+        playbackStalledObserver?.let { notificationCenter.removeObserver(it) }
+        mediaServicesLostObserver?.let { notificationCenter.removeObserver(it) }
+        mediaServicesResetObserver?.let { notificationCenter.removeObserver(it) }
         
         interruptionObserver = null
         routeChangeObserver = null
         playToEndObserver = null
+        playbackStalledObserver = null
+        mediaServicesLostObserver = null
+        mediaServicesResetObserver = null
         
         val commandCenter = MPRemoteCommandCenter.sharedCommandCenter()
         commandCenter.playCommand.enabled = false
@@ -1401,18 +1778,11 @@ class IOSMusicPlayer(
         commandCenter.changePlaybackPositionCommand.enabled = false
         commandCenter.changePlaybackPositionCommand.removeTarget(null)
 
-        player1.pause()
-        player1.removeAllItems()
-        player2.pause()
-        player2.removeAllItems()
+        disposeAudioPipeline()
         activePlayerItem = null
         
         artworkCache.clear()
         lastLoadedArtwork = null
 
-        eqProcessor1.unprepare()
-        eqProcessor2.unprepare()
-        eqProcessorRef1.dispose()
-        eqProcessorRef2.dispose()
     }
 }

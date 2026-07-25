@@ -15,6 +15,7 @@ func getRouteTitle(_ route: Route) -> String {
     if route is Route.ArtistDashboard { return "Artist Dashboard" }
     if route is Route.CustomTheme { return "Custom Theme" }
     if route is Route.MusicInsights { return "Music Insights" }
+    if route is Route.Comments { return "Comments" }
     return ""
 }
 
@@ -126,9 +127,21 @@ struct NativeNavContentView: View {
                     }
                 }
 
-                SharedTrackDeepLinkObserverView {
-                    self.playerExpanded = true
-                }
+                SharedTrackDeepLinkObserverView(
+                    onTrackLoaded: {
+                        self.playerExpanded = true
+                    },
+                    onNavigate: { route in
+                        self.playerExpanded = false
+                        switch appCoordinator.selectedTab {
+                        case .playlists: appCoordinator.playlistsCoordinator.push(route)
+                        case .library: appCoordinator.libraryCoordinator.push(route)
+                        case .feed: appCoordinator.feedCoordinator.push(route)
+                        case .search: appCoordinator.searchCoordinator.push(route)
+                        case .settings: appCoordinator.settingsCoordinator.push(route)
+                        }
+                    }
+                )
 
                 ThemeTintObserverView { hex in
                     if let color = Color(themeHex: hex), self.nativeTint != color {
@@ -166,12 +179,18 @@ struct NativeNavContentView: View {
 @available(iOS 26.1, *)
 private struct SharedTrackDeepLinkObserverView: UIViewControllerRepresentable {
     let onTrackLoaded: () -> Void
+    let onNavigate: (Route) -> Void
 
     func makeUIViewController(context: Context) -> UIViewController {
         let viewController = IosMiniPlayerBridgeKt.SharedTrackDeepLinkObserverViewController(
             onTrackLoaded: {
                 DispatchQueue.main.async {
                     self.onTrackLoaded()
+                }
+            },
+            onNavigate: { route in
+                DispatchQueue.main.async {
+                    self.onNavigate(route)
                 }
             }
         )

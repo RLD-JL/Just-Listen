@@ -140,6 +140,9 @@ fun Level1BottomBar(
                 is Route.ArtistProfile -> {
                     lastActiveRoutes[currentTab] = currentRoute
                 }
+                is Route.Comments -> {
+                    lastActiveRoutes[currentTab] = currentRoute
+                }
                 Route.Notifications -> {
                     lastActiveRoutes[currentTab] = currentRoute
                 }
@@ -321,5 +324,4 @@ fun Level1BottomBar(
         )
     }
 }
-
 
