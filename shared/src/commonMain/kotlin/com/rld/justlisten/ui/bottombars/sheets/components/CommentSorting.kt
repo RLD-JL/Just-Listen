@@ -19,3 +19,8 @@ internal fun List<Comment>.sortedForDisplay(sortOption: CommentSortOption): List
         CommentSortOption.Newest -> sortedByDescending(Comment::createdAt)
         CommentSortOption.Oldest -> sortedBy(Comment::createdAt)
     }
+
+internal fun List<Comment>.orderedByIds(orderedIds: List<String>): List<Comment> {
+    val commentsById = associateBy(Comment::id)
+    return orderedIds.mapNotNull(commentsById::get)
+}

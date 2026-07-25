@@ -27,6 +27,7 @@ class PlaylistDetailViewModel(
 
     private val _playlistDetailState = MutableStateFlow(PlaylistDetailState(isLoading = true))
     val playlistDetailState: StateFlow<PlaylistDetailState> = _playlistDetailState.asStateFlow()
+    private val repostOperations = mutableMapOf<String, RepostOperation>()
 
     init {
         viewModelScope.launch {
@@ -44,7 +45,10 @@ class PlaylistDetailViewModel(
             playlistRepository.repostedTrackIdsFlow.collect { repostedIds ->
                 _playlistDetailState.update { state ->
                     val updated = state.songPlaylist.map { item ->
-                        item.copy(isReposted = repostedIds.contains(item.id))
+                        item.copy(
+                            isReposted = repostOperations[item.id]?.desiredState
+                                ?: repostedIds.contains(item.id)
+                        )
                     }
                     state.copy(songPlaylist = updated)
                 }
@@ -56,20 +60,16 @@ class PlaylistDetailViewModel(
         id: String, title: String, user: UserModel, songIconList: SongIconList,
         isFavorite: Boolean
     ) {
+        // The database and Audius sync are background work; reflect the tap immediately.
+        _playlistDetailState.update { state ->
+            state.copy(
+                songPlaylist = state.songPlaylist.map { item ->
+                    if (item.id == id) item.copy(isFavorite = isFavorite) else item
+                }
+            )
+        }
         viewModelScope.launch {
             favoritesRepository.saveSongToFavorites(id, title, user, songIconList, "Favorite", isFavorite)
-            // Update in-memory state so UI reflects the change immediately
-            _playlistDetailState.update { state ->
-                state.copy(
-                    songPlaylist = state.songPlaylist.map { item ->
-                        if (item.id == id) {
-                            item.copy(isFavorite = isFavorite)
-                        } else {
-                            item
-                        }
-                    }
-                )
-            }
         }
     }
 
@@ -160,24 +160,95 @@ class PlaylistDetailViewModel(
             return
         }
 
+        val currentItem = _playlistDetailState.value.songPlaylist.firstOrNull { it.id == id }
+            ?: return
+        val existingOperation = repostOperations[id]
+        val operation = existingOperation ?: RepostOperation(
+            desiredState = isRepost,
+            confirmedState = currentItem.isReposted,
+            confirmedCount = currentItem.repostCount,
+        ).also { repostOperations[id] = it }
+        operation.desiredState = isRepost
+        updateVisibleRepost(id, isRepost)
+
+        // Coalesce rapid taps into one serial worker so slow responses cannot overwrite
+        // the user's latest choice.
+        if (existingOperation != null) return
         viewModelScope.launch {
-            val success = if (isRepost) {
-                playlistRepository.repostTrack(id)
-            } else {
-                playlistRepository.unrepostTrack(id)
-            }
-            if (success) {
-                _playlistDetailState.update { state ->
-                    val updated = state.songPlaylist.map { item ->
-                        if (item.id == id) {
-                            val newCount = if (isRepost) item.repostCount + 1 else (item.repostCount - 1).coerceAtLeast(0)
-                            val updatedData = item._data.copy(repostCount = newCount)
-                            item.copy(_data = updatedData, isReposted = isRepost)
-                        } else item
+            try {
+                while (true) {
+                    val activeOperation = repostOperations[id] ?: break
+                    val requestedState = activeOperation.desiredState
+                    if (requestedState != activeOperation.confirmedState) {
+                        val success = if (requestedState) {
+                            playlistRepository.repostTrack(id)
+                        } else {
+                            playlistRepository.unrepostTrack(id)
+                        }
+                        if (success) {
+                            activeOperation.confirmedCount = (
+                                activeOperation.confirmedCount + if (requestedState) 1 else -1
+                            ).coerceAtLeast(0)
+                            activeOperation.confirmedState = requestedState
+                        } else if (activeOperation.desiredState == requestedState) {
+                            setVisibleRepost(
+                                id = id,
+                                isReposted = activeOperation.confirmedState,
+                                repostCount = activeOperation.confirmedCount,
+                            )
+                            break
+                        }
                     }
-                    state.copy(songPlaylist = updated)
+
+                    if (activeOperation.desiredState == activeOperation.confirmedState) {
+                        setVisibleRepost(
+                            id = id,
+                            isReposted = activeOperation.confirmedState,
+                            repostCount = activeOperation.confirmedCount,
+                        )
+                        break
+                    }
                 }
+            } finally {
+                repostOperations.remove(id)
             }
+        }
+    }
+
+    private fun updateVisibleRepost(id: String, isReposted: Boolean) {
+        _playlistDetailState.update { state ->
+            state.copy(
+                songPlaylist = state.songPlaylist.map { item ->
+                    if (item.id != id || item.isReposted == isReposted) {
+                        item
+                    } else {
+                        val newCount = (
+                            item.repostCount + if (isReposted) 1 else -1
+                        ).coerceAtLeast(0)
+                        item.copy(
+                            _data = item._data.copy(repostCount = newCount),
+                            isReposted = isReposted,
+                        )
+                    }
+                }
+            )
+        }
+    }
+
+    private fun setVisibleRepost(id: String, isReposted: Boolean, repostCount: Int) {
+        _playlistDetailState.update { state ->
+            state.copy(
+                songPlaylist = state.songPlaylist.map { item ->
+                    if (item.id == id) {
+                        item.copy(
+                            _data = item._data.copy(repostCount = repostCount),
+                            isReposted = isReposted,
+                        )
+                    } else {
+                        item
+                    }
+                }
+            )
         }
     }
 
@@ -185,3 +256,9 @@ class PlaylistDetailViewModel(
         _playlistDetailState.update { it.copy(showConnectPrompt = false) }
     }
 }
+
+private data class RepostOperation(
+    var desiredState: Boolean,
+    var confirmedState: Boolean,
+    var confirmedCount: Int,
+)

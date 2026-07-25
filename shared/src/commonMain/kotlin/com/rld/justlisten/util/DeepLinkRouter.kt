@@ -11,6 +11,24 @@ data class JustListenDeepLink(
 fun parseJustListenDeepLink(url: String): JustListenDeepLink? {
     val cleanUrl = url.substringBefore('#')
 
+    if (cleanUrl.startsWith("https://justlisten.cloud/comments/", ignoreCase = true)) {
+        val pathSegments = cleanUrl
+            .substringAfter("https://justlisten.cloud/comments/", missingDelimiterValue = "")
+            .substringBefore('?')
+            .trim('/')
+            .split('/')
+            .filter(String::isNotBlank)
+        val trackId = pathSegments.getOrNull(0) ?: return null
+        if (pathSegments.size > 2) return null
+        return JustListenDeepLink(
+            path = "comments/share",
+            parameters = buildMap {
+                put("trackId", trackId)
+                pathSegments.getOrNull(1)?.let { put("commentId", it) }
+            },
+        )
+    }
+
     if (cleanUrl.startsWith("https://justlisten.cloud/track/", ignoreCase = true)) {
         val trackId = cleanUrl
             .substringAfter("https://justlisten.cloud/track/", missingDelimiterValue = "")
@@ -34,6 +52,15 @@ fun parseJustListenDeepLink(url: String): JustListenDeepLink? {
         }.toMap()
     }
     return JustListenDeepLink(path = path, parameters = parameters)
+}
+
+fun commentsShareUrl(trackId: String, commentId: String? = null): String = buildString {
+    append("https://justlisten.cloud/comments/")
+    append(trackId)
+    if (!commentId.isNullOrBlank()) {
+        append('/')
+        append(commentId)
+    }
 }
 
 object DeepLinkRouter {

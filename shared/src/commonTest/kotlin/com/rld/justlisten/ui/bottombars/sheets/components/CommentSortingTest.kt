@@ -46,6 +46,25 @@ class CommentSortingTest {
         )
     }
 
+    @Test
+    fun reactionCountUpdateKeepsExistingDisplayOrder() {
+        val initialOrder = comments
+            .sortedForDisplay(CommentSortOption.Top)
+            .map(Comment::id)
+        val reactedComments = comments.map { comment ->
+            if (comment.id == "newest") {
+                comment.copy(reactCount = 10, isCurrentUserReacted = true)
+            } else {
+                comment
+            }
+        }
+
+        val displayedComments = reactedComments.orderedByIds(initialOrder)
+
+        assertEquals(initialOrder, displayedComments.map(Comment::id))
+        assertEquals(10, displayedComments.single { it.id == "newest" }.reactCount)
+    }
+
     private fun comment(
         id: String,
         createdAt: String,
