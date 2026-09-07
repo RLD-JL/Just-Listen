@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -347,6 +348,49 @@ fun MusicLoadingSpinner(
         }
     }
 }
+
+/** Frame-capped equalizer for an actively playing item.
+ *
+ * Bar positions update approximately 30 times per second. Read animation state
+ * in the draw phase to avoid recomposition; this does not cap window rendering.
+ */
+@Composable
+fun NowPlayingIndicator(
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary,
+    size: Dp = 24.dp,
+) {
+    var frame by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(33L)
+            frame = (frame + 1) % NOW_PLAYING_FRAME_COUNT
+        }
+    }
+    Canvas(modifier = modifier.size(size)) {
+        // Read the animation state in the draw phase so Compose invalidates this
+        // canvas without recomposing the surrounding song/playlist row.
+        val phase = frame * (2.0 * PI / NOW_PLAYING_FRAME_COUNT)
+        val spacing = this.size.width * 0.15f
+        val barWidth = (this.size.width - spacing * 2f) / 3f
+        repeat(3) { index ->
+            val offset = index * (2.0 * PI / 3.0)
+            val wave = 0.68 * sin(phase + offset) + 0.32 * sin(phase * 2.0 + offset)
+            val fraction = (0.25 + 0.75 * ((wave + 1.0) / 2.0))
+                .coerceIn(0.25, 1.0)
+                .toFloat()
+            val barHeight = this.size.height * fraction
+            drawRoundRect(
+                color = color,
+                topLeft = Offset(index * (barWidth + spacing), this.size.height - barHeight),
+                size = Size(barWidth, barHeight),
+                cornerRadius = CornerRadius(barWidth / 2f, barWidth / 2f),
+            )
+        }
+    }
+}
+
+private const val NOW_PLAYING_FRAME_COUNT = 30
 
 /**
  * Draws a customized musical note onto a DrawScope at a specified position and scale.

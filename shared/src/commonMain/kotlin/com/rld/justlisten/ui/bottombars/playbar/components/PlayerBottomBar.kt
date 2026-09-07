@@ -237,9 +237,10 @@ fun BoxScope.MiniProgressBar(
     animatedColor: Color
 ) {
     val playbackState by musicPlayer.playbackState.collectAsState()
+    val playbackPosition by musicPlayer.playbackPosition.collectAsState()
     val duration = playbackState.currentMedia?.duration ?: 0L
     val progress = if (duration > 0L) {
-        playbackState.currentPosition.toFloat() / duration.toFloat()
+        playbackPosition.toFloat() / duration.toFloat()
     } else 0f
 
     if (!progress.isNaN()) {

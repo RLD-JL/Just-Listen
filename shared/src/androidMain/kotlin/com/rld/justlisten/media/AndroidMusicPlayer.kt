@@ -23,6 +23,8 @@ class AndroidMusicPlayer(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val _playbackState = MutableStateFlow(PlaybackState(PlaybackStatus.IDLE, 0L))
     override val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
+    private val _playbackPosition = MutableStateFlow(0L)
+    override val playbackPosition: StateFlow<Long> = _playbackPosition.asStateFlow()
 
     private val _currentPlaylist = MutableStateFlow<List<MediaMetadata>>(emptyList())
     override val currentPlaylist: StateFlow<List<MediaMetadata>> = _currentPlaylist.asStateFlow()
@@ -34,6 +36,31 @@ class AndroidMusicPlayer(
     override val networkError: StateFlow<Boolean> = _networkError.asStateFlow()
 
     private val favoriteIds = MutableStateFlow<Set<String>>(emptySet())
+    private var positionJob: Job? = null
+
+    private val commands = ReadyCommandQueue(
+        scope = scope,
+        acquire = {
+            ensureConnected()
+            musicServiceConnection.awaitController()
+        },
+        onFailure = { _networkError.value = true },
+    )
+
+    private fun ensureConnected() {
+        musicServiceConnection.ensureConnected()
+        if (positionJob?.isActive == true) return
+        positionJob = scope.launch {
+            while (isActive) {
+                val state = _playbackState.value
+                if (state.status == PlaybackStatus.PLAYING && !musicServiceConnection.sliderClicked.value) {
+                    _playbackPosition.value =
+                        musicServiceConnection.mediaController?.currentPosition ?: 0L
+                }
+                delay(if (state.status == PlaybackStatus.PLAYING) 250L else 1_000L)
+            }
+        }
+    }
 
     init {
         scope.launch {
@@ -77,107 +104,57 @@ class AndroidMusicPlayer(
             }
         }
 
-        scope.launch {
-            while (isActive) {
-                val state = _playbackState.value
-                if (state.status == PlaybackStatus.PLAYING && !musicServiceConnection.sliderClicked.value) {
-                    val currentPos = musicServiceConnection.mediaController?.currentPosition ?: 0L
-                    _playbackState.value = state.copy(currentPosition = currentPos)
-                }
-                delay(250L)
-            }
-        }
     }
 
-    override fun play() {
-        musicServiceConnection.mediaController?.play()
+    override fun play() = commands.submit { it.play() }
+    override fun pause() = commands.submit { it.pause() }
+    override fun stop() = commands.submit { it.stop() }
+    override fun skipToNext() = commands.submit { it.seekToNext() }
+    override fun skipToPrevious() = commands.submit { it.seekToPrevious() }
+
+    override fun seekTo(position: Long) = commands.submit {
+        it.seekTo(position)
+        _playbackPosition.value = position
     }
 
-    override fun pause() {
-        musicServiceConnection.mediaController?.pause()
+    override fun setShuffleModeEnabled(enabled: Boolean) = commands.submit {
+        it.shuffleModeEnabled = enabled
     }
 
-    override fun stop() {
-        musicServiceConnection.mediaController?.stop()
-    }
-
-    override fun skipToNext() {
-        musicServiceConnection.mediaController?.seekToNext()
-    }
-
-    override fun skipToPrevious() {
-        musicServiceConnection.mediaController?.seekToPrevious()
-    }
-
-    override fun seekTo(position: Long) {
-        musicServiceConnection.mediaController?.seekTo(position)
-    }
-
-    override fun setShuffleModeEnabled(enabled: Boolean) {
-        musicServiceConnection.mediaController?.shuffleModeEnabled = enabled
-    }
-
-    override fun setRepeatMode(repeatMode: RepeatMode) {
-        val mode = when (repeatMode) {
+    override fun setRepeatMode(repeatMode: RepeatMode) = commands.submit {
+        it.repeatMode = when (repeatMode) {
             RepeatMode.NONE -> Player.REPEAT_MODE_OFF
             RepeatMode.ONE -> Player.REPEAT_MODE_ONE
             RepeatMode.ALL -> Player.REPEAT_MODE_ALL
         }
-        musicServiceConnection.mediaController?.repeatMode = mode
     }
 
-    override fun playMedia(mediaId: String) {
-        scope.launch {
-            var attempts = 0
-            while (musicServiceConnection.mediaController == null && attempts < 30) {
-                delay(100)
-                attempts++
-            }
-            musicServiceConnection.mediaController?.let { controller ->
-                for (i in 0 until controller.mediaItemCount) {
-                    if (controller.getMediaItemAt(i).mediaId == mediaId) {
-                        controller.seekTo(i, 0)
-                        controller.play()
-                        break
-                    }
-                }
-            }
-        }
-    }
-
-    override fun playMedia(mediaId: String, playlist: List<com.rld.justlisten.viewmodel.interfaces.Item>) {
-        scope.launch {
-            var attempts = 0
-            while (musicServiceConnection.mediaController == null && attempts < 30) {
-                delay(100)
-                attempts++
-            }
-            musicServiceConnection.mediaController?.let { controller ->
-                val startIndex = playlist.indexOfFirst { it.id == mediaId }.coerceAtLeast(0)
-                musicServiceConnection.updatePlaylist(playlist, startIndex)
+    override fun playMedia(mediaId: String) = commands.submit { controller ->
+        for (i in 0 until controller.mediaItemCount) {
+            if (controller.getMediaItemAt(i).mediaId == mediaId) {
+                controller.seekTo(i, 0)
                 controller.play()
+                break
             }
         }
     }
 
-    override fun loadMedia(mediaId: String, playlist: List<com.rld.justlisten.viewmodel.interfaces.Item>) {
-        scope.launch {
-            var attempts = 0
-            while (musicServiceConnection.mediaController == null && attempts < 30) {
-                delay(100)
-                attempts++
-            }
-            musicServiceConnection.mediaController?.let { controller ->
-                val startIndex = playlist.indexOfFirst { it.id == mediaId }.coerceAtLeast(0)
-                controller.pause()
-                musicServiceConnection.updatePlaylist(playlist, startIndex)
-            }
+    override fun playMedia(mediaId: String, playlist: List<com.rld.justlisten.viewmodel.interfaces.Item>) =
+        commands.submit { controller ->
+            val startIndex = playlist.indexOfFirst { it.id == mediaId }.coerceAtLeast(0)
+            musicServiceConnection.updatePlaylist(playlist, startIndex)
+            controller.play()
         }
-    }
 
-    override fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>) {
-        musicServiceConnection.updatePlaylist(list)
-    }
+    override fun loadMedia(mediaId: String, playlist: List<com.rld.justlisten.viewmodel.interfaces.Item>) =
+        commands.submit { controller ->
+            val startIndex = playlist.indexOfFirst { it.id == mediaId }.coerceAtLeast(0)
+            controller.pause()
+            musicServiceConnection.updatePlaylist(playlist, startIndex)
+        }
+
+    override fun updatePlaylist(list: List<com.rld.justlisten.viewmodel.interfaces.Item>) =
+        commands.submit { musicServiceConnection.updatePlaylist(list) }
 
     override fun refreshMetadata() {
         updateState(musicServiceConnection.playbackState.value, musicServiceConnection.currentPlayingSong.value)
@@ -248,7 +225,7 @@ class AndroidMusicPlayer(
     }
 
     override fun removeTrack(index: Int) {
-        musicServiceConnection.mediaController?.let { controller ->
+        commands.submit { controller ->
             if (index in 0 until controller.mediaItemCount) {
                 controller.removeMediaItem(index)
             }
@@ -256,7 +233,7 @@ class AndroidMusicPlayer(
     }
 
     override fun moveTrack(fromIndex: Int, toIndex: Int) {
-        musicServiceConnection.mediaController?.let { controller ->
+        commands.submit { controller ->
             if (fromIndex in 0 until controller.mediaItemCount && toIndex in 0 until controller.mediaItemCount) {
                 controller.moveMediaItem(fromIndex, toIndex)
             }
@@ -264,19 +241,22 @@ class AndroidMusicPlayer(
     }
 
     override fun addTracksToQueue(tracks: List<com.rld.justlisten.viewmodel.interfaces.Item>) {
-        val mediaItems = tracks.map { it.toMediaItem() }
-        musicServiceConnection.musicSource.playlist = musicServiceConnection.musicSource.playlist + tracks
-        musicServiceConnection.musicSource.songs = musicServiceConnection.musicSource.songs + mediaItems
-        musicServiceConnection.mediaController?.addMediaItems(mediaItems)
+        commands.submit { controller ->
+            val mediaItems = tracks.map { it.toMediaItem() }
+            musicServiceConnection.musicSource.playlist = musicServiceConnection.musicSource.playlist + tracks
+            musicServiceConnection.musicSource.songs = musicServiceConnection.musicSource.songs + mediaItems
+            controller.addMediaItems(mediaItems)
+        }
     }
     
     // Helper to update internal state from MusicServiceConnection
     private fun updateState(state: Int, mediaItem: MediaItem?) {
         if (!musicServiceConnection.isConnected.value) return
-        
+        val currentPosition = musicServiceConnection.mediaController?.currentPosition ?: 0L
+        _playbackPosition.value = currentPosition
         _playbackState.value = PlaybackState(
             status = mapStatus(state),
-            currentPosition = musicServiceConnection.mediaController?.currentPosition ?: 0L,
+            currentPosition = currentPosition,
             currentMedia = mapMetadata(mediaItem),
             isShuffleModeEnabled = musicServiceConnection.mediaController?.shuffleModeEnabled ?: false,
             repeatMode = mapRepeatMode(musicServiceConnection.mediaController?.repeatMode ?: Player.REPEAT_MODE_OFF)

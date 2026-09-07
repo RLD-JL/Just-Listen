@@ -34,6 +34,7 @@ import androidx.compose.ui.text.TextLayoutResult
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import com.rld.justlisten.ui.components.MusicLoadingSpinner
+import com.rld.justlisten.ui.components.NowPlayingIndicator
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -575,7 +576,7 @@ fun FeedTimelineRow(
                                     .background(Color.Black.copy(alpha = 0.5f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                MusicLoadingSpinner(
+                                NowPlayingIndicator(
                                     size = 18.dp,
                                     color = Color.White
                                 )

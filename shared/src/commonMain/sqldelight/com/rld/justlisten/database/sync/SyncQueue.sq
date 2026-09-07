@@ -4,17 +4,23 @@ CREATE TABLE SyncQueue (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     actionType TEXT NOT NULL,
     targetId TEXT NOT NULL,
+    userId TEXT NOT NULL,
     payload TEXT,
     errorMessage TEXT,
     retryCount INTEGER AS Int NOT NULL DEFAULT 0
 );
 
 getPendingTasks:
-SELECT * FROM SyncQueue ORDER BY id ASC;
+SELECT * FROM SyncQueue WHERE userId = :userId ORDER BY id ASC;
+
+getPendingFavoriteTasks:
+SELECT * FROM SyncQueue
+WHERE userId = :userId AND actionType IN ('FAVORITE', 'UNFAVORITE')
+ORDER BY id ASC;
 
 insertTask:
-INSERT INTO SyncQueue(actionType, targetId, payload, errorMessage, retryCount)
-VALUES (:actionType, :targetId, :payload, :errorMessage, :retryCount);
+INSERT INTO SyncQueue(actionType, targetId, userId, payload, errorMessage, retryCount)
+VALUES (:actionType, :targetId, :userId, :payload, :errorMessage, :retryCount);
 
 deleteTask:
 DELETE FROM SyncQueue WHERE id = :id;
@@ -23,8 +29,19 @@ updateTaskError:
 UPDATE SyncQueue SET errorMessage = :errorMessage, retryCount = :retryCount WHERE id = :id;
 
 getTasksByTarget:
-SELECT * FROM SyncQueue WHERE targetId = :targetId;
+SELECT * FROM SyncQueue
+WHERE userId = :userId AND targetId = :targetId
+  AND actionType IN ('FAVORITE', 'UNFAVORITE');
 
 deleteTasksByTarget:
-DELETE FROM SyncQueue WHERE targetId = :targetId;
+DELETE FROM SyncQueue
+WHERE userId = :userId AND targetId = :targetId
+  AND actionType IN ('FAVORITE', 'UNFAVORITE');
 
+deleteFavoriteTasksByTarget:
+DELETE FROM SyncQueue
+WHERE userId = :userId AND targetId = :targetId
+  AND actionType IN ('FAVORITE', 'UNFAVORITE');
+
+deleteAllTasks:
+DELETE FROM SyncQueue;

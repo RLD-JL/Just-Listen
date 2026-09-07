@@ -31,7 +31,7 @@ import coil3.request.ImageRequest
 import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.ui.components.AnimatedShimmer
-import com.rld.justlisten.ui.components.MusicLoadingSpinner
+import com.rld.justlisten.ui.components.NowPlayingIndicator
 import com.rld.justlisten.ui.theme.typography
 import com.rld.justlisten.viewmodel.screens.playlist.PlaylistItem
 
@@ -94,7 +94,7 @@ fun PlaylistRowItem(
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    MusicLoadingSpinner(
+                    NowPlayingIndicator(
                         size = 20.dp,
                         color = Color.White
                     )

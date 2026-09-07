@@ -30,7 +30,14 @@ fun appModule() = module {
     single<SearchRepository> { SearchRepositoryImpl(get(), get()) }
     single<SettingsRepository> { SettingsRepositoryImpl(get()) }
     single<AuthRepository> { AuthRepositoryImpl(apiClient = get(), secureStorage = get(), pkceCrypto = get(), syncRepository = get(), localDb = get()) }
-    single<SyncRepository> { SyncRepositoryImpl(localDb = get(), apiClient = get()) }
+    single<SyncRepository> {
+        SyncRepositoryImpl(
+            localDb = get(),
+            apiClient = get(),
+            secureStorage = get(),
+            retryScheduler = get(),
+        )
+    }
     single<FeedRepository> { FeedRepositoryImpl(get(), get(), get()) }
     single<CommentsRepository> { CommentsRepositoryImpl(get()) }
     single<NotificationRepository> { NotificationRepositoryImpl(get()) }

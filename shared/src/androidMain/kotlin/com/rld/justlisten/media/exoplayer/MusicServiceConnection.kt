@@ -10,13 +10,15 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.rld.justlisten.media.exoplayer.utils.Constants.NETWORK_ERROR
 import com.rld.justlisten.viewmodel.interfaces.Item
 import kotlinx.coroutines.*
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class MusicServiceConnection(
     val musicSource: MusicSource,
-    private val musicPreloader: MusicPreloader,
-    context: Context
+    private val musicPreloader: Lazy<MusicPreloader>,
+    private val context: Context
 ) {
 
     private val _isConnected: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -58,7 +60,9 @@ class MusicServiceConnection(
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
     private var updateJob: Job? = null
 
-    init {
+    @Synchronized
+    fun ensureConnected() {
+        if (controllerFuture != null) return
         val sessionToken = SessionToken(context, ComponentName(context, MusicService::class.java))
         val future = MediaController.Builder(context, sessionToken).buildAsync()
         controllerFuture = future
@@ -69,9 +73,26 @@ class MusicServiceConnection(
                 _isConnected.value = true
                 updateSong()
             } catch (e: Exception) {
-                e.printStackTrace()
+                if (controllerFuture === future) controllerFuture = null
+                _networkError.value = true
             }
         }, MoreExecutors.directExecutor())
+    }
+
+    suspend fun awaitController(): MediaController {
+        ensureConnected()
+        mediaController?.let { return it }
+        val future = controllerFuture ?: error("Media controller connection failed")
+        return suspendCancellableCoroutine { continuation ->
+            future.addListener({
+                try {
+                    val controller = future.get()
+                    if (continuation.isActive) continuation.resume(controller)
+                } catch (e: Exception) {
+                    if (continuation.isActive) continuation.resumeWithException(e)
+                }
+            }, MoreExecutors.directExecutor())
+        }
     }
 
     fun updatePlaylist(list: List<Item>, startIndex: Int = 0) {
@@ -140,7 +161,7 @@ class MusicServiceConnection(
         val nextIndex = controller.nextMediaItemIndex
         if (nextIndex != androidx.media3.common.C.INDEX_UNSET && nextIndex < controller.mediaItemCount) {
             val nextSong = controller.getMediaItemAt(nextIndex)
-            musicPreloader.preloadSong(nextSong.mediaId)
+            musicPreloader.value.preloadSong(nextSong.mediaId)
         }
     }
 
@@ -151,6 +172,7 @@ class MusicServiceConnection(
         controllerFuture?.let {
             MediaController.releaseFuture(it)
         }
+        controllerFuture = null
         mediaController = null
         _isConnected.value = false
     }

@@ -1,5 +1,8 @@
 package com.rld.justlisten.datalayer.repositories
 
+import com.rld.justlisten.util.authSessionLock
+import kotlin.random.Random
+
 import com.rld.justlisten.datalayer.webservices.ApiClient
 import com.rld.justlisten.datalayer.webservices.ApiRequestException
 import com.rld.justlisten.datalayer.webservices.apis.authcalls.MeResponse
@@ -93,7 +96,7 @@ class AuthRepositoryImpl(
 
     private fun cacheProfile(profile: MeResponse) {
         profile.userId?.takeIf { it.isNotBlank() }?.let {
-            secureStorage.saveToken("user_id", it)
+            authSessionLock.withLock { secureStorage.saveToken("user_id", it) }
             secureStorage.saveToken("cached_user_id", it)
         }
         secureStorage.saveToken("cached_user_name", profile.name)
@@ -104,9 +107,14 @@ class AuthRepositoryImpl(
         }
     }
 
-    private fun publishAuthenticated(profile: MeResponse) {
-        cacheProfile(profile)
-        _sessionState.value = SessionState.Authenticated(profile)
+    private fun publishAuthenticated(profile: MeResponse, generation: String?) {
+        authSessionLock.withLock {
+            if (secureStorage.getToken("auth_session_id") != generation) {
+                throw com.rld.justlisten.datalayer.webservices.SyncSessionChanged()
+            }
+            cacheProfile(profile)
+            _sessionState.value = SessionState.Authenticated(profile)
+        }
         profile.userId?.takeIf { it.isNotBlank() }?.let { userId ->
             repositoryScope.launch {
                 syncRepository.performInboundSync(userId)
@@ -140,24 +148,30 @@ class AuthRepositoryImpl(
 
     override suspend fun loginWithCode(code: String, redirectUri: String): Boolean {
         var credentialsStored = false
+        var operationGeneration = secureStorage.getToken("auth_session_id")
         return try {
             val verifier = currentVerifier ?: secureStorage.getToken("code_verifier") ?: return false
+            val generationBeforeExchange = secureStorage.getToken("auth_session_id")
             val tokenResponse = apiClient.exchangeCodeForTokens(code, verifier, redirectUri) ?: return false
-            secureStorage.saveToken("access_token", tokenResponse.accessToken)
-            secureStorage.saveToken("refresh_token", tokenResponse.refreshToken)
+            val generation = authSessionLock.withLock {
+                if (secureStorage.getToken("auth_session_id") != generationBeforeExchange) {
+                    throw com.rld.justlisten.datalayer.webservices.SyncSessionChanged()
+                }
+                val generation = Random.nextLong().toString()
+                secureStorage.saveToken("auth_session_id", generation)
+                secureStorage.saveToken("user_id", "")
+                secureStorage.saveToken("access_token", tokenResponse.accessToken)
+                secureStorage.saveToken("refresh_token", tokenResponse.refreshToken)
+                operationGeneration = generation
+                // Keep a transient /me failure recoverable without restarting.
+                _sessionState.value = SessionState.Restoring
+                generation
+            }
             credentialsStored = true
-            // Token exchange and profile loading are separate network requests.
-            // Publish the intermediate state so a transient /me failure can be
-            // retried without requiring the app to restart.
-            _sessionState.value = SessionState.Restoring
-
             // Fetch user profile
             val userProfile = apiClient.getMe()
             if (userProfile != null) {
                 val userId = userProfile.userId
-                if (!userId.isNullOrBlank()) {
-                    secureStorage.saveToken("user_id", userId)
-                }
                 
                 val override = if (!userId.isNullOrBlank()) {
                     localDb.settingsScreenQueries.getUserProfileOverride(userId).executeAsOneOrNull()
@@ -178,7 +192,7 @@ class AuthRepositoryImpl(
                     userProfile
                 }
 
-                publishAuthenticated(finalProfile)
+                publishAuthenticated(finalProfile, generation)
                 true
             } else {
                 false
@@ -187,12 +201,17 @@ class AuthRepositoryImpl(
             throw exception
         } catch (exception: Throwable) {
             co.touchlab.kermit.Logger.e(exception) { "AuthRepository: loginWithCode failed" }
-            if (credentialsStored) preserveSessionAfter(exception)
+            authSessionLock.withLock {
+                if (credentialsStored && secureStorage.getToken("auth_session_id") == operationGeneration) {
+                    preserveSessionAfter(exception)
+                }
+            }
             false
         }
     }
 
     override suspend fun refreshSession(): Boolean {
+        val generation = secureStorage.getToken("auth_session_id")
         return try {
             val accessToken = secureStorage.getToken("access_token")
             if (accessToken.isNullOrBlank()) {
@@ -205,9 +224,6 @@ class AuthRepositoryImpl(
             val userProfile = apiClient.getMe()
             if (userProfile != null) {
                 val userId = userProfile.userId
-                if (!userId.isNullOrBlank()) {
-                    secureStorage.saveToken("user_id", userId)
-                }
                 
                 val override = if (!userId.isNullOrBlank()) {
                     localDb.settingsScreenQueries.getUserProfileOverride(userId).executeAsOneOrNull()
@@ -228,7 +244,7 @@ class AuthRepositoryImpl(
                     userProfile
                 }
 
-                publishAuthenticated(finalProfile)
+                publishAuthenticated(finalProfile, generation)
                 true
             } else {
                 if (_sessionState.value !is SessionState.Authenticated) {
@@ -240,14 +256,19 @@ class AuthRepositoryImpl(
             throw exception
         } catch (exception: Throwable) {
             co.touchlab.kermit.Logger.e(exception) { "AuthRepository: refreshSession failed" }
-            preserveSessionAfter(exception)
+            authSessionLock.withLock {
+                if (secureStorage.getToken("auth_session_id") == generation) preserveSessionAfter(exception)
+            }
             false
         }
     }
 
     override fun logout() {
-        secureStorage.clear()
-        _sessionState.value = SessionState.Guest
+        authSessionLock.withLock {
+            secureStorage.clear()
+            secureStorage.saveToken("auth_session_id", Random.nextLong().toString())
+            _sessionState.value = SessionState.Guest
+        }
     }
 
     override fun getCustomName(userId: String): String? {

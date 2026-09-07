@@ -654,6 +654,8 @@ class FakeMusicPlayer : MusicPlayer {
         )
     )
     override val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
+    private val _playbackPosition = MutableStateFlow(0L)
+    override val playbackPosition: StateFlow<Long> = _playbackPosition.asStateFlow()
 
     private val _currentPlaylist = MutableStateFlow(emptyList<MediaMetadata>())
     override val currentPlaylist: StateFlow<List<MediaMetadata>> = _currentPlaylist.asStateFlow()
@@ -877,7 +879,7 @@ class FakeSyncRepository : com.rld.justlisten.datalayer.repositories.SyncReposit
     var createdPlaylistName: String? = null
     var createdPlaylistIsPrivate: Boolean = false
 
-    override fun enqueueFavoriteTask(trackId: String, isFavorite: Boolean) {}
+    override fun enqueueFavoriteTask(userId: String, trackId: String, isFavorite: Boolean) {}
     override fun enqueuePlaylistCreateTask(name: String, description: String?, isPrivate: Boolean) {
         createdPlaylistName = name
         createdPlaylistIsPrivate = isPrivate
@@ -887,6 +889,7 @@ class FakeSyncRepository : com.rld.justlisten.datalayer.repositories.SyncReposit
     override fun enqueuePlaylistDetailsUpdateTask(playlistId: String, name: String, description: String?) {}
     override fun triggerSync() {}
     override fun clearQueue() {}
+    override suspend fun runPendingSync(): Boolean = true
     override suspend fun performInboundSync(userId: String) {}
 }
 

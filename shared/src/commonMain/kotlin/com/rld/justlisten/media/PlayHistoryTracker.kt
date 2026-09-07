@@ -59,21 +59,6 @@ class PlayHistoryTracker(
                         lastActiveSongId = songId
                         currentSongPlayTimeMs = 0L
                         playCompletedLogged = false
-                    } else if (
-                        songId != null &&
-                        hasPlaybackRestarted(
-                            previousPositionMs = lastPositionMs,
-                            currentPositionMs = state.currentPosition,
-                            durationMs = media.duration
-                        )
-                    ) {
-                        // Repeat-one and queues containing the same track keep the same song id.
-                        // Treat the end-to-start position wrap as a new playback session.
-                        if (currentSongPlayTimeMs > 0) {
-                            saveIncrementalDuration(songId, currentSongPlayTimeMs, playCompletedLogged)
-                        }
-                        currentSongPlayTimeMs = 0L
-                        playCompletedLogged = false
                     } else if (state.status != PlaybackStatus.PLAYING && lastStatus == PlaybackStatus.PLAYING) {
                         // Transitioned from PLAYING to another state (paused/stopped): flush duration immediately
                         val activeSongId = lastActiveSongId
@@ -83,7 +68,28 @@ class PlayHistoryTracker(
                         }
                     }
                     lastStatus = state.status
-                    lastPositionMs = state.currentPosition
+                }
+            }
+
+            // Position is deliberately a separate high-frequency stream so
+            // structural playback consumers do not redraw every 250 ms.
+            launch {
+                musicPlayer.playbackPosition.collect { positionMs ->
+                    val state = musicPlayer.playbackState.value
+                    val media = state.currentMedia
+                    if (
+                        media != null &&
+                        hasPlaybackRestarted(lastPositionMs, positionMs, media.duration)
+                    ) {
+                        // Repeat-one and queues containing the same track keep
+                        // the same id, so detect the end-to-start position wrap.
+                        if (currentSongPlayTimeMs > 0) {
+                            saveIncrementalDuration(media.id, currentSongPlayTimeMs, playCompletedLogged)
+                        }
+                        currentSongPlayTimeMs = 0L
+                        playCompletedLogged = false
+                    }
+                    lastPositionMs = positionMs
                 }
             }
 

@@ -1,0 +1,21 @@
+ALTER TABLE SyncQueue ADD COLUMN userId TEXT NOT NULL DEFAULT '';
+
+-- Preserve operations whose account ownership is unknown. Empty-owner rows
+-- are quarantined: normal account-scoped queue reads never dispatch them.
+UPDATE SyncQueue SET errorMessage = 'Legacy operation: account ownership requires recovery'
+WHERE userId = '';
+
+CREATE TABLE FavoriteSyncAccount (
+    userId TEXT NOT NULL PRIMARY KEY
+);
+
+CREATE TABLE FavoriteSyncBaseline (
+    userId TEXT NOT NULL,
+    trackId TEXT NOT NULL,
+    PRIMARY KEY (userId, trackId)
+);
+
+CREATE TABLE FavoriteSyncDeviceState (
+    singletonId INTEGER NOT NULL PRIMARY KEY CHECK (singletonId = 1),
+    activeUserId TEXT
+);

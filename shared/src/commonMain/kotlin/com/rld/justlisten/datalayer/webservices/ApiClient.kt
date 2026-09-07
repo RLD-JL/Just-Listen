@@ -16,6 +16,10 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.util.AttributeKey
+import com.rld.justlisten.util.authSessionLock
 
 @Serializable
 data class TokenResponse(
@@ -38,11 +42,12 @@ internal enum class TokenRefreshResult {
 
 open class ApiClient(
     val apiKey: String = "",
-    val secureStorage: SecureStorage
+    val secureStorage: SecureStorage,
+    httpClientEngine: HttpClientEngine? = null,
 ) {
     private val tokenMutex = Mutex()
 
-    val client = HttpClient {
+    private val configureClient: HttpClientConfig<*>.() -> Unit = {
         install(ContentNegotiation) {
             json(Json {
                 isLenient = true
@@ -72,11 +77,11 @@ open class ApiClient(
             if (apiKey.isNotBlank()) {
                 header("X-API-KEY", apiKey)
             }
-            val accessToken = secureStorage.getToken("access_token")
+            val accessToken = if (attributes.contains(SYNC_CREDENTIALS)) null else secureStorage.getToken("access_token")
             if (!accessToken.isNullOrBlank()) {
                 header("Authorization", "Bearer $accessToken")
             }
-            val userId = secureStorage.getToken("user_id")
+            val userId = if (attributes.contains(SYNC_CREDENTIALS)) null else secureStorage.getToken("user_id")
             if (!userId.isNullOrBlank() &&
                 !url.encodedPath.endsWith("/oauth/token") &&
                 url.parameters["user_id"].isNullOrBlank()
@@ -84,7 +89,10 @@ open class ApiClient(
                 url.parameters.append("user_id", userId)
             }
         }
-    }.apply {
+    }
+
+    val client = (httpClientEngine?.let { HttpClient(it, configureClient) }
+        ?: HttpClient(configureClient)).apply {
         sendPipeline.intercept(io.ktor.client.request.HttpSendPipeline.State) {
             if (context.url.encodedPath.contains("/unsplash")) {
                 context.headers.remove("Authorization")
@@ -94,18 +102,36 @@ open class ApiClient(
         }
     }
 
+
+    @PublishedApi
+    internal suspend fun syncRequestCredentials(): SyncRequestCredentials? {
+        val session = currentCoroutineContext()[SyncSession] ?: return null
+        return authSessionLock.withLock {
+            session.requireActive(secureStorage)
+            SyncRequestCredentials(session.userId, secureStorage.getToken("access_token")!!)
+        }
+    }
+
     @PublishedApi
     internal suspend fun refreshTokenResult(failedToken: String? = null): TokenRefreshResult {
+        val syncSession = currentCoroutineContext()[SyncSession]
         return tokenMutex.withLock {
-            val currentToken = secureStorage.getToken("access_token")
+            val (refreshIdentity, currentToken, refreshToken) = authSessionLock.withLock {
+                syncSession?.requireActive(secureStorage)
+                Triple(
+                    secureStorage.getToken("auth_session_id") to secureStorage.getToken("user_id"),
+                    secureStorage.getToken("access_token"),
+                    secureStorage.getToken("refresh_token"),
+                )
+            }
             if (failedToken != null && !currentToken.isNullOrBlank() && currentToken != failedToken) {
                 return TokenRefreshResult.Success
             }
-            val refreshToken = secureStorage.getToken("refresh_token")
-                ?: return TokenRefreshResult.Rejected
+            if (refreshToken == null) return TokenRefreshResult.Rejected
             val url = "${Constants.BASEURL}/v1/oauth/token"
             try {
                 val response = client.post(url) {
+                    attributes.put(SYNC_CREDENTIALS, true)
                     // Avoid infinite loops by overriding the bearer token for this request
                     header("Authorization", "")
                     contentType(ContentType.Application.FormUrlEncoded)
@@ -117,8 +143,14 @@ open class ApiClient(
                 }
                 if (response.status.isSuccess()) {
                     val tokenResponse = response.body<TokenResponse>()
-                    secureStorage.saveToken("access_token", tokenResponse.accessToken)
-                    secureStorage.saveToken("refresh_token", tokenResponse.refreshToken)
+                    authSessionLock.withLock {
+                        if (refreshIdentity != (secureStorage.getToken("auth_session_id") to secureStorage.getToken("user_id"))) {
+                            throw SyncSessionChanged()
+                        }
+                        syncSession?.requireActive(secureStorage)
+                        secureStorage.saveToken("access_token", tokenResponse.accessToken)
+                        secureStorage.saveToken("refresh_token", tokenResponse.refreshToken)
+                    }
                     TokenRefreshResult.Success
                 } else if (response.status.value in 400..499 &&
                     response.status != HttpStatusCode.RequestTimeout &&
@@ -129,6 +161,7 @@ open class ApiClient(
                     TokenRefreshResult.Unavailable
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 Logger.e(e) { "Error refreshing token" }
                 TokenRefreshResult.Unavailable
             }
@@ -142,11 +175,15 @@ open class ApiClient(
         val url = "${Constants.BASEURL}/v1$endpoint"
         Logger.d { "ApiClient: GET request to: $url" }
         return try {
-            val tokenBeforeRequest = secureStorage.getToken("access_token")
-            var response = client.get(url)
+            var credentials = syncRequestCredentials()
+            val tokenBeforeRequest = credentials?.token ?: secureStorage.getToken("access_token")
+            var response = client.get(url) { applySyncCredentials(credentials) }
             if (response.status == HttpStatusCode.Unauthorized) {
                 when (refreshTokenResult(tokenBeforeRequest)) {
-                    TokenRefreshResult.Success -> response = client.get(url)
+                    TokenRefreshResult.Success -> {
+                        credentials = syncRequestCredentials()
+                        response = client.get(url) { applySyncCredentials(credentials) }
+                    }
                     TokenRefreshResult.Unavailable -> throw ApiRequestException(
                         statusCode = response.status.value,
                         isTransient = true,
@@ -182,8 +219,10 @@ open class ApiClient(
         val url = "${Constants.BASEURL}/v1$endpoint"
         Logger.d { "ApiClient: POST request to: $url" }
         return try {
-            val tokenBeforeRequest = secureStorage.getToken("access_token")
+            var credentials = syncRequestCredentials()
+            val tokenBeforeRequest = credentials?.token ?: secureStorage.getToken("access_token")
             var response = client.post(url) {
+                applySyncCredentials(credentials)
                 if (body != null) {
                     if (body is String) {
                         contentType(ContentType.Application.FormUrlEncoded)
@@ -196,7 +235,9 @@ open class ApiClient(
             if (response.status == HttpStatusCode.Unauthorized) {
                 val refreshed = refreshToken(tokenBeforeRequest)
                 if (refreshed) {
+                    credentials = syncRequestCredentials()
                     response = client.post(url) {
+                        applySyncCredentials(credentials)
                         if (body != null) {
                             if (body is String) {
                                 contentType(ContentType.Application.FormUrlEncoded)
@@ -211,7 +252,14 @@ open class ApiClient(
             if (response.status.isSuccess()) {
                 response.body<T>()
             } else {
-                throw Exception("HTTP error ${response.status.value} posting to $url")
+                val statusCode = response.status.value
+                throw ApiRequestException(
+                    statusCode = statusCode,
+                    isTransient = statusCode >= 500 ||
+                        response.status == HttpStatusCode.RequestTimeout ||
+                        response.status == HttpStatusCode.TooManyRequests,
+                    message = "HTTP error $statusCode posting to $url",
+                )
             }
         } catch (e: CancellationException) {
             throw e
@@ -225,8 +273,10 @@ open class ApiClient(
         val url = "${Constants.BASEURL}/v1$endpoint"
         Logger.d { "ApiClient: PUT request to: $url" }
         return try {
-            val tokenBeforeRequest = secureStorage.getToken("access_token")
+            var credentials = syncRequestCredentials()
+            val tokenBeforeRequest = credentials?.token ?: secureStorage.getToken("access_token")
             var response = client.put(url) {
+                applySyncCredentials(credentials)
                 if (body != null) {
                     if (body is String) {
                         contentType(ContentType.Application.FormUrlEncoded)
@@ -239,7 +289,9 @@ open class ApiClient(
             if (response.status == HttpStatusCode.Unauthorized) {
                 val refreshed = refreshToken(tokenBeforeRequest)
                 if (refreshed) {
+                    credentials = syncRequestCredentials()
                     response = client.put(url) {
+                        applySyncCredentials(credentials)
                         if (body != null) {
                             if (body is String) {
                                 contentType(ContentType.Application.FormUrlEncoded)
@@ -273,8 +325,10 @@ open class ApiClient(
     ): T? {
         val url = "${Constants.BASEURL}/v1$endpoint"
         return try {
-            val tokenBeforeRequest = secureStorage.getToken("access_token")
+            var credentials = syncRequestCredentials()
+            val tokenBeforeRequest = credentials?.token ?: secureStorage.getToken("access_token")
             var response = client.delete(url) {
+                applySyncCredentials(credentials)
                 if (body != null) {
                     if (body is String) {
                         contentType(ContentType.Application.FormUrlEncoded)
@@ -287,7 +341,9 @@ open class ApiClient(
             if (response.status == HttpStatusCode.Unauthorized) {
                 val refreshed = refreshToken(tokenBeforeRequest)
                 if (refreshed) {
+                    credentials = syncRequestCredentials()
                     response = client.delete(url) {
+                        applySyncCredentials(credentials)
                         if (body != null) {
                             if (body is String) {
                                 contentType(ContentType.Application.FormUrlEncoded)
@@ -302,7 +358,14 @@ open class ApiClient(
             if (response.status.isSuccess()) {
                 response.body<T>()
             } else {
-                throw Exception("HTTP error ${response.status.value} deleting from $url")
+                val statusCode = response.status.value
+                throw ApiRequestException(
+                    statusCode = statusCode,
+                    isTransient = statusCode >= 500 ||
+                        response.status == HttpStatusCode.RequestTimeout ||
+                        response.status == HttpStatusCode.TooManyRequests,
+                    message = "HTTP error $statusCode deleting from $url",
+                )
             }
         } catch (e: CancellationException) {
             throw e
@@ -311,4 +374,18 @@ open class ApiClient(
             throw e
         }
     }
+}
+
+@PublishedApi
+internal data class SyncRequestCredentials(val userId: String, val token: String)
+
+private val SYNC_CREDENTIALS = AttributeKey<Boolean>("sync-credentials")
+
+@PublishedApi
+internal fun HttpRequestBuilder.applySyncCredentials(credentials: SyncRequestCredentials?) {
+    if (credentials == null) return
+    attributes.put(SYNC_CREDENTIALS, true)
+    headers.remove("Authorization")
+    header("Authorization", "Bearer ${credentials.token}")
+    url.parameters["user_id"] = credentials.userId
 }

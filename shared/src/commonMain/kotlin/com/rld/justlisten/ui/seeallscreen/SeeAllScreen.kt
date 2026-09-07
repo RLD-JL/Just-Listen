@@ -30,7 +30,7 @@ import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import com.rld.justlisten.ui.actions.SeeAllAction
 import com.rld.justlisten.ui.components.AnimatedShimmer
-import com.rld.justlisten.ui.components.MusicLoadingSpinner
+import com.rld.justlisten.ui.components.NowPlayingIndicator
 import com.rld.justlisten.ui.components.MusicLoadingScreen
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.media.PlaybackStatus
@@ -239,7 +239,7 @@ fun SeeAllListItem(
                             .background(Color.Black.copy(alpha = 0.5f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        MusicLoadingSpinner(
+                        NowPlayingIndicator(
                             size = 20.dp,
                             color = Color.White
                         )

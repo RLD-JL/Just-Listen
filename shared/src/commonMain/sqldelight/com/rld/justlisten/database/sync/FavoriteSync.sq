@@ -1,0 +1,57 @@
+import kotlin.Boolean;
+
+CREATE TABLE FavoriteSyncAccount (
+    userId TEXT NOT NULL PRIMARY KEY
+);
+
+CREATE TABLE FavoriteSyncBaseline (
+    userId TEXT NOT NULL,
+    trackId TEXT NOT NULL,
+    PRIMARY KEY (userId, trackId)
+);
+
+CREATE TABLE FavoriteSyncDeviceState (
+    singletonId INTEGER NOT NULL PRIMARY KEY CHECK (singletonId = 1),
+    activeUserId TEXT
+);
+
+CREATE TABLE FavoriteTrackIdentity (
+    userId TEXT NOT NULL,
+    remoteTrackId TEXT NOT NULL,
+    publicTrackId TEXT NOT NULL,
+    PRIMARY KEY (userId, remoteTrackId)
+);
+
+isFavoriteSyncInitialized:
+SELECT EXISTS(SELECT 1 FROM FavoriteSyncAccount WHERE userId = :userId);
+
+markFavoriteSyncInitialized:
+INSERT OR IGNORE INTO FavoriteSyncAccount(userId) VALUES (:userId);
+
+getFavoriteSyncBaseline:
+SELECT trackId FROM FavoriteSyncBaseline WHERE userId = :userId;
+
+insertFavoriteSyncBaseline:
+INSERT OR IGNORE INTO FavoriteSyncBaseline(userId, trackId) VALUES (:userId, :trackId);
+
+deleteFavoriteSyncBaseline:
+DELETE FROM FavoriteSyncBaseline WHERE userId = :userId AND trackId = :trackId;
+
+clearFavoriteSyncBaseline:
+DELETE FROM FavoriteSyncBaseline WHERE userId = :userId;
+
+getActiveFavoriteSyncUser:
+SELECT activeUserId FROM FavoriteSyncDeviceState WHERE singletonId = 1;
+
+setActiveFavoriteSyncUser:
+INSERT OR REPLACE INTO FavoriteSyncDeviceState(singletonId, activeUserId)
+VALUES (1, :activeUserId);
+
+getFavoriteTrackIdentities:
+SELECT remoteTrackId, publicTrackId
+FROM FavoriteTrackIdentity
+WHERE userId = :userId;
+
+upsertFavoriteTrackIdentity:
+INSERT OR REPLACE INTO FavoriteTrackIdentity(userId, remoteTrackId, publicTrackId)
+VALUES (:userId, :remoteTrackId, :publicTrackId);
