@@ -97,6 +97,29 @@ class PlayerViewModelTest {
     }
 
     @Test
+    fun rapidTrackChangesCancelObsoleteRecommendations() = runTest(testDispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        fakePlaylistRepo.tracksGate = gate
+        fakeMusicPlayer.setCurrentPlaylist(listOf(
+            MediaMetadata("a", "A", "Artist", 1000L),
+            MediaMetadata("b", "B", "Artist", 1000L),
+            MediaMetadata("c", "C", "Artist", 1000L),
+        ))
+        fakeMusicPlayer.playMedia("a")
+        testDispatcher.scheduler.advanceTimeBy(501)
+        testDispatcher.scheduler.runCurrent()
+        assertEquals(1, fakePlaylistRepo.trackRequests)
+        fakeMusicPlayer.playMedia("b")
+        testDispatcher.scheduler.runCurrent()
+        assertEquals(1, fakePlaylistRepo.cancelledTrackRequests)
+        fakeMusicPlayer.playMedia("c")
+        testDispatcher.scheduler.runCurrent()
+        fakePlaylistRepo.tracksGate = null
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(2, fakePlaylistRepo.trackRequests) // B was debounced.
+    }
+
+    @Test
     fun testLoadPlaylists() = runTest(testDispatcher) {
         val collectJob = launch { viewModel.playerUiState.collect {} }
         testDispatcher.scheduler.advanceUntilIdle()
@@ -798,6 +821,9 @@ class FakePlaylistRepository : PlaylistRepository {
     override val repostedPlaylistIdsFlow = _repostedPlaylistIds.asStateFlow()
 
     var mockTracks: List<TrackItem> = emptyList()
+    var tracksGate: CompletableDeferred<Unit>? = null
+    var trackRequests = 0
+    var cancelledTrackRequests = 0
     var repostRequestSucceeds = true
     var repostRequestGate: CompletableDeferred<Unit>? = null
 
@@ -838,7 +864,16 @@ class FakePlaylistRepository : PlaylistRepository {
         queryPlaylist: String
     ): List<PlaylistItem> = emptyList()
 
-    override suspend fun getTracks(limit: Int, category: String, timeRange: String): List<TrackItem> = mockTracks
+    override suspend fun getTracks(limit: Int, category: String, timeRange: String): List<TrackItem> {
+        trackRequests++
+        try {
+            tracksGate?.await()
+            return mockTracks
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            cancelledTrackRequests++
+            throw e
+        }
+    }
     
     override fun getSongWithId(songId: String): PlayListModel? {
         return PlayListModel(id = songId)

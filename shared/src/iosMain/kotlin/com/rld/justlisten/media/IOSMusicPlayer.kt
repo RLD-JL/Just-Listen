@@ -104,6 +104,8 @@ class IOSMusicPlayer(
     private var timeObserverToken: Any? = null
     
     private val activeDownloads = mutableMapOf<String, NSURLSessionDownloadTask>()
+    // Accessed only on Main. Playback and preloading may share the same transfer.
+    private val downloadUsers = mutableMapOf<String, Int>()
     
     private var interruptionObserver: Any? = null
     private var routeChangeObserver: Any? = null
@@ -559,28 +561,43 @@ class IOSMusicPlayer(
         }?.let { return it }
 
         val streamUrl = getStreamUrl(songId) ?: return null
-        kotlinx.coroutines.withContext(Dispatchers.Main) {
-            triggerBackgroundDownload(songId, streamUrl)
-        }
-
-        // Audius stream redirects can land on nodes that ignore HTTP byte-range
-        // requests. AVFoundation rejects those URLs as ServerIncorrectlyConfigured.
-        // NSURLSession can still download the complete response, so only hand a
-        // fully local file to AVPlayer.
-        repeat(600) {
-            getCacheFileUrl(songId)?.takeIf { cachedUrl ->
-                cachedUrl.path?.let(NSFileManager.defaultManager::fileExistsAtPath) == true
-            }?.let { return it }
-
-            val downloadIsActive = kotlinx.coroutines.withContext(Dispatchers.Main) {
-                activeDownloads.containsKey(songId)
+        var registered = false
+        try {
+            kotlinx.coroutines.withContext(Dispatchers.Main) {
+                downloadUsers[songId] = (downloadUsers[songId] ?: 0) + 1
+                registered = true
+                triggerBackgroundDownload(songId, streamUrl)
             }
-            if (!downloadIsActive) return null
-            delay(100L)
-        }
+            // Audius stream redirects can land on nodes that ignore HTTP byte-range
+            // requests. AVFoundation rejects those URLs as ServerIncorrectlyConfigured.
+            // NSURLSession can still download the complete response, so only hand a
+            // fully local file to AVPlayer.
+            repeat(600) {
+                getCacheFileUrl(songId)?.takeIf { cachedUrl ->
+                    cachedUrl.path?.let(NSFileManager.defaultManager::fileExistsAtPath) == true
+                }?.let { return it }
 
-        Logger.e { "Timed out downloading local playback file for $songId" }
-        return null
+                val downloadIsActive = kotlinx.coroutines.withContext(Dispatchers.Main) {
+                    activeDownloads.containsKey(songId)
+                }
+                if (!downloadIsActive) return null
+                delay(100L)
+            }
+
+            Logger.e { "Timed out downloading local playback file for $songId" }
+            return null
+        } finally {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable + Dispatchers.Main) {
+                if (!registered) return@withContext
+                val remaining = (downloadUsers[songId] ?: 1) - 1
+                if (remaining > 0) {
+                    downloadUsers[songId] = remaining
+                } else {
+                    downloadUsers.remove(songId)
+                    activeDownloads.remove(songId)?.cancel()
+                }
+            }
+        }
     }
 
     private fun triggerBackgroundDownload(songId: String, nsUrl: NSURL) {
@@ -590,8 +607,12 @@ class IOSMusicPlayer(
         
         val localUrl = getCacheFileUrl(songId) ?: return
         
-        val task = NSURLSession.sharedSession.downloadTaskWithURL(nsUrl) { location, _, error ->
-            dispatch_async(dispatch_get_main_queue()) {
+        var task: NSURLSessionDownloadTask? = null
+        val newTask = NSURLSession.sharedSession.downloadTaskWithURL(nsUrl) { location, _, error ->
+            // The temporary URL is valid only during this completion callback.
+            // Serialize with cancellation and save it before returning to NSURLSession.
+            platform.darwin.dispatch_sync(dispatch_get_main_queue()) {
+                if (activeDownloads[songId] !== task) return@dispatch_sync
                 activeDownloads.remove(songId)
                 if (error == null && location != null) {
                     val fileManager = NSFileManager.defaultManager
@@ -612,8 +633,9 @@ class IOSMusicPlayer(
                 }
             }
         }
-        activeDownloads[songId] = task
-        task.resume()
+        task = newTask
+        activeDownloads[songId] = newTask
+        newTask.resume()
     }
 
     private fun cleanCache() {

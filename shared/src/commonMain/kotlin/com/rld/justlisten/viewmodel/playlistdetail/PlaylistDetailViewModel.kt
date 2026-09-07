@@ -15,6 +15,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.ensureActive
+import kotlin.coroutines.coroutineContext
 
 import com.rld.justlisten.datalayer.repositories.AuthRepository
 
@@ -28,6 +34,8 @@ class PlaylistDetailViewModel(
     private val _playlistDetailState = MutableStateFlow(PlaylistDetailState(isLoading = true))
     val playlistDetailState: StateFlow<PlaylistDetailState> = _playlistDetailState.asStateFlow()
     private val repostOperations = mutableMapOf<String, RepostOperation>()
+    private var loadJob: Job? = null
+    private var repostRevision = 0L
 
     init {
         viewModelScope.launch {
@@ -79,7 +87,8 @@ class PlaylistDetailViewModel(
         ) {
             return
         }
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _playlistDetailState.update { 
                 it.copy(
                     isLoading = true, 
@@ -97,11 +106,46 @@ class PlaylistDetailViewModel(
                 playlistId = args.playlistId,
                 songsList = args.songsList
             )
+            coroutineContext.ensureActive()
             _playlistDetailState.update {
                 it.copy(
                     isLoading = false,
                     songPlaylist = songs,
                 )
+            }
+            // Render local rows before requesting optional, richer metadata.
+            if (playlistEnum == PlayListEnum.FAVORITE || playlistEnum == PlayListEnum.MOST_PLAYED) {
+                songs.chunked(5).forEach { batch ->
+                    val revision = repostRevision
+                    val session = authRepository.sessionState.value
+                    val refreshed = coroutineScope {
+                        batch.map { item -> async {
+                            playlistRepository.fetchTrackDetails(item.id)
+                        } }.awaitAll().filterNotNull().associateBy { it.id }
+                    }
+                    coroutineContext.ensureActive()
+                    if (authRepository.sessionState.value != session) return@launch
+                    if (revision == repostRevision) {
+                        refreshed.values.filter { it.hasCurrentUserReposted }.forEach {
+                            playlistRepository.setTrackReposted(it.id, true)
+                        }
+                    }
+                    _playlistDetailState.update { state ->
+                        state.copy(songPlaylist = state.songPlaylist.map { item ->
+                            val details = refreshed[item.id] ?: return@map item
+                            // Merge into current rows: never undo a favorite/repost toggle
+                            // or reinsert a row removed while the request was running.
+                            item.copy(_data = details.copy(
+                                songCounter = item._data.songCounter,
+                                durationPlayedSec = item._data.durationPlayedSec,
+                            ),
+                                isReposted = item.isReposted || (revision == repostRevision && details.hasCurrentUserReposted),
+                                repostCount = if (revision == repostRevision) details.repostCount else item.repostCount,
+                                favoriteCount = details.favoriteCount,
+                            )
+                        })
+                    }
+                }
             }
         }
     }
@@ -155,6 +199,7 @@ class PlaylistDetailViewModel(
     }
 
     fun onRepostPressed(id: String, isRepost: Boolean) {
+        repostRevision++
         if (authRepository.sessionState.value is com.rld.justlisten.datalayer.repositories.SessionState.Guest) {
             _playlistDetailState.update { it.copy(showConnectPrompt = true) }
             return

@@ -176,6 +176,7 @@ fun ArtistDashboardScreenHost(navController: NavHostController) {
 
     com.rld.justlisten.ui.artistdashboard.ArtistDashboardScreen(
         state = state,
-        onBackPressed = viewModel::handleBack
+        onBackPressed = viewModel::handleBack,
+        onRetry = viewModel::retry
     )
 }

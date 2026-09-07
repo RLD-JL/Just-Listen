@@ -31,6 +31,9 @@ CREATE INDEX idx_library_artistId ON Library(artistId);
 getFavoritePlaylist:
 SELECT * FROM Library WHERE favoriteSong = 1;
 
+getFavoriteIds:
+SELECT id FROM Library WHERE favoriteSong = 1;
+
 getFavoritePlaylistWithId:
 SELECT id FROM Library WHERE id = :id AND favoriteSong = 1;
 
@@ -116,4 +119,3 @@ GROUP BY L.artistId
 HAVING plays > 0
 ORDER BY plays DESC, totalDurationSec DESC
 LIMIT 1;
-

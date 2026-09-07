@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.ensureActive
 
 import com.rld.justlisten.datalayer.repositories.AuthRepository
 
@@ -45,6 +46,8 @@ class PlayerViewModel(
 ) : BaseScreenViewModel() {
 
     private var fetchDetailsJob: kotlinx.coroutines.Job? = null
+    private var recommendationsJob: kotlinx.coroutines.Job? = null
+    private var recommendationsGeneration = 0L
     private val _recommendedSongs = MutableStateFlow<List<PlaylistItem>>(emptyList())
     private val _isAutoplayEnabled = MutableStateFlow(true)
     private var recommendedOffset = 0
@@ -119,8 +122,11 @@ class PlayerViewModel(
     }
 
     private fun fetchRecommendations(currentTrackId: String) {
-        viewModelScope.launch {
+        recommendationsJob?.cancel()
+        val generation = ++recommendationsGeneration
+        recommendationsJob = viewModelScope.launch {
             try {
+                kotlinx.coroutines.delay(500)
                 val session = authRepository.sessionState.value
                 val currentPlaylistIds = musicPlayer.currentPlaylist.value.map { it.id }.toSet()
                 
@@ -140,6 +146,8 @@ class PlayerViewModel(
                      .drop(recommendedOffset % 100)
                 }
                 
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                if (generation != recommendationsGeneration || authRepository.sessionState.value != session) return@launch
                 var filteredTracks = recommendedTracks.filter { 
                     it.id != currentTrackId && !currentPlaylistIds.contains(it.id) 
                 }.take(10)
@@ -165,12 +173,15 @@ class PlayerViewModel(
                     }.take(10)
                 }
                 
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                if (generation != recommendationsGeneration || authRepository.sessionState.value != session) return@launch
                 _recommendedSongs.value = filteredTracks
                 if (playNextWhenRecommendationsLoaded && filteredTracks.isNotEmpty()) {
                     playNextWhenRecommendationsLoaded = false
                     playNextAutoplaySong()
                 }
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 // Ignore or log error
             }
         }
