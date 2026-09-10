@@ -67,6 +67,12 @@ open class ApiClient(
                 }
             }
             level = io.ktor.client.plugins.logging.LogLevel.HEADERS
+            sanitizeHeader { name ->
+                name.equals("Authorization", ignoreCase = true) ||
+                    name.equals("X-API-KEY", ignoreCase = true) ||
+                    name.equals("Cookie", ignoreCase = true) ||
+                    name.equals("Set-Cookie", ignoreCase = true)
+            }
         }
         install(HttpRequestRetry) {
             maxRetries = 3
@@ -171,17 +177,26 @@ open class ApiClient(
     suspend fun refreshToken(failedToken: String? = null): Boolean =
         refreshTokenResult(failedToken) == TokenRefreshResult.Success
 
+    @PublishedApi
+    internal fun accountRequestCredentials(): SyncRequestCredentials? = authSessionLock.withLock {
+        val token = secureStorage.getToken("access_token")?.takeIf { it.isNotBlank() }
+            ?: return@withLock null
+        SyncRequestCredentials(secureStorage.getToken("user_id").orEmpty(), token)
+    }
+
     suspend inline fun <reified T : Any> getResponse(endpoint: String): T? {
         val url = "${Constants.BASEURL}/v1$endpoint"
         Logger.d { "ApiClient: GET request to: $url" }
         return try {
-            var credentials = syncRequestCredentials()
+            // Apply account context to the concrete URL, not only defaultRequest:
+            // endpoint query construction can otherwise discard default parameters.
+            var credentials = syncRequestCredentials() ?: accountRequestCredentials()
             val tokenBeforeRequest = credentials?.token ?: secureStorage.getToken("access_token")
             var response = client.get(url) { applySyncCredentials(credentials) }
             if (response.status == HttpStatusCode.Unauthorized) {
                 when (refreshTokenResult(tokenBeforeRequest)) {
                     TokenRefreshResult.Success -> {
-                        credentials = syncRequestCredentials()
+                        credentials = syncRequestCredentials() ?: accountRequestCredentials()
                         response = client.get(url) { applySyncCredentials(credentials) }
                     }
                     TokenRefreshResult.Unavailable -> throw ApiRequestException(
@@ -387,5 +402,5 @@ internal fun HttpRequestBuilder.applySyncCredentials(credentials: SyncRequestCre
     attributes.put(SYNC_CREDENTIALS, true)
     headers.remove("Authorization")
     header("Authorization", "Bearer ${credentials.token}")
-    url.parameters["user_id"] = credentials.userId
+    if (credentials.userId.isNotBlank()) url.parameters["user_id"] = credentials.userId
 }
