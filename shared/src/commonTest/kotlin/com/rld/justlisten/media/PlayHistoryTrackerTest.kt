@@ -141,6 +141,8 @@ class PlayHistoryTrackerTest {
         
         private val _playbackState = MutableStateFlow(PlaybackState(PlaybackStatus.IDLE, 0L))
         override val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
+        private val _playbackPosition = MutableStateFlow(0L)
+        override val playbackPosition: StateFlow<Long> = _playbackPosition.asStateFlow()
         
         private val _currentPlaylist = MutableStateFlow<List<MediaMetadata>>(emptyList())
         override val currentPlaylist: StateFlow<List<MediaMetadata>> = _currentPlaylist.asStateFlow()
@@ -149,6 +151,7 @@ class PlayHistoryTrackerTest {
         override val networkError: StateFlow<Boolean> = MutableStateFlow(false).asStateFlow()
 
         fun updateState(status: PlaybackStatus, position: Long, media: MediaMetadata?) {
+            _playbackPosition.value = position
             _playbackState.value = PlaybackState(
                 status = status,
                 currentPosition = position,

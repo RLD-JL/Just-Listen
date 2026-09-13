@@ -1,0 +1,6 @@
+CREATE TABLE FavoriteTrackIdentity (
+    userId TEXT NOT NULL,
+    remoteTrackId TEXT NOT NULL,
+    publicTrackId TEXT NOT NULL,
+    PRIMARY KEY (userId, remoteTrackId)
+);

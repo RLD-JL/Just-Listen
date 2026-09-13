@@ -105,8 +105,18 @@ data class UserFavoritesResponse(
 )
 
 suspend fun ApiClient.getUserFavorites(userId: String): List<CloudFavorite> {
-    val response: UserFavoritesResponse? = getResponse("/users/$userId/favorites")
-    return response?.data ?: emptyList()
+    val pageSize = 100
+    val favorites = mutableListOf<CloudFavorite>()
+    var offset = 0
+    repeat(100) {
+        val response: UserFavoritesResponse? =
+            getResponse("/users/$userId/favorites?limit=$pageSize&offset=$offset")
+        val page = response?.data.orEmpty()
+        favorites += page
+        if (page.size < pageSize) return favorites.distinctBy { it.type to it.itemId }
+        offset += pageSize
+    }
+    error("Favorites pagination exceeded 10,000 entries for user $userId")
 }
 
 @Serializable
@@ -119,18 +129,29 @@ suspend fun ApiClient.getTrackDetails(trackId: String): PlayListModel? {
     return response?.data
 }
 
-suspend fun ApiClient.getUserFavoriteTracks(userId: String): List<PlayListModel> = coroutineScope {
+suspend fun ApiClient.getUserFavoriteTracks(userId: String): List<PlayListModel> {
     Logger.d { "ApiClient: Requesting GET /users/$userId/favorites for tracks" }
-    val favorites = getUserFavorites(userId)
-    val trackIds = favorites.filter { it.type.equals("SaveType.track", ignoreCase = true) || it.type.equals("track", ignoreCase = true) }.map { it.itemId }
-    
+    return getFavoriteTracks(getUserFavorites(userId))
+}
+
+suspend fun ApiClient.getFavoriteTracks(favorites: List<CloudFavorite>): List<PlayListModel> =
+    getFavoriteTrackDetailsByRemoteId(
+        favorites.filter {
+            it.type.equals("SaveType.track", ignoreCase = true) ||
+                it.type.equals("track", ignoreCase = true)
+        }.map { it.itemId }
+    ).values.toList()
+
+suspend fun ApiClient.getFavoriteTrackDetailsByRemoteId(
+    trackIds: Collection<String>,
+): Map<String, PlayListModel> = coroutineScope {
     val chunkedTrackIds = trackIds.chunked(5)
-    val fetchedTracks = mutableListOf<PlayListModel>()
+    val fetchedTracks = linkedMapOf<String, PlayListModel>()
     for (chunk in chunkedTrackIds) {
         val deferred = chunk.map { trackId ->
             async {
                 try {
-                    getTrackDetails(trackId)
+                    getTrackDetails(trackId)?.let { trackId to it }
                 } catch (e: Exception) {
                     if (e is kotlinx.coroutines.CancellationException) throw e
                     Logger.e(e) { "ApiClient: Error fetching track details for favorite $trackId" }
@@ -138,7 +159,7 @@ suspend fun ApiClient.getUserFavoriteTracks(userId: String): List<PlayListModel>
                 }
             }
         }
-        fetchedTracks.addAll(deferred.awaitAll().filterNotNull())
+        fetchedTracks.putAll(deferred.awaitAll().filterNotNull())
     }
     fetchedTracks
 }
@@ -273,5 +294,3 @@ suspend fun ApiClient.getUserCoins(userId: String): List<UserCoinModel> {
     val response: UserCoinsResponse? = getResponse("/users/$userId/coins")
     return response?.data ?: emptyList()
 }
-
-

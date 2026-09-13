@@ -36,6 +36,8 @@ enum class RepeatMode {
 
 interface MusicPlayer {
     val playbackState: StateFlow<PlaybackState>
+    /** High-frequency progress isolated from structural playback state. */
+    val playbackPosition: StateFlow<Long>
     val currentPlaylist: StateFlow<List<MediaMetadata>>
     val isConnected: StateFlow<Boolean>
     val networkError: StateFlow<Boolean>

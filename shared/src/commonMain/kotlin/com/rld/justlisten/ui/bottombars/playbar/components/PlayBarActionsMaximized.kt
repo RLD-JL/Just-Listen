@@ -326,6 +326,7 @@ fun PlaybackSeekBar(
     musicPlayer: MusicPlayer
 ) {
     val playbackState by musicPlayer.playbackState.collectAsState()
+    val playbackPosition by musicPlayer.playbackPosition.collectAsState()
     val duration = playbackState.currentMedia?.duration ?: 0L
     val coroutineScope = rememberCoroutineScope()
     var dragPosition by remember { mutableStateOf<Float?>(null) }
@@ -337,14 +338,14 @@ fun PlaybackSeekBar(
     }
 
     val sliderPosition = if (duration > 0L) {
-        playbackState.currentPosition.toFloat() / duration.toFloat()
+        playbackPosition.toFloat() / duration.toFloat()
     } else 0f
 
     val displayPosition = (dragPosition ?: sliderPosition).coerceIn(0f, 1f)
     val displayPositionMs = if (dragPosition != null) {
         (dragPosition!! * duration).toLong()
     } else {
-        playbackState.currentPosition
+        playbackPosition
     }
     val progressTint = MaterialTheme.colorScheme.primary
     val progressGradient = remember(progressTint) {

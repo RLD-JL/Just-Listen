@@ -16,6 +16,9 @@ class SleepWorker(val context: Context, parameters: WorkerParameters) :
     private val musicServiceConnection: MusicServiceConnection by inject()
 
     override suspend fun doWork(): Result {
+        withContext(Dispatchers.Main) {
+            musicServiceConnection.awaitController()
+        }
         val sharedPrefs = context.getSharedPreferences("sleep_timer_prefs", Context.MODE_PRIVATE)
         val fadeOutEnabled = sharedPrefs.getBoolean("sleep_timer_fade_out", true)
 

@@ -28,7 +28,9 @@ object DatabaseSchemaHelper {
                     val tables = listOf(
                         "SettingsInfo", "UserProfileOverrides", "BlockedUser", "HiddenComment",
                         "AddPlaylist", "Library", "PlayHistory", "PlaylistDetail",
-                        "SearchScreenInfo", "SyncQueue"
+                        "SearchScreenInfo", "SyncQueue", "FavoriteSyncAccount",
+                        "FavoriteSyncBaseline", "FavoriteSyncDeviceState",
+                        "FavoriteTrackIdentity"
                     )
                     tables.forEach { table ->
                         try {
@@ -54,7 +56,7 @@ object DatabaseSchemaHelper {
         )
         // Run a sanity check query. If it fails, clear all tables and recreate!
         try {
-            db.syncQueueQueries.getPendingTasks().executeAsList()
+            db.syncQueueQueries.getPendingTasks("").executeAsList()
             db.settingsScreenQueries.getSettingsInfo().executeAsOneOrNull()
         } catch (e: Exception) {
             println("LocalDb Sanity Check failed: ${e.message}. Recreating database...")
@@ -62,7 +64,9 @@ object DatabaseSchemaHelper {
                 val tables = listOf(
                     "SettingsInfo", "UserProfileOverrides", "BlockedUser", "HiddenComment",
                     "AddPlaylist", "Library", "PlayHistory", "PlaylistDetail",
-                    "SearchScreenInfo", "SyncQueue"
+                    "SearchScreenInfo", "SyncQueue", "FavoriteSyncAccount",
+                    "FavoriteSyncBaseline", "FavoriteSyncDeviceState",
+                    "FavoriteTrackIdentity"
                 )
                 tables.forEach { table ->
                     try {

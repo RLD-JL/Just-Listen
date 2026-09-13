@@ -60,7 +60,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.rld.justlisten.ui.components.AnimatedShimmer
 import com.rld.justlisten.ui.components.ConfirmDialog
-import com.rld.justlisten.ui.components.MusicLoadingSpinner
+import com.rld.justlisten.ui.components.NowPlayingIndicator
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.media.PlaybackStatus
 import com.rld.justlisten.datalayer.models.SongIconList
@@ -221,7 +221,7 @@ private fun SongListItemContent(
                         .background(Color.Black.copy(alpha = 0.5f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    MusicLoadingSpinner(
+                    NowPlayingIndicator(
                         size = 18.dp,
                         color = Color.White
                     )

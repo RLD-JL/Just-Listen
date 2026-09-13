@@ -17,6 +17,8 @@ import com.rld.justlisten.util.IosPkceCrypto
 import com.rld.justlisten.datalayer.repositories.FavoritesRepository
 import com.rld.justlisten.datalayer.repositories.SettingsRepository
 import com.rld.justlisten.datalayer.DatabaseSchemaHelper
+import com.rld.justlisten.datalayer.repositories.NoOpSyncRetryScheduler
+import com.rld.justlisten.datalayer.repositories.SyncRetryScheduler
 import org.koin.dsl.module
 import org.koin.core.context.startKoin
 
@@ -34,6 +36,10 @@ fun iosModule() = module {
     
     single<PkceCrypto> {
         IosPkceCrypto()
+    }
+
+    single<SyncRetryScheduler> {
+        NoOpSyncRetryScheduler()
     }
     
     single {

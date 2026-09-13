@@ -8,5 +8,11 @@ data class ArtistDashboardState(
     val downloadsCount: Long = 0L,
     val monthlyListens: Map<String, MonthlyAggregatePlay> = emptyMap(),
     val salesAggregate: List<SalesAggregate> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val listensLoading: Boolean = false,
+    val downloadsLoading: Boolean = false,
+    val salesLoading: Boolean = false,
+    val listensError: String? = null,
+    val downloadsError: String? = null,
+    val salesError: String? = null,
 )

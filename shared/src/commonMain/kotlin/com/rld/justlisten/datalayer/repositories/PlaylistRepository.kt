@@ -3,7 +3,6 @@ package com.rld.justlisten.datalayer.repositories
 import com.rld.justlisten.LocalDb
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getCustomPlaylistSongs
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getFavoritePlaylist
-import com.rld.justlisten.datalayer.localdb.libraryscreen.getFavoritePlaylistWithId
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getMostPlayedSongsFromHistory
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getSongWithId
 import com.rld.justlisten.datalayer.localdb.libraryscreen.getTimeCapsuleSongs
@@ -23,9 +22,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
 
 interface PlaylistRepository {
     suspend fun getPlaylist(
@@ -140,7 +140,7 @@ class PlaylistRepositoryImpl(
         songsList: List<String>,
         queryPlaylist: String
     ): List<PlaylistItem> {
-        val favoriteIds = localDb.getFavoritePlaylist().map { it.id }.toSet()
+        val favoriteIds = withContext(Dispatchers.IO) { localDb.libraryQueries.getFavoriteIds().executeAsList().toSet() }
         return runCatching {
             when (playListEnum) {
                 PlayListEnum.TOP_PLAYLIST -> webservices.fetchPlaylist(index, PlayListEnum.TOP_PLAYLIST)?.data?.map { playlistModel ->
@@ -194,51 +194,19 @@ class PlaylistRepositoryImpl(
                 } ?: emptyList()
 
                 PlayListEnum.FAVORITE -> {
-                    val localTracks = localDb.getFavoritePlaylist()
-                    localTracks.chunked(5).flatMap { chunk ->
-                        coroutineScope {
-                            chunk.map { localTrack ->
-                                async {
-                                    val track = runCatching {
-                                        webservices.getTrackDetails(localTrack.id)
-                                    }.getOrNull() ?: localTrack
-                                    if (track.hasCurrentUserReposted) {
-                                        setTrackReposted(track.id, true)
-                                    }
-                                    val isReposted = track.hasCurrentUserReposted || isTrackReposted(track.id)
-                                    PlaylistItem(track, isFavorite = true, isReposted = isReposted)
-                                }
-                            }.awaitAll()
-                        }
+                    withContext(Dispatchers.IO) { localDb.getFavoritePlaylist() }.map { track ->
+                        PlaylistItem(track, isFavorite = true, isReposted = isTrackReposted(track.id))
                     }
                 }
 
                 PlayListEnum.MOST_PLAYED -> {
-                    val localTracks = localDb.getMostPlayedSongsFromHistory(limit = 20, offset = 0)
-                    localTracks.chunked(5).flatMap { chunk ->
-                        coroutineScope {
-                            chunk.map { localTrack ->
-                                async {
-                                    val track = runCatching {
-                                        webservices.getTrackDetails(localTrack.id)
-                                    }.getOrNull()?.copy(
-                                        songCounter = localTrack.songCounter,
-                                        durationPlayedSec = localTrack.durationPlayedSec
-                                    ) ?: localTrack
-                                    if (track.hasCurrentUserReposted) {
-                                        setTrackReposted(track.id, true)
-                                    }
-                                    val isFavorite = favoriteIds.contains(track.id)
-                                    val isReposted = track.hasCurrentUserReposted || isTrackReposted(track.id)
-                                    PlaylistItem(track, isFavorite = isFavorite, isReposted = isReposted)
-                                }
-                            }.awaitAll()
-                        }
+                    withContext(Dispatchers.IO) { localDb.getMostPlayedSongsFromHistory(limit = 20, offset = 0) }.map { track ->
+                        PlaylistItem(track, isFavorite = track.id in favoriteIds, isReposted = isTrackReposted(track.id))
                     }
                 }
 
                 PlayListEnum.CREATED_BY_USER -> {
-                    localDb.getCustomPlaylistSongs(songsList).map { playlistModel ->
+                    withContext(Dispatchers.IO) { localDb.getCustomPlaylistSongs(songsList) }.map { playlistModel ->
                         val isFavorite = favoriteIds.contains(playlistModel.id)
                         val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
                         PlaylistItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
@@ -246,14 +214,14 @@ class PlaylistRepositoryImpl(
                 }
 
                 PlayListEnum.TIME_CAPSULE -> {
-                    localDb.getTimeCapsuleSongs(20).map { playlistModel ->
+                    withContext(Dispatchers.IO) { localDb.getTimeCapsuleSongs(20) }.map { playlistModel ->
                         val isFavorite = favoriteIds.contains(playlistModel.id)
                         val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
                         PlaylistItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
                     }.toList()
                 }
             }
-        }.getOrElse { emptyList() }
+        }.getOrElse { if (it is CancellationException) throw it else emptyList() }
     }
 
     override suspend fun getTracks(
@@ -261,7 +229,7 @@ class PlaylistRepositoryImpl(
         category: String,
         timeRange: String
     ): List<TrackItem> {
-        val favoriteIds = localDb.getFavoritePlaylist().map { it.id }.toSet()
+        val favoriteIds = withContext(Dispatchers.IO) { localDb.libraryQueries.getFavoriteIds().executeAsList().toSet() }
         return runCatching {
             webservices.getTracks(limit, category, timeRange)?.data?.map { playlistModel ->
                 if (playlistModel.hasCurrentUserReposted) {
@@ -271,7 +239,7 @@ class PlaylistRepositoryImpl(
                 val isReposted = playlistModel.hasCurrentUserReposted || isTrackReposted(playlistModel.id)
                 TrackItem(playlistModel, isFavorite = isFavorite, isReposted = isReposted)
             }?.toList() ?: emptyList()
-        }.getOrElse { emptyList() }
+        }.getOrElse { if (it is CancellationException) throw it else emptyList() }
     }
 
     override fun getSongWithId(songId: String): PlayListModel? {
@@ -281,6 +249,6 @@ class PlaylistRepositoryImpl(
     override suspend fun fetchTrackDetails(trackId: String): PlayListModel? {
         return runCatching {
             webservices.getTrackDetails(trackId)
-        }.getOrNull()
+        }.getOrElse { if (it is CancellationException) throw it else null }
     }
 }

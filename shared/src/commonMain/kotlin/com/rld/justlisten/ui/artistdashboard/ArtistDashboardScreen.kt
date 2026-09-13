@@ -39,7 +39,8 @@ import com.rld.justlisten.navigation.LocalUseNativeNavigation
 fun ArtistDashboardScreen(
     state: ArtistDashboardState,
     onBackPressed: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onRetry: () -> Unit = {},
 ) {
     val useNativeNavigation = LocalUseNativeNavigation.current
     Scaffold(
@@ -115,7 +116,7 @@ fun ArtistDashboardScreen(
                     }
                 }
                 else -> {
-                    DashboardContent(state)
+                    DashboardContent(state, onRetry)
                 }
             }
         }
@@ -123,7 +124,7 @@ fun ArtistDashboardScreen(
 }
 
 @Composable
-private fun DashboardContent(state: ArtistDashboardState) {
+private fun DashboardContent(state: ArtistDashboardState, onRetry: () -> Unit) {
     val bottomContentPadding = LocalNativeBottomOverlayPadding.current
     // 1. Calculations
     val totalPlays = remember(state.monthlyListens) {
@@ -175,6 +176,14 @@ private fun DashboardContent(state: ArtistDashboardState) {
 
         // --- SECTION: GRID METRICS ---
         item {
+            listOfNotNull(state.listensError, state.downloadsError, state.salesError).forEach { message ->
+                Text(message, color = MaterialTheme.colorScheme.onBackground, fontSize = 13.sp)
+            }
+            if (state.listensError != null || state.downloadsError != null || state.salesError != null) {
+                TextButton(onClick = onRetry) { Text("Retry") }
+            }
+        }
+        item {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -182,14 +191,14 @@ private fun DashboardContent(state: ArtistDashboardState) {
                 ) {
                     MetricCard(
                         title = "Total Plays",
-                        value = totalPlays.toString(),
+                        value = metricValue(state.listensLoading, state.listensError, totalPlays.toString()),
                         icon = Icons.AutoMirrored.Filled.TrendingUp,
                         gradientColors = listOf(Color(0xFF6B11CB), Color(0xFF2575FC)),
                         modifier = Modifier.weight(1f)
                     )
                     MetricCard(
                         title = "Downloads",
-                        value = state.downloadsCount.toString(),
+                        value = metricValue(state.downloadsLoading, state.downloadsError, state.downloadsCount.toString()),
                         icon = Icons.Default.GetApp,
                         gradientColors = listOf(Color(0xFF11998E), Color(0xFF38EF7D)),
                         modifier = Modifier.weight(1f)
@@ -201,14 +210,14 @@ private fun DashboardContent(state: ArtistDashboardState) {
                 ) {
                     MetricCard(
                         title = "USDC Sales",
-                        value = "${totalSales} items",
+                        value = metricValue(state.salesLoading, state.salesError, "${totalSales} items"),
                         icon = Icons.Default.AttachMoney,
                         gradientColors = listOf(Color(0xFFFF8C00), Color(0xFFF12711)),
                         modifier = Modifier.weight(1f)
                     )
                     MetricCard(
                         title = "Active Tracks",
-                        value = activeTracksCount.toString(),
+                        value = metricValue(state.listensLoading, state.listensError, activeTracksCount.toString()),
                         icon = Icons.Default.MusicNote,
                         gradientColors = listOf(Color(0xFF00B4DB), Color(0xFF0083B0)),
                         modifier = Modifier.weight(1f)
@@ -242,7 +251,7 @@ private fun DashboardContent(state: ArtistDashboardState) {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No trend data available",
+                                text = metricValue(state.listensLoading, state.listensError, "No trend data available"),
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                                 fontSize = 13.sp
                             )
@@ -280,7 +289,7 @@ private fun DashboardContent(state: ArtistDashboardState) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No track data recorded yet.",
+                            text = metricValue(state.listensLoading, state.listensError, "No track data recorded yet."),
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                         )
                     }
@@ -308,6 +317,12 @@ private fun DashboardContent(state: ArtistDashboardState) {
             }
         }
     }
+}
+
+private fun metricValue(loading: Boolean, error: String?, value: String): String = when {
+    loading -> "Loading…"
+    error != null -> "Unavailable"
+    else -> value
 }
 
 @Composable

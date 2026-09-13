@@ -41,6 +41,7 @@ import com.rld.justlisten.ui.utils.getGreetingText
 import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
 
 import com.rld.justlisten.ui.components.MusicLoadingSpinner
+import com.rld.justlisten.ui.components.NowPlayingIndicator
 import com.rld.justlisten.ui.LocalMusicPlayer
 import com.rld.justlisten.media.PlaybackStatus
 import androidx.compose.ui.graphics.Color
@@ -387,7 +388,7 @@ fun TrackCardItem(
                             .background(Color.Black.copy(alpha = 0.5f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        MusicLoadingSpinner(
+                        NowPlayingIndicator(
                             size = 20.dp,
                             color = Color.White
                         )

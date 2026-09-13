@@ -116,6 +116,12 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.test)
             }
         }
+        val androidHostTest by getting {
+            dependencies {
+                implementation("app.cash.sqldelight:sqlite-driver:${libs.versions.sqldelightVersion.get()}")
+                implementation("io.ktor:ktor-client-mock:${libs.versions.ktorVersion.get()}")
+            }
+        }
         val androidMain by getting {
             dependencies {
                 implementation(libs.ktor.client.okhttp)
@@ -159,7 +165,6 @@ sqldelight {
         }
     }
 }
-
 
 
 

@@ -39,7 +39,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.rld.justlisten.media.MediaMetadata
 import com.rld.justlisten.ui.LocalMusicPlayer
-import com.rld.justlisten.ui.components.MusicLoadingSpinner
+import com.rld.justlisten.ui.components.NowPlayingIndicator
 import com.rld.justlisten.ui.components.ConfirmDialog
 import com.rld.justlisten.ui.components.AnimatedShimmer
 
@@ -309,7 +309,7 @@ fun TrackCard(
                                     .background(Color.Black.copy(alpha = 0.6f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                MusicLoadingSpinner(color = Color(0xFFE91E63), size = 20.dp)
+                                NowPlayingIndicator(color = Color(0xFFE91E63), size = 20.dp)
                             }
                         }
                     }

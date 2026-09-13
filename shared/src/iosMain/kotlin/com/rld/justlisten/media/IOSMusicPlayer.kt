@@ -104,6 +104,8 @@ class IOSMusicPlayer(
     private var timeObserverToken: Any? = null
     
     private val activeDownloads = mutableMapOf<String, NSURLSessionDownloadTask>()
+    // Accessed only on Main. Playback and preloading may share the same transfer.
+    private val downloadUsers = mutableMapOf<String, Int>()
     
     private var interruptionObserver: Any? = null
     private var routeChangeObserver: Any? = null
@@ -263,7 +265,9 @@ class IOSMusicPlayer(
             }
         }
 
-        configureAudioSession(activate = true)
+        // Configure the category now, but do not claim the system audio session
+        // until playback actually begins.
+        configureAudioSession(activate = false)
         installPeriodicTimeObservers()
 
         // Periodically monitor network at a relaxed interval (5s)
@@ -311,6 +315,8 @@ class IOSMusicPlayer(
         PlaybackState(PlaybackStatus.IDLE, 0L, null, false, RepeatMode.NONE)
     )
     override val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
+    private val _playbackPosition = MutableStateFlow(0L)
+    override val playbackPosition: StateFlow<Long> = _playbackPosition.asStateFlow()
 
     private val _currentPlaylist = MutableStateFlow<List<MediaMetadata>>(emptyList())
     override val currentPlaylist: StateFlow<List<MediaMetadata>> = _currentPlaylist.asStateFlow()
@@ -354,7 +360,7 @@ class IOSMusicPlayer(
             PlaybackStatus.BUFFERING
         }
         updateState(status)
-        updateNowPlayingInfo(metadata, _playbackState.value.currentPosition)
+        updateNowPlayingInfo(metadata, _playbackPosition.value)
     }
 
     private fun resumeAfterMediaServicesReset(decision: MediaServicesResumeDecision.Start) {
@@ -397,6 +403,7 @@ class IOSMusicPlayer(
             }
 
             currentPlayer.play()
+            _playbackPosition.value = decision.snapshot.positionMs
             _playbackState.update { state ->
                 state.copy(
                     status = PlaybackStatus.PLAYING,
@@ -419,7 +426,7 @@ class IOSMusicPlayer(
             currentPlayer.pause()
         }
         updateState(PlaybackStatus.PAUSED)
-        updateNowPlayingInfo(_playbackState.value.currentMedia, _playbackState.value.currentPosition)
+        updateNowPlayingInfo(_playbackState.value.currentMedia, _playbackPosition.value)
     }
 
     override fun stop() {
@@ -497,6 +504,7 @@ class IOSMusicPlayer(
         activePlayerItem = null
         invalidatePreload()
 
+        _playbackPosition.value = 0L
         _playbackState.update { state ->
             state.copy(
                 status = PlaybackStatus.BUFFERING,
@@ -553,28 +561,43 @@ class IOSMusicPlayer(
         }?.let { return it }
 
         val streamUrl = getStreamUrl(songId) ?: return null
-        kotlinx.coroutines.withContext(Dispatchers.Main) {
-            triggerBackgroundDownload(songId, streamUrl)
-        }
-
-        // Audius stream redirects can land on nodes that ignore HTTP byte-range
-        // requests. AVFoundation rejects those URLs as ServerIncorrectlyConfigured.
-        // NSURLSession can still download the complete response, so only hand a
-        // fully local file to AVPlayer.
-        repeat(600) {
-            getCacheFileUrl(songId)?.takeIf { cachedUrl ->
-                cachedUrl.path?.let(NSFileManager.defaultManager::fileExistsAtPath) == true
-            }?.let { return it }
-
-            val downloadIsActive = kotlinx.coroutines.withContext(Dispatchers.Main) {
-                activeDownloads.containsKey(songId)
+        var registered = false
+        try {
+            kotlinx.coroutines.withContext(Dispatchers.Main) {
+                downloadUsers[songId] = (downloadUsers[songId] ?: 0) + 1
+                registered = true
+                triggerBackgroundDownload(songId, streamUrl)
             }
-            if (!downloadIsActive) return null
-            delay(100L)
-        }
+            // Audius stream redirects can land on nodes that ignore HTTP byte-range
+            // requests. AVFoundation rejects those URLs as ServerIncorrectlyConfigured.
+            // NSURLSession can still download the complete response, so only hand a
+            // fully local file to AVPlayer.
+            repeat(600) {
+                getCacheFileUrl(songId)?.takeIf { cachedUrl ->
+                    cachedUrl.path?.let(NSFileManager.defaultManager::fileExistsAtPath) == true
+                }?.let { return it }
 
-        Logger.e { "Timed out downloading local playback file for $songId" }
-        return null
+                val downloadIsActive = kotlinx.coroutines.withContext(Dispatchers.Main) {
+                    activeDownloads.containsKey(songId)
+                }
+                if (!downloadIsActive) return null
+                delay(100L)
+            }
+
+            Logger.e { "Timed out downloading local playback file for $songId" }
+            return null
+        } finally {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable + Dispatchers.Main) {
+                if (!registered) return@withContext
+                val remaining = (downloadUsers[songId] ?: 1) - 1
+                if (remaining > 0) {
+                    downloadUsers[songId] = remaining
+                } else {
+                    downloadUsers.remove(songId)
+                    activeDownloads.remove(songId)?.cancel()
+                }
+            }
+        }
     }
 
     private fun triggerBackgroundDownload(songId: String, nsUrl: NSURL) {
@@ -584,8 +607,12 @@ class IOSMusicPlayer(
         
         val localUrl = getCacheFileUrl(songId) ?: return
         
-        val task = NSURLSession.sharedSession.downloadTaskWithURL(nsUrl) { location, _, error ->
-            dispatch_async(dispatch_get_main_queue()) {
+        var task: NSURLSessionDownloadTask? = null
+        val newTask = NSURLSession.sharedSession.downloadTaskWithURL(nsUrl) { location, _, error ->
+            // The temporary URL is valid only during this completion callback.
+            // Serialize with cancellation and save it before returning to NSURLSession.
+            platform.darwin.dispatch_sync(dispatch_get_main_queue()) {
+                if (activeDownloads[songId] !== task) return@dispatch_sync
                 activeDownloads.remove(songId)
                 if (error == null && location != null) {
                     val fileManager = NSFileManager.defaultManager
@@ -606,8 +633,9 @@ class IOSMusicPlayer(
                 }
             }
         }
-        activeDownloads[songId] = task
-        task.resume()
+        task = newTask
+        activeDownloads[songId] = newTask
+        newTask.resume()
     }
 
     private fun cleanCache() {
@@ -866,6 +894,9 @@ class IOSMusicPlayer(
     }
 
     private fun updateState(status: PlaybackStatus, currentMedia: MediaMetadata? = _playbackState.value.currentMedia) {
+        if (currentMedia != null && currentMedia.id != _playbackState.value.currentMedia?.id) {
+            _playbackPosition.value = 0L
+        }
         _playbackState.update { state ->
             state.copy(
                 status = status,
@@ -905,6 +936,7 @@ class IOSMusicPlayer(
         cancelCrossfade()
         val time = CMTimeMake(position, 1000)
         currentPlayer.seekToTime(time)
+        _playbackPosition.value = position
         updateNowPlayingInfo(_playbackState.value.currentMedia, position)
     }
 
@@ -1058,7 +1090,7 @@ class IOSMusicPlayer(
                         )
                     )
                 }
-                updateNowPlayingInfo(_playbackState.value.currentMedia, _playbackState.value.currentPosition)
+                updateNowPlayingInfo(_playbackState.value.currentMedia, _playbackPosition.value)
             }
         }
     }
@@ -1130,12 +1162,15 @@ class IOSMusicPlayer(
             currentMedia
         }
 
-        _playbackState.update { state ->
-            state.copy(
-                status = currentStatus,
-                currentPosition = currentMs,
-                currentMedia = updatedMedia
-            )
+        _playbackPosition.value = currentMs
+        if (currentStatus != oldStatus || durationMs != oldDuration) {
+            _playbackState.update { state ->
+                state.copy(
+                    status = currentStatus,
+                    currentPosition = currentMs,
+                    currentMedia = updatedMedia
+                )
+            }
         }
 
         val driftThresholdMs = 10000L
@@ -1441,6 +1476,7 @@ class IOSMusicPlayer(
 
     private fun handleMediaServicesLost() {
         val playback = _playbackState.value
+        val positionMs = _playbackPosition.value
         val metadata = playback.currentMedia
         val shouldPreserveTrack = metadata != null && playback.status in setOf(
             PlaybackStatus.PLAYING,
@@ -1457,18 +1493,18 @@ class IOSMusicPlayer(
             mediaServicesRecovery.onLost(
                 MediaServicesRecoverySnapshot(
                     mediaId = metadata.id,
-                    positionMs = playback.currentPosition,
+                    positionMs = positionMs,
                     wasPlaying = playback.status == PlaybackStatus.PLAYING,
                 )
             )
             _playbackState.update { state ->
                 state.copy(
                     status = PlaybackStatus.PAUSED,
-                    currentPosition = playback.currentPosition,
+                    currentPosition = positionMs,
                     currentMedia = metadata,
                 )
             }
-            updateNowPlayingInfo(metadata, playback.currentPosition)
+            updateNowPlayingInfo(metadata, positionMs)
         } else {
             mediaServicesRecovery.clear()
         }
@@ -1477,6 +1513,7 @@ class IOSMusicPlayer(
 
     private fun handleMediaServicesReset() {
         val playback = _playbackState.value
+        val positionMs = _playbackPosition.value
         val metadata = playback.currentMedia
         val shouldPreserveTrack = metadata != null && playback.status in setOf(
             PlaybackStatus.PLAYING,
@@ -1494,7 +1531,7 @@ class IOSMusicPlayer(
             mediaServicesRecovery.onReset(
                 MediaServicesRecoverySnapshot(
                     mediaId = recoverableMetadata.id,
-                    positionMs = playback.currentPosition,
+                    positionMs = positionMs,
                     wasPlaying = playback.status == PlaybackStatus.PLAYING,
                 )
             )
@@ -1516,14 +1553,15 @@ class IOSMusicPlayer(
         configureAudioSession(activate = false)
 
         if (recoverableMetadata != null) {
+            _playbackPosition.value = positionMs
             _playbackState.update { state ->
                 state.copy(
                     status = PlaybackStatus.PAUSED,
-                    currentPosition = playback.currentPosition,
+                    currentPosition = positionMs,
                     currentMedia = recoverableMetadata,
                 )
             }
-            updateNowPlayingInfo(recoverableMetadata, playback.currentPosition)
+            updateNowPlayingInfo(recoverableMetadata, positionMs)
         } else {
             updateNowPlayingInfo(null, 0L)
         }

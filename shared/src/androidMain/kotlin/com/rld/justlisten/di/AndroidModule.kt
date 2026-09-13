@@ -28,6 +28,8 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import com.rld.justlisten.datalayer.DatabaseSchemaHelper
+import com.rld.justlisten.datalayer.repositories.SyncRetryScheduler
+import com.rld.justlisten.workers.AndroidSyncRetryScheduler
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.database.StandaloneDatabaseProvider
 import java.io.File
@@ -40,6 +42,8 @@ fun androidModule(apiKey: String = "") = module {
     single<SecureStorage> { AndroidSecureStorage(androidContext()) }
 
     single<PkceCrypto> { AndroidPkceCrypto() }
+
+    single<SyncRetryScheduler> { AndroidSyncRetryScheduler(androidContext()) }
 
     single { ApiClient(apiKey = apiKey, secureStorage = get()) }
 
@@ -68,6 +72,6 @@ fun androidModule(apiKey: String = "") = module {
             .setUpstreamDataSourceFactory(httpDataSourceFactory)
     }
     single { MusicPreloader(get()) }
-    single { MusicServiceConnection(get(), get(), androidContext()) }
+    single { MusicServiceConnection(get(), lazy { get<MusicPreloader>() }, androidContext()) }
     single<MusicPlayer> { AndroidMusicPlayer(get(), get(), get()) }
 }

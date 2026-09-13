@@ -30,7 +30,7 @@ import coil3.request.ImageRequest
 import com.rld.justlisten.datalayer.repositories.LibraryRepository
 import com.rld.justlisten.media.MusicPlayer
 import com.rld.justlisten.media.PlaybackStatus
-import com.rld.justlisten.ui.components.MusicLoadingSpinner
+import com.rld.justlisten.ui.components.NowPlayingIndicator
 import com.rld.justlisten.ui.utils.playMusicFromId
 import com.rld.justlisten.viewmodel.screens.library.LibraryState
 import com.rld.justlisten.navigation.LocalNativeBottomOverlayPadding
@@ -460,7 +460,7 @@ fun MusicInsightsScreen(
                                             .background(Color.Black.copy(alpha = 0.5f)),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        MusicLoadingSpinner(
+                                        NowPlayingIndicator(
                                             size = 18.dp,
                                             color = Color.White
                                         )

@@ -59,6 +59,8 @@ class MusicService : MediaSessionService() {
     private var secondaryDynamicsProcessing: android.media.audiofx.DynamicsProcessing? = null
     private var secondaryDynamicsProcessingSessionId: Int = -1
     private var audioAttributes: AudioAttributes? = null
+    private var cacheDataSourceFactory: androidx.media3.datasource.cache.CacheDataSource.Factory? = null
+    private var playerVolumeListener: Player.Listener? = null
     private var audioFocusRequest: android.media.AudioFocusRequest? = null
     private var wasPlayingBeforeFocusLoss = false
 
@@ -136,7 +138,8 @@ class MusicService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
 
-        val cacheDataSourceFactory: androidx.media3.datasource.cache.CacheDataSource.Factory by inject()
+        val injectedCacheDataSourceFactory: androidx.media3.datasource.cache.CacheDataSource.Factory by inject()
+        cacheDataSourceFactory = injectedCacheDataSourceFactory
         val attrs: androidx.media3.common.AudioAttributes by inject()
         audioAttributes = attrs
 
@@ -177,9 +180,10 @@ class MusicService : MediaSessionService() {
                 }
             }
         }
+        playerVolumeListener = volumeListener
 
         val player = ExoPlayer.Builder(this)
-            .setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(cacheDataSourceFactory))
+            .setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(injectedCacheDataSourceFactory))
             .build().apply {
                 setAudioAttributes(attrs, false)
                 setHandleAudioBecomingNoisy(true)
@@ -187,27 +191,6 @@ class MusicService : MediaSessionService() {
         player.addListener(volumeListener)
         exoPlayer = player
         currentPlayer = player
-
-        // Optimize buffer sizes for secondary player to conserve RAM, perform memory checks
-        if (!isLowMemoryDevice()) {
-            val loadControl = DefaultLoadControl.Builder()
-                .setBufferDurationsMs(
-                    15000, // minBufferMs
-                    20000, // maxBufferMs
-                    1500,  // bufferForPlaybackMs
-                    2000   // bufferForPlaybackAfterRebufferMs
-                )
-                .build()
-
-            secondaryExoPlayer = ExoPlayer.Builder(this)
-                .setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(cacheDataSourceFactory))
-                .setLoadControl(loadControl)
-                .build().apply {
-                    setAudioAttributes(attrs, false)
-                    setHandleAudioBecomingNoisy(true)
-                }
-            secondaryExoPlayer?.addListener(volumeListener)
-        }
 
         val activityIntent = packageManager?.getLaunchIntentForPackage(packageName)?.let {
             PendingIntent.getActivity(this, 0, it, PendingIntent.FLAG_IMMUTABLE)
@@ -243,6 +226,31 @@ class MusicService : MediaSessionService() {
         return lowRam || lowFreeMem
     }
 
+    private fun createSecondaryPlayer(): ExoPlayer? {
+        secondaryExoPlayer?.let { return it }
+        if (isLowMemoryDevice()) return null
+        val factory = cacheDataSourceFactory ?: return null
+        val attrs = audioAttributes ?: return null
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                15_000,
+                20_000,
+                1_500,
+                2_000,
+            )
+            .build()
+        return ExoPlayer.Builder(this)
+            .setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(factory))
+            .setLoadControl(loadControl)
+            .build()
+            .apply {
+                setAudioAttributes(attrs, false)
+                setHandleAudioBecomingNoisy(true)
+                playerVolumeListener?.let(::addListener)
+                secondaryExoPlayer = this
+            }
+    }
+
     private fun startProgressMonitor() {
         progressMonitorJob?.cancel()
         progressMonitorJob = serviceScope.launch {
@@ -274,8 +282,8 @@ class MusicService : MediaSessionService() {
 
     private fun startCrossfade(durationMs: Long, nextIndex: Int) {
         val primary = currentPlayer ?: return
-        val secondary = secondaryExoPlayer ?: return
         if (isLowMemoryDevice()) return
+        val secondary = secondaryExoPlayer ?: createSecondaryPlayer() ?: return
 
         isCrossfading = true
         crossfadeTargetVolume = primary.volume
